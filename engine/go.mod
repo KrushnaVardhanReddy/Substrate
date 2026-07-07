@@ -1,6 +1,6 @@
 module github.com/KrushnaVardhanReddy/substrate/engine
 
-go 1.22.0
+go 1.26
 
 require (
 	github.com/getkin/kin-openapi v0.140.0
@@ -26,5 +26,4 @@ require (
 	github.com/wI2L/jsondiff v0.7.1 // indirect
 	github.com/yargevad/filepathx v1.0.0 // indirect
 	golang.org/x/text v0.36.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

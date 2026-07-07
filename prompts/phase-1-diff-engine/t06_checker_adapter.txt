@@ -10,7 +10,7 @@ MANDATORY RULES — VIOLATION = REJECTED PR:
 7. 100% SPEC-FIRST RULE: Implement exactly what docs/specs/openapi-checker-adapter.md defines.
 
 Project: Substrate — Go Diff Engine CLI
-Tech stack: Go 1.22, oasdiff v1.22.0 (already in go.mod), standard library
+Tech stack: Go 1.26, oasdiff v1.22.0 (already in go.mod), standard library
 
 ---
 

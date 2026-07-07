@@ -130,6 +130,11 @@ TASKS = {
         "phase": "phase-1-diff-engine",
         "prompt": _load_prompt("prompts/phase-1-diff-engine/t04_tests.txt"),
     },
+    6: {
+        "name": "P1-T06 — oasdiff Checker Adapter (semantic 37-rule engine)",
+        "phase": "phase-1-diff-engine",
+        "prompt": _load_prompt("prompts/phase-1-diff-engine/t06_checker_adapter.txt"),
+    },
 
     # ── Phase 2: GitHub App ───────────────────────────────────────────────────
     10: {
@@ -159,16 +164,13 @@ def submit_task(task_num):
     full_prompt = SAFETY_RULES + "\n\n---\n\n" + task["prompt"]
 
     payload = json.dumps({
-        "agent_settings": {
-            "model_id": "GEMINI_2_5_PRO"
-        },
-        "context": {
-            "repository": {
-                "resource_name": REPO_SOURCE,
-                "branch": BRANCH
+        "prompt": full_prompt,
+        "sourceContext": {
+            "source": REPO_SOURCE,
+            "githubRepoContext": {
+                "startingBranch": BRANCH
             }
-        },
-        "prompt": full_prompt
+        }
     }).encode()
 
     req = urllib.request.Request(
@@ -176,7 +178,7 @@ def submit_task(task_num):
         data=payload,
         headers={
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {API_KEY}"
+            "x-goog-api-key": API_KEY
         },
         method="POST"
     )
@@ -202,14 +204,13 @@ def submit_file(filepath):
 
     full_prompt = SAFETY_RULES + "\n\n---\n\n" + prompt_content
     payload = json.dumps({
-        "agent_settings": {"model_id": "GEMINI_2_5_PRO"},
-        "context": {
-            "repository": {
-                "resource_name": REPO_SOURCE,
-                "branch": BRANCH
+        "prompt": full_prompt,
+        "sourceContext": {
+            "source": REPO_SOURCE,
+            "githubRepoContext": {
+                "startingBranch": BRANCH
             }
-        },
-        "prompt": full_prompt
+        }
     }).encode()
 
     req = urllib.request.Request(
@@ -217,7 +218,7 @@ def submit_file(filepath):
         data=payload,
         headers={
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {API_KEY}"
+            "x-goog-api-key": API_KEY
         },
         method="POST"
     )

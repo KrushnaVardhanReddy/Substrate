@@ -52,7 +52,7 @@ func CompareOpenAPI(basePath, revisionPath string, flattenAllOf bool) (*report.D
 
 	if !diffObj.Empty() {
 		if diffObj.PathsDiff != nil {
-			for pathName := range diffObj.PathsDiff.Deleted {
+			for _, pathName := range diffObj.PathsDiff.Deleted {
 				recommendation := "Add 'deprecated: true' before removing endpoints."
 				rep.BreakingChanges = append(rep.BreakingChanges, report.Change{
 					ID:             fmt.Sprintf("chg_path_del_%v", pathName),
@@ -65,7 +65,7 @@ func CompareOpenAPI(basePath, revisionPath string, flattenAllOf bool) (*report.D
 			}
 
 			// Example: Check for modified paths
-			for pathName := range diffObj.PathsDiff.Modified {
+			for _, pathName := range diffObj.PathsDiff.Modified {
 				recommendation := "Review path modifications carefully."
 				rep.Warnings = append(rep.Warnings, report.Change{
 					ID:             fmt.Sprintf("chg_path_mod_%v", pathName),
