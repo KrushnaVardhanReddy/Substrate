@@ -1,0 +1,73 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+1. NEVER stub, mock, or TODO existing implementation code.
+2. Every file you modify MUST still build — run `go build ./...` and `go vet ./...` before committing.
+3. If a test fails, FIX the code or test — do NOT delete or skip tests.
+4. Do NOT alter any file in docs/specs/ — those are READ-ONLY source-of-truth specs.
+5. All new Go packages MUST have at least one table-driven unit test (`_test.go` file).
+6. Commit message must start with "jules: " prefix.
+7. 100% SPEC-FIRST RULE: Implement exactly what docs/specs/diff-report-schema.md defines — no additions, no omissions.
+
+Project: Substrate — Go Diff Engine CLI
+Tech stack: Go (standard library only, no external frameworks)
+
+---
+
+TASK: P1-T01 — Go Module Scaffold
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Scaffold the Go module and project structure for the Substrate diff engine.
+No business logic yet — only the skeleton that all future tasks will build on.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FILE: engine/go.mod
+   - Module name: github.com/KrushnaVardhanReddy/substrate/engine
+   - Go version: 1.22
+
+2. FILE: engine/cmd/substrate/main.go
+   - Entry point for the CLI binary.
+   - For now: print "Substrate v0.1.0" and exit 0.
+   - Use os.Args to parse future flags (leave as TODO comment for now).
+
+3. FILE: engine/internal/report/report.go
+   - Define Go structs that EXACTLY match the DiffReport JSON schema in docs/specs/diff-report-schema.md.
+   - Every field must have correct `json:"..."` tags matching the spec.
+   - Structs to define: DiffReport, Summary, Change, SchemaType (string type alias), Severity (string type alias), ChangeSeverity (string type alias).
+   - Define constants for all enum values (e.g., SchemaTypeOpenAPI = "openapi", SeverityBreaking = "BREAKING", etc.)
+
+4. FILE: engine/internal/report/report_test.go
+   - Table-driven test that marshals a sample DiffReport to JSON and verifies the output matches the expected JSON from the spec example.
+   - Also test that unmarshaling the example JSON from the spec back into a DiffReport struct works correctly.
+
+5. FILE: engine/Makefile
+   - Targets: build, test, lint, clean
+   - `build`: go build -o bin/substrate ./cmd/substrate
+   - `test`: go test ./...
+   - `lint`: go vet ./...
+   - `clean`: rm -rf bin/
+
+6. FILE: .github/workflows/engine-ci.yml (at repo root)
+   - Trigger: pull_request targeting main, only if files under engine/** change.
+   - Steps: checkout, setup-go@v5 (go-version-file: engine/go.mod), run `make -C engine test`, run `make -C engine lint`.
+   - If any step fails → block merge.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO ADD:
+- engine/go.mod
+- engine/cmd/substrate/main.go
+- engine/internal/report/report.go
+- engine/internal/report/report_test.go
+- engine/Makefile
+- .github/workflows/engine-ci.yml
+
+FILES TO MODIFY:
+- None
+
+Commit: "jules: scaffold Go diff engine module and DiffReport structs"

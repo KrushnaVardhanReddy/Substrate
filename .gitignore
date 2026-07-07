@@ -1,0 +1,16 @@
+# Secrets — never commit
+.env.local
+.env
+
+# Go build artifacts
+engine/bin/
+
+# Node / npm
+node_modules/
+dist/
+
+# Stitch downloaded mockups (temporary)
+temp_mockups/
+
+# OS
+.DS_Store
