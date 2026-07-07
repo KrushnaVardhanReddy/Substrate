@@ -1,0 +1,28 @@
+name: Engine CI
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'engine/**'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'engine/go.mod'
+          cache-dependency-path: engine/go.sum
+          
+      - name: Install dependencies
+        run: make -C engine deps
+        
+      - name: Run Tests
+        run: make -C engine test
+        
+      - name: Run Linter
+        run: make -C engine lint

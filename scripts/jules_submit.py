@@ -27,7 +27,9 @@ def _load_api_key():
     if key:
         return key
     for envfile in [".env.local", ".env"]:
-        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), envfile)
+        # Look in the repo root, not the scripts/ directory
+        repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        path = os.path.join(repo_root, envfile)
         if os.path.exists(path):
             with open(path) as f:
                 for line in f:
