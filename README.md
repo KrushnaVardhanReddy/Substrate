@@ -775,4 +775,12 @@ Trying to be "everything everywhere all at once" is how startups die.
    ↓
 4. Best **Engineering Knowledge** Platform (Phase 3 & 4)
 
-One step at a time. Laser focus on Phase 1a.
+One step at a time.
+
+---
+
+# Credits & License
+
+Substrate is open-source software licensed under the **MIT License**. 
+
+The Phase 1a OpenAPI core engine relies on the incredible work done by the [oasdiff](https://github.com/Tufin/oasdiff) community. Substrate acts as the CI/CD policy enforcement wrapper around their highly performant AST differ.
