@@ -1,0 +1,51 @@
+openapi: 3.0.3
+info:
+  title: Test API
+  version: 1.0.0
+paths:
+  /customers:
+    get:
+      summary: Get customers
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Customer'
+  /customers/{id}:
+    get:
+      summary: Get a customer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+
+components:
+  schemas:
+    Customer:
+      type: object
+      required:
+        - id
+        - name
+        - email
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        age:
+          type: integer

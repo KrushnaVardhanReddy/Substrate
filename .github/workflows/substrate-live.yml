@@ -1,0 +1,19 @@
+name: Substrate Live Demo
+
+on:
+  pull_request:
+    branches: [test-base]
+
+jobs:
+  check-api-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check API Breaking Changes
+        uses: ./ # Runs the action locally from this repo!
+        with:
+          base_schema: docs/api.yaml
+          head_schema: docs/api.yaml
