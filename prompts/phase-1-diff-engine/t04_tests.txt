@@ -1,0 +1,63 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+1. NEVER stub, mock, or TODO existing implementation code.
+2. Every file you modify MUST still build — run `go build ./...` and `go vet ./...` before committing.
+3. If a test fails, FIX the code or test — do NOT delete or skip tests.
+4. Do NOT alter any file in docs/specs/ — those are READ-ONLY source-of-truth specs.
+5. TESTING IS MANDATORY — every task MUST include both:
+   a. Unit tests: table-driven `_test.go` files. Min 80% coverage on new code.
+   b. E2E tests: invoke the compiled binary with real input files and assert stdout/exit code.
+6. Commit message must start with "jules: " prefix.
+7. 100% SPEC-FIRST RULE: Implement exactly what the specs define.
+
+Project: Substrate — Go Diff Engine CLI
+Tech stack: Go 1.22, standard library
+
+---
+
+TASK: P1-T04 — End-to-End (E2E) Test Suite
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Write the final End-to-End integration tests for the Substrate Diff Engine CLI. 
+These tests must compile the binary and execute it against real OpenAPI YAML files and a real `substrate.yaml` configuration file to ensure the entire pipeline (parser -> diff -> override config -> formatter -> exit code) works correctly.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FILE: engine/cmd/substrate/e2e_test.go
+   - Create a table-driven test `TestE2ECli`.
+   - In the `TestMain` or a setup function, run `go build -o substrate-test` to compile the binary once for the tests.
+   - Write test cases that invoke the compiled binary using `exec.Command`.
+   - Required Test Cases:
+     a) Safe change -> Expect exit code 0
+     b) Warning change -> Expect exit code 1
+     c) Breaking change -> Expect exit code 2
+     d) Breaking change WITH a valid override in `substrate.yaml` -> Expect exit code 0 or 1 (depending on warnings), but NOT 2.
+     e) Invalid OpenAPI spec -> Expect exit code 3 (Validation failure).
+     f) Missing `substrate.yaml` required fields -> Expect exit code 3.
+   - Assert that the stdout output format matches the requested `--format` (json, text, changelog) by checking for expected keywords in the output string.
+
+2. FILE: engine/cmd/substrate/testdata/ (Directory)
+   - Add necessary mock files for the tests:
+     - `base.yaml` (valid openapi)
+     - `rev_breaking.yaml` (openapi with breaking change)
+     - `substrate_valid.yaml` (config with an active override for the breaking change)
+     - `substrate_invalid.yaml` (config missing required fields)
+
+3. FILE: engine/Makefile
+   - Ensure the `test` target runs these E2E tests properly.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO ADD:
+- engine/cmd/substrate/e2e_test.go
+- engine/cmd/substrate/testdata/*
+
+FILES TO MODIFY:
+- engine/Makefile
+
+Commit: "jules: implement complete E2E test suite for CLI binary"

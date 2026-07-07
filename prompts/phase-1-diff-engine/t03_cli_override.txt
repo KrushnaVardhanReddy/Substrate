@@ -1,0 +1,64 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+1. NEVER stub, mock, or TODO existing implementation code.
+2. Every file you modify MUST still build — run `go build ./...` and `go vet ./...` before committing.
+3. If a test fails, FIX the code or test — do NOT delete or skip tests.
+4. Do NOT alter any file in docs/specs/ — those are READ-ONLY source-of-truth specs.
+5. TESTING IS MANDATORY — every task MUST include both:
+   a. Unit tests: table-driven `_test.go` files. Min 80% coverage on new code.
+   b. E2E tests: invoke the compiled binary with real input files and assert stdout/exit code.
+6. Commit message must start with "jules: " prefix.
+7. 100% SPEC-FIRST RULE: Implement exactly what the specs define.
+
+Project: Substrate — Go Diff Engine CLI
+Tech stack: Go 1.22, standard library + gopkg.in/yaml.v3 (for config parsing)
+
+---
+
+TASK: P1-T03 — Override Config Parser + CLI Formatting
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement the parser for `substrate.yaml` according to `docs/specs/override-config.md`.
+Update the diff engine to filter out "Acknowledged" breaking changes based on the config.
+Update the CLI to support `--format text` and `--format changelog` output modes.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FILE: engine/go.mod
+   - Run `go get gopkg.in/yaml.v3` to add YAML parsing support.
+
+2. FILE: engine/internal/config/config.go
+   - Define Go structs that exactly match the YAML structure in `docs/specs/override-config.md`.
+   - Structs: `SubstrateConfig`, `Owner`, `Override`.
+   - Write a function `LoadConfig(path string) (*SubstrateConfig, error)`.
+   - Implement the validation rules from the spec (e.g., exit if `service` or `spec_path` is missing).
+   - Add a method `func (c *SubstrateConfig) IsOverrideActive(ruleID, path string) bool` that checks if a valid, unexpired override exists.
+
+3. FILE: engine/internal/config/config_test.go
+   - Write table-driven tests verifying `LoadConfig` successfully parses valid YAML and throws errors for missing required fields.
+   - Test `IsOverrideActive` with future and past (expired) dates.
+
+4. FILE: engine/cmd/substrate/main.go
+   - Add the `--config` flag (default `"./substrate.yaml"`).
+   - Add the `--format` flag (default `"json"`, valid: `json`, `text`, `changelog`).
+   - If `LoadConfig` succeeds, pass the config to the diffing logic so it can filter breaking changes.
+   - If `--format text` is used, print the human-readable text output as defined in `docs/specs/diff-report-schema.md`.
+   - If `--format changelog` is used, print the Markdown PR comment format.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO ADD:
+- engine/internal/config/config.go
+- engine/internal/config/config_test.go
+
+FILES TO MODIFY:
+- engine/go.mod
+- engine/go.sum
+- engine/cmd/substrate/main.go
+
+Commit: "jules: implement substrate.yaml config parser and CLI formatters"
