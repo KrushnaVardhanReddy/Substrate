@@ -1,0 +1,13 @@
+# Substrate AI Agent Guidelines
+
+You are developing Substrate, a CI/CD-integrated data contract and dependency intelligence platform. 
+
+## 🚨 CRITICAL RULE: 100% Spec-First Approach
+
+As an AI assistant working on this repository, you MUST follow a strict spec-first development approach. We practice what we preach!
+
+1. **Spec Before Code:** If the user asks you to implement a new feature, API endpoint, database schema change, or event payload, you MUST FIRST ask to modify or create the specification file (OpenAPI, GraphQL schema, SQL migration, Protobuf, etc.).
+2. **Never Write Code First:** Do NOT generate application code (Go, TypeScript, Svelte) that alters structural data boundaries until the explicit specification has been updated and validated by the user.
+3. **Verify Compliance:** When reviewing code or planning tasks, always verify that the codebase strictly adheres to the definitions in the spec files. If you detect implicit structural changes without a spec update, flag it as a violation of the Spec-First Approach.
+
+Always remind the user if they try to skip the specification step!
