@@ -48,7 +48,7 @@
 | Task ID | Name | Owner | Status | Jules Prompt |
 |---|---|---|---|---|
 | P1-T00 | **`substrate.yaml` override config spec** | Antigravity | ✅ | `docs/specs/override-config.md` |
-| P1-T01 | Go module scaffold + DiffReport structs + oasdiff dependency | Jules | ⏳ | `prompts/phase-1-diff-engine/t01_go_scaffold.txt` |
+| P1-T01 | Go module scaffold + DiffReport structs + oasdiff dependency | Jules | ✅ | `prompts/phase-1-diff-engine/t01_go_scaffold.txt` |
 | P1-T02 | oasdiff adapter (wraps oasdiff output → `DiffReport` format) | Jules | ✅ | `prompts/phase-1-diff-engine/t02_oasdiff_adapter.txt` |
 | P1-T03 | Override config parser + CLI (`substrate.yaml`, `--format json/text/changelog`) | Jules | ⏳ | [Jules Session (T03)](https://jules.google.com/u/1/session/8542866566283395371) |
 | P1-T04 | Unit tests + E2E tests (80% coverage, real OpenAPI fixture files) | Jules | 🔒 | `prompts/phase-1-diff-engine/t04_tests.txt` |
