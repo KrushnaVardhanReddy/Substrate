@@ -60,8 +60,10 @@ This is a question worth addressing upfront.
 | 1 | **OpenAPI 3.x YAML/JSON** | Most REST APIs, highest pain point, largest market |
 | 2 | **SQL Migrations** | Postgres ALTER TABLE, extremely common |
 | 3 | **GraphQL SDL** | Large market, especially product companies |
-| 4 | **Protobuf** | Enterprise/microservice-heavy, Google-style shops |
-| 5 | **Avro/JSON Schema** | Kafka-heavy data engineering teams |
+| 4 | **Protobuf & gRPC** | Enterprise/microservice-heavy, Google-style shops |
+| 5 | **AsyncAPI & Apache Avro** | Kafka-heavy data engineering & event-driven architectures |
+| 6 | **AI/ML Model Contracts** | Preventing silent data-drift and ML training failures |
+| 7 | **Enterprise Metadata** | Salesforce Custom Objects & SOAP WSDLs for legacy integrations |
 
 **Rule:** Start with OpenAPI only. Ship that. Then add SQL. Do not try to support everything on day one.
 

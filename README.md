@@ -579,6 +579,8 @@ Substrate follows the standard developer tool playbook (like Vercel, Datadog, St
 
 ## Distribution & Go-to-Market (GTM)
 
+
+
 1. **GitHub Marketplace (The MVP Wedge) 🏆**: The immediate path to users is shipping the CLI as a GitHub Action. Developers search "API breaking changes", install the action, and get CI failures on breaking changes. This is the highest ROI acquisition channel.
 2. **"Optic Alternative" SEO**: With Optic sunset in 2026, teams are actively searching for replacements. Publishing content positioning Substrate as the modern alternative captures this high-intent traffic.
 3. **Developer Communities (HN, Reddit)**: Sharing the engineering journey (e.g., "Building an API contract checker in Go using oasdiff") generates organic awareness.
@@ -599,8 +601,10 @@ Phase 1 ships incrementally as schema format support is added to the same diff e
 * **1a — OpenAPI 3.x** (REST APIs) ← *ships first*
 * **1b — SQL Migrations** (PostgreSQL DDL)
 * **1c — GraphQL SDL**
-* **1d — Protobuf**
-* **1e — AI/ML Model Contracts** (model input/output schemas, dataset schemas, LLM structured output)
+* **1d — Protobuf & gRPC** (Microservices)
+* **1e — AsyncAPI & Apache Avro** (Kafka / Event-Driven Architectures)
+* **1f — AI/ML Model Contracts** (Model inputs, dataset schemas)
+* **1g — Enterprise Metadata** (Salesforce Custom Objects, SOAP WSDLs)
 
 Core features in all sub-phases:
 
@@ -653,34 +657,33 @@ Every team building on LLMs with structured JSON output (function calling, JSON 
 
 ---
 
-## Phase 2: Dependency Intelligence
+## Phase 2: GitHub App & Dependency Intelligence
 
-Goal:
-
-Understand the entire engineering ecosystem.
+Goal: Move from CLI-only to a fully automated CI/CD bot.
 
 Features:
-
-* Repository mapping
-* Service ownership
-* Impact analysis
-* Dependency graph
+* **1-click GitHub App installation:** Automated PR comments and merge blocking.
+* **Automated Dependency Discovery:** Eliminate manual YAML configuration by automatically mapping the dependency graph through:
+  * **Distributed Tracing:** Native ingestion of OpenTelemetry, Datadog APM, or New Relic traces.
+  * **Network Layer (eBPF & Service Mesh):** Direct integration with Istio, Linkerd, or eBPF network logs to map service-to-service communication.
+  * **Static Code Analysis:** AST scanning in CI to detect SDK imports and API calls.
+* **Service Ownership:** Map every discovered node to a team and an alert channel.
 
 ---
 
-## Phase 3: Living Documentation
+## Phase 3: The Intelligence Layer & Enterprise Integrations
 
-Goal:
-
-Replace outdated technical documentation.
+Goal: Turn Substrate into the central registry of truth for the entire engineering ecosystem.
 
 Features:
-
-* Auto-generated architecture diagrams
-* Service catalog
-* API documentation
-* Change history
-
+* **Developer Dashboard & Impact Analysis:** Cross-repo dependency graphs. "If I change this OpenAPI schema, which 3 repos will break?"
+* **Audit Trails:** Centralized view of all overridden breaking changes across the company.
+* **CI/CD Agnosticism:** Native integrations for Jenkins, GitLab CI, and Bitbucket (beyond GitHub) to capture the on-premise enterprise market.
+* **API Gateway & Event Registry Sync:** Once a schema is marked safe and merged, Substrate acts as the single source of truth and pushes the approved schema via a generic plugin layer to API Gateways (Kong, AWS API Gateway, MuleSoft) and Event Registries (Apache Kafka, Confluent Schema Registry).
+* **Developer Portal Sync (Backstage):** Automatically push live dependency graphs, ownership metadata, and approved specs directly into Spotify Backstage.
+* **Data Catalog & Warehouse Sync:** Prevent broken ETL pipelines by syncing SQL and event schemas directly with Enterprise Data Catalogs (Collibra, Alation) and Data Warehouses (Teradata, Snowflake).
+* **Automated SDK Generation:** Webhook triggers to automatically regenerate downstream TypeScript/Python SDKs and open PRs on consumer repositories when a safe backend API change is merged.
+* **Automated Test Generation:** Avoid building competing testing tools; instead, generate Postman Collections and MuleSoft APIkit test suites directly from the approved schema. Substrate pushes updates via Pull Requests or Cloud APIs, ensuring testing teams are always testing the correct contract without overwriting their custom local scripts.
 ---
 
 ## Phase 4: AI Engineering Assistant

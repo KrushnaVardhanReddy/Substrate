@@ -50,12 +50,11 @@
 | P1-T00 | **`substrate.yaml` override config spec** | Antigravity | ✅ | `docs/specs/override-config.md` |
 | P1-T01 | Go module scaffold + DiffReport structs + oasdiff dependency | Jules | ✅ | `prompts/phase-1-diff-engine/t01_go_scaffold.txt` |
 | P1-T02 | oasdiff adapter (wraps oasdiff output → `DiffReport` format) | Jules | ✅ | `prompts/phase-1-diff-engine/t02_oasdiff_adapter.txt` |
-| P1-T03 | Override config parser + CLI (`substrate.yaml`, `--format json/text/changelog`) | Jules | ⏳ | [Jules Session (T03)](https://jules.google.com/u/1/session/8542866566283395371) |
-| P1-T04 | Unit tests + E2E tests (80% coverage, real OpenAPI fixture files) | Jules | 🔒 | `prompts/phase-1-diff-engine/t04_tests.txt` |
+| P1-T03 | Override config parser + CLI (`substrate.yaml`, `--format json/text/changelog`) | Jules | ✅ | [Jules Session (T03)](https://jules.google.com/u/1/session/8542866566283395371) |
+| P1-T04 | Unit tests + E2E tests (80% coverage, real OpenAPI fixture files) | Jules | ⏳ | `prompts/phase-1-diff-engine/t04_tests.txt` |
 | **P1-T05** | **Add `NOTICES` file** — Apache 2.0 attribution for oasdiff ⚖️ | Antigravity | 🔒 | — |
 
-**Missing prompts to write:** T04
-**In Progress:** T03 (Waiting for Jules PR to merge)
+**Ready for Jules (Web UI):** T04
 
 ---
 
@@ -88,23 +87,40 @@
 | P1c-T02 | GraphQL breaking change rules spec | Antigravity | 🔒 |
 | P1c-T03 | GraphQL rule engine + tests | Jules | 🔒 |
 
-### Phase 1d — Protobuf 🔒 BLOCKED on 1a
+### Phase 1d — Protobuf & gRPC 🔒 BLOCKED on 1a
 
 | Task ID | Name | Owner | Status |
 |---|---|---|---|
-| P1d-T01 | Protobuf `.proto` parser | Jules | 🔒 |
+| P1d-T01 | Protobuf `.proto` / gRPC parser | Jules | 🔒 |
 | P1d-T02 | Protobuf breaking change rules spec | Antigravity | 🔒 |
 | P1d-T03 | Protobuf rule engine + tests | Jules | 🔒 |
 
-### Phase 1e — AI/ML Model Contracts ⭐ 🔒 BLOCKED on 1a
+### Phase 1e — AsyncAPI & Apache Avro 🔒 BLOCKED on 1a
 
 | Task ID | Name | Owner | Status |
 |---|---|---|---|
-| P1e-T01 | `substrate.yaml` model contract spec | Antigravity | 🔒 |
-| P1e-T02 | Model contract parser | Jules | 🔒 |
-| P1e-T03 | Dataset schema parser (CSV/Parquet) | Jules | 🔒 |
-| P1e-T04 | LLM structured output schema parser | Jules | 🔒 |
-| P1e-T05 | AI/ML rule engine + tests | Jules | 🔒 |
+| P1e-T01 | AsyncAPI & Avro schema parsers | Jules | 🔒 |
+| P1e-T02 | Event-driven breaking change rules spec | Antigravity | 🔒 |
+| P1e-T03 | Event-driven rule engine + tests | Jules | 🔒 |
+
+### Phase 1f — AI/ML Model Contracts ⭐ 🔒 BLOCKED on 1a
+
+| Task ID | Name | Owner | Status |
+|---|---|---|---|
+| P1f-T01 | `substrate.yaml` model contract spec | Antigravity | 🔒 |
+| P1f-T02 | Model contract parser | Jules | 🔒 |
+| P1f-T03 | Dataset schema parser (CSV/Parquet) | Jules | 🔒 |
+| P1f-T04 | LLM structured output schema parser | Jules | 🔒 |
+| P1f-T05 | AI/ML rule engine + tests | Jules | 🔒 |
+
+### Phase 1g — Enterprise Metadata (Salesforce & SOAP) 🔒 BLOCKED on 1a
+
+| Task ID | Name | Owner | Status |
+|---|---|---|---|
+| P1g-T01 | Salesforce Custom Object/XML parser | Jules | 🔒 |
+| P1g-T02 | SOAP WSDL parser | Jules | 🔒 |
+| P1g-T03 | Enterprise breaking change rules spec | Antigravity | 🔒 |
+| P1g-T04 | Enterprise rule engine + tests | Jules | 🔒 |
 
 ---
 
@@ -146,8 +162,8 @@
 These are not yet scheduled but are on the product roadmap:
 
 **Override & Skip Config** ⚠️ Must ship before Phase 2 GitHub App
-- [ ] Write `docs/specs/override-config.md` spec (P1-T00)
-- [ ] Parse `substrate.yaml` overrides in the diff engine (P1-T06)
+- [x] Write `docs/specs/override-config.md` spec (P1-T00)
+- [x] Parse `substrate.yaml` overrides in the diff engine (P1-T03)
 - [ ] Show "✅ Acknowledged" vs "❌ Blocking" in PR comments
 - [ ] Override expiry enforcement (auto-re-trigger on expired overrides)
 - [ ] Override audit trail in the dashboard (who approved what, when)
@@ -164,18 +180,7 @@ These are not yet scheduled but are on the product roadmap:
 - [ ] Add "Credits" section to dashboard UI footer
 - [ ] Review all Go module dependencies in `go.mod` for license compatibility before v1.0 release
 
-**Schema Format Extensions (Phase 1 follow-up)**
-- [ ] SQL migration schema support (Phase 1b)
-- [ ] GraphQL SDL schema support (Phase 1c)
-- [ ] Protobuf schema support (Phase 1d)
-- [ ] Avro / JSON Schema support
 
-**AI & ML Contract Protection** ⭐ Phase 1e — Same engine, new schema types
-- [ ] Dataset schema contracts (CSV, Parquet, Delta Lake)
-- [ ] ML model input/output contract validation via `substrate.yaml`
-- [ ] LLM structured output schema versioning & diff
-- [ ] Feature store schema protection
-- [ ] Model deployment gate
 
 **Integrations**
 - [ ] Slack integration for PR notifications
