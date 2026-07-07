@@ -47,14 +47,15 @@
 
 | Task ID | Name | Owner | Status | Jules Prompt |
 |---|---|---|---|---|
-| P1-T00 | **`substrate.yaml` override config spec** | Antigravity | ⏳ | `docs/specs/override-config.md` |
+| P1-T00 | **`substrate.yaml` override config spec** | Antigravity | ✅ | `docs/specs/override-config.md` |
 | P1-T01 | Go module scaffold + DiffReport structs + oasdiff dependency | Jules | ⏳ | `prompts/phase-1-diff-engine/t01_go_scaffold.txt` |
 | P1-T02 | oasdiff adapter (wraps oasdiff output → `DiffReport` format) | Jules | 🔒 | `prompts/phase-1-diff-engine/t02_oasdiff_adapter.txt` |
 | P1-T03 | Override config parser + CLI (`substrate.yaml`, `--format json/text/changelog`) | Jules | 🔒 | `prompts/phase-1-diff-engine/t03_cli_override.txt` |
 | P1-T04 | Unit tests + E2E tests (80% coverage, real OpenAPI fixture files) | Jules | 🔒 | `prompts/phase-1-diff-engine/t04_tests.txt` |
 | **P1-T05** | **Add `NOTICES` file** — Apache 2.0 attribution for oasdiff ⚖️ | Antigravity | 🔒 | — |
 
-**Missing prompts to write:** T02, T03, T04 (T01 exists but needs updating for oasdiff dependency)
+**Missing prompts to write:** T02, T03, T04
+**Ready to submit:** T01 (`python3 scripts/jules_submit.py --task 1`)
 
 ### Phase 1b — SQL Migrations 🔒 BLOCKED on 1a
 

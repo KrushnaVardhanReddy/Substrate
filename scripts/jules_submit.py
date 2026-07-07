@@ -92,77 +92,55 @@ Repo layout (to be established):
 # Task definitions — populate as implementation progresses
 # ──────────────────────────────────────────────────────────────────────────────
 
+def _load_prompt(relative_path):
+    """Load a prompt file lazily — returns its content or an error string."""
+    full_path = os.path.join(REPO_ROOT, relative_path)
+    if not os.path.exists(full_path):
+        return f"ERROR: Prompt file not found: {full_path}"
+    with open(full_path) as f:
+        return f.read()
+
+
 TASKS = {
     # ── Phase 0: Specs (handled by Antigravity, not Jules) ────────────────────
+    # (no Jules tasks for Phase 0)
 
-    # ── Phase 1: Go Diff Engine ───────────────────────────────────────────────
+    # ── Phase 1a: OpenAPI diff engine (oasdiff-powered) ───────────────────────
+    # Architecture: oasdiff Go library wraps OpenAPI diffing. We build the
+    # adapter, override config parser, CLI, and tests on top.
     1: {
-        "name": "P1-T01 — Go Module Scaffold",
+        "name": "P1-T01 — Go Module Scaffold + oasdiff Dependency",
         "phase": "phase-1-diff-engine",
-        "prompt": open(
-            os.path.join(REPO_ROOT,
-            "prompts/phase-1-diff-engine/t01_go_scaffold.txt")
-        ).read()
+        "prompt": _load_prompt("prompts/phase-1-diff-engine/t01_go_scaffold.txt"),
     },
     2: {
-        "name": "P1-T02 — OpenAPI Parser + IR",
+        "name": "P1-T02 — oasdiff Adapter (oasdiff output → DiffReport)",
         "phase": "phase-1-diff-engine",
-        "prompt": open(
-            os.path.join(REPO_ROOT,
-            "prompts/phase-1-diff-engine/t02_openapi_parser.txt")
-        ).read()
+        "prompt": _load_prompt("prompts/phase-1-diff-engine/t02_oasdiff_adapter.txt"),
     },
     3: {
-        "name": "P1-T03 — Diff Comparator",
+        "name": "P1-T03 — Override Config Parser + CLI",
         "phase": "phase-1-diff-engine",
-        "prompt": open(
-            os.path.join(REPO_ROOT,
-            "prompts/phase-1-diff-engine/t03_diff_comparator.txt")
-        ).read()
+        "prompt": _load_prompt("prompts/phase-1-diff-engine/t03_cli_override.txt"),
     },
     4: {
-        "name": "P1-T04 — Rule Engine",
+        "name": "P1-T04 — Unit Tests + E2E Tests",
         "phase": "phase-1-diff-engine",
-        "prompt": open(
-            os.path.join(REPO_ROOT,
-            "prompts/phase-1-diff-engine/t04_rule_engine.txt")
-        ).read()
-    },
-    5: {
-        "name": "P1-T05 — CLI + JSON Output",
-        "phase": "phase-1-diff-engine",
-        "prompt": open(
-            os.path.join(REPO_ROOT,
-            "prompts/phase-1-diff-engine/t05_cli_output.txt")
-        ).read()
-    },
-    6: {
-        "name": "P1-T06 — Unit Tests",
-        "phase": "phase-1-diff-engine",
-        "prompt": open(
-            os.path.join(REPO_ROOT,
-            "prompts/phase-1-diff-engine/t06_unit_tests.txt")
-        ).read()
+        "prompt": _load_prompt("prompts/phase-1-diff-engine/t04_tests.txt"),
     },
 
     # ── Phase 2: GitHub App ───────────────────────────────────────────────────
     10: {
         "name": "P2-T01 — GitHub App Scaffold + Webhook",
         "phase": "phase-2-github-app",
-        "prompt": open(
-            os.path.join(REPO_ROOT,
-            "prompts/phase-2-github-app/t01_github_app_scaffold.txt")
-        ).read()
+        "prompt": _load_prompt("prompts/phase-2-github-app/t01_github_app_scaffold.txt"),
     },
 
-    # ── Phase 3: Dashboard ────────────────────────────────────────────────────
+    # ── Phase 3: Dashboard + API + MCP ───────────────────────────────────────
     20: {
         "name": "P3-T01 — Go API Server Scaffold",
         "phase": "phase-3-dashboard",
-        "prompt": open(
-            os.path.join(REPO_ROOT,
-            "prompts/phase-3-dashboard/t01_api_server.txt")
-        ).read()
+        "prompt": _load_prompt("prompts/phase-3-dashboard/t01_api_server.txt"),
     },
 }
 
