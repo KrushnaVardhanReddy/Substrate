@@ -162,8 +162,8 @@
 These are not yet scheduled but are on the product roadmap:
 
 **Override & Skip Config** ⚠️ Must ship before Phase 2 GitHub App
-- [ ] Write `docs/specs/override-config.md` spec (P1-T00)
-- [ ] Parse `substrate.yaml` overrides in the diff engine (P1-T06)
+- [x] Write `docs/specs/override-config.md` spec (P1-T00)
+- [x] Parse `substrate.yaml` overrides in the diff engine (P1-T03)
 - [ ] Show "✅ Acknowledged" vs "❌ Blocking" in PR comments
 - [ ] Override expiry enforcement (auto-re-trigger on expired overrides)
 - [ ] Override audit trail in the dashboard (who approved what, when)
@@ -180,18 +180,7 @@ These are not yet scheduled but are on the product roadmap:
 - [ ] Add "Credits" section to dashboard UI footer
 - [ ] Review all Go module dependencies in `go.mod` for license compatibility before v1.0 release
 
-**Schema Format Extensions (Phase 1 follow-up)**
-- [ ] SQL migration schema support (Phase 1b)
-- [ ] GraphQL SDL schema support (Phase 1c)
-- [ ] Protobuf schema support (Phase 1d)
-- [ ] Avro / JSON Schema support
 
-**AI & ML Contract Protection** ⭐ Phase 1e — Same engine, new schema types
-- [ ] Dataset schema contracts (CSV, Parquet, Delta Lake)
-- [ ] ML model input/output contract validation via `substrate.yaml`
-- [ ] LLM structured output schema versioning & diff
-- [ ] Feature store schema protection
-- [ ] Model deployment gate
 
 **Integrations**
 - [ ] Slack integration for PR notifications
