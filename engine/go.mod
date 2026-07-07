@@ -26,4 +26,5 @@ require (
 	github.com/wI2L/jsondiff v0.7.1 // indirect
 	github.com/yargevad/filepathx v1.0.0 // indirect
 	golang.org/x/text v0.36.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

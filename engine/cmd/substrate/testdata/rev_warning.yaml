@@ -5,7 +5,7 @@ info:
 paths:
   /users:
     get:
-      summary: Get users
+      summary: Get users updated
       responses:
         "200":
           description: OK
