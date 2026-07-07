@@ -130,6 +130,8 @@ Implement a `var oasdiffRuleMap = map[string]string{}` lookup table. Key = oasdi
 |---|---|
 | `response-property-removed` | `FIELD_REMOVED` |
 | `request-property-removed` | `FIELD_REMOVED` |
+| `response-required-property-removed` | `FIELD_REMOVED` |
+| `request-required-property-removed` | `FIELD_REMOVED` |
 | `response-required-property-added` | `REQUIRED_FIELD_ADDED` |
 | `request-required-property-added` | `REQUIRED_FIELD_ADDED` |
 | `response-property-became-required` | `REQUIRED_FIELD_ADDED` |

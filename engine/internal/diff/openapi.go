@@ -132,7 +132,7 @@ func CompareOpenAPI(basePath, revisionPath string, flattenAllOf bool) (*report.D
 func mapOasdiffRule(oasdiffID string) (string, report.ChangeSeverity) {
 	// Mappings based on docs/specs/breaking-change-rules.md
 	switch oasdiffID {
-	case "response-property-removed", "request-property-removed", "response-optional-property-removed", "request-optional-property-removed":
+	case "response-property-removed", "request-property-removed", "response-optional-property-removed", "request-optional-property-removed", "response-required-property-removed", "request-required-property-removed":
 		return "FIELD_REMOVED", report.ChangeSeverityBreaking
 	case "response-property-added", "response-optional-property-added":
 		return "FIELD_ADDED_OPTIONAL", report.ChangeSeveritySafe
