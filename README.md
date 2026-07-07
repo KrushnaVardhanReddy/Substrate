@@ -669,21 +669,33 @@ Repositories involved:
 
 # Architecture & Go-to-Market Strategy
 
-## Public/Private Repo Split
+## Distribution Model — Private Repo + Docker Hub Public Image
 
-Substrate follows the standard developer tool playbook (like Vercel, Datadog, Stripe) by splitting the product into a public engine and a private SaaS platform:
+Substrate keeps all source code, specs, and business logic in a **private repository**. The GitHub Action is distributed via a **public Docker Hub image** — users get a working, versioned binary with no source code exposed.
 
-- **Public Repository (`substrate-engine`)**: Contains the Go CLI, GitHub Action, and core diff logic. This builds trust, allows community audits, and acts as the distribution wedge via GitHub Marketplace.
-- **Private Repository (`substrate-app`)**: Contains the GitHub App webhook handler, API server, billing, and SvelteKit dashboard. This protects the proprietary business logic and SaaS platform.
+**How it works:**
+- Every release tag (`v0.x.0`) triggers a CI workflow that builds the Docker image and pushes it to `substratehq/engine` on Docker Hub (public).
+- `action.yml` references the image directly: `docker://substratehq/engine:v0.x.0`.
+- Users install via `uses: KrushnaVardhanReddy/Substrate@v0.x.0` as usual. GitHub pulls the pre-built image — no source required.
+- **Nothing proprietary is ever exposed.** The image is a compiled binary black box.
+
+**Release flow:**
+```
+git tag v0.2.0 && git push origin v0.2.0
+        ↓
+GitHub Actions: build Dockerfile → push substratehq/engine:v0.2.0 to Docker Hub
+        ↓
+auto-commit: action.yml pinned to v0.2.0
+        ↓
+GitHub Marketplace: users on @v0.2.0 get the update
+```
 
 ## Distribution & Go-to-Market (GTM)
 
-
-
 1. **GitHub Marketplace (The MVP Wedge) 🏆**: The immediate path to users is shipping the CLI as a GitHub Action. Developers search "API breaking changes", install the action, and get CI failures on breaking changes. This is the highest ROI acquisition channel.
-2. **"Optic Alternative" SEO**: With Optic sunset in 2026, teams are actively searching for replacements. Publishing content positioning Substrate as the modern alternative captures this high-intent traffic.
-3. **Developer Communities (HN, Reddit)**: Sharing the engineering journey (e.g., "Building an API contract checker in Go using oasdiff") generates organic awareness.
-4. **Direct Outreach**: Finding public repos with API specs and offering the tool directly to engineering managers to secure the first 10 design partners.
+2. **Developer Communities (HN, Reddit)**: Sharing the engineering journey generates organic awareness. Timed for post-Phase 2 when the full platform story is compelling.
+3. **Direct Outreach**: Finding public repos with API specs and offering the tool directly to engineering managers to secure the first 10 design partners.
+4. **Platform Launch**: Full public announcement after Phase 2 (GitHub App) is live — the story is stronger when users can install a GitHub App, not just a CLI.
 
 ---
 
@@ -907,6 +919,6 @@ One step at a time.
 
 # Credits & License
 
-Substrate is open-source software licensed under the **MIT License**.
+Substrate is proprietary software. All source code, specifications, and internal tooling are confidential.
 
-The Phase 1a OpenAPI core engine relies on the incredible work done by the [oasdiff](https://github.com/Tufin/oasdiff) community (Apache 2.0). Substrate acts as the CI/CD policy enforcement wrapper around their highly performant AST differ. Full attribution is provided in the `NOTICES` file at the repository root, as required by the Apache 2.0 license.
+The Phase 1a OpenAPI core engine relies on the incredible work done by the [oasdiff](https://github.com/Tufin/oasdiff) community (Apache 2.0). Full attribution is provided in the `NOTICES` file at the repository root, as required by the Apache 2.0 license.

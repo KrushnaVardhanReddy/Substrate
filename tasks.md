@@ -1,6 +1,6 @@
 # Substrate — Task Tracker
 
-> Last updated: 2026-07-07 (P1b-T03 ✅ merged, all Wave 2 library decisions approved, single-binary promise enforced across all phases)
+> Last updated: 2026-07-07 (repo private, distribution model changed to Docker Hub public image, P1-MVP blog post deferred post-Phase 2)
 > Tracking all development phases, tasks, and their current status.
 
 ---
@@ -61,17 +61,26 @@
 
 ---
 
-### Phase 1 MVP — GitHub Action (Distribution Wedge) 🏆 ✅ COMPLETE
+### Phase 1 MVP — GitHub Action (Distribution Wedge) 🏆 MOSTLY COMPLETE
 
 > **v0.1.0 tagged and published to GitHub Marketplace on 2026-07-06.**
-> **Dogfooding:** `.github/workflows/test-action.yml` validated the action in-repo before launch.
+> **Distribution model changed:** Repo is now private. Action distributes via Docker Hub public image (`substratehq/engine`). Source is never exposed.
 
 | Task ID | Name | Owner | Status |
 |---|---|---|---|
 | P1-MVP-1 | Create `action.yml` + `Dockerfile` + `entrypoint.sh` | Antigravity | ✅ |
 | P1-MVP-2 | Dogfood the action via `.github/workflows/test-action.yml` | Antigravity | ✅ |
 | P1-MVP-3 | Tag `v0.1.0` + publish to GitHub Marketplace | User | ✅ |
-| P1-MVP-4 | ⚠️ **URGENT** — "Optic Alternative" blog post + HackerNews launch (Optic sunset window is NOW — every week of delay costs SEO and inbound installs) | Antigravity | ⏳ |
+| P1-MVP-4 | "Optic Alternative" blog post + HackerNews + platform launch | Antigravity | 🔒 *deferred: post-Phase 2* |
+| P1-MVP-5 | Create Docker Hub org `substratehq` + public repo `engine` | User | ⏳ |
+| P1-MVP-6 | Add `DOCKERHUB_USERNAME` + `DOCKERHUB_TOKEN` secrets to GitHub repo | User | ⏳ |
+| P1-MVP-7 | Update `action.yml` Docker Hub image + verify release CI workflow fires on next tag | Antigravity | ✅ |
+
+> **P1-MVP-5 and P1-MVP-6 require manual steps in the browser (Docker Hub + GitHub Settings). See instructions below.**
+>
+> **Docker Hub setup:** Go to [hub.docker.com](https://hub.docker.com) → Create org `substratehq` → Create public repo `engine` → Generate an access token → Add `DOCKERHUB_USERNAME=substratehq` and `DOCKERHUB_TOKEN=<token>` as GitHub Actions secrets in this repo's Settings → Security → Secrets.
+>
+> **First image push:** After secrets are added, run `git tag v0.1.1 && git push origin v0.1.1` (or any new tag) to trigger the release workflow and push the first Docker Hub image. Then update `action.yml` to pin to that tag.
 
 ---
 

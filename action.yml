@@ -20,8 +20,9 @@ inputs:
 
 runs:
   using: "docker"
-  image: "Dockerfile"
+  image: "docker://substratehq/engine:v0.1.0"
   args:
     - ${{ inputs.base_schema }}
     - ${{ inputs.head_schema }}
     - ${{ inputs.config }}
+
