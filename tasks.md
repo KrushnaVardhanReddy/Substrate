@@ -1,6 +1,6 @@
 # Substrate — Task Tracker
 
-> Last updated: 2026-07-07 (P1-T07 ✅ merged, P1b-T01 SQL spec ✅ approved)
+> Last updated: 2026-07-07 (P1-T07 ✅ merged, P1b-T01 SQL spec ✅ approved, P1b-T02 SQL engine ✅ merged)
 > Tracking all development phases, tasks, and their current status.
 
 ---
@@ -83,8 +83,8 @@
 | Task ID | Name | Owner | Status |
 |---|---|---|---|
 | P1b-T01 | SQL breaking change rules spec | Antigravity | ✅ |
-| P1b-T02 | SQL DDL parser (PostgreSQL) | Jules | ⏳ |
-| P1b-T03 | SQL rule engine + tests | Jules | 🔒 |
+| P1b-T02 | SQL DDL parser + diff engine + rule engine (PostgreSQL) | Jules | ✅ |
+| P1b-T03 | SQL rule engine + tests (expand coverage, edge cases) | Jules | ⏳ |
 
 ### Phase 1c — GraphQL SDL 🔒 BLOCKED on 1a
 
