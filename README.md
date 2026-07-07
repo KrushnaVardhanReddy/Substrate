@@ -685,7 +685,7 @@ Features:
 3. **Data Catalogs:** Collibra, Alation, Snowflake.
 4. **Developer Portals:** Spotify Backstage.
 5. **Observability (APM):** Datadog, Sentry, New Relic (Inject deployment markers when schemas change so runtime errors can be instantly correlated to API diffs).
-6. **Task Management:** Jira, Linear (Auto-create tickets for downstream teams when an upstream API breaks).
+6. **ITSM & Task Management:** ServiceNow, Jira, Linear (Auto-create incident tickets or change requests for downstream teams when an upstream API breaks).
 7. **Communication:** Slack, MS Teams (Route breaking change override requests to `#platform-engineering` for one-click approval).
 * **Automated SDK Generation:** Webhook triggers to automatically regenerate downstream TypeScript/Python SDKs and open PRs on consumer repositories when a safe backend API change is merged.
 * **Automated Test Generation:** Avoid building competing testing tools; instead, generate Postman Collections and MuleSoft APIkit test suites directly from the approved schema. Substrate pushes updates via Pull Requests or Cloud APIs, ensuring testing teams are always testing the correct contract without overwriting their custom local scripts.
