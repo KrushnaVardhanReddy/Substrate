@@ -141,6 +141,13 @@ TASKS = {
         "prompt": _load_prompt("prompts/phase-1-diff-engine/t07_init_command.txt"),
     },
 
+    # ── Phase 1b: SQL Migrations ─────────────────────────────────────────────
+    101: {
+        "name": "P1b-T02 — SQL DDL Parser + Diff Engine + Rule Engine",
+        "phase": "phase-1b-sql",
+        "prompt": _load_prompt("prompts/phase-1b-sql/t02_sql_parser.txt"),
+    },
+
     # ── Phase 2: GitHub App ───────────────────────────────────────────────────
     10: {
         "name": "P2-T01 — GitHub App Scaffold + Webhook",
