@@ -6,6 +6,12 @@ paths:
   /users:
     get:
       summary: Get users
+      parameters:
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [asc]
       responses:
         "200":
           description: OK

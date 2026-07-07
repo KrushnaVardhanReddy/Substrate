@@ -11,6 +11,7 @@ require (
 
 require (
 	cloud.google.com/go v0.123.0 // indirect
+	github.com/TwiN/go-color v1.4.1 // indirect
 	github.com/go-openapi/jsonpointer v0.22.5 // indirect
 	github.com/go-openapi/swag/jsonname v0.25.5 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
