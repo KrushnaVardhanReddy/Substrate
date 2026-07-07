@@ -8,7 +8,10 @@ import (
 
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/config"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/diff"
+	initcmd "github.com/KrushnaVardhanReddy/substrate/engine/internal/init"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
+	sqlpkg "github.com/KrushnaVardhanReddy/substrate/engine/internal/sql"
+	"path/filepath"
 	"github.com/spf13/cobra"
 )
 
@@ -41,10 +44,40 @@ func main() {
 				// Proceed with defaults if default config file is missing
 			}
 
-			rep, err := diff.CompareOpenAPI(basePath, revisionPath, flattenAllOf)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-				os.Exit(3)
+			finalSchemaType := schemaType
+			if finalSchemaType == "" {
+				if cfg != nil && cfg.SchemaType != "" {
+					finalSchemaType = cfg.SchemaType
+				} else {
+					ext := filepath.Ext(basePath)
+					if ext == ".sql" {
+						finalSchemaType = "sql"
+					} else {
+						finalSchemaType = "openapi"
+					}
+				}
+			}
+
+			var rep *report.DiffReport
+
+			if finalSchemaType == "sql" {
+				base, err := sqlpkg.ParseSchema(basePath)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+					os.Exit(3)
+				}
+				head, err := sqlpkg.ParseSchema(revisionPath)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+					os.Exit(3)
+				}
+				rep = sqlpkg.DiffSchemas(base, head)
+			} else {
+				rep, err = diff.CompareOpenAPI(basePath, revisionPath, flattenAllOf)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+					os.Exit(3)
+				}
 			}
 
 			if cfg != nil {
@@ -193,8 +226,35 @@ func main() {
 		},
 	}
 
+	var initOptions initcmd.InitOptions
+	var initCmd = &cobra.Command{
+		Use:   "init",
+		Short: "Initialize Substrate in the current directory",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			err := initcmd.Init(initOptions)
+			if err != nil {
+				if errors.Is(err, initcmd.ErrPermissionDenied) {
+					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+					os.Exit(1)
+				}
+				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				os.Exit(3)
+			}
+			return nil
+		},
+	}
+
+	initCmd.Flags().StringVar(&initOptions.Service, "service", "", "The service name written into substrate.yaml")
+	initCmd.Flags().StringVar(&initOptions.Spec, "spec", "", "Path to the OpenAPI spec file, relative to repo root")
+	initCmd.Flags().StringVar(&initOptions.SchemaType, "schema-type", "openapi", "Schema type: openapi, sql, graphql, protobuf")
+	initCmd.Flags().StringVar(&initOptions.Branch, "branch", "main", "The protected branch to check PRs against")
+	initCmd.Flags().BoolVar(&initOptions.Force, "force", false, "Overwrite existing files without prompting")
+	initCmd.Flags().BoolVar(&initOptions.NoWorkflow, "no-workflow", false, "Skip generating .github/workflows/substrate.yml")
+	initCmd.Flags().BoolVar(&initOptions.NoConfig, "no-config", false, "Skip generating substrate.yaml")
+
 	rootCmd.AddCommand(diffCmd)
 	rootCmd.AddCommand(validateCmd)
+	rootCmd.AddCommand(initCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)

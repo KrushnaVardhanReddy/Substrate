@@ -2,9 +2,108 @@
 
 ## The Living Map of Your Engineering Ecosystem
 
+> **Status:** v0.1.0 🚀 — [OpenAPI Contract Guard](https://github.com/marketplace/actions/substrate-api-contract-guard) is live on GitHub Marketplace.
+
 Substrate is a CI/CD-integrated data contract and dependency intelligence platform that prevents downstream data failures before they reach production.
 
 It acts as a proactive firewall for engineering teams by analyzing schema changes, understanding repository dependencies, identifying impacted systems, and blocking unsafe changes before they break applications, analytics, dashboards, and data pipelines.
+
+---
+
+# Quick Start — 3 Minutes to Protect Your API
+
+## Step 1 — Add the GitHub Action
+
+Create `.github/workflows/substrate.yml` in your repository:
+
+```yaml
+name: Substrate API Contract Guard
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  check-api-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # needed to access base branch files
+
+      - name: Check API Breaking Changes
+        uses: KrushnaVardhanReddy/Substrate@v0.1.0
+        with:
+          base_schema: openapi.yaml        # path to your OpenAPI spec on main
+          head_schema: openapi.yaml        # path to your OpenAPI spec in the PR
+          config: substrate.yaml          # optional — see Step 2
+```
+
+> **How it works:** When a PR is opened, Substrate fetches the spec from `main` (base) and compares it to the spec in the PR branch (head). If a breaking change is detected, the CI check fails and the merge is blocked.
+
+---
+
+## Step 2 — Add `substrate.yaml` (optional but recommended)
+
+Place `substrate.yaml` in the **root of your repository**:
+
+```yaml
+# substrate.yaml — Substrate configuration for this repository
+
+service: your-service-name          # human-readable name shown in CI output
+schema_type: openapi                # openapi | sql | graphql | protobuf
+spec_path: openapi.yaml             # path to your spec file from repo root
+
+owners:
+  - team: platform-team
+    contact: platform@yourcompany.com
+```
+
+If you skip this file, Substrate runs with defaults — no config required for basic usage.
+
+---
+
+## Step 3 — Open a PR with a Breaking Change
+
+Remove an endpoint or a required field from your OpenAPI spec and open a PR. You should see:
+
+```
+❌ BREAKING CHANGES (1)
+  ENDPOINT_REMOVED
+  Path: paths./customers/{id}
+  Description: Endpoint /customers/{id} was removed.
+  Recommendation: Add 'deprecated: true' before removing endpoints.
+
+Exit code: 2  ← CI fails, merge is blocked
+```
+
+---
+
+## Acknowledging a Breaking Change (Override)
+
+If a breaking change is intentional and all consumers have been migrated, you can acknowledge it in `substrate.yaml` to unblock the merge:
+
+```yaml
+overrides:
+  - rule_id: ENDPOINT_REMOVED
+    path: paths./customers/{id}
+    reason: "Legacy endpoint removed after all 3 consumers migrated to v2. See RFC-1042."
+    approved_by: you@yourcompany.com
+    expires: 2026-12-31
+```
+
+The CI check will pass and show `✅ Acknowledged (override active until 2026-12-31)` instead of failing.
+
+---
+
+## Exit Codes
+
+| Code | Meaning | CI Result |
+|---|---|---|
+| `0` | No changes, or all changes are SAFE | ✅ Pass |
+| `1` | WARNING-level changes detected | ✅ Pass (with warning) |
+| `2` | BREAKING changes detected | ❌ Fail — blocks merge |
+| `3` | Spec is invalid (parse error) | ❌ Fail |
 
 ---
 
@@ -767,9 +866,9 @@ The risk is trying to become OpenAPI, SQL, Kafka, GraphQL, AI, SDK Generator, Ba
 Trying to be "everything everywhere all at once" is how startups die.
 
 **The Execution Plan:**
-1. Best **API Contract** Platform (Phase 1a)
+1. Best **API Contract** Platform (Phase 1a) ✅ *shipped as v0.1.0 on GitHub Marketplace*
    ↓
-2. Best **Universal Contract** Platform (Phase 1b - 1g)
+2. Best **Universal Contract** Platform (Phase 1b – 1g) ← *next: SQL Migrations*
    ↓
 3. Best **Dependency** Platform (Phase 2)
    ↓
@@ -781,6 +880,6 @@ One step at a time.
 
 # Credits & License
 
-Substrate is open-source software licensed under the **MIT License**. 
+Substrate is open-source software licensed under the **MIT License**.
 
-The Phase 1a OpenAPI core engine relies on the incredible work done by the [oasdiff](https://github.com/Tufin/oasdiff) community. Substrate acts as the CI/CD policy enforcement wrapper around their highly performant AST differ.
+The Phase 1a OpenAPI core engine relies on the incredible work done by the [oasdiff](https://github.com/Tufin/oasdiff) community (Apache 2.0). Substrate acts as the CI/CD policy enforcement wrapper around their highly performant AST differ. Full attribution is provided in the `NOTICES` file at the repository root, as required by the Apache 2.0 license.

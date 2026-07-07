@@ -1,0 +1,143 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+1. NEVER stub, mock, or TODO existing implementation code.
+2. Every file you modify MUST still build — run `go build ./...` and `go vet ./...` before committing.
+3. If a test fails, FIX the code or test — do NOT delete or skip tests.
+4. Do NOT alter any file in docs/specs/ — those are READ-ONLY source-of-truth specs.
+5. TESTING IS MANDATORY — every task MUST include both:
+   a. Unit tests: table-driven `_test.go` files. Min 80% coverage on new code.
+   b. E2E tests: invoke the compiled binary with real input files and assert stdout/exit code.
+6. Commit message must start with "jules: " prefix.
+7. 100% SPEC-FIRST RULE: Implement exactly what docs/specs/openapi-checker-adapter.md defines.
+
+Project: Substrate — Go Diff Engine CLI
+Tech stack: Go 1.26, oasdiff v1.22.0 (already in go.mod), standard library
+
+---
+
+TASK: P1-T06 — oasdiff Checker Adapter
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Replace the shallow structural diff implementation in `engine/internal/diff/openapi.go`
+with a full semantic breaking-change analysis using the oasdiff `checker` package.
+
+The function signature MUST NOT change:
+  func CompareOpenAPI(basePath, revisionPath string, flattenAllOf bool) (*report.DiffReport, error)
+
+The implementation MUST follow docs/specs/openapi-checker-adapter.md exactly.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — WHY THIS IS NEEDED
+═══════════════════════════════════════════════════════════════
+The current openapi.go implementation calls diff.Get() and manually inspects the raw
+structural diff tree. This produces:
+
+  FALSE POSITIVES: Any schema modification (even adding an optional field) fires
+  FIELD_REMOVED as BREAKING because the code treats any SchemasDiff.Modified entry
+  as breaking.
+
+  FALSE NEGATIVES: REQUIRED_FIELD_ADDED, ENUM_VALUE_REMOVED, METHOD_REMOVED,
+  PARAMETER_ADDED_REQUIRED, RESPONSE_SCHEMA_FIELD_REMOVED, and 20+ other rules from
+  breaking-change-rules.md are completely undetected.
+
+The fix is to use the oasdiff checker package (github.com/oasdiff/oasdiff/checker)
+which has already been pulled in as a transitive dependency via go.mod.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FILE: engine/internal/diff/openapi.go
+   FULL REPLACEMENT of the function body of CompareOpenAPI.
+   - Remove the existing manual diff.PathsDiff / diff.ComponentsDiff inspection.
+   - Implement the 6-step approach defined in docs/specs/openapi-checker-adapter.md:
+     Step 1: Load specs (existing logic, keep as-is)
+     Step 2: Pre-diff spec validation using openapi3.Validate()
+     Step 3: Compute structural diff using diff.Get() with flattenAllOf support
+     Step 4: Run checker.CheckBackwardCompatibility()
+     Step 5: Map checker.BackwardCompatibilityErrors → report.Change objects
+             using the oasdiffRuleMap table from the spec
+     Step 6: Assemble and return the DiffReport
+
+   - Implement the oasdiffRuleMap lookup table from the spec's Step 5 mapping table.
+   - Verify the actual oasdiff rule ID strings by running test fixtures against the
+     oasdiff binary or by inspecting the checker package source. Update the mapping
+     table if any IDs differ from those listed in the spec.
+   - Unmapped oasdiff rule IDs must be included in the report with a generated
+     Substrate ID: "OASDIFF_" + strings.ToUpper(oasdiffID)
+
+2. FILE: engine/internal/diff/openapi_test.go
+   REPLACE existing tests with the 10 mandatory test cases from the spec:
+   - No changes (identical specs)
+   - Optional field added → SAFE / FIELD_ADDED_OPTIONAL
+   - Required field added → BREAKING / REQUIRED_FIELD_ADDED
+   - Field removed → BREAKING / FIELD_REMOVED
+   - Endpoint removed → BREAKING / ENDPOINT_REMOVED
+   - Method removed → BREAKING / METHOD_REMOVED
+   - Enum value removed → BREAKING / ENUM_VALUE_REMOVED
+   - Enum value added → WARNING / ENUM_VALUE_ADDED
+   - Parameter made required → BREAKING / PARAMETER_MADE_REQUIRED
+   - Type changed → BREAKING / FIELD_TYPE_CHANGED
+   - Invalid base spec → error returned, no DiffReport
+
+   Each test must assert:
+   a) The correct Substrate rule_id appears in the right bucket (BreakingChanges / Warnings / SafeChanges)
+   b) The overall DiffReport Summary counts are correct
+   c) The OverallSeverity is correct
+
+3. DIRECTORY: engine/internal/diff/testdata/
+   Add YAML fixture file pairs for each new test case (follow existing naming convention):
+   - base_no_change.yaml / rev_no_change.yaml
+   - base_optional_add.yaml / rev_optional_add.yaml
+   - base_required_add.yaml / rev_required_add.yaml
+   - base_field_removed.yaml / rev_field_removed.yaml
+   - base_endpoint_removed.yaml / rev_endpoint_removed.yaml
+   - base_method_removed.yaml / rev_method_removed.yaml
+   - base_enum_removed.yaml / rev_enum_removed.yaml
+   - base_enum_added.yaml / rev_enum_added.yaml
+   - base_param_required.yaml / rev_param_required.yaml
+   - base_type_changed.yaml / rev_type_changed.yaml
+   - base_invalid.yaml (intentionally malformed OpenAPI for the validation test)
+
+   All fixture files must be valid OpenAPI 3.0.x YAML (except base_invalid.yaml).
+   Keep them minimal — only the fields needed to trigger the target rule.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO MODIFY:
+- engine/internal/diff/openapi.go   (full implementation replacement)
+- engine/internal/diff/openapi_test.go   (replace with 11 new test cases)
+
+FILES TO ADD:
+- engine/internal/diff/testdata/base_no_change.yaml
+- engine/internal/diff/testdata/rev_no_change.yaml
+- engine/internal/diff/testdata/base_optional_add.yaml
+- engine/internal/diff/testdata/rev_optional_add.yaml
+- engine/internal/diff/testdata/base_required_add.yaml
+- engine/internal/diff/testdata/rev_required_add.yaml
+- engine/internal/diff/testdata/base_field_removed.yaml
+- engine/internal/diff/testdata/rev_field_removed.yaml
+- engine/internal/diff/testdata/base_endpoint_removed.yaml
+- engine/internal/diff/testdata/rev_endpoint_removed.yaml
+- engine/internal/diff/testdata/base_method_removed.yaml
+- engine/internal/diff/testdata/rev_method_removed.yaml
+- engine/internal/diff/testdata/base_enum_removed.yaml
+- engine/internal/diff/testdata/rev_enum_removed.yaml
+- engine/internal/diff/testdata/base_enum_added.yaml
+- engine/internal/diff/testdata/rev_enum_added.yaml
+- engine/internal/diff/testdata/base_param_required.yaml
+- engine/internal/diff/testdata/rev_param_required.yaml
+- engine/internal/diff/testdata/base_type_changed.yaml
+- engine/internal/diff/testdata/rev_type_changed.yaml
+- engine/internal/diff/testdata/base_invalid.yaml
+
+FILES TO NOT TOUCH (READ-ONLY):
+- docs/specs/openapi-checker-adapter.md
+- docs/specs/breaking-change-rules.md
+- engine/internal/report/report.go   (DiffReport structs — do not change)
+- engine/go.mod / engine/go.sum   (oasdiff already present)
+
+Commit: "jules: replace shallow diff adapter with oasdiff checker semantic engine (P1-T06)"

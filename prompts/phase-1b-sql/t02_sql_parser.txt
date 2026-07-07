@@ -1,0 +1,476 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+1. NEVER stub, mock, or TODO existing implementation code.
+2. Every file you modify MUST still build — run `go build ./...` and `go vet ./...` before committing.
+3. If a test fails, FIX the code or test — do NOT delete or skip tests.
+4. Do NOT alter any file in docs/specs/ — those are READ-ONLY source-of-truth specs.
+5. TESTING IS MANDATORY — every task MUST include both:
+   a. Unit tests: table-driven `_test.go` files. Min 80% coverage on new code.
+   b. E2E tests: invoke the compiled binary with real .sql fixture files and assert stdout/exit code.
+6. Commit message must start with "jules: " prefix.
+7. 100% SPEC-FIRST RULE: Implement exactly what docs/specs/breaking-change-rules-sql.md defines.
+
+Project: Substrate — Go Diff Engine CLI
+Tech stack: Go 1.26, standard library + pg_query_go/v6 (add to go.mod)
+
+---
+
+TASK: P1b-T02 — SQL DDL Parser + Diff Engine + Rule Engine
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Build a complete PostgreSQL schema diff engine in a new package
+`engine/internal/sql/`. It must:
+
+1. Parse two PostgreSQL DDL snapshot files (schema.sql) into an
+   internal representation (IR) Go struct tree.
+2. Diff the two IR trees to produce a raw list of changes.
+3. Apply the 26 breaking-change rules from the spec to classify
+   each change into BREAKING / WARNING / SAFE.
+4. Return a standard `*report.DiffReport` — the same struct used
+   by the OpenAPI engine.
+5. Wire the new engine into the CLI so `substrate diff base.sql
+   head.sql` (or schema_type: sql in substrate.yaml) uses it.
+
+The spec is at docs/specs/breaking-change-rules-sql.md.
+Implement it exactly as written.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — WHY THIS IS NEEDED
+═══════════════════════════════════════════════════════════════
+Substrate currently only diffs OpenAPI specs. Teams using
+PostgreSQL routinely break downstream services by:
+  - Dropping or renaming columns that ORMs reference
+  - Adding NOT NULL columns without a DEFAULT (old INSERTs fail)
+  - Adding UNIQUE constraints that invalidate existing data
+
+The SQL engine catches these in CI before they reach production.
+
+Input: Two plain .sql files — output of `pg_dump --schema-only`.
+Output: Standard *report.DiffReport (same JSON schema as OpenAPI).
+No changes to the DiffReport struct are needed.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+──────────────────────────────────────────────────
+FILE 1: engine/internal/sql/schema.go
+──────────────────────────────────────────────────
+Defines the Internal Representation (IR) structs.
+Implement EXACTLY these types (no additions, no removals):
+
+  type SQLSchema struct {
+      Tables    map[string]*Table
+      Views     map[string]*View
+      Enums     map[string]*EnumType
+      Sequences map[string]*Sequence
+  }
+
+  type Table struct {
+      Name        string
+      Columns     map[string]*Column
+      Constraints map[string]*Constraint
+      Indexes     map[string]*Index
+  }
+
+  type Column struct {
+      Name         string
+      DataType     string   // normalized lowercase: "varchar","integer","bigint","text","boolean","timestamp","numeric","date","uuid","jsonb","bytea"
+      Length       *int     // VARCHAR(n) -> n; nil otherwise
+      Precision    *int     // NUMERIC(p,s) -> p
+      Scale        *int     // NUMERIC(p,s) -> s
+      NotNull      bool
+      Default      *string  // nil = no default
+      IsPrimaryKey bool
+  }
+
+  type Constraint struct {
+      Name       string
+      Type       string    // "PRIMARY_KEY","UNIQUE","CHECK","FOREIGN_KEY"
+      Columns    []string
+      CheckExpr  *string
+      RefTable   *string
+      RefColumns []string
+  }
+
+  type Index struct {
+      Name    string
+      Columns []string
+      Unique  bool
+      Where   *string
+  }
+
+  type View struct {
+      Name         string
+      Definition   string
+      Columns      []string
+      Materialized bool
+  }
+
+  type EnumType struct {
+      Name   string
+      Values []string
+  }
+
+  type Sequence struct {
+      Name      string
+      DataType  string
+      Start     int64
+      Increment int64
+  }
+
+Data type normalization rules (apply in parser, store normalized):
+  INT / INT4 / INTEGER            → "integer"
+  INT2 / SMALLINT                 → "smallint"
+  INT8 / BIGINT                   → "bigint"
+  BOOL / BOOLEAN                  → "boolean"
+  FLOAT4 / REAL                   → "real"
+  FLOAT8 / DOUBLE PRECISION       → "double precision"
+  CHARACTER VARYING(n) / VARCHAR  → "varchar"
+  CHARACTER(n) / CHAR             → "char"
+  TIMESTAMP WITH TIME ZONE        → "timestamptz"
+  TIMESTAMP / TIMESTAMP WITHOUT TZ→ "timestamp"
+  All others                      → lowercase as-is
+
+──────────────────────────────────────────────────
+FILE 2: engine/internal/sql/parser.go
+──────────────────────────────────────────────────
+Parses a PostgreSQL DDL .sql file (from pg_dump --schema-only)
+into a *SQLSchema IR.
+
+Public API:
+  func ParseSchema(path string) (*SQLSchema, error)
+  func ParseSchemaFromBytes(src []byte) (*SQLSchema, error)
+
+Implementation:
+  - Use "github.com/pganalyze/pg_query_go/v6" to parse DDL.
+  - Add it to engine/go.mod: `go get github.com/pganalyze/pg_query_go/v6`
+  - Iterate over the parse tree's Stmts slice.
+  - Handle these statement types:
+      CreateStmt          → Table
+      AlterTableStmt      → modify existing Table (columns, constraints)
+      IndexStmt           → Index on Table
+      ViewStmt            → View
+      CreateTableAsStmt   → View (materialized if indicated)
+      CompositeTypeStmt   → EnumType (only ENUM variants)
+      CreateSeqStmt       → Sequence
+  - Return error (with message "sql parse error: <detail>") if
+    the input is not valid PostgreSQL DDL.
+  - Silently skip statement types not listed above (e.g., INSERT,
+    COMMENT, GRANT, SET, SELECT) — pg_dump output contains them.
+
+Column type normalization MUST happen at parse time, not diff time.
+
+──────────────────────────────────────────────────
+FILE 3: engine/internal/sql/diff.go
+──────────────────────────────────────────────────
+Diffs two *SQLSchema IRs and returns a classified *report.DiffReport.
+
+Public API:
+  func DiffSchemas(base, head *SQLSchema) *report.DiffReport
+
+Implementation steps:
+
+STEP 1 — Tables
+  For each table in base:
+    If absent in head → TABLE_REMOVED (BREAKING)
+    Else → diff columns, constraints, indexes (see below)
+  For each table in head not in base:
+    Check TABLE_RENAMED heuristic (see below)
+    If no rename match → TABLE_ADDED (SAFE)
+
+STEP 2 — Columns (per table present in both)
+  For each column in base table:
+    If absent in head table:
+      Check COLUMN_RENAMED heuristic (see below)
+      If no rename match → COLUMN_REMOVED (BREAKING)
+    Else diff the column:
+      DataType changed:
+        If widening pair (see spec) → COLUMN_TYPE_WIDENED (WARNING)
+        Else → COLUMN_TYPE_CHANGED (BREAKING)
+      NotNull: false→true → COLUMN_MADE_NOT_NULL (BREAKING)
+      NotNull: true→false → COLUMN_NULLABLE_CHANGED (SAFE)
+      Default removed (was non-nil, now nil) AND NotNull:
+        → COLUMN_DEFAULT_REMOVED (BREAKING)
+      Default removed AND NOT NotNull:
+        → COLUMN_DEFAULT_CHANGED (WARNING)
+      Default changed (was non-nil, now different non-nil):
+        → COLUMN_DEFAULT_CHANGED (WARNING)
+  For each column in head table not in base:
+    If NotNull == true AND Default == nil:
+      → COLUMN_ADDED_NOT_NULL_NO_DEFAULT (BREAKING)
+    Else:
+      → COLUMN_ADDED_NULLABLE (SAFE)
+
+STEP 3 — Constraints (per table present in both)
+  For each constraint in base not in head (by name):
+    Type PRIMARY_KEY → PRIMARY_KEY_CHANGED (BREAKING)
+    Type UNIQUE      → CONSTRAINT_REMOVED (WARNING)
+    Type CHECK       → CONSTRAINT_REMOVED (WARNING)
+    Type FOREIGN_KEY → CONSTRAINT_REMOVED (WARNING) [named CONSTRAINT_REMOVED_FK internally, reported as CONSTRAINT_REMOVED]
+  For each constraint in head not in base (by name):
+    Type PRIMARY_KEY → PRIMARY_KEY_CHANGED (BREAKING)
+    Type UNIQUE      → CONSTRAINT_ADDED_UNIQUE (BREAKING)
+    Type CHECK       → CONSTRAINT_ADDED_CHECK (BREAKING)
+    Type FOREIGN_KEY → FOREIGN_KEY_ADDED (BREAKING)
+
+STEP 4 — Indexes (per table present in both)
+  In base not in head → INDEX_REMOVED (WARNING)
+  In head not in base → INDEX_ADDED (SAFE)
+
+STEP 5 — Views
+  In base not in head → VIEW_REMOVED (BREAKING)
+  In head not in base → VIEW_ADDED (SAFE)
+  In both: if Columns differ → VIEW_COLUMN_REMOVED (BREAKING) for
+    each column in base not in head
+
+STEP 6 — Enums
+  In base not in head → SQL_ENUM_TYPE_REMOVED (BREAKING)
+  In both:
+    Values in base not in head → SQL_ENUM_VALUE_REMOVED (BREAKING)
+    Values in head not in base → SQL_ENUM_VALUE_ADDED (WARNING)
+
+RENAME HEURISTIC (for TABLE_RENAMED and COLUMN_RENAMED):
+  Use normalized Levenshtein distance similarity score.
+  score = 1 - (levenshtein(a,b) / max(len(a),len(b)))
+  If score > 0.7 AND the column set is identical (for tables) or
+  the DataType matches (for columns) → treat as RENAME (BREAKING).
+  Implement levenshtein in a private helper function.
+  Do NOT import external libraries for this.
+
+WIDENING TYPE PAIRS (COLUMN_TYPE_WIDENED, not COLUMN_TYPE_CHANGED):
+  smallint  → integer
+  smallint  → bigint
+  integer   → bigint
+  real      → double precision
+  varchar(n)→ varchar(m) where m > n (compare Length fields)
+  numeric(p,s)→ numeric(p2,s) where p2 > p (compare Precision)
+All other type changes → COLUMN_TYPE_CHANGED (BREAKING).
+
+REPORT ASSEMBLY:
+  Use the same pattern as engine/internal/diff/openapi.go:
+    rep := &report.DiffReport{
+        SubstrateVersion: "0.1.0",
+        SchemaType:       report.SchemaTypeSQL,
+        ComparedAt:       time.Now().UTC().Format(time.RFC3339),
+        BreakingChanges:  []report.Change{},
+        Warnings:         []report.Change{},
+        SafeChanges:      []report.Change{},
+    }
+  Change.ID format:   "chg_<ruleid_lower>_<table>_<column>"
+  Change.RuleID:      the rule ID string from the spec
+  Change.Severity:    report.ChangeSeverityBreaking / Warning / Safe
+  Change.Path:        "tables.<tablename>" or "tables.<tablename>.columns.<colname>"
+  Change.Description: human-readable explanation (see examples below)
+
+Description examples:
+  TABLE_REMOVED:                 "Table 'orders' was removed."
+  COLUMN_REMOVED:                "Column 'email' was removed from table 'users'."
+  COLUMN_ADDED_NOT_NULL_NO_DEFAULT: "Column 'customer_id' added as NOT NULL without a DEFAULT — existing INSERTs will fail."
+  COLUMN_TYPE_CHANGED:           "Column 'age' type changed from 'varchar' to 'integer'."
+  COLUMN_MADE_NOT_NULL:          "Column 'phone' changed from nullable to NOT NULL — existing NULLs will be rejected."
+  CONSTRAINT_ADDED_UNIQUE:       "UNIQUE constraint 'users_email_key' added to table 'users'."
+  FOREIGN_KEY_ADDED:             "FOREIGN KEY 'fk_orders_user' added to table 'orders'."
+  VIEW_REMOVED:                  "View 'customer_summary' was removed."
+  SQL_ENUM_VALUE_REMOVED:        "Enum value 'CANCELLED' removed from type 'order_status'."
+
+──────────────────────────────────────────────────
+FILE 4: engine/internal/sql/parser_test.go
+──────────────────────────────────────────────────
+Unit tests for ParseSchema. Use t.TempDir() for all temp files.
+
+Test cases (table-driven):
+  - Valid CREATE TABLE → correct Column/Constraint/Index structs
+  - VARCHAR(255) length parsed correctly (Length = 255)
+  - NOT NULL column parsed (NotNull = true)
+  - DEFAULT value parsed (Default = ptr to string)
+  - UNIQUE constraint detected as Constraint{Type: "UNIQUE"}
+  - FOREIGN KEY detected as Constraint{Type: "FOREIGN_KEY"}
+  - CREATE INDEX detected in correct Table.Indexes
+  - CREATE VIEW detected in Views map
+  - CREATE TYPE AS ENUM detected in Enums map
+  - pg_dump header lines (SET, COMMENT, GRANT) silently skipped
+  - Invalid SQL returns non-nil error
+
+──────────────────────────────────────────────────
+FILE 5: engine/internal/sql/diff_test.go
+──────────────────────────────────────────────────
+Unit tests for DiffSchemas using fixture file pairs in
+engine/internal/sql/testdata/.
+
+Each test loads base + head .sql files, calls DiffSchemas, and
+asserts the DiffReport contains exactly the expected rule IDs
+in the correct severity bucket with correct Summary counts.
+
+Required test cases:
+  1.  No changes          → 0 changes, OverallSeverity: NO_CHANGES
+  2.  Table removed       → BREAKING/TABLE_REMOVED
+  3.  Table added         → SAFE/TABLE_ADDED
+  4.  Column removed      → BREAKING/COLUMN_REMOVED
+  5.  Column nullable add → SAFE/COLUMN_ADDED_NULLABLE
+  6.  Column NOT NULL no DEFAULT → BREAKING/COLUMN_ADDED_NOT_NULL_NO_DEFAULT
+  7.  Column type changed → BREAKING/COLUMN_TYPE_CHANGED
+  8.  Column type widened → WARNING/COLUMN_TYPE_WIDENED
+  9.  Column made NOT NULL→ BREAKING/COLUMN_MADE_NOT_NULL
+  10. Default removed from NOT NULL → BREAKING/COLUMN_DEFAULT_REMOVED
+  11. UNIQUE added        → BREAKING/CONSTRAINT_ADDED_UNIQUE
+  12. CHECK added         → BREAKING/CONSTRAINT_ADDED_CHECK
+  13. Foreign key added   → BREAKING/FOREIGN_KEY_ADDED
+  14. Constraint removed  → WARNING/CONSTRAINT_REMOVED
+  15. Index removed       → WARNING/INDEX_REMOVED
+  16. Index added         → SAFE/INDEX_ADDED
+  17. View removed        → BREAKING/VIEW_REMOVED
+  18. View column removed → BREAKING/VIEW_COLUMN_REMOVED
+  19. Enum value removed  → BREAKING/SQL_ENUM_VALUE_REMOVED
+  20. Enum value added    → WARNING/SQL_ENUM_VALUE_ADDED
+  21. Invalid base SQL    → error returned, no DiffReport
+
+──────────────────────────────────────────────────
+FILE 6: engine/internal/sql/testdata/*.sql
+──────────────────────────────────────────────────
+Create minimal but valid PostgreSQL DDL fixture pairs for each
+test case above. Follow this naming pattern:
+  base_<test>.sql / rev_<test>.sql
+
+Example — base_col_removed.sql:
+  CREATE TABLE users (
+    id BIGINT PRIMARY KEY,
+    email TEXT NOT NULL,
+    phone TEXT
+  );
+
+Example — rev_col_removed.sql:
+  CREATE TABLE users (
+    id BIGINT PRIMARY KEY,
+    email TEXT NOT NULL
+  );
+  -- phone removed → COLUMN_REMOVED
+
+All fixtures must be valid PostgreSQL DDL (except base_invalid.sql).
+Keep them minimal — only the DDL needed to trigger the target rule.
+
+──────────────────────────────────────────────────
+FILE 7: engine/cmd/substrate/e2e_sql_test.go
+──────────────────────────────────────────────────
+E2E tests that compile and invoke the substrate binary with SQL
+fixture files. Assert stdout content and exit code.
+
+Required E2E cases:
+  - "substrate diff base_no_change.sql rev_no_change.sql --format text"
+      exit code 0, stdout contains "0 BREAKING"
+  - "substrate diff base_col_removed.sql rev_col_removed.sql --format text"
+      exit code 2, stdout contains "COLUMN_REMOVED", "BREAKING"
+  - "substrate diff base_col_add_nn.sql rev_col_add_nn.sql --format text"
+      exit code 2, stdout contains "COLUMN_ADDED_NOT_NULL_NO_DEFAULT"
+  - "substrate diff base_table_removed.sql rev_table_removed.sql --format json"
+      exit code 2, valid JSON with breaking_changes array non-empty
+  - "substrate diff base_invalid.sql rev_no_change.sql --format text"
+      exit code 3 (parse error)
+
+──────────────────────────────────────────────────
+FILE 8: engine/cmd/substrate/main.go  [MODIFY]
+──────────────────────────────────────────────────
+Wire the SQL engine. In the diff command's RunE function:
+
+  1. Detect schema_type. Priority order:
+     a. --schema-type flag value
+     b. schema_type field from substrate.yaml config
+     c. File extension: .sql → "sql", .yaml/.json → "openapi"
+
+  2. Route to the correct engine:
+     if schemaType == "sql" {
+         base, err := sqlpkg.ParseSchema(baseArg)
+         // handle err → exit code 3
+         head, err := sqlpkg.ParseSchema(headArg)
+         // handle err → exit code 3
+         report = sqlpkg.DiffSchemas(base, head)
+     } else {
+         report, err = diff.CompareOpenAPI(baseArg, headArg, flattenAllOf)
+         // handle err → exit code 3
+     }
+
+  Import the new package as:
+    sqlpkg "github.com/KrushnaVardhanReddy/substrate/engine/internal/sql"
+
+  Exit codes remain unchanged:
+    0 = no changes or all safe
+    1 = warnings only
+    2 = at least one breaking change
+    3 = parse/validation error
+
+──────────────────────────────────────────────────
+FILE 9: engine/internal/report/report.go  [READ ONLY]
+──────────────────────────────────────────────────
+DO NOT MODIFY. However, you MUST add SchemaTypeSQL to the existing
+SchemaType constants if it does not exist yet. Check the file first.
+If SchemaTypeSQL is missing, add:
+    SchemaTypeSQL SchemaType = "sql"
+adjacent to SchemaTypeOpenAPI. No other changes to this file.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- engine/internal/sql/schema.go
+- engine/internal/sql/parser.go
+- engine/internal/sql/diff.go
+- engine/internal/sql/parser_test.go
+- engine/internal/sql/diff_test.go
+- engine/internal/sql/testdata/base_no_change.sql
+- engine/internal/sql/testdata/rev_no_change.sql
+- engine/internal/sql/testdata/base_table_removed.sql
+- engine/internal/sql/testdata/rev_table_removed.sql
+- engine/internal/sql/testdata/base_table_added.sql
+- engine/internal/sql/testdata/rev_table_added.sql
+- engine/internal/sql/testdata/base_col_removed.sql
+- engine/internal/sql/testdata/rev_col_removed.sql
+- engine/internal/sql/testdata/base_col_add_null.sql
+- engine/internal/sql/testdata/rev_col_add_null.sql
+- engine/internal/sql/testdata/base_col_add_nn.sql
+- engine/internal/sql/testdata/rev_col_add_nn.sql
+- engine/internal/sql/testdata/base_col_type.sql
+- engine/internal/sql/testdata/rev_col_type.sql
+- engine/internal/sql/testdata/base_col_widen.sql
+- engine/internal/sql/testdata/rev_col_widen.sql
+- engine/internal/sql/testdata/base_col_nn.sql
+- engine/internal/sql/testdata/rev_col_nn.sql
+- engine/internal/sql/testdata/base_default_removed.sql
+- engine/internal/sql/testdata/rev_default_removed.sql
+- engine/internal/sql/testdata/base_unique.sql
+- engine/internal/sql/testdata/rev_unique.sql
+- engine/internal/sql/testdata/base_check.sql
+- engine/internal/sql/testdata/rev_check.sql
+- engine/internal/sql/testdata/base_fk.sql
+- engine/internal/sql/testdata/rev_fk.sql
+- engine/internal/sql/testdata/base_constraint_removed.sql
+- engine/internal/sql/testdata/rev_constraint_removed.sql
+- engine/internal/sql/testdata/base_index_removed.sql
+- engine/internal/sql/testdata/rev_index_removed.sql
+- engine/internal/sql/testdata/base_index_added.sql
+- engine/internal/sql/testdata/rev_index_added.sql
+- engine/internal/sql/testdata/base_view_removed.sql
+- engine/internal/sql/testdata/rev_view_removed.sql
+- engine/internal/sql/testdata/base_view_col.sql
+- engine/internal/sql/testdata/rev_view_col.sql
+- engine/internal/sql/testdata/base_enum_removed.sql
+- engine/internal/sql/testdata/rev_enum_removed.sql
+- engine/internal/sql/testdata/base_enum_added.sql
+- engine/internal/sql/testdata/rev_enum_added.sql
+- engine/internal/sql/testdata/base_invalid.sql
+- engine/cmd/substrate/e2e_sql_test.go
+
+FILES TO MODIFY:
+- engine/cmd/substrate/main.go  (wire SQL engine, detect schema_type)
+- engine/go.mod                 (add pg_query_go/v6)
+- engine/internal/report/report.go  (add SchemaTypeSQL if missing)
+
+FILES TO NOT TOUCH (READ-ONLY):
+- docs/specs/breaking-change-rules-sql.md
+- docs/specs/breaking-change-rules.md
+- engine/internal/diff/openapi.go
+- engine/internal/diff/openapi_test.go
+- engine/internal/config/config.go
+
+Commit: "jules: add SQL DDL parser, diff engine, and rule engine (P1b-T02)"

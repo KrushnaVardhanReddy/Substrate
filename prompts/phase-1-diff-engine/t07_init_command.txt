@@ -1,0 +1,191 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+1. NEVER stub, mock, or TODO existing implementation code.
+2. Every file you modify MUST still build — run `go build ./...` and `go vet ./...` before committing.
+3. If a test fails, FIX the code or test — do NOT delete or skip tests.
+4. Do NOT alter any file in docs/specs/ — those are READ-ONLY source-of-truth specs.
+5. TESTING IS MANDATORY — every task MUST include both:
+   a. Unit tests: table-driven `_test.go` files. Min 80% coverage on new code.
+   b. E2E tests: invoke the compiled binary with real input files and assert stdout/exit code.
+6. Commit message must start with "jules: " prefix.
+7. 100% SPEC-FIRST RULE: Implement exactly what docs/specs/init-command.md defines.
+
+Project: Substrate — Go Diff Engine CLI
+Tech stack: Go 1.26, cobra v1.10.2 (already in go.mod), standard library only
+
+---
+
+TASK: P1-T07 — substrate init Command
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Add a `substrate init` subcommand to the existing Cobra CLI that scaffolds two
+files in the user's repository:
+  1. substrate.yaml  — Substrate configuration file
+  2. .github/workflows/substrate.yml  — GitHub Actions workflow file
+
+The spec is at docs/specs/init-command.md. Implement it exactly as written.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — WHY THIS IS NEEDED
+═══════════════════════════════════════════════════════════════
+New users must currently hand-write both files from scratch after reading the
+README. A single `substrate init` command eliminates that onboarding friction.
+
+The command is completely independent of the diff engine — it MUST NOT import
+the engine/internal/diff package. It only writes files to disk.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FILE: engine/internal/init/init.go
+   Core logic implementing the Init() function:
+   - Accept an InitOptions struct (flags: Service, Spec, SchemaType, Branch, Force, NoWorkflow, NoConfig)
+   - Auto-detect spec path by searching for files in this order:
+       openapi.yaml, openapi.json, api/openapi.yaml, api/openapi.json,
+       docs/openapi.yaml, docs/openapi.json, swagger.yaml, swagger.json
+   - If no spec found: use "openapi.yaml" as placeholder, print warning:
+       ⚠️  No OpenAPI spec found. Set spec_path in substrate.yaml to the correct path.
+   - Default service name: filepath.Base(cwd) from os.Getwd()
+   - Check if files exist before writing; if they do and --force is NOT set, print warning and exit 0
+   - Create .github/workflows/ directory if it does not exist (os.MkdirAll)
+   - Write files using os.WriteFile
+   - On success print the exact success message from the spec
+
+2. FILE: engine/internal/init/templates.go
+   Template strings as Go string constants:
+   - SubstrateYAMLTemplate  — the substrate.yaml template from the spec
+   - WorkflowTemplate       — the .github/workflows/substrate.yml template from the spec
+   Templates use simple string replacements for: <service-name>, <schema-type>, <spec-path>, <branch>
+   Use strings.NewReplacer or fmt.Sprintf — no text/template package.
+
+3. FILE: engine/internal/init/init_test.go
+   All 9 test cases from docs/specs/init-command.md §Test Requirements.
+   MANDATORY: All tests MUST use t.TempDir() as the working directory.
+   MUST NOT write any file outside of t.TempDir().
+   Tests must verify:
+   a) Correct files are created (or not created) on disk
+   b) Correct content inside the created files (service name, spec path, branch)
+   c) Correct stdout messages
+   d) Correct exit code behaviour (files already exist → exit 0, no error)
+
+4. FILE: engine/cmd/substrate/main.go
+   MODIFY to register the new initCmd Cobra subcommand.
+   - Add initCmd with all flags from the spec (--service, --spec, --schema-type, --branch, --force, --no-workflow, --no-config)
+   - Flag defaults:
+       --schema-type: "openapi"
+       --branch: "main"
+       --force: false
+       --no-workflow: false
+       --no-config: false
+   - Register: rootCmd.AddCommand(initCmd)
+   - The RunE function calls the Init() function from engine/internal/init
+
+5. E2E TEST addition in engine/cmd/substrate/main_test.go (or a new e2e_init_test.go):
+   Add E2E test cases that compile and invoke the substrate binary with `init` subcommand:
+   - "substrate init in empty dir → creates both files, exit 0"
+   - "substrate init --no-workflow → creates only substrate.yaml, exit 0"
+   - "substrate init --service my-api → service: my-api in substrate.yaml"
+   - "substrate init twice without --force → exit 0, prints warning, files unchanged"
+   - "substrate init --force → overwrites existing files"
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- engine/internal/init/init.go
+- engine/internal/init/templates.go
+- engine/internal/init/init_test.go
+
+FILES TO MODIFY:
+- engine/cmd/substrate/main.go   (add initCmd, register with rootCmd)
+
+FILES TO NOT TOUCH (READ-ONLY):
+- docs/specs/init-command.md
+- docs/specs/breaking-change-rules.md
+- engine/internal/diff/openapi.go
+- engine/internal/report/report.go
+- engine/go.mod / engine/go.sum   (no new dependencies — standard library only)
+
+═══════════════════════════════════════════════════════════════
+EXACT TEMPLATES (copy these verbatim into templates.go)
+═══════════════════════════════════════════════════════════════
+
+substrate.yaml template (replace <service-name>, <schema-type>, <spec-path>):
+
+# substrate.yaml — Substrate configuration
+# Docs: https://github.com/KrushnaVardhanReddy/Substrate
+
+service: <service-name>
+schema_type: <schema-type>
+spec_path: <spec-path>
+
+owners:
+  - team: your-team-name
+    contact: your-team@company.com
+
+# Overrides — acknowledge intentional breaking changes
+# overrides:
+#   - rule_id: ENDPOINT_REMOVED
+#     path: paths./your-endpoint
+#     reason: "Reason this is safe (min 20 chars)"
+#     approved_by: you@company.com
+#     expires: YYYY-MM-DD
+
+---
+
+.github/workflows/substrate.yml template (replace <branch>, <spec-path>):
+
+# Substrate API Contract Guard
+# Docs: https://github.com/KrushnaVardhanReddy/Substrate
+
+name: Substrate API Contract Guard
+
+on:
+  pull_request:
+    branches: [<branch>]
+
+jobs:
+  check-api-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check API Breaking Changes
+        uses: KrushnaVardhanReddy/Substrate@v0.1.0
+        with:
+          base_schema: <spec-path>
+          head_schema: <spec-path>
+          config: substrate.yaml
+
+═══════════════════════════════════════════════════════════════
+EXACT SUCCESS OUTPUT (print this verbatim on success)
+═══════════════════════════════════════════════════════════════
+
+✅ Substrate initialized!
+
+Created:
+  substrate.yaml
+  .github/workflows/substrate.yml
+
+Next steps:
+  1. Review substrate.yaml and update 'owners' with your team details.
+  2. Commit both files and open a PR to see Substrate in action.
+  3. Docs: https://github.com/KrushnaVardhanReddy/Substrate
+
+(If --no-workflow: omit ".github/workflows/substrate.yml" from the Created list)
+(If --no-config: omit "substrate.yaml" from the Created list)
+
+═══════════════════════════════════════════════════════════════
+EXIT CODES
+═══════════════════════════════════════════════════════════════
+
+0 — Success (files created or already exist)
+1 — --force requested but write permission denied
+3 — Internal/unexpected error
+
+Commit: "jules: add substrate init command (P1-T07)"

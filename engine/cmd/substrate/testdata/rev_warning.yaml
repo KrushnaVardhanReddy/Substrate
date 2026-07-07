@@ -5,7 +5,13 @@ info:
 paths:
   /users:
     get:
-      summary: Get users updated
+      summary: Get users
+      parameters:
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
       responses:
         "200":
           description: OK

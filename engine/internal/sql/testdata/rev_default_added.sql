@@ -1,0 +1,5 @@
+CREATE TABLE accounts (
+  id      BIGINT PRIMARY KEY,
+  balance NUMERIC(18,2) NOT NULL DEFAULT 0.00
+);
+-- DEFAULT added to existing NOT NULL column → COLUMN_DEFAULT_CHANGED (WARNING)

@@ -1,0 +1,2 @@
+CREATE TABLE users (id BIGINT PRIMARY KEY);
+CREATE VIEW v_users AS SELECT id FROM users;
