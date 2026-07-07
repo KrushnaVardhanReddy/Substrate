@@ -1,0 +1,35 @@
+name: Test Substrate Action (Dogfooding)
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test-safe:
+    name: Test Safe Change
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Substrate Action (Expect Success)
+        uses: ./
+        with:
+          base_schema: engine/cmd/substrate/testdata/base.yaml
+          head_schema: engine/cmd/substrate/testdata/rev_safe.yaml
+
+  test-breaking-with-override:
+    name: Test Breaking Change (Overridden)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Substrate Action (Expect Success due to config)
+        uses: ./
+        with:
+          base_schema: engine/cmd/substrate/testdata/base.yaml
+          head_schema: engine/cmd/substrate/testdata/rev_breaking.yaml
+          config: engine/cmd/substrate/testdata/substrate_valid.yaml
