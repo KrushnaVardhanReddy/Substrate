@@ -662,9 +662,12 @@ Every team building on LLMs with structured JSON output (function calling, JSON 
 Goal: Move from CLI-only to a fully automated CI/CD bot.
 
 Features:
-* 1-click GitHub App installation
-* Automated PR comments and merge blocking
-* Repository mapping and service ownership
+* **1-click GitHub App installation:** Automated PR comments and merge blocking.
+* **Automated Dependency Discovery:** Eliminate manual YAML configuration by automatically mapping the dependency graph through:
+  * **Distributed Tracing:** Native ingestion of OpenTelemetry, Datadog APM, or New Relic traces.
+  * **Network Layer (eBPF & Service Mesh):** Direct integration with Istio, Linkerd, or eBPF network logs to map service-to-service communication.
+  * **Static Code Analysis:** AST scanning in CI to detect SDK imports and API calls.
+* **Service Ownership:** Map every discovered node to a team and an alert channel.
 
 ---
 
