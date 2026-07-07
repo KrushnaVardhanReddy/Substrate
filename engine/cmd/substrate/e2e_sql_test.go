@@ -76,6 +76,22 @@ func TestE2ESQL(t *testing.T) {
 			expectExit:   3,
 			expectOutput: []string{"sql parse error"},
 		},
+		{
+			name:         "Table renamed",
+			base:         "base_table_renamed.sql",
+			head:         "rev_table_renamed.sql",
+			format:       "text",
+			expectExit:   2,
+			expectOutput: []string{"TABLE_RENAMED", "BREAKING"},
+		},
+		{
+			name:         "View definition changed",
+			base:         "base_view_def_changed.sql",
+			head:         "rev_view_def_changed.sql",
+			format:       "text",
+			expectExit:   1,
+			expectOutput: []string{"VIEW_DEFINITION_CHANGED"},
+		},
 	}
 
 	for _, tc := range tests {

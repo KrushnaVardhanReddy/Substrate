@@ -110,14 +110,29 @@ func DiffSchemas(base, head *SQLSchema) *report.DiffReport {
 			for _, c := range hView.Columns {
 				hCols[c] = true
 			}
+			var columnDiff []string
 			for _, c := range bView.Columns {
 				if !hCols[c] {
+					columnDiff = append(columnDiff, c)
 					addChange(
 						fmt.Sprintf("chg_view_column_removed_%s_%s", vName, c),
 						"VIEW_COLUMN_REMOVED",
 						report.ChangeSeverityBreaking,
 						fmt.Sprintf("views.%s.columns.%s", vName, c),
 						fmt.Sprintf("Column '%s' was removed from view '%s'.", c, vName),
+					)
+				}
+			}
+
+			// VIEW_DEFINITION_CHANGED: same columns, different definition
+			if len(columnDiff) == 0 && bView.Definition != "" && hView.Definition != "" {
+				if bView.Definition != hView.Definition {
+					addChange(
+						fmt.Sprintf("chg_view_definition_changed_%s", vName),
+						"VIEW_DEFINITION_CHANGED",
+						report.ChangeSeverityWarning,
+						fmt.Sprintf("views.%s", vName),
+						fmt.Sprintf("View '%s' definition changed — same columns but different query.", vName),
 					)
 				}
 			}
@@ -338,6 +353,14 @@ func diffSingleColumn(tName string, bCol, hCol *Column, addChange func(id, ruleI
 			report.ChangeSeverityWarning,
 			fmt.Sprintf("tables.%s.columns.%s", tName, cName),
 			fmt.Sprintf("DEFAULT changed for column '%s' in table '%s'.", cName, tName),
+		)
+	} else if bDef == nil && hDef != nil {
+		addChange(
+			fmt.Sprintf("chg_column_default_changed_%s_%s", tName, cName),
+			"COLUMN_DEFAULT_CHANGED",
+			report.ChangeSeverityWarning,
+			fmt.Sprintf("tables.%s.columns.%s", tName, cName),
+			fmt.Sprintf("DEFAULT added to column '%s' in table '%s'.", cName, tName),
 		)
 	}
 }
