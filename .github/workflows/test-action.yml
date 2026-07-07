@@ -18,7 +18,7 @@ jobs:
         uses: ./
         with:
           base_schema: engine/cmd/substrate/testdata/base.yaml
-          head_schema: engine/cmd/substrate/testdata/rev_safe.yaml
+          head_schema: engine/cmd/substrate/testdata/base.yaml
 
   test-breaking-with-override:
     name: Test Breaking Change (Overridden)
