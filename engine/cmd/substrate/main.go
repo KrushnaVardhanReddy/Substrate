@@ -10,6 +10,8 @@ import (
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/diff"
 	initcmd "github.com/KrushnaVardhanReddy/substrate/engine/internal/init"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
+	sqlpkg "github.com/KrushnaVardhanReddy/substrate/engine/internal/sql"
+	"path/filepath"
 	"github.com/spf13/cobra"
 )
 
@@ -42,10 +44,40 @@ func main() {
 				// Proceed with defaults if default config file is missing
 			}
 
-			rep, err := diff.CompareOpenAPI(basePath, revisionPath, flattenAllOf)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-				os.Exit(3)
+			finalSchemaType := schemaType
+			if finalSchemaType == "" {
+				if cfg != nil && cfg.SchemaType != "" {
+					finalSchemaType = cfg.SchemaType
+				} else {
+					ext := filepath.Ext(basePath)
+					if ext == ".sql" {
+						finalSchemaType = "sql"
+					} else {
+						finalSchemaType = "openapi"
+					}
+				}
+			}
+
+			var rep *report.DiffReport
+
+			if finalSchemaType == "sql" {
+				base, err := sqlpkg.ParseSchema(basePath)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+					os.Exit(3)
+				}
+				head, err := sqlpkg.ParseSchema(revisionPath)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+					os.Exit(3)
+				}
+				rep = sqlpkg.DiffSchemas(base, head)
+			} else {
+				rep, err = diff.CompareOpenAPI(basePath, revisionPath, flattenAllOf)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+					os.Exit(3)
+				}
 			}
 
 			if cfg != nil {
