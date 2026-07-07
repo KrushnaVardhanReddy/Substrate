@@ -37,24 +37,24 @@
 ## Phase 1 — Breaking Change Prevention (Incremental Sub-phases)
 
 > **Dependency:** Phase 0 specs complete ✅
-> **Architecture:** All sub-phases use the **same diff engine**. Only new parsers and rule tables are added.
+> **Architecture:** OpenAPI diffing is powered by **oasdiff** (Go library, Apache 2.0). We wrap it, not rebuild it. Custom parsers handle SQL/GraphQL/ML schemas.
 
 ### Phase 1a — OpenAPI 3.x ⏳ READY TO START
 
-> ⚠️ **Override Config spec must be written (P1-T00) before GitHub App ships (Phase 2)**
+> 🎯 **oasdiff decision:** Using `github.com/oasdiff/oasdiff` as a Go library dependency.
+> Gives us 160+ rules, allOf flattening, stability levels, spec validation — for free.
+> Phase 1a shrinks from 9 tasks → 4 tasks. Estimated time: **1–2 weeks** instead of 6–8 weeks.
 
 | Task ID | Name | Owner | Status | Jules Prompt |
 |---|---|---|---|---|
 | P1-T00 | **`substrate.yaml` override config spec** | Antigravity | ⏳ | `docs/specs/override-config.md` |
-| P1-T01 | Go module scaffold + DiffReport structs | Jules | ⏳ | `prompts/phase-1-diff-engine/t01_go_scaffold.txt` |
-| P1-T02 | OpenAPI parser + Internal Representation (IR) | Jules | 🔒 | `prompts/phase-1-diff-engine/t02_openapi_parser.txt` |
-| P1-T03 | Diff comparator algorithm | Jules | 🔒 | `prompts/phase-1-diff-engine/t03_diff_comparator.txt` |
-| P1-T04 | Rule engine (32 rules from spec) | Jules | 🔒 | `prompts/phase-1-diff-engine/t04_rule_engine.txt` |
-| P1-T05 | CLI binary + `--format json/text` output | Jules | 🔒 | `prompts/phase-1-diff-engine/t05_cli_output.txt` |
-| P1-T06 | Override config parser (reads `substrate.yaml`) | Jules | 🔒 | `prompts/phase-1-diff-engine/t06_override_parser.txt` |
-| P1-T07 | Unit tests + E2E tests (80% coverage) | Jules | 🔒 | `prompts/phase-1-diff-engine/t07_tests.txt` |
+| P1-T01 | Go module scaffold + DiffReport structs + oasdiff dependency | Jules | ⏳ | `prompts/phase-1-diff-engine/t01_go_scaffold.txt` |
+| P1-T02 | oasdiff adapter (wraps oasdiff output → `DiffReport` format) | Jules | 🔒 | `prompts/phase-1-diff-engine/t02_oasdiff_adapter.txt` |
+| P1-T03 | Override config parser + CLI (`substrate.yaml`, `--format json/text/changelog`) | Jules | 🔒 | `prompts/phase-1-diff-engine/t03_cli_override.txt` |
+| P1-T04 | Unit tests + E2E tests (80% coverage, real OpenAPI fixture files) | Jules | 🔒 | `prompts/phase-1-diff-engine/t04_tests.txt` |
+| **P1-T05** | **Add `NOTICES` file** — Apache 2.0 attribution for oasdiff ⚖️ | Antigravity | 🔒 | — |
 
-**Missing prompts to write:** T02, T03, T04, T05, T06, T07
+**Missing prompts to write:** T02, T03, T04 (T01 exists but needs updating for oasdiff dependency)
 
 ### Phase 1b — SQL Migrations 🔒 BLOCKED on 1a
 
@@ -142,6 +142,11 @@ These are not yet scheduled but are on the product roadmap:
 - [ ] Deploy MCP server endpoint
 - [ ] Write IDE integration guide (Antigravity, Cursor, Claude, Copilot)
 - [ ] Expose MCP server as self-hostable for Enterprise tier
+
+**Legal / Pre-launch Checklist** ⚖️
+- [ ] Add `NOTICES` file at repo root with Apache 2.0 attribution for oasdiff (`https://github.com/oasdiff/oasdiff`)
+- [ ] Add "Credits" section to dashboard UI footer
+- [ ] Review all Go module dependencies in `go.mod` for license compatibility before v1.0 release
 
 **Schema Format Extensions (Phase 1 follow-up)**
 - [ ] SQL migration schema support (Phase 1b)

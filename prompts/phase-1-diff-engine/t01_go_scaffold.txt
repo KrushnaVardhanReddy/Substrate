@@ -3,22 +3,27 @@ MANDATORY RULES — VIOLATION = REJECTED PR:
 2. Every file you modify MUST still build — run `go build ./...` and `go vet ./...` before committing.
 3. If a test fails, FIX the code or test — do NOT delete or skip tests.
 4. Do NOT alter any file in docs/specs/ — those are READ-ONLY source-of-truth specs.
-5. All new Go packages MUST have at least one table-driven unit test (`_test.go` file).
+5. TESTING IS MANDATORY — every task MUST include both:
+   a. Unit tests: table-driven `_test.go` files. Min 80% coverage on new code.
+   b. E2E tests: invoke the compiled binary with real input files and assert stdout/exit code.
 6. Commit message must start with "jules: " prefix.
-7. 100% SPEC-FIRST RULE: Implement exactly what docs/specs/diff-report-schema.md defines — no additions, no omissions.
+7. 100% SPEC-FIRST RULE: Implement exactly what docs/specs/diff-report-schema.md defines.
 
 Project: Substrate — Go Diff Engine CLI
-Tech stack: Go (standard library only, no external frameworks)
+Tech stack: Go 1.22, standard library + oasdiff (Apache 2.0 open-source library)
+Key decision: OpenAPI diffing is handled by github.com/oasdiff/oasdiff — do NOT reimplement diff logic.
 
 ---
 
-TASK: P1-T01 — Go Module Scaffold
+TASK: P1-T01 — Go Module Scaffold + oasdiff Dependency
 
 ═══════════════════════════════════════════════════════════════
 OBJECTIVE
 ═══════════════════════════════════════════════════════════════
-Scaffold the Go module and project structure for the Substrate diff engine.
-No business logic yet — only the skeleton that all future tasks will build on.
+Scaffold the Go module for the Substrate diff engine.
+Add oasdiff as the core OpenAPI diff library dependency.
+Define the DiffReport structs that all future tasks will use.
+No business diff logic yet — only the skeleton and data types.
 
 ═══════════════════════════════════════════════════════════════
 DELIVERABLES
@@ -27,33 +32,45 @@ DELIVERABLES
 1. FILE: engine/go.mod
    - Module name: github.com/KrushnaVardhanReddy/substrate/engine
    - Go version: 1.22
+   - Dependencies to add (run `go get`):
+     * github.com/oasdiff/oasdiff (latest)
+     * github.com/spf13/cobra (for CLI flag parsing)
 
 2. FILE: engine/cmd/substrate/main.go
    - Entry point for the CLI binary.
-   - For now: print "Substrate v0.1.0" and exit 0.
-   - Use os.Args to parse future flags (leave as TODO comment for now).
+   - Print "Substrate v0.1.0 — powered by oasdiff" and exit 0 for now.
+   - Use cobra to define a root command with placeholder subcommands: `diff`, `validate`.
 
 3. FILE: engine/internal/report/report.go
    - Define Go structs that EXACTLY match the DiffReport JSON schema in docs/specs/diff-report-schema.md.
-   - Every field must have correct `json:"..."` tags matching the spec.
-   - Structs to define: DiffReport, Summary, Change, SchemaType (string type alias), Severity (string type alias), ChangeSeverity (string type alias).
-   - Define constants for all enum values (e.g., SchemaTypeOpenAPI = "openapi", SeverityBreaking = "BREAKING", etc.)
+   - Every field must have correct `json:"..."` tags matching the spec field names exactly.
+   - Structs to define:
+     * DiffReport
+     * Summary
+     * Change
+   - Type aliases:
+     * SchemaType (string) — values: "openapi", "sql", "graphql", "protobuf", "avro"
+     * Severity (string) — values: "BREAKING", "WARNING", "SAFE", "NO_CHANGES"
+     * ChangeSeverity (string) — values: "BREAKING", "WARNING", "SAFE"
+   - Constants for every enum value listed above.
 
 4. FILE: engine/internal/report/report_test.go
-   - Table-driven test that marshals a sample DiffReport to JSON and verifies the output matches the expected JSON from the spec example.
-   - Also test that unmarshaling the example JSON from the spec back into a DiffReport struct works correctly.
+   - Table-driven tests:
+     a. Marshal a sample DiffReport (matching the complete example in docs/specs/diff-report-schema.md) to JSON and verify all field names and values match exactly.
+     b. Unmarshal that same JSON back to a DiffReport struct and verify round-trip integrity.
 
 5. FILE: engine/Makefile
-   - Targets: build, test, lint, clean
+   - Targets: build, test, lint, clean, deps
+   - `deps`: go mod tidy && go mod download
    - `build`: go build -o bin/substrate ./cmd/substrate
    - `test`: go test ./...
    - `lint`: go vet ./...
    - `clean`: rm -rf bin/
 
 6. FILE: .github/workflows/engine-ci.yml (at repo root)
-   - Trigger: pull_request targeting main, only if files under engine/** change.
-   - Steps: checkout, setup-go@v5 (go-version-file: engine/go.mod), run `make -C engine test`, run `make -C engine lint`.
-   - If any step fails → block merge.
+   - Trigger: pull_request targeting main, path filter: engine/**
+   - Steps: checkout, setup-go@v5, `make -C engine deps`, `make -C engine test`, `make -C engine lint`
+   - Block merge on any failure.
 
 ═══════════════════════════════════════════════════════════════
 FILES LIST
@@ -61,6 +78,7 @@ FILES LIST
 
 FILES TO ADD:
 - engine/go.mod
+- engine/go.sum
 - engine/cmd/substrate/main.go
 - engine/internal/report/report.go
 - engine/internal/report/report_test.go
@@ -70,4 +88,5 @@ FILES TO ADD:
 FILES TO MODIFY:
 - None
 
-Commit: "jules: scaffold Go diff engine module and DiffReport structs"
+Commit: "jules: scaffold Go diff engine module with oasdiff dependency and DiffReport structs"
+
