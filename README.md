@@ -680,6 +680,7 @@ Features:
 * **Developer Portal Sync (Backstage):** Automatically push live dependency graphs, ownership metadata, and approved specs directly into Spotify Backstage.
 * **Data Catalog & Warehouse Sync:** Prevent broken ETL pipelines by syncing SQL and event schemas directly with Enterprise Data Catalogs (Collibra, Alation) and Data Warehouses (Teradata, Snowflake).
 * **Automated SDK Generation:** Webhook triggers to automatically regenerate downstream TypeScript/Python SDKs and open PRs on consumer repositories when a safe backend API change is merged.
+* **Automated Test Generation:** Avoid building competing testing tools; instead, generate Postman Collections and MuleSoft APIkit test suites directly from the approved schema. Substrate pushes updates via Pull Requests or Cloud APIs, ensuring testing teams are always testing the correct contract without overwriting their custom local scripts.
 ---
 
 ## Phase 4: AI Engineering Assistant
