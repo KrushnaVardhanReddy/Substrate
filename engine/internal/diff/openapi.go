@@ -50,23 +50,74 @@ func CompareOpenAPI(basePath, revisionPath string, flattenAllOf bool) (*report.D
 		SafeChanges:     []report.Change{},
 	}
 
-	// This is a simplified mock adapter for the purpose of the scaffold.
-	// In reality, we would map `diffObj` properties to Substrate rules.
 	if !diffObj.Empty() {
-		// Mock a breaking change if there is any diff at all
-		recommendation := "Review changes carefully."
-		rep.BreakingChanges = append(rep.BreakingChanges, report.Change{
-			ID:             "chg_001",
-			RuleID:         "FIELD_REMOVED", // Placeholder mapped rule
-			Severity:       report.ChangeSeverityBreaking,
-			Path:           "components.schemas",
-			Description:    "A difference was detected by oasdiff.",
-			Recommendation: &recommendation,
-		})
+		if diffObj.PathsDiff != nil {
+			for pathName := range diffObj.PathsDiff.Deleted {
+				recommendation := "Add 'deprecated: true' before removing endpoints."
+				rep.BreakingChanges = append(rep.BreakingChanges, report.Change{
+					ID:             fmt.Sprintf("chg_path_del_%v", pathName),
+					RuleID:         "ENDPOINT_REMOVED",
+					Severity:       report.ChangeSeverityBreaking,
+					Path:           fmt.Sprintf("paths.%v", pathName),
+					Description:    fmt.Sprintf("Endpoint %v was removed.", pathName),
+					Recommendation: &recommendation,
+				})
+			}
 
-		rep.Summary.TotalChanges = 1
-		rep.Summary.BreakingCount = 1
+			// Example: Check for modified paths
+			for pathName := range diffObj.PathsDiff.Modified {
+				recommendation := "Review path modifications carefully."
+				rep.Warnings = append(rep.Warnings, report.Change{
+					ID:             fmt.Sprintf("chg_path_mod_%v", pathName),
+					RuleID:         "ENDPOINT_MODIFIED",
+					Severity:       report.ChangeSeverityWarning,
+					Path:           fmt.Sprintf("paths.%v", pathName),
+					Description:    fmt.Sprintf("Endpoint %v was modified.", pathName),
+					Recommendation: &recommendation,
+				})
+			}
+		}
+
+		if diffObj.ComponentsDiff != nil && diffObj.ComponentsDiff.SchemasDiff != nil {
+			for schemaName := range diffObj.ComponentsDiff.SchemasDiff.Deleted {
+				recommendation := "Avoid deleting schemas in use."
+				rep.BreakingChanges = append(rep.BreakingChanges, report.Change{
+					ID:             fmt.Sprintf("chg_schema_del_%v", schemaName),
+					RuleID:         "SCHEMA_REMOVED",
+					Severity:       report.ChangeSeverityBreaking,
+					Path:           fmt.Sprintf("components.schemas.%v", schemaName),
+					Description:    fmt.Sprintf("Schema %v was removed.", schemaName),
+					Recommendation: &recommendation,
+				})
+			}
+
+			for schemaName := range diffObj.ComponentsDiff.SchemasDiff.Modified {
+				recommendation := "Modifying schemas can cause breaking changes."
+				rep.BreakingChanges = append(rep.BreakingChanges, report.Change{
+					ID:             fmt.Sprintf("chg_schema_mod_%v", schemaName),
+					RuleID:         "FIELD_REMOVED",
+					Severity:       report.ChangeSeverityBreaking,
+					Path:           fmt.Sprintf("components.schemas.%v", schemaName),
+					Description:    fmt.Sprintf("Schema %v was modified.", schemaName),
+					Recommendation: &recommendation,
+				})
+			}
+		}
+	}
+
+	rep.Summary.BreakingCount = len(rep.BreakingChanges)
+	rep.Summary.WarningCount = len(rep.Warnings)
+	rep.Summary.SafeCount = len(rep.SafeChanges)
+	rep.Summary.TotalChanges = rep.Summary.BreakingCount + rep.Summary.WarningCount + rep.Summary.SafeCount
+
+	if rep.Summary.BreakingCount > 0 {
 		rep.Summary.OverallSeverity = report.SeverityBreaking
+	} else if rep.Summary.WarningCount > 0 {
+		rep.Summary.OverallSeverity = report.SeverityWarning
+	} else if rep.Summary.SafeCount > 0 {
+		rep.Summary.OverallSeverity = report.SeveritySafe
+	} else {
+		rep.Summary.OverallSeverity = report.SeverityNoChanges
 	}
 
 	return rep, nil
