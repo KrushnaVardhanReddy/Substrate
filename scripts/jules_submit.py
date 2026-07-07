@@ -147,6 +147,11 @@ TASKS = {
         "phase": "phase-1b-sql",
         "prompt": _load_prompt("prompts/phase-1b-sql/t02_sql_parser.txt"),
     },
+    102: {
+        "name": "P1b-T03 — SQL Rule Engine: Expand Coverage + Edge-Case Tests",
+        "phase": "phase-1b-sql",
+        "prompt": _load_prompt("prompts/phase-1b-sql/t03_sql_rule_engine_tests.txt"),
+    },
 
     # ── Phase 2: GitHub App ───────────────────────────────────────────────────
     10: {

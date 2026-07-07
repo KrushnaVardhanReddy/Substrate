@@ -1,0 +1,402 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+1. NEVER stub, mock, or TODO existing implementation code.
+2. Every file you modify MUST still build — run `go build ./...` and `go vet ./...` before committing.
+3. If a test fails, FIX the code or test — do NOT delete or skip tests.
+4. Do NOT alter any file in docs/specs/ — those are READ-ONLY source-of-truth specs.
+5. TESTING IS MANDATORY — every task MUST include both:
+   a. Unit tests: table-driven `_test.go` files. Min 80% coverage on new code.
+   b. E2E tests: invoke the compiled binary with real .sql fixture files and assert stdout/exit code.
+6. Commit message must start with "jules: " prefix.
+7. 100% SPEC-FIRST RULE: Implement exactly what docs/specs/breaking-change-rules-sql.md defines.
+8. DO NOT REGRESS — all existing tests in engine/internal/sql/diff_test.go and
+   engine/cmd/substrate/e2e_sql_test.go MUST continue to pass. Run `go test ./...`
+   as your final step before committing.
+
+Project: Substrate — Go Diff Engine CLI
+Tech stack: Go 1.26, standard library + pg_query_go/v6 (already in go.mod)
+
+---
+
+TASK: P1b-T03 — SQL Rule Engine: Expand Coverage + Edge-Case Tests
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+P1b-T02 shipped the core SQL diff engine (parser + diff + rule engine).
+P1b-T03 expands it with the remaining rules from the spec that were not
+fully covered, hardens the edge-case test suite, and ensures the engine
+handles realistic pg_dump output without false positives.
+
+This task does NOT redesign the engine. It adds to the existing code in
+engine/internal/sql/diff.go and engine/internal/sql/diff_test.go.
+
+Specifically, you must:
+
+1. VERIFY the following rules from the spec are correctly implemented
+   in diff.go. If any are missing or incorrect, fix them:
+     a. TABLE_RENAMED   — Levenshtein similarity > 0.7 AND same column set
+     b. COLUMN_RENAMED  — Levenshtein similarity > 0.7 AND same DataType
+     c. SQL_ENUM_TYPE_REMOVED  — entire ENUM type dropped from schema
+     d. VIEW_DEFINITION_CHANGED — view exists in both but its Definition
+        string changed (currently only VIEW_COLUMN_REMOVED is diffed)
+
+2. ADD the missing VIEW_DEFINITION_CHANGED rule logic to diffViews():
+     Rule ID:  VIEW_DEFINITION_CHANGED
+     Severity: WARNING
+     Pattern:  View exists in both base and head, its column list is
+               unchanged, but its Definition (SQL query) differs.
+     Rationale: The view still exposes the same columns, but the
+                underlying data may differ — a silent semantic change.
+
+3. ADD tests in diff_test.go for the four rules above using fixture
+   file pairs in testdata/.
+
+4. ADD edge-case tests covering realistic pg_dump output patterns:
+     a. Multi-statement ALTER TABLE in one file (add + drop column)
+        in the same ALTER TABLE statement block.
+     b. Schema with pg_dump headers (SET, COMMENT ON TABLE, GRANT,
+        SELECT pg_catalog.setval) — parser must skip them without error.
+     c. NUMERIC precision widening: NUMERIC(10,2) → NUMERIC(18,2)
+        → should be COLUMN_TYPE_WIDENED (WARNING), not COLUMN_TYPE_CHANGED.
+     d. varchar without length (TEXT-like): VARCHAR → VARCHAR with no
+        length → should be NO_CHANGE (same type, no length specified).
+     e. Column with DEFAULT added to existing NOT NULL column
+        → COLUMN_DEFAULT_CHANGED (WARNING), not BREAKING.
+
+5. ADD E2E tests in e2e_sql_test.go for at least two of the new cases:
+     - TABLE_RENAMED detected (exit code 2, output contains "TABLE_RENAMED")
+     - View definition changed (exit code 1, output contains "VIEW_DEFINITION_CHANGED")
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — CURRENT STATE OF THE ENGINE
+═══════════════════════════════════════════════════════════════
+The engine lives at engine/internal/sql/. Key files:
+  - schema.go  — SQLSchema / Table / Column / Constraint / Index / View / EnumType / Sequence structs
+  - parser.go  — ParseSchema(path string) (*SQLSchema, error)
+  - diff.go    — DiffSchemas(base, head *SQLSchema) *report.DiffReport
+
+The 21 core rules from P1b-T02 are all passing (run `go test ./internal/sql/...` to confirm).
+The following rules from the spec are NOT yet tested or are incomplete:
+  - TABLE_RENAMED          — code exists but no dedicated fixture test
+  - COLUMN_RENAMED         — code exists but no dedicated fixture test
+  - SQL_ENUM_TYPE_REMOVED  — code exists but no dedicated fixture test
+  - VIEW_DEFINITION_CHANGED — NOT YET IMPLEMENTED in diffViews()
+
+DO NOT touch the existing 21 test cases or their fixture files.
+Only ADD new test cases and new fixture file pairs.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+──────────────────────────────────────────────────
+FILE 1: engine/internal/sql/diff.go  [MODIFY]
+──────────────────────────────────────────────────
+Add VIEW_DEFINITION_CHANGED rule inside the view diffing loop.
+
+Find the section in diffViews() that iterates views present in both
+base and head schemas. After the existing VIEW_COLUMN_REMOVED checks,
+add this logic:
+
+  // VIEW_DEFINITION_CHANGED: same columns, different definition
+  if len(columnDiff) == 0 && bView.Definition != "" && hView.Definition != "" {
+      if bView.Definition != hView.Definition {
+          addChange(
+              fmt.Sprintf("chg_view_definition_changed_%s", vName),
+              "VIEW_DEFINITION_CHANGED",
+              report.ChangeSeverityWarning,
+              fmt.Sprintf("views.%s", vName),
+              fmt.Sprintf("View '%s' definition changed — same columns but different query.", vName),
+          )
+      }
+  }
+
+Where `columnDiff` is the list of columns in base view not in head view
+(already computed above this block for VIEW_COLUMN_REMOVED checks).
+
+No other changes to diff.go are needed unless TABLE_RENAMED, COLUMN_RENAMED,
+or SQL_ENUM_TYPE_REMOVED are found to be missing or buggy. Fix only what is
+broken; do not refactor working code.
+
+──────────────────────────────────────────────────
+FILE 2: engine/internal/sql/diff_test.go  [MODIFY]
+──────────────────────────────────────────────────
+APPEND new test cases to the existing TestDiffSchemas table.
+DO NOT modify or remove any existing test case.
+
+New test cases to add:
+
+  {
+    name:          "Table renamed",
+    baseFile:      "base_table_renamed.sql",
+    headFile:      "rev_table_renamed.sql",
+    expectRule:    "TABLE_RENAMED",
+    expectSev:     report.ChangeSeverityBreaking,
+    expectChanges: 1,
+  },
+  {
+    name:          "Column renamed",
+    baseFile:      "base_col_renamed.sql",
+    headFile:      "rev_col_renamed.sql",
+    expectRule:    "COLUMN_RENAMED",
+    expectSev:     report.ChangeSeverityBreaking,
+    expectChanges: 1,
+  },
+  {
+    name:          "Enum type removed",
+    baseFile:      "base_enum_type_removed.sql",
+    headFile:      "rev_enum_type_removed.sql",
+    expectRule:    "SQL_ENUM_TYPE_REMOVED",
+    expectSev:     report.ChangeSeverityBreaking,
+    expectChanges: 1,
+  },
+  {
+    name:          "View definition changed",
+    baseFile:      "base_view_def_changed.sql",
+    headFile:      "rev_view_def_changed.sql",
+    expectRule:    "VIEW_DEFINITION_CHANGED",
+    expectSev:     report.ChangeSeverityWarning,
+    expectChanges: 1,
+  },
+  {
+    name:          "pg_dump headers skipped (no false positives)",
+    baseFile:      "base_pgdump_headers.sql",
+    headFile:      "rev_pgdump_headers.sql",
+    expectChanges: 0,
+  },
+  {
+    name:          "NUMERIC precision widening",
+    baseFile:      "base_numeric_widen.sql",
+    headFile:      "rev_numeric_widen.sql",
+    expectRule:    "COLUMN_TYPE_WIDENED",
+    expectSev:     report.ChangeSeverityWarning,
+    expectChanges: 1,
+  },
+  {
+    name:          "DEFAULT added to NOT NULL column",
+    baseFile:      "base_default_added.sql",
+    headFile:      "rev_default_added.sql",
+    expectRule:    "COLUMN_DEFAULT_CHANGED",
+    expectSev:     report.ChangeSeverityWarning,
+    expectChanges: 1,
+  },
+  {
+    name:          "Multi-statement ALTER TABLE (add + drop column)",
+    baseFile:      "base_multi_alter.sql",
+    headFile:      "rev_multi_alter.sql",
+    expectRule:    "COLUMN_REMOVED",
+    expectSev:     report.ChangeSeverityBreaking,
+    expectChanges: 2,    // COLUMN_REMOVED (breaking) + COLUMN_ADDED_NULLABLE (safe)
+  },
+
+──────────────────────────────────────────────────
+FILE 3: engine/internal/sql/testdata/*.sql  [ADD]
+──────────────────────────────────────────────────
+Create the following fixture file PAIRS. Keep DDL minimal and valid.
+
+base_table_renamed.sql:
+  CREATE TABLE orders (
+    id    BIGINT PRIMARY KEY,
+    total NUMERIC(10,2) NOT NULL
+  );
+
+rev_table_renamed.sql:
+  CREATE TABLE order_items (
+    id    BIGINT PRIMARY KEY,
+    total NUMERIC(10,2) NOT NULL
+  );
+  -- 'orders' → 'order_items': Levenshtein similarity > 0.7, same columns → TABLE_RENAMED
+
+---
+
+base_col_renamed.sql:
+  CREATE TABLE users (
+    id    BIGINT PRIMARY KEY,
+    email TEXT NOT NULL
+  );
+
+rev_col_renamed.sql:
+  CREATE TABLE users (
+    id     BIGINT PRIMARY KEY,
+    emails TEXT NOT NULL
+  );
+  -- 'email' → 'emails': high similarity, same type TEXT → COLUMN_RENAMED
+
+---
+
+base_enum_type_removed.sql:
+  CREATE TYPE order_status AS ENUM ('pending', 'shipped', 'delivered');
+  CREATE TABLE orders (
+    id     BIGINT PRIMARY KEY,
+    status TEXT
+  );
+
+rev_enum_type_removed.sql:
+  CREATE TABLE orders (
+    id     BIGINT PRIMARY KEY,
+    status TEXT
+  );
+  -- order_status ENUM type removed → SQL_ENUM_TYPE_REMOVED
+
+---
+
+base_view_def_changed.sql:
+  CREATE TABLE products (id BIGINT PRIMARY KEY, name TEXT, active BOOLEAN);
+  CREATE VIEW active_products AS SELECT id, name FROM products WHERE active = true;
+
+rev_view_def_changed.sql:
+  CREATE TABLE products (id BIGINT PRIMARY KEY, name TEXT, active BOOLEAN);
+  CREATE VIEW active_products AS SELECT id, name FROM products WHERE active = true AND id > 0;
+  -- same columns (id, name), different WHERE clause → VIEW_DEFINITION_CHANGED
+
+---
+
+base_pgdump_headers.sql:
+  SET statement_timeout = 0;
+  SET lock_timeout = 0;
+  SET idle_in_transaction_session_timeout = 0;
+  SET client_encoding = 'UTF8';
+  SET standard_conforming_strings = on;
+  SELECT pg_catalog.set_config('search_path', '', false);
+  SET check_function_bodies = false;
+  SET xmloption = content;
+  SET client_min_messages = warning;
+  SET row_security = off;
+  COMMENT ON SCHEMA public IS 'standard public schema';
+  CREATE TABLE users (
+    id    BIGINT PRIMARY KEY,
+    email TEXT NOT NULL
+  );
+
+rev_pgdump_headers.sql:
+  SET statement_timeout = 0;
+  SET lock_timeout = 0;
+  SET client_encoding = 'UTF8';
+  SET standard_conforming_strings = on;
+  SELECT pg_catalog.set_config('search_path', '', false);
+  SET check_function_bodies = false;
+  COMMENT ON SCHEMA public IS 'standard public schema';
+  CREATE TABLE users (
+    id    BIGINT PRIMARY KEY,
+    email TEXT NOT NULL
+  );
+  -- Identical schema, different pg_dump headers → 0 changes
+
+---
+
+base_numeric_widen.sql:
+  CREATE TABLE invoices (
+    id     BIGINT PRIMARY KEY,
+    amount NUMERIC(10,2) NOT NULL
+  );
+
+rev_numeric_widen.sql:
+  CREATE TABLE invoices (
+    id     BIGINT PRIMARY KEY,
+    amount NUMERIC(18,2) NOT NULL
+  );
+  -- NUMERIC(10,2) → NUMERIC(18,2): precision widens, same scale → COLUMN_TYPE_WIDENED
+
+---
+
+base_default_added.sql:
+  CREATE TABLE accounts (
+    id      BIGINT PRIMARY KEY,
+    balance NUMERIC(18,2) NOT NULL
+  );
+
+rev_default_added.sql:
+  CREATE TABLE accounts (
+    id      BIGINT PRIMARY KEY,
+    balance NUMERIC(18,2) NOT NULL DEFAULT 0.00
+  );
+  -- DEFAULT added to existing NOT NULL column → COLUMN_DEFAULT_CHANGED (WARNING)
+
+---
+
+base_multi_alter.sql:
+  CREATE TABLE orders (
+    id         BIGINT PRIMARY KEY,
+    total      NUMERIC(10,2),
+    legacy_ref TEXT
+  );
+
+rev_multi_alter.sql:
+  CREATE TABLE orders (
+    id         BIGINT PRIMARY KEY,
+    total      NUMERIC(10,2),
+    created_at TIMESTAMP
+  );
+  -- legacy_ref removed (BREAKING) + created_at added nullable (SAFE) = 2 changes
+
+──────────────────────────────────────────────────
+FILE 4: engine/cmd/substrate/e2e_sql_test.go  [MODIFY]
+──────────────────────────────────────────────────
+APPEND the following two test cases to the existing TestE2ESQL table.
+DO NOT modify any existing test case.
+
+  {
+    name:         "Table renamed",
+    base:         "base_table_renamed.sql",
+    head:         "rev_table_renamed.sql",
+    format:       "text",
+    expectExit:   2,
+    expectOutput: []string{"TABLE_RENAMED", "BREAKING"},
+  },
+  {
+    name:         "View definition changed",
+    base:         "base_view_def_changed.sql",
+    head:         "rev_view_def_changed.sql",
+    format:       "text",
+    expectExit:   1,
+    expectOutput: []string{"VIEW_DEFINITION_CHANGED"},
+  },
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO MODIFY:
+- engine/internal/sql/diff.go        (add VIEW_DEFINITION_CHANGED rule; fix TABLE_RENAMED / COLUMN_RENAMED / SQL_ENUM_TYPE_REMOVED if broken)
+- engine/internal/sql/diff_test.go   (append 8 new test cases)
+- engine/cmd/substrate/e2e_sql_test.go  (append 2 new E2E test cases)
+
+FILES TO ADD (testdata fixtures):
+- engine/internal/sql/testdata/base_table_renamed.sql
+- engine/internal/sql/testdata/rev_table_renamed.sql
+- engine/internal/sql/testdata/base_col_renamed.sql
+- engine/internal/sql/testdata/rev_col_renamed.sql
+- engine/internal/sql/testdata/base_enum_type_removed.sql
+- engine/internal/sql/testdata/rev_enum_type_removed.sql
+- engine/internal/sql/testdata/base_view_def_changed.sql
+- engine/internal/sql/testdata/rev_view_def_changed.sql
+- engine/internal/sql/testdata/base_pgdump_headers.sql
+- engine/internal/sql/testdata/rev_pgdump_headers.sql
+- engine/internal/sql/testdata/base_numeric_widen.sql
+- engine/internal/sql/testdata/rev_numeric_widen.sql
+- engine/internal/sql/testdata/base_default_added.sql
+- engine/internal/sql/testdata/rev_default_added.sql
+- engine/internal/sql/testdata/base_multi_alter.sql
+- engine/internal/sql/testdata/rev_multi_alter.sql
+
+FILES TO NOT TOUCH (READ-ONLY):
+- docs/specs/breaking-change-rules-sql.md
+- docs/specs/breaking-change-rules.md
+- engine/internal/sql/schema.go         (IR structs — do not change)
+- engine/internal/sql/parser.go         (parser — do not change unless a bug is found)
+- engine/internal/sql/parser_test.go    (parser tests — do not change)
+- engine/internal/diff/openapi.go
+- engine/internal/diff/openapi_test.go
+- engine/internal/config/config.go
+- engine/internal/report/report.go
+
+VERIFICATION STEP (run before committing):
+  cd engine
+  go build ./...
+  go vet ./...
+  go test ./... -count=1
+
+All packages must show "ok" with zero failures. If any test fails,
+fix the code — do NOT skip or delete the failing test.
+
+Commit: "jules: expand SQL rule engine coverage and edge-case tests (P1b-T03)"
