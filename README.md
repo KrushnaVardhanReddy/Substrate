@@ -579,6 +579,8 @@ Substrate follows the standard developer tool playbook (like Vercel, Datadog, St
 
 ## Distribution & Go-to-Market (GTM)
 
+
+
 1. **GitHub Marketplace (The MVP Wedge) 🏆**: The immediate path to users is shipping the CLI as a GitHub Action. Developers search "API breaking changes", install the action, and get CI failures on breaking changes. This is the highest ROI acquisition channel.
 2. **"Optic Alternative" SEO**: With Optic sunset in 2026, teams are actively searching for replacements. Publishing content positioning Substrate as the modern alternative captures this high-intent traffic.
 3. **Developer Communities (HN, Reddit)**: Sharing the engineering journey (e.g., "Building an API contract checker in Go using oasdiff") generates organic awareness.
@@ -599,8 +601,10 @@ Phase 1 ships incrementally as schema format support is added to the same diff e
 * **1a — OpenAPI 3.x** (REST APIs) ← *ships first*
 * **1b — SQL Migrations** (PostgreSQL DDL)
 * **1c — GraphQL SDL**
-* **1d — Protobuf**
-* **1e — AI/ML Model Contracts** (model input/output schemas, dataset schemas, LLM structured output)
+* **1d — Protobuf & gRPC** (Microservices)
+* **1e — AsyncAPI & Apache Avro** (Kafka / Event-Driven Architectures)
+* **1f — AI/ML Model Contracts** (Model inputs, dataset schemas)
+* **1g — Enterprise Metadata** (Salesforce Custom Objects, SOAP WSDLs)
 
 Core features in all sub-phases:
 
@@ -653,34 +657,26 @@ Every team building on LLMs with structured JSON output (function calling, JSON 
 
 ---
 
-## Phase 2: Dependency Intelligence
+## Phase 2: GitHub App & Dependency Intelligence
 
-Goal:
-
-Understand the entire engineering ecosystem.
+Goal: Move from CLI-only to a fully automated CI/CD bot.
 
 Features:
-
-* Repository mapping
-* Service ownership
-* Impact analysis
-* Dependency graph
+* 1-click GitHub App installation
+* Automated PR comments and merge blocking
+* Repository mapping and service ownership
 
 ---
 
-## Phase 3: Living Documentation
+## Phase 3: The Intelligence Layer & API Gateway Sync
 
-Goal:
-
-Replace outdated technical documentation.
+Goal: Turn Substrate into the central registry of truth for the entire engineering ecosystem.
 
 Features:
-
-* Auto-generated architecture diagrams
-* Service catalog
-* API documentation
-* Change history
-
+* **Developer Dashboard:** Cross-repo dependency graphs.
+* **Impact Analysis:** "If I change this OpenAPI schema, which 3 repos will break?"
+* **Audit Trails:** Centralized view of all overridden breaking changes across the company.
+* **API Gateway Sync (Universal Integration Layer):** Once a schema is marked safe and merged, Substrate acts as the single source of truth and pushes the approved schema via a generic plugin layer to any API Gateway (Kong, Apigee, AWS API Gateway, MuleSoft). This guarantees production gateways are always perfectly in sync with the codebase.
 ---
 
 ## Phase 4: AI Engineering Assistant
