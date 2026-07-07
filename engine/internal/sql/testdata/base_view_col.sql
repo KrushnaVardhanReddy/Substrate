@@ -1,0 +1,2 @@
+CREATE TABLE users (id BIGINT PRIMARY KEY, email TEXT);
+CREATE VIEW v_users AS SELECT id, email FROM users;
