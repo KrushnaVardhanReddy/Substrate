@@ -135,6 +135,11 @@ TASKS = {
         "phase": "phase-1-diff-engine",
         "prompt": _load_prompt("prompts/phase-1-diff-engine/t06_checker_adapter.txt"),
     },
+    7: {
+        "name": "P1-T07 — substrate init command",
+        "phase": "phase-1-diff-engine",
+        "prompt": _load_prompt("prompts/phase-1-diff-engine/t07_init_command.txt"),
+    },
 
     # ── Phase 2: GitHub App ───────────────────────────────────────────────────
     10: {
