@@ -9,7 +9,7 @@ RUN go mod download
 RUN go build -o /substrate cmd/substrate/main.go
 
 FROM alpine:latest
-RUN apk --no-cache add ca-certificates bash
+RUN apk --no-cache add ca-certificates bash git
 
 COPY --from=builder /substrate /usr/local/bin/substrate
 COPY entrypoint.sh /entrypoint.sh
