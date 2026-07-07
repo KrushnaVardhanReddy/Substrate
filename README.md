@@ -750,7 +750,10 @@ Substrate scales in value as an organization's complexity grows. The proposed mo
 * **Features:**
   * Self-hosted / VPC deployment (data privacy for financial/health data)
   * SSO / SAML integration (Okta, etc.)
-  * Custom rules engine (platform teams write custom policies for what constitutes a "breaking change")
+  * **Policy-as-Code Engine:** Move beyond hardcoded "breaking changes" to custom enterprise governance rules. Examples:
+    * `if pii_fields_changed -> require: compliance-team-approval`
+    * `if affected_services > 10 -> reject_change_automatically`
+    * `if service == payments -> require: security-review`
   * Compliance reporting and audit logs (SOC2)
 
 ---
