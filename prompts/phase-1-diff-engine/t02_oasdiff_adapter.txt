@@ -1,0 +1,64 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+1. NEVER stub, mock, or TODO existing implementation code.
+2. Every file you modify MUST still build — run `go build ./...` and `go vet ./...` before committing.
+3. If a test fails, FIX the code or test — do NOT delete or skip tests.
+4. Do NOT alter any file in docs/specs/ — those are READ-ONLY source-of-truth specs.
+5. TESTING IS MANDATORY — every task MUST include both:
+   a. Unit tests: table-driven `_test.go` files. Min 80% coverage on new code.
+   b. E2E tests: invoke the compiled binary with real input files and assert stdout/exit code.
+6. Commit message must start with "jules: " prefix.
+7. 100% SPEC-FIRST RULE: Implement exactly what docs/specs/breaking-change-rules.md defines.
+
+Project: Substrate — Go Diff Engine CLI
+Tech stack: Go 1.22, standard library + oasdiff (Apache 2.0 open-source library)
+
+---
+
+TASK: P1-T02 — oasdiff Adapter (Wraps oasdiff output → DiffReport)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement the OpenAPI diff logic by embedding `github.com/oasdiff/oasdiff`.
+You MUST NOT write your own OpenAPI parser or diffing algorithm. Use the `oasdiff` library.
+Create an adapter that takes `oasdiff` output and translates it into the Substrate `report.DiffReport` struct defined in P1-T01.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FILE: engine/internal/diff/openapi.go
+   - Create a function `CompareOpenAPI(basePath, revisionPath string, flattenAllOf bool) (*report.DiffReport, error)`
+   - Under the hood, this function must:
+     1. Load both specs using oasdiff's `load` package.
+     2. If `flattenAllOf` is true, run oasdiff's flatten logic on both specs.
+     3. Run oasdiff's `diff.Get(...)` to generate the raw diff.
+     4. Map the `oasdiff` result into our `report.DiffReport` struct.
+   - For mapping rules, refer to `docs/specs/breaking-change-rules.md`. Note that oasdiff has its own internal rule IDs (like `endpoint-removed`). You must map those to Substrate's Rule IDs (like `ENDPOINT_REMOVED`).
+   - The returned `DiffReport` must have the correct `SchemaType` (`report.SchemaTypeOpenAPI`), timestamp, and accurate summary counts.
+
+2. FILE: engine/internal/diff/openapi_test.go
+   - Table-driven unit tests.
+   - You must write at least 3 pair of small valid OpenAPI 3.0 YAML files in a `testdata/` directory (e.g., `testdata/base.yaml`, `testdata/rev_safe.yaml`, `testdata/rev_breaking.yaml`).
+   - Test that `CompareOpenAPI` correctly identifies breaking changes, safe changes, and sets the summary counts properly.
+
+3. FILE: engine/cmd/substrate/main.go (Update)
+   - Update the `diff` command placeholder.
+   - Parse `--flatten-allof` flag (boolean, default true).
+   - Call `diff.CompareOpenAPI(args[0], args[1], flattenAllOf)`.
+   - Marshal the resulting `DiffReport` to JSON and print it to stdout (this satisfies `--format json` for now).
+   - IMPORTANT: If the report contains ANY breaking changes, the CLI must exit with code `2`. If it contains warnings but no breaking, exit with code `1`. Otherwise, exit with code `0`. If an error occurs (e.g., file not found, invalid spec), exit with code `3`.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO ADD:
+- engine/internal/diff/openapi.go
+- engine/internal/diff/openapi_test.go
+- engine/internal/diff/testdata/ (and at least 3 yaml files inside it)
+
+FILES TO MODIFY:
+- engine/cmd/substrate/main.go
+
+Commit: "jules: implement oasdiff adapter and update diff CLI command"
