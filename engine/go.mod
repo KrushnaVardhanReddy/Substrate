@@ -1,6 +1,6 @@
 module github.com/KrushnaVardhanReddy/substrate/engine
 
-go 1.22.0
+go 1.26
 
 require (
 	github.com/getkin/kin-openapi v0.140.0
@@ -11,6 +11,7 @@ require (
 
 require (
 	cloud.google.com/go v0.123.0 // indirect
+	github.com/TwiN/go-color v1.4.1 // indirect
 	github.com/go-openapi/jsonpointer v0.22.5 // indirect
 	github.com/go-openapi/swag/jsonname v0.25.5 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
@@ -26,5 +27,4 @@ require (
 	github.com/wI2L/jsondiff v0.7.1 // indirect
 	github.com/yargevad/filepathx v1.0.0 // indirect
 	golang.org/x/text v0.36.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
