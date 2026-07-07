@@ -2,6 +2,8 @@
 
 ## The Living Map of Your Engineering Ecosystem
 
+> **Status:** v0.1.0 🚀 — [OpenAPI Contract Guard](https://github.com/marketplace/actions/substrate-api-contract-guard) is live on GitHub Marketplace.
+
 Substrate is a CI/CD-integrated data contract and dependency intelligence platform that prevents downstream data failures before they reach production.
 
 It acts as a proactive firewall for engineering teams by analyzing schema changes, understanding repository dependencies, identifying impacted systems, and blocking unsafe changes before they break applications, analytics, dashboards, and data pipelines.
@@ -767,9 +769,9 @@ The risk is trying to become OpenAPI, SQL, Kafka, GraphQL, AI, SDK Generator, Ba
 Trying to be "everything everywhere all at once" is how startups die.
 
 **The Execution Plan:**
-1. Best **API Contract** Platform (Phase 1a)
+1. Best **API Contract** Platform (Phase 1a) ✅ *shipped as v0.1.0 on GitHub Marketplace*
    ↓
-2. Best **Universal Contract** Platform (Phase 1b - 1g)
+2. Best **Universal Contract** Platform (Phase 1b – 1g) ← *next: SQL Migrations*
    ↓
 3. Best **Dependency** Platform (Phase 2)
    ↓
@@ -781,6 +783,6 @@ One step at a time.
 
 # Credits & License
 
-Substrate is open-source software licensed under the **MIT License**. 
+Substrate is open-source software licensed under the **MIT License**.
 
-The Phase 1a OpenAPI core engine relies on the incredible work done by the [oasdiff](https://github.com/Tufin/oasdiff) community. Substrate acts as the CI/CD policy enforcement wrapper around their highly performant AST differ.
+The Phase 1a OpenAPI core engine relies on the incredible work done by the [oasdiff](https://github.com/Tufin/oasdiff) community (Apache 2.0). Substrate acts as the CI/CD policy enforcement wrapper around their highly performant AST differ. Full attribution is provided in the `NOTICES` file at the repository root, as required by the Apache 2.0 license.

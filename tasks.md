@@ -1,6 +1,6 @@
 # Substrate — Task Tracker
 
-> Last updated: 2026-07-07
+> Last updated: 2026-07-07 (v0.1.0 shipped 🎉)
 > Tracking all development phases, tasks, and their current status.
 
 ---
@@ -39,11 +39,11 @@
 > **Dependency:** Phase 0 specs complete ✅
 > **Architecture:** OpenAPI diffing is powered by **oasdiff** (Go library, Apache 2.0). We wrap it, not rebuild it. Custom parsers handle SQL/GraphQL/ML schemas.
 
-### Phase 1a — OpenAPI 3.x ⏳ READY TO START
+### Phase 1a — OpenAPI 3.x ✅ COMPLETE (v0.1.0 shipped 🚀)
 
 > 🎯 **oasdiff decision:** Using `github.com/oasdiff/oasdiff` as a Go library dependency.
 > Gives us 160+ rules, allOf flattening, stability levels, spec validation — for free.
-> Phase 1a shrinks from 9 tasks → 4 tasks. Estimated time: **1–2 weeks** instead of 6–8 weeks.
+> Phase 1a shrunk from 9 tasks → 4 tasks. Shipped in ~2 weeks.
 
 | Task ID | Name | Owner | Status | Jules Prompt |
 |---|---|---|---|---|
@@ -51,32 +51,37 @@
 | P1-T01 | Go module scaffold + DiffReport structs + oasdiff dependency | Jules | ✅ | `prompts/phase-1-diff-engine/t01_go_scaffold.txt` |
 | P1-T02 | oasdiff adapter (wraps oasdiff output → `DiffReport` format) | Jules | ✅ | `prompts/phase-1-diff-engine/t02_oasdiff_adapter.txt` |
 | P1-T03 | Override config parser + CLI (`substrate.yaml`, `--format json/text/changelog`) | Jules | ✅ | [Jules Session (T03)](https://jules.google.com/u/1/session/8542866566283395371) |
-| P1-T04 | Unit tests + E2E tests (80% coverage, real OpenAPI fixture files) | Jules | ⏳ | `prompts/phase-1-diff-engine/t04_tests.txt` |
-| **P1-T05** | **Add `NOTICES` file** — Apache 2.0 attribution for oasdiff ⚖️ | Antigravity | 🔒 | — |
+| P1-T04 | Unit tests + E2E tests (80% coverage, real OpenAPI fixture files) | Jules | ✅ | `prompts/phase-1-diff-engine/t04_tests.txt` |
+| **P1-T05** | **Add `NOTICES` file** — Apache 2.0 attribution for oasdiff ⚖️ | Antigravity | ⏳ | — |
+| **P1-T06** | **oasdiff `checker` adapter** — replace shallow diff with semantic 37-rule engine | Jules | ⏳ | `prompts/phase-1-diff-engine/t06_checker_adapter.txt` (spec: `docs/specs/openapi-checker-adapter.md`) |
 
-**Ready for Jules (Web UI):** T04
-
----
-
-### Phase 1 MVP — GitHub Action (Distribution Wedge) 🏆
-
-> **Dependency:** Phase 1a CLI binary complete.
-> **Goal:** Get the engine onto GitHub Marketplace immediately to start acquiring users while the Phase 2 GitHub App is being built.
-
-| Task ID | Name | Owner | Status |
-|---|---|---|---|
-| P1-MVP | Create `action.yml` wrapper for the Go CLI | Antigravity | 🔒 |
-| P1-MVP | Publish to GitHub Marketplace | User | 🔒 |
-| P1-MVP | Write "Optic Alternative" launch post | Antigravity | 🔒 |
+**Spec Gate:** P1-T06 spec must be approved before Jules is submitted. See `docs/specs/openapi-checker-adapter.md`.
 
 ---
 
-### Phase 1b — SQL Migrations 🔒 BLOCKED on 1a
+### Phase 1 MVP — GitHub Action (Distribution Wedge) 🏆 ✅ COMPLETE
+
+> **v0.1.0 tagged and published to GitHub Marketplace on 2026-07-06.**
+> **Dogfooding:** `.github/workflows/test-action.yml` validated the action in-repo before launch.
 
 | Task ID | Name | Owner | Status |
 |---|---|---|---|
-| P1b-T01 | SQL DDL parser (PostgreSQL) | Jules | 🔒 |
-| P1b-T02 | SQL breaking change rules spec | Antigravity | 🔒 |
+| P1-MVP-1 | Create `action.yml` + `Dockerfile` + `entrypoint.sh` | Antigravity | ✅ |
+| P1-MVP-2 | Dogfood the action via `.github/workflows/test-action.yml` | Antigravity | ✅ |
+| P1-MVP-3 | Tag `v0.1.0` + publish to GitHub Marketplace | User | ✅ |
+| P1-MVP-4 | Write "Optic Alternative" blog post + HackerNews launch | Antigravity | ⏳ |
+
+---
+
+### Phase 1b — SQL Migrations ⏳ READY TO START
+
+> **Dependency:** Phase 1a ✅ COMPLETE. Phase 1b is now unblocked.
+> **Spec Gate:** `docs/specs/breaking-change-rules-sql.md` must be written and approved before P1b-T01 is submitted to Jules.
+
+| Task ID | Name | Owner | Status |
+|---|---|---|---|
+| P1b-T01 | SQL breaking change rules spec | Antigravity | ⏳ |
+| P1b-T02 | SQL DDL parser (PostgreSQL) | Jules | 🔒 |
 | P1b-T03 | SQL rule engine + tests | Jules | 🔒 |
 
 ### Phase 1c — GraphQL SDL 🔒 BLOCKED on 1a
