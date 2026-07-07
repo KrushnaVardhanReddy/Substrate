@@ -1,6 +1,6 @@
 # Substrate — Task Tracker
 
-> Last updated: 2026-07-07 (P1b-T03 ✅ merged, library strategy approved for Wave 2: buf/gqlparser/pg-schema-diff/yaml.v3)
+> Last updated: 2026-07-07 (P1b-T03 ✅ merged, all Wave 2 library decisions approved, single-binary promise enforced across all phases)
 > Tracking all development phases, tasks, and their current status.
 
 ---
@@ -71,7 +71,7 @@
 | P1-MVP-1 | Create `action.yml` + `Dockerfile` + `entrypoint.sh` | Antigravity | ✅ |
 | P1-MVP-2 | Dogfood the action via `.github/workflows/test-action.yml` | Antigravity | ✅ |
 | P1-MVP-3 | Tag `v0.1.0` + publish to GitHub Marketplace | User | ✅ |
-| P1-MVP-4 | Write "Optic Alternative" blog post + HackerNews launch | Antigravity | ⏳ |
+| P1-MVP-4 | ⚠️ **URGENT** — "Optic Alternative" blog post + HackerNews launch (Optic sunset window is NOW — every week of delay costs SEO and inbound installs) | Antigravity | ⏳ |
 
 ---
 
@@ -79,15 +79,16 @@
 
 > **Dependency:** Phase 1a ✅ COMPLETE. Phase 1b is now unblocked.
 > **Spec Gate:** `docs/specs/breaking-change-rules-sql.md` ✅ APPROVED — 26 rules (14 BREAKING, 6 WARNING, 6 SAFE).
+> **Phase 1b done gate (minimum to unblock Phase 2):** T01 + T02 + T03 complete ✅. T04, T05, T06 are post-Phase 2 backlog — they do **not** block Phase 2 from starting.
 
 | Task ID | Name | Owner | Status |
 |---|---|---|---|
 | P1b-T01 | SQL breaking change rules spec | Antigravity | ✅ |
 | P1b-T02 | SQL DDL parser + diff engine + rule engine (PostgreSQL) | Jules | ✅ |
 | P1b-T03 | SQL rule engine + tests (expand coverage, edge cases) | Jules | ✅ |
-| P1b-T04 | **dbt `schema.yml` adapter** — parse dbt model contracts as SQL schema input | Jules | 💡 |
-| P1b-T05 | **dbt sources/exposures ingestion** — auto-seed dependency graph from dbt projects | Jules | 💡 |
-| P1b-T06 | **`stripe/pg-schema-diff` spike** — evaluate replacing hand-rolled `DiffSchemas()` with Stripe's Apache 2.0 library | Antigravity | 💡 |
+| P1b-T04 | **dbt `schema.yml` adapter** — parse dbt model contracts as SQL schema input | Jules | 🔒 *deferred: post-Phase 2* |
+| P1b-T05 | **dbt sources/exposures ingestion** — auto-seed dependency graph from dbt projects | Jules | 🔒 *deferred: post-Phase 2* |
+| P1b-T06 | **`stripe/pg-schema-diff` spike** — evaluate replacing hand-rolled `DiffSchemas()` with Stripe's Apache 2.0 library | Antigravity | 🔒 *deferred: post-Phase 2* |
 
 ### Phase 1c — GraphQL SDL 🔒 BLOCKED on Phase 2
 
@@ -132,16 +133,22 @@
 
 ### Phase 1g — Enterprise Metadata (Salesforce & SOAP) 🔒 BLOCKED on Phase 2
 
-> **Library decision (WSDL/SOAP):** No Go library exists. Use Go stdlib `encoding/xml` to parse WSDL/XSD into a struct tree. Rule set is small (operation removed, message type changed, required element added) — fully buildable on stdlib.
-> **Library decision (Salesforce):** Shell out to `salto env diff` CLI (Apache 2.0, Node.js) which outputs structured JSON. Substrate maps JSON → `DiffReport`. Do not build a custom Salesforce metadata parser — Salto is purpose-built.
-> **Note:** This is the highest-complexity Wave 2 phase. Ships last.
+> **Library decision (WSDL/SOAP):** Use Go stdlib `encoding/xml` to parse WSDL/XSD into a struct tree. Rule set is small (operation removed, message type changed, required element added) — fully buildable on stdlib. No external dependency.
+> **Library decision (Salesforce):** Salesforce metadata files are XML snapshots (`*.object-meta.xml`, `*.field-meta.xml`). Parse with Go stdlib `encoding/xml`. Users retrieve snapshots via the Salesforce CLI (`sf project retrieve start`) as a **separate user step** — Substrate only receives and diffs two XML snapshot directories. No subprocess. **Single-binary promise maintained.**
+> **Note:** This is the highest-effort Wave 2 phase — ships last. Both parsers use stdlib only.
 
 | Task ID | Name | Owner | Status |
 |---|---|---|---|
 | P1g-T01 | SOAP/WSDL parser using Go stdlib `encoding/xml` | Jules | 🔒 |
-| P1g-T02 | Salesforce adapter via `salto env diff` CLI subprocess | Jules | 🔒 |
+| P1g-T02 | Salesforce metadata XML snapshot parser using Go stdlib `encoding/xml` | Jules | 🔒 |
 | P1g-T03 | Enterprise breaking change rules spec | Antigravity | 🔒 |
 | P1g-T04 | Enterprise rule engine + tests | Jules | 🔒 |
+
+---
+
+> **Wave 2 execution order (after Phase 2):** Follow effort order, not numerical order. Start with the easiest win to build momentum:
+> `1d (Protobuf/buf — 2 tasks, near-zero custom code)` → `1c (GraphQL — custom rules on solved parser)` → `1f (AI/ML — no new deps)` → `1e (AsyncAPI/Avro — two formats, higher complexity)` → `1g (Enterprise — highest effort, ships last)`
+> Order within this list may shift based on real user demand signals after Phase 2 launches.
 
 ---
 
@@ -189,6 +196,17 @@ These are not yet scheduled but are on the product roadmap:
 - [ ] Override expiry enforcement (auto-re-trigger on expired overrides)
 - [ ] Override audit trail in the dashboard (who approved what, when)
 
+**User Feedback Signal** 📊 Required before Wave 2 starts
+- [ ] Pin a GitHub Issue: "What schema format do you need next? 👍 the comment" — captures demand signal to order Wave 2
+- [ ] Add analytics to the GitHub Action (opt-in usage ping) to see which schema types are most requested
+- [ ] Set up a Discord or GitHub Discussions channel for user feedback
+
+**Library Selection Checklist** — Required gate before every Jules implementation task
+- [ ] For every new schema format: check if an `oasdiff`-equivalent library exists (Go, Apache 2.0 / MIT) BEFORE writing the Jules prompt
+- [ ] Document the library decision in the task row — not after implementation, before it
+- [ ] Verify license (Apache 2.0 or MIT only — no GPL, no commercial)
+- [ ] Confirm no subprocess / Node.js dependency — single-binary promise must hold for all formats
+
 **MCP Server** ⭐ Phase 3 — Turns Substrate into an IDE-native knowledge layer
 - [ ] Write `docs/specs/mcp-server.md` spec (P3-T08)
 - [ ] Implement Go MCP server with tools: `get_schema`, `check_impact`, `list_consumers`, `get_change_history`, `validate_change`
@@ -197,7 +215,7 @@ These are not yet scheduled but are on the product roadmap:
 - [ ] Expose MCP server as self-hostable for Enterprise tier
 
 **Legal / Pre-launch Checklist** ⚖️
-- [ ] Add `NOTICES` file at repo root with Apache 2.0 attribution for oasdiff (`https://github.com/oasdiff/oasdiff`)
+- [x] Add `NOTICES` file at repo root with Apache 2.0 attribution for oasdiff
 - [ ] Add "Credits" section to dashboard UI footer
 - [ ] Review all Go module dependencies in `go.mod` for license compatibility before v1.0 release
 

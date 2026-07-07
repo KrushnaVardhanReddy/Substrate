@@ -706,15 +706,15 @@ Phase 1 ships incrementally as schema format support is added to the same diff e
 
 **Wave 2 — Extended Contract Formats (resumes after Phase 2):**
 
-> These are deferred until Phase 2 (GitHub App + distribution) is live. The reason is deliberate: Phase 2 turns Substrate from a CLI tool into a product with users, accounts, and a conversion funnel. Building 1c–1g before Phase 2 would be expanding schema coverage for users we don't have yet. Once Phase 2 is live, real user demand — not guesswork — will drive which format ships next.
+> These are deferred until Phase 2 (GitHub App + distribution) is live. Once Phase 2 is live, real user demand — not guesswork — will drive which format ships next. **Execution order within Wave 2 follows effort (easiest first):** 1d → 1c → 1f → 1e → 1g.
 
-| Format | Status | Library Strategy |
-|---|---|---|
-| **1c — GraphQL SDL** | 🔒 *post-Phase 2* | `vektah/gqlparser` (MIT) for parsing; custom rules (~15–20) |
-| **1d — Protobuf & gRPC** | 🔒 *post-Phase 2* | **`bufbuild/buf`** (Apache 2.0) — the `oasdiff` of Protobuf 🏆 same adapter pattern |
-| **1e — AsyncAPI & Apache Avro** | 🔒 *post-Phase 2* | `asyncapi/parser-go` (Apache 2.0) + Confluent Schema Registry API for Avro compat |
-| **1f — AI/ML Model Contracts** | 🔒 *post-Phase 2* | `yaml.v3` + `jsonschema` — both **already in `go.mod`**, no new deps |
-| **1g — Enterprise Metadata** | 🔒 *post-Phase 2* | Go stdlib `encoding/xml` (WSDL) + `salto` CLI subprocess (Apache 2.0) for Salesforce |
+| Format | Effort | Status | Library Strategy |
+|---|---|---|---|
+| **1d — Protobuf & gRPC** | 🟢 Lowest | 🔒 *post-Phase 2* | **`bufbuild/buf`** (Apache 2.0) — the `oasdiff` of Protobuf 🏆 same adapter pattern |
+| **1c — GraphQL SDL** | 🟡 Medium | 🔒 *post-Phase 2* | `vektah/gqlparser` (MIT) for parsing; custom rules (~15–20); pure Go, no subprocess |
+| **1f — AI/ML Model Contracts** | 🟡 Medium | 🔒 *post-Phase 2* | `yaml.v3` + `jsonschema` — both **already in `go.mod`**, no new deps |
+| **1e — AsyncAPI & Apache Avro** | 🟠 High | 🔒 *post-Phase 2* | `asyncapi/parser-go` (Apache 2.0) + Confluent Schema Registry API for Avro compat |
+| **1g — Enterprise Metadata** | 🔴 Highest | 🔒 *post-Phase 2* | Go stdlib `encoding/xml` for both WSDL and Salesforce metadata XML snapshots — pure single-binary |
 
 Core features in all sub-phases:
 
