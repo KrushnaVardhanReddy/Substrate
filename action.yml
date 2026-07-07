@@ -1,0 +1,27 @@
+name: "Substrate API Contract Guard"
+description: "Detects breaking schema changes in OpenAPI, SQL, and GraphQL contracts"
+branding:
+  icon: "shield"
+  color: "blue"
+
+inputs:
+  base_schema:
+    description: "Path to the base specification file"
+    required: true
+    default: "openapi.yaml"
+  head_schema:
+    description: "Path to the updated specification file"
+    required: true
+    default: "openapi.yaml"
+  config:
+    description: "Path to the substrate.yaml configuration file"
+    required: false
+    default: "substrate.yaml"
+
+runs:
+  using: "docker"
+  image: "Dockerfile"
+  args:
+    - ${{ inputs.base_schema }}
+    - ${{ inputs.head_schema }}
+    - ${{ inputs.config }}
