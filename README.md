@@ -694,10 +694,10 @@ Create an AI layer on top of engineering knowledge.
 
 Features:
 
-* System explanations
-* Migration recommendations
-* Impact predictions
-* Architecture questions
+* **System Explanations:** "How does payment processing work across these 3 repos?"
+* **Migration Recommendations:** Auto-generate migration code when a breaking change is detected.
+* **Impact Predictions:** "If I change customer data, which downstream teams do I need to notify?"
+* **AI State Registry & Agent Handoffs:** Serve as the permanent memory bank for multi-agent workflows (Jules, Cursor, Copilot). Agents can store their conversational context, current blockers, and task states in Substrate, allowing seamless handoffs between human developers and AI assistants without losing context.
 
 ---
 
