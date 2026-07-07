@@ -1,7 +1,8 @@
 # Substrate — Go Diff Engine: Architecture & Development Plan
 
-> **Status:** Planning / Pre-Code  
+> **Status:** Active — Engine live in production (v0.1.0). Phase 1b (SQL) in progress.
 > **Spec-First Gate:** No Go code is written until the specs in this document are finalized and agreed upon.
+> **Strategy Decision (2026-07-07):** Phase 1c–1g schema formats are deliberately deferred until Phase 2 (GitHub App) ships. See [Execution Order](#development-milestones) below.
 
 ---
 
@@ -55,17 +56,21 @@ This is a question worth addressing upfront.
 
 ## Supported Schema Formats (Prioritized)
 
-| Priority | Format | Why |
-|---|---|---|
-| 1 | **OpenAPI 3.x YAML/JSON** | Most REST APIs, highest pain point, largest market |
-| 2 | **SQL Migrations** | Postgres ALTER TABLE, extremely common |
-| 3 | **GraphQL SDL** | Large market, especially product companies |
-| 4 | **Protobuf & gRPC** | Enterprise/microservice-heavy, Google-style shops |
-| 5 | **AsyncAPI & Apache Avro** | Kafka-heavy data engineering & event-driven architectures |
-| 6 | **AI/ML Model Contracts** | Preventing silent data-drift and ML training failures |
-| 7 | **Enterprise Metadata** | Salesforce Custom Objects & SOAP WSDLs for legacy integrations |
+Formats are delivered in two waves. Wave 1 must ship before Phase 2 (GitHub App). Wave 2 resumes after Phase 2 is live, ordered by real user demand.
 
-**Rule:** Start with OpenAPI only. Ship that. Then add SQL. Do not try to support everything on day one.
+| Priority | Wave | Format | Status | Why |
+|---|---|---|---|---|
+| 1 | Wave 1 | **OpenAPI 3.x YAML/JSON** | ✅ shipped | Most REST APIs, highest pain point, largest market |
+| 2 | Wave 1 | **SQL Migrations** (PostgreSQL DDL) | 🔄 in progress | Databases are everywhere; completes the core contract engine |
+| 3 | Wave 2 | **GraphQL SDL** | 🔒 post-Phase 2 | Large market, especially product companies |
+| 4 | Wave 2 | **Protobuf & gRPC** | 🔒 post-Phase 2 | Enterprise/microservice-heavy, Google-style shops |
+| 5 | Wave 2 | **AsyncAPI & Apache Avro** | 🔒 post-Phase 2 | Kafka-heavy data engineering & event-driven architectures |
+| 6 | Wave 2 | **AI/ML Model Contracts** | 🔒 post-Phase 2 | Preventing silent data-drift and ML training failures |
+| 7 | Wave 2 | **Enterprise Metadata** | 🔒 post-Phase 2 | Salesforce Custom Objects & SOAP WSDLs for legacy integrations |
+
+**Rationale for the Wave split:** Wave 2 formats are deferred not because they are unimportant, but because shipping Phase 2 (GitHub App, PR comments, user accounts) before them is the right product move. Distribution unlocks monetization. Monetization funds Wave 2 development. Building 1c–1g before Phase 2 is expanding coverage for users we don't yet have.
+
+**Rule:** Start with OpenAPI only. Ship that. Then add SQL. Then ship the GitHub App. Do not expand schema formats before the platform exists.
 
 ---
 
@@ -109,14 +114,20 @@ Recommended Go parsing libraries:
 
 ## Development Milestones
 
-### Milestone 1: The Engine (Weeks 1–4)
-> A Go CLI that takes two OpenAPI YAML files and outputs a JSON `DiffReport` of breaking vs. non-breaking changes. All tests pass.
+### Milestone 1: Core Contract Engine (Phase 1a + 1b) ✅
+> OpenAPI 3.x diff engine shipped as v0.1.0 GitHub Action. SQL (PostgreSQL DDL) engine in active development. Both use the same DiffReport output contract and rule engine pattern.
 
-### Milestone 2: The Hook (Weeks 5–8)
-> A GitHub App that listens for PR webhook events, clones the repo, runs the diff engine, and posts an impact comment on the PR.
+### Milestone 2: The Distribution Platform (Phase 2) ⏳ NEXT
+> GitHub App: 1-click org install, PR webhook listener, automated PR comments, merge blocking, user accounts and org management. Deployed on Cloudflare Workers. This is the product monetization unlock — it ships immediately after Phase 1b SQL is complete.
 
-### Milestone 3: The MVP (Weeks 9–16)
-> Multi-repo support, a basic SvelteKit dashboard showing connected repos and their schemas, manual `substrate.yaml` dependency declarations, and a free tier ready for beta users.
+### Milestone 3: The Intelligence Layer (Phase 3) 💡
+> Multi-repo dependency graph. SvelteKit dashboard showing connected repos, schema history, and impact analysis. Manual `substrate.yaml` dependency declarations. MCP server for IDE integration. Free tier live for beta users.
+
+### Milestone 4: Extended Contract Formats (Phase 1c–1g, Wave 2) 💡
+> Resume schema format expansion in demand order: GraphQL SDL → Protobuf/gRPC → AsyncAPI/Avro → AI/ML Model Contracts → Enterprise Metadata. Ordering is driven by user requests from Phase 2 installs, not predetermined.
+
+### Milestone 5: AI Engineering Assistant (Phase 4) 💡
+> AI layer on top of the dependency graph: system explanations, auto-generated migration code, impact predictions, and multi-agent handoff memory.
 
 ---
 

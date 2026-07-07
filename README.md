@@ -695,15 +695,22 @@ Goal:
 
 Stop production failures across every schema type your engineering organization uses.
 
-Phase 1 ships incrementally as schema format support is added to the same diff engine:
+Phase 1 ships incrementally as schema format support is added to the same diff engine.
 
-* **1a — OpenAPI 3.x** (REST APIs) ← *ships first*
-* **1b — SQL Migrations** (PostgreSQL DDL)
-* **1c — GraphQL SDL**
-* **1d — Protobuf & gRPC** (Microservices)
-* **1e — AsyncAPI & Apache Avro** (Kafka / Event-Driven Architectures)
-* **1f — AI/ML Model Contracts** (Model inputs, dataset schemas)
-* **1g — Enterprise Metadata** (Salesforce Custom Objects, SOAP WSDLs)
+**Wave 1 — Core Contract Formats (ships before Phase 2):**
+
+* **1a — OpenAPI 3.x** (REST APIs) ✅ *shipped as v0.1.0*
+* **1b — SQL Migrations** (PostgreSQL DDL) 🔄 *in progress*
+
+**Wave 2 — Extended Contract Formats (resumes after Phase 2):**
+
+> These are deferred until Phase 2 (GitHub App + distribution) is live. The reason is deliberate: Phase 2 turns Substrate from a CLI tool into a product with users, accounts, and a conversion funnel. Building 1c–1g before Phase 2 would be expanding schema coverage for users we don't have yet. Once Phase 2 is live, real user demand — not guesswork — will drive which format ships next.
+
+* **1c — GraphQL SDL** 🔒 *resumes after Phase 2*
+* **1d — Protobuf & gRPC** (Microservices) 🔒 *resumes after Phase 2*
+* **1e — AsyncAPI & Apache Avro** (Kafka / Event-Driven Architectures) 🔒 *resumes after Phase 2*
+* **1f — AI/ML Model Contracts** (Model inputs, dataset schemas) 🔒 *resumes after Phase 2*
+* **1g — Enterprise Metadata** (Salesforce Custom Objects, SOAP WSDLs) 🔒 *resumes after Phase 2*
 
 Core features in all sub-phases:
 
@@ -713,7 +720,7 @@ Core features in all sub-phases:
 * PR comments
 * Merge blocking
 
-### Phase 1e: AI & ML Contract Protection
+### Phase 1f: AI & ML Contract Protection
 
 The AI problem is identical to the API problem, but failures are more dangerous because they are **silent**.
 
@@ -861,18 +868,34 @@ Substrate scales in value as an organization's complexity grows. The proposed mo
 
 The biggest risk to Substrate is **Scope Creep**.
 
-The risk is trying to become OpenAPI, SQL, Kafka, GraphQL, AI, SDK Generator, Backstage, Datadog, Snowflake, and Collibra all on day one. 
+The risk is trying to become OpenAPI, SQL, Kafka, GraphQL, AI, SDK Generator, Backstage, Datadog, Snowflake, and Collibra all on day one.
 
 Trying to be "everything everywhere all at once" is how startups die.
 
 **The Execution Plan:**
-1. Best **API Contract** Platform (Phase 1a) ✅ *shipped as v0.1.0 on GitHub Marketplace*
-   ↓
-2. Best **Universal Contract** Platform (Phase 1b – 1g) ← *next: SQL Migrations*
-   ↓
-3. Best **Dependency** Platform (Phase 2)
-   ↓
-4. Best **Engineering Knowledge** Platform (Phase 3 & 4)
+
+```
+1. Best API Contract Platform          Phase 1a ✅  shipped v0.1.0
+        ↓
+2. Best SQL Contract Platform          Phase 1b 🔄  in progress
+        ↓
+3. Best Contract + Distribution        Phase 2  ⏳  GitHub App, 1-click install,
+   Platform                                         PR comments, user accounts
+        ↓
+4. Best Intelligence Platform          Phase 3  💡  Dashboard, dependency graph,
+                                                    MCP server, audit trails
+        ↓
+5. Expand Contract Formats             Phase 1c–1g  GraphQL → Protobuf → AsyncAPI
+   (demand-driven)                     💡           → AI/ML → Enterprise
+                                                    (ordered by user demand)
+        ↓
+6. Best AI Engineering Platform        Phase 4  💡  AI assistant, migration
+                                                    recommendations, agent handoffs
+```
+
+**Why Phase 2 before Phase 1c–1g?**
+
+Phase 2 is the distribution unlock — it turns a CLI tool into a product with users, accounts, and a monetization funnel. Building GraphQL or Protobuf support before Phase 2 is expanding coverage for users we don't have yet. Once Phase 2 is live, real usage data — not guesses — will determine which schema format ships next in Wave 2. This mirrors how every successful developer tool grows: nail the wedge, build the platform, then expand features from a position of distribution.
 
 One step at a time.
 
