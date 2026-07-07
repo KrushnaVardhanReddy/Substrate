@@ -146,7 +146,7 @@ func (c *SubstrateConfig) IsOverrideActive(ruleID, path string) bool {
 			if err == nil {
 				nowStr := time.Now().UTC().Format("2006-01-02")
 				now, _ := time.Parse("2006-01-02", nowStr)
-				if now.Before(t) {
+				if !now.After(t) {
 					return true
 				}
 			}
