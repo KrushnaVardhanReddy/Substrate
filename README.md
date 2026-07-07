@@ -699,18 +699,22 @@ Phase 1 ships incrementally as schema format support is added to the same diff e
 
 **Wave 1 — Core Contract Formats (ships before Phase 2):**
 
-* **1a — OpenAPI 3.x** (REST APIs) ✅ *shipped as v0.1.0*
-* **1b — SQL Migrations** (PostgreSQL DDL) 🔄 *in progress*
+| Format | Status | Library Strategy |
+|---|---|---|
+| **1a — OpenAPI 3.x** (REST APIs) | ✅ *v0.1.0 shipped* | `oasdiff` (Apache 2.0) — wrap, don't build |
+| **1b — SQL Migrations** (PostgreSQL DDL) | 🔄 *in progress* | `pg_query_go` (MIT, Postgres's own parser) + spike `stripe/pg-schema-diff` (Apache 2.0) |
 
 **Wave 2 — Extended Contract Formats (resumes after Phase 2):**
 
 > These are deferred until Phase 2 (GitHub App + distribution) is live. The reason is deliberate: Phase 2 turns Substrate from a CLI tool into a product with users, accounts, and a conversion funnel. Building 1c–1g before Phase 2 would be expanding schema coverage for users we don't have yet. Once Phase 2 is live, real user demand — not guesswork — will drive which format ships next.
 
-* **1c — GraphQL SDL** 🔒 *resumes after Phase 2*
-* **1d — Protobuf & gRPC** (Microservices) 🔒 *resumes after Phase 2*
-* **1e — AsyncAPI & Apache Avro** (Kafka / Event-Driven Architectures) 🔒 *resumes after Phase 2*
-* **1f — AI/ML Model Contracts** (Model inputs, dataset schemas) 🔒 *resumes after Phase 2*
-* **1g — Enterprise Metadata** (Salesforce Custom Objects, SOAP WSDLs) 🔒 *resumes after Phase 2*
+| Format | Status | Library Strategy |
+|---|---|---|
+| **1c — GraphQL SDL** | 🔒 *post-Phase 2* | `vektah/gqlparser` (MIT) for parsing; custom rules (~15–20) |
+| **1d — Protobuf & gRPC** | 🔒 *post-Phase 2* | **`bufbuild/buf`** (Apache 2.0) — the `oasdiff` of Protobuf 🏆 same adapter pattern |
+| **1e — AsyncAPI & Apache Avro** | 🔒 *post-Phase 2* | `asyncapi/parser-go` (Apache 2.0) + Confluent Schema Registry API for Avro compat |
+| **1f — AI/ML Model Contracts** | 🔒 *post-Phase 2* | `yaml.v3` + `jsonschema` — both **already in `go.mod`**, no new deps |
+| **1g — Enterprise Metadata** | 🔒 *post-Phase 2* | Go stdlib `encoding/xml` (WSDL) + `salto` CLI subprocess (Apache 2.0) for Salesforce |
 
 Core features in all sub-phases:
 

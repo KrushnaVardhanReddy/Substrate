@@ -1,6 +1,6 @@
 # Substrate — Task Tracker
 
-> Last updated: 2026-07-07 (P1-T07 ✅ merged, P1b-T01 SQL spec ✅ approved, P1b-T02 SQL engine ✅ merged, P1b-T03 SQL rule engine coverage ✅ merged)
+> Last updated: 2026-07-07 (P1b-T03 ✅ merged, library strategy approved for Wave 2: buf/gqlparser/pg-schema-diff/yaml.v3)
 > Tracking all development phases, tasks, and their current status.
 
 ---
@@ -87,47 +87,59 @@
 | P1b-T03 | SQL rule engine + tests (expand coverage, edge cases) | Jules | ✅ |
 | P1b-T04 | **dbt `schema.yml` adapter** — parse dbt model contracts as SQL schema input | Jules | 💡 |
 | P1b-T05 | **dbt sources/exposures ingestion** — auto-seed dependency graph from dbt projects | Jules | 💡 |
+| P1b-T06 | **`stripe/pg-schema-diff` spike** — evaluate replacing hand-rolled `DiffSchemas()` with Stripe's Apache 2.0 library | Antigravity | 💡 |
 
-### Phase 1c — GraphQL SDL 🔒 BLOCKED on 1a
+### Phase 1c — GraphQL SDL 🔒 BLOCKED on Phase 2
+
+> **Library decision:** `vektah/gqlparser` (MIT) for SDL parsing. No Go library with pre-built breaking change rules exists — Substrate owns ~15–20 rules (field removed, type changed, argument made required, directive removed). Do **not** shell out to Node.js `graphql-hive` — breaks the single-binary promise.
 
 | Task ID | Name | Owner | Status |
 |---|---|---|---|
-| P1c-T01 | GraphQL schema parser | Jules | 🔒 |
-| P1c-T02 | GraphQL breaking change rules spec | Antigravity | 🔒 |
+| P1c-T01 | GraphQL SDL parser using `vektah/gqlparser` (MIT) | Jules | 🔒 |
+| P1c-T02 | GraphQL breaking change rules spec (~15–20 rules) | Antigravity | 🔒 |
 | P1c-T03 | GraphQL rule engine + tests | Jules | 🔒 |
 
-### Phase 1d — Protobuf & gRPC 🔒 BLOCKED on 1a
+### Phase 1d — Protobuf & gRPC 🔒 BLOCKED on Phase 2 🏆
+
+> **Library decision:** **`bufbuild/buf`** (Apache 2.0, written in Go). `buf breaking` is the `oasdiff` of Protobuf — 100+ wire-compatibility rules, field number checks, service/method detection. Drop into `go.mod`, write a `buf` checker adapter (identical pattern to `oasdiff` P1-T06). Parser + rules both covered. This is the easiest Wave 2 phase.
 
 | Task ID | Name | Owner | Status |
 |---|---|---|---|
-| P1d-T01 | Protobuf `.proto` / gRPC parser | Jules | 🔒 |
-| P1d-T02 | Protobuf breaking change rules spec | Antigravity | 🔒 |
-| P1d-T03 | Protobuf rule engine + tests | Jules | 🔒 |
+| P1d-T01 | `buf` checker adapter spec (maps `buf breaking` output → `DiffReport`) | Antigravity | 🔒 |
+| P1d-T02 | `buf` checker adapter implementation + tests | Jules | 🔒 |
 
-### Phase 1e — AsyncAPI & Apache Avro 🔒 BLOCKED on 1a
+### Phase 1e — AsyncAPI & Apache Avro 🔒 BLOCKED on Phase 2
 
-| Task ID | Name | Owner | Status |
-|---|---|---|---|
-| P1e-T01 | AsyncAPI & Avro schema parsers | Jules | 🔒 |
-| P1e-T02 | Event-driven breaking change rules spec | Antigravity | 🔒 |
-| P1e-T03 | Event-driven rule engine + tests | Jules | 🔒 |
-
-### Phase 1f — AI/ML Model Contracts ⭐ 🔒 BLOCKED on 1a
+> **Library decision (AsyncAPI):** `asyncapi/parser-go` (Apache 2.0) for parsing. Custom diff rules (channel removed, operation changed, message schema breaking).
+> **Library decision (Avro):** Do **not** build a custom Avro compatibility checker. Call the Confluent/Apicurio Schema Registry **compatibility check API** — offloads complex Avro evolution rules (union promotion, defaults, field ordering) to a battle-tested engine. Substrate wraps the JSON response into `DiffReport`.
 
 | Task ID | Name | Owner | Status |
 |---|---|---|---|
-| P1f-T01 | `substrate.yaml` model contract spec | Antigravity | 🔒 |
-| P1f-T02 | Model contract parser | Jules | 🔒 |
-| P1f-T03 | Dataset schema parser (CSV/Parquet) | Jules | 🔒 |
-| P1f-T04 | LLM structured output schema parser | Jules | 🔒 |
-| P1f-T05 | AI/ML rule engine + tests | Jules | 🔒 |
+| P1e-T01 | AsyncAPI parser using `asyncapi/parser-go` | Jules | 🔒 |
+| P1e-T02 | Avro adapter using Schema Registry compatibility API | Jules | 🔒 |
+| P1e-T03 | AsyncAPI + Avro breaking change rules spec | Antigravity | 🔒 |
+| P1e-T04 | Rule engine + tests | Jules | 🔒 |
 
-### Phase 1g — Enterprise Metadata (Salesforce & SOAP) 🔒 BLOCKED on 1a
+### Phase 1f — AI/ML Model Contracts ⭐ 🔒 BLOCKED on Phase 2
+
+> **Library decision:** No new dependencies needed. `gopkg.in/yaml.v3` (model contracts) and `santhosh-tekuri/jsonschema` (dataset schema contracts) are **already in `go.mod`**. Substrate owns the `substrate.yaml` model contract spec — we define the format, the diff is field-by-field rule comparison. Drop 3 parser tasks from the original plan.
 
 | Task ID | Name | Owner | Status |
 |---|---|---|---|
-| P1g-T01 | Salesforce Custom Object/XML parser | Jules | 🔒 |
-| P1g-T02 | SOAP WSDL parser | Jules | 🔒 |
+| P1f-T01 | `substrate.yaml` ML model contract spec (inputs, outputs, version constraints) | Antigravity | 🔒 |
+| P1f-T02 | ML contract diff engine using `yaml.v3` + `jsonschema` (no new deps) | Jules | 🔒 |
+| P1f-T03 | AI/ML rule engine + tests | Jules | 🔒 |
+
+### Phase 1g — Enterprise Metadata (Salesforce & SOAP) 🔒 BLOCKED on Phase 2
+
+> **Library decision (WSDL/SOAP):** No Go library exists. Use Go stdlib `encoding/xml` to parse WSDL/XSD into a struct tree. Rule set is small (operation removed, message type changed, required element added) — fully buildable on stdlib.
+> **Library decision (Salesforce):** Shell out to `salto env diff` CLI (Apache 2.0, Node.js) which outputs structured JSON. Substrate maps JSON → `DiffReport`. Do not build a custom Salesforce metadata parser — Salto is purpose-built.
+> **Note:** This is the highest-complexity Wave 2 phase. Ships last.
+
+| Task ID | Name | Owner | Status |
+|---|---|---|---|
+| P1g-T01 | SOAP/WSDL parser using Go stdlib `encoding/xml` | Jules | 🔒 |
+| P1g-T02 | Salesforce adapter via `salto env diff` CLI subprocess | Jules | 🔒 |
 | P1g-T03 | Enterprise breaking change rules spec | Antigravity | 🔒 |
 | P1g-T04 | Enterprise rule engine + tests | Jules | 🔒 |
 
