@@ -679,9 +679,14 @@ Features:
 * **Developer Dashboard & Impact Analysis:** Cross-repo dependency graphs. "If I change this OpenAPI schema, which 3 repos will break?"
 * **Audit Trails:** Centralized view of all overridden breaking changes across the company.
 * **CI/CD Agnosticism:** Native integrations for Jenkins, GitLab CI, and Bitbucket (beyond GitHub) to capture the on-premise enterprise market.
-* **API Gateway & Event Registry Sync:** Once a schema is marked safe and merged, Substrate acts as the single source of truth and pushes the approved schema via a generic plugin layer to API Gateways (Kong, AWS API Gateway, MuleSoft) and Event Registries (Apache Kafka, Confluent Schema Registry).
-* **Developer Portal Sync (Backstage):** Automatically push live dependency graphs, ownership metadata, and approved specs directly into Spotify Backstage.
-* **Data Catalog & Warehouse Sync:** Prevent broken ETL pipelines by syncing SQL and event schemas directly with Enterprise Data Catalogs (Collibra, Alation) and Data Warehouses (Teradata, Snowflake).
+* **API Gateway & Event Registry Sync:** Once a schema is marked safe and merged, Substrate acts as the single source of truth and pushes the approved schema via a generic plugin layer to:
+1. **API Gateways:** Kong, AWS API Gateway, Apigee.
+2. **Schema Registries:** Confluent (Kafka), Apollo Studio.
+3. **Data Catalogs:** Collibra, Alation, Snowflake.
+4. **Developer Portals:** Spotify Backstage.
+5. **Observability (APM):** Datadog, Sentry, New Relic (Inject deployment markers when schemas change so runtime errors can be instantly correlated to API diffs).
+6. **Task Management:** Jira, Linear (Auto-create tickets for downstream teams when an upstream API breaks).
+7. **Communication:** Slack, MS Teams (Route breaking change override requests to `#platform-engineering` for one-click approval).
 * **Automated SDK Generation:** Webhook triggers to automatically regenerate downstream TypeScript/Python SDKs and open PRs on consumer repositories when a safe backend API change is merged.
 * **Automated Test Generation:** Avoid building competing testing tools; instead, generate Postman Collections and MuleSoft APIkit test suites directly from the approved schema. Substrate pushes updates via Pull Requests or Cloud APIs, ensuring testing teams are always testing the correct contract without overwriting their custom local scripts.
 ---
