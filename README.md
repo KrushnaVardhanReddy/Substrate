@@ -574,15 +574,64 @@ Repositories involved:
 
 Goal:
 
-Stop production failures.
+Stop production failures across every schema type your engineering organization uses.
 
-Features:
+Phase 1 ships incrementally as schema format support is added to the same diff engine:
+
+* **1a — OpenAPI 3.x** (REST APIs) ← *ships first*
+* **1b — SQL Migrations** (PostgreSQL DDL)
+* **1c — GraphQL SDL**
+* **1d — Protobuf**
+* **1e — AI/ML Model Contracts** (model input/output schemas, dataset schemas, LLM structured output)
+
+Core features in all sub-phases:
 
 * GitHub integration
 * Schema diff detection
 * Contract validation
 * PR comments
 * Merge blocking
+
+### Phase 1e: AI & ML Contract Protection
+
+The AI problem is identical to the API problem, but failures are more dangerous because they are **silent**.
+
+A broken REST API throws a `500`. A broken ML pipeline quietly trains on wrong features for weeks.
+
+**Dataset Schema Contracts:**
+
+```
+❌ BREAKING: Column 'annual_revenue' renamed/removed
+
+Affected consumers:
+🔴 churn-model (feature: annual_revenue)
+🔴 ltv-prediction-pipeline
+
+Recommendation:
+Update downstream feature code before applying migration.
+```
+
+**ML Model Input/Output Contracts** via `substrate.yaml`:
+
+```yaml
+model: churn-predictor
+version: 2.1.0
+inputs:
+  - name: tenure_months
+    type: float
+  - name: monthly_charges
+    type: float
+outputs:
+  - name: churn_probability
+    type: float
+    range: [0.0, 1.0]
+```
+
+If a new model version removes `tenure_months` → Substrate blocks the deployment.
+
+**LLM Structured Output Contracts:**
+
+Every team building on LLMs with structured JSON output (function calling, JSON mode) has schema contracts. If a prompt template change alters the expected output structure, downstream parsers silently break. Substrate version-controls these schemas and catches breaking changes in CI.
 
 ---
 
@@ -647,11 +696,11 @@ A platform that understands:
 
 The first wedge:
 
-Prevent breaking schema changes.
+Prevent breaking schema changes in REST APIs.
 
 The long-term platform:
 
-Engineering intelligence and automated system knowledge.
+Contract protection for every data boundary in engineering — APIs, databases, data pipelines, ML models, and AI systems.
 
 ---
 

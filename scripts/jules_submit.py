@@ -63,10 +63,12 @@ MANDATORY RULES — VIOLATION = REJECTED PR:
 2. Every file you modify MUST still build — run lint/typecheck/go vet before committing.
 3. If a test fails, FIX the code or test — do NOT delete or skip tests.
 4. Do NOT alter any file in docs/specs/ — those are the source of truth. Implement from them, never rewrite them.
-5. All new Go packages MUST have at least one table-driven unit test.
+5. TESTING IS MANDATORY — every task MUST include both:
+   a. Unit tests: table-driven `_test.go` files (Go) or `*.test.ts` (TypeScript). Min 80% coverage on new code.
+   b. E2E tests: for any CLI command, invoke the compiled binary with real input files and assert stdout/exit code.
+   A PR with no tests will be rejected, no exceptions.
 6. Commit message must start with "jules: " prefix.
-7. Follow the tech stack exactly as listed below.
-8. 100% SPEC-FIRST RULE: If your implementation deviates from the spec in docs/specs/, STOP and flag it — do not silently change behaviour.
+7. 100% SPEC-FIRST RULE: If your implementation deviates from the spec in docs/specs/, STOP and flag it.
 
 Project: Substrate — CI/CD-integrated data contract and dependency intelligence platform.
 Tech stack:

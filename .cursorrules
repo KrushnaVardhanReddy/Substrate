@@ -1,6 +1,6 @@
 # Substrate AI Agent Guidelines
 
-You are developing Substrate, a CI/CD-integrated data contract and dependency intelligence platform. 
+You are developing Substrate, a CI/CD-integrated data contract and dependency intelligence platform.
 
 ## 🚨 CRITICAL RULE: 100% Spec-First Approach
 
@@ -11,3 +11,20 @@ As an AI assistant working on this repository, you MUST follow a strict spec-fir
 3. **Verify Compliance:** When reviewing code or planning tasks, always verify that the codebase strictly adheres to the definitions in the spec files. If you detect implicit structural changes without a spec update, flag it as a violation of the Spec-First Approach.
 
 Always remind the user if they try to skip the specification step!
+
+## 🧪 MANDATORY: Every Code Change Requires Tests
+
+This is non-negotiable. No PR is complete without tests.
+
+1. **Unit Tests:** Every new function, method, or package MUST have a corresponding unit test file.
+   - Go: table-driven `_test.go` files alongside the implementation
+   - TypeScript: Vitest unit tests in `*.test.ts` files
+   - Minimum coverage: **80%** on new code
+
+2. **E2E Tests:** Every user-facing feature or CLI command MUST have an end-to-end test.
+   - Go CLI: shell-based E2E tests that invoke the compiled binary with real input files and assert on stdout/exit code
+   - GitHub App: Playwright or integration tests that simulate a full PR webhook → comment cycle
+   - Dashboard: Playwright tests covering the critical user journey
+
+3. **Test Before Commit:** You MUST run all tests and verify they pass before generating a commit. A PR that adds code without tests will be rejected.
+

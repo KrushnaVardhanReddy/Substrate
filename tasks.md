@@ -1,0 +1,180 @@
+# Substrate — Task Tracker
+
+> Last updated: 2026-07-07
+> Tracking all development phases, tasks, and their current status.
+
+---
+
+## Legend
+
+| Symbol | Status |
+|---|---|
+| ✅ | Complete |
+| 🔄 | In Progress |
+| ⏳ | Ready to Start (all dependencies met) |
+| 🔒 | Blocked (waiting on dependency) |
+| 💡 | Planned (not yet started) |
+
+---
+
+## Phase 0 — Specs & Project Setup ✅ COMPLETE
+
+| Task | Owner | Status | Output |
+|---|---|---|---|
+| Product vision & README | Antigravity | ✅ | `README.md` |
+| Business model & monetization | Antigravity | ✅ | `README.md` (Business Model section) |
+| Spec-first contribution rules | Antigravity | ✅ | `CONTRIBUTING.md`, `.cursorrules` |
+| Project folder structure | Antigravity | ✅ | `docs/`, `prompts/`, `scripts/`, etc. |
+| Jules/Stitch automation scripts | Antigravity | ✅ | `scripts/jules_submit.py`, `scripts/stitch_submit.py` |
+| Delegation workflow doc | Antigravity | ✅ | `docs/stitch_jules_workflow.md` |
+| Environment setup | Antigravity | ✅ | `.env.local`, `.env.example`, `.gitignore` |
+| Diff engine architecture plan | Antigravity | ✅ | `docs/specs/diff-engine-plan.md` |
+| **DiffReport JSON schema spec** | Antigravity | ✅ | `docs/specs/diff-report-schema.md` |
+| **Breaking change rules spec** | Antigravity | ✅ | `docs/specs/breaking-change-rules.md` |
+
+---
+
+## Phase 1 — Breaking Change Prevention (Incremental Sub-phases)
+
+> **Dependency:** Phase 0 specs complete ✅
+> **Architecture:** All sub-phases use the **same diff engine**. Only new parsers and rule tables are added.
+
+### Phase 1a — OpenAPI 3.x ⏳ READY TO START
+
+> ⚠️ **Override Config spec must be written (P1-T00) before GitHub App ships (Phase 2)**
+
+| Task ID | Name | Owner | Status | Jules Prompt |
+|---|---|---|---|---|
+| P1-T00 | **`substrate.yaml` override config spec** | Antigravity | ⏳ | `docs/specs/override-config.md` |
+| P1-T01 | Go module scaffold + DiffReport structs | Jules | ⏳ | `prompts/phase-1-diff-engine/t01_go_scaffold.txt` |
+| P1-T02 | OpenAPI parser + Internal Representation (IR) | Jules | 🔒 | `prompts/phase-1-diff-engine/t02_openapi_parser.txt` |
+| P1-T03 | Diff comparator algorithm | Jules | 🔒 | `prompts/phase-1-diff-engine/t03_diff_comparator.txt` |
+| P1-T04 | Rule engine (32 rules from spec) | Jules | 🔒 | `prompts/phase-1-diff-engine/t04_rule_engine.txt` |
+| P1-T05 | CLI binary + `--format json/text` output | Jules | 🔒 | `prompts/phase-1-diff-engine/t05_cli_output.txt` |
+| P1-T06 | Override config parser (reads `substrate.yaml`) | Jules | 🔒 | `prompts/phase-1-diff-engine/t06_override_parser.txt` |
+| P1-T07 | Unit tests + E2E tests (80% coverage) | Jules | 🔒 | `prompts/phase-1-diff-engine/t07_tests.txt` |
+
+**Missing prompts to write:** T02, T03, T04, T05, T06, T07
+
+### Phase 1b — SQL Migrations 🔒 BLOCKED on 1a
+
+| Task ID | Name | Owner | Status |
+|---|---|---|---|
+| P1b-T01 | SQL DDL parser (PostgreSQL) | Jules | 🔒 |
+| P1b-T02 | SQL breaking change rules spec | Antigravity | 🔒 |
+| P1b-T03 | SQL rule engine + tests | Jules | 🔒 |
+
+### Phase 1c — GraphQL SDL 🔒 BLOCKED on 1a
+
+| Task ID | Name | Owner | Status |
+|---|---|---|---|
+| P1c-T01 | GraphQL schema parser | Jules | 🔒 |
+| P1c-T02 | GraphQL breaking change rules spec | Antigravity | 🔒 |
+| P1c-T03 | GraphQL rule engine + tests | Jules | 🔒 |
+
+### Phase 1d — Protobuf 🔒 BLOCKED on 1a
+
+| Task ID | Name | Owner | Status |
+|---|---|---|---|
+| P1d-T01 | Protobuf `.proto` parser | Jules | 🔒 |
+| P1d-T02 | Protobuf breaking change rules spec | Antigravity | 🔒 |
+| P1d-T03 | Protobuf rule engine + tests | Jules | 🔒 |
+
+### Phase 1e — AI/ML Model Contracts ⭐ 🔒 BLOCKED on 1a
+
+| Task ID | Name | Owner | Status |
+|---|---|---|---|
+| P1e-T01 | `substrate.yaml` model contract spec | Antigravity | 🔒 |
+| P1e-T02 | Model contract parser | Jules | 🔒 |
+| P1e-T03 | Dataset schema parser (CSV/Parquet) | Jules | 🔒 |
+| P1e-T04 | LLM structured output schema parser | Jules | 🔒 |
+| P1e-T05 | AI/ML rule engine + tests | Jules | 🔒 |
+
+---
+
+## Phase 2 — GitHub App ⏳ BLOCKED
+
+> **Dependency:** Phase 1 diff engine binary complete
+
+| Task ID | Name | Owner | Status | Jules Prompt |
+|---|---|---|---|---|
+| P2-T01 | GitHub App scaffold + webhook receiver | Jules | 🔒 | `prompts/phase-2-github-app/t01_github_app_scaffold.txt` |
+| P2-T02 | PR diff trigger → calls Go engine binary | Jules | 🔒 | — |
+| P2-T03 | PR comment formatter (impact report) | Jules | 🔒 | — |
+| P2-T04 | Required status check (merge blocker) | Antigravity | 🔒 | — |
+| P2-T05 | Deployment (Cloudflare Workers) | Jules | 🔒 | — |
+
+---
+
+## Phase 3 — Dashboard, API & MCP Server 💡 PLANNED
+
+> **Dependency:** Phase 2 GitHub App working end-to-end
+
+| Task ID | Name | Owner | Status |
+|---|---|---|---|
+| P3-T01 | PostgreSQL schema + Go API server | Jules | 💡 |
+| P3-T02 | `substrate.yaml` parser + dependency registration | Jules | 💡 |
+| P3-T03 | SvelteKit project setup + design system | Antigravity | 💡 |
+| P3-T04 | Connected repos list + schema browser | Antigravity + Jules | 💡 |
+| P3-T05 | Dependency graph visualization | Antigravity | 💡 |
+| P3-T06 | GitHub OAuth + org management | Jules | 💡 |
+| P3-T07 | Free tier limits + production deployment | Jules | 💡 |
+| **P3-T08** | **MCP server spec** (`docs/specs/mcp-server.md`) | Antigravity | 💡 |
+| **P3-T09** | **MCP server implementation** (Go, exposes graph + schema tools) | Jules | 💡 |
+| **P3-T10** | **MCP server deployment + IDE integration docs** | Antigravity | 💡 |
+
+---
+
+## Backlog / Future Phases 💡
+
+These are not yet scheduled but are on the product roadmap:
+
+**Override & Skip Config** ⚠️ Must ship before Phase 2 GitHub App
+- [ ] Write `docs/specs/override-config.md` spec (P1-T00)
+- [ ] Parse `substrate.yaml` overrides in the diff engine (P1-T06)
+- [ ] Show "✅ Acknowledged" vs "❌ Blocking" in PR comments
+- [ ] Override expiry enforcement (auto-re-trigger on expired overrides)
+- [ ] Override audit trail in the dashboard (who approved what, when)
+
+**MCP Server** ⭐ Phase 3 — Turns Substrate into an IDE-native knowledge layer
+- [ ] Write `docs/specs/mcp-server.md` spec (P3-T08)
+- [ ] Implement Go MCP server with tools: `get_schema`, `check_impact`, `list_consumers`, `get_change_history`, `validate_change`
+- [ ] Deploy MCP server endpoint
+- [ ] Write IDE integration guide (Antigravity, Cursor, Claude, Copilot)
+- [ ] Expose MCP server as self-hostable for Enterprise tier
+
+**Schema Format Extensions (Phase 1 follow-up)**
+- [ ] SQL migration schema support (Phase 1b)
+- [ ] GraphQL SDL schema support (Phase 1c)
+- [ ] Protobuf schema support (Phase 1d)
+- [ ] Avro / JSON Schema support
+
+**AI & ML Contract Protection** ⭐ Phase 1e — Same engine, new schema types
+- [ ] Dataset schema contracts (CSV, Parquet, Delta Lake)
+- [ ] ML model input/output contract validation via `substrate.yaml`
+- [ ] LLM structured output schema versioning & diff
+- [ ] Feature store schema protection
+- [ ] Model deployment gate
+
+**Integrations**
+- [ ] Slack integration for PR notifications
+- [ ] Jira integration
+- [ ] PagerDuty integration
+- [ ] GitLab & Bitbucket support
+
+**Enterprise**
+- [ ] Self-hosted / VPC deployment option
+- [ ] SSO / SAML (Okta)
+- [ ] Custom rules engine
+- [ ] Compliance reporting & audit logs (SOC2)
+
+---
+
+## How to Submit Jules Tasks
+
+```bash
+# From repo root
+python3 scripts/jules_submit.py --list
+python3 scripts/jules_submit.py --task 1
+python3 scripts/jules_submit.py --task 1 --branch feat/diff-engine
+```
