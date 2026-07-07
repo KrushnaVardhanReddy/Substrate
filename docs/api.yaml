@@ -39,13 +39,10 @@ components:
       required:
         - id
         - name
-        - email
       properties:
         id:
           type: string
         name:
-          type: string
-        email:
           type: string
         age:
           type: integer
