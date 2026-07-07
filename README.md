@@ -568,6 +568,24 @@ Repositories involved:
 
 ---
 
+# Architecture & Go-to-Market Strategy
+
+## Public/Private Repo Split
+
+Substrate follows the standard developer tool playbook (like Vercel, Datadog, Stripe) by splitting the product into a public engine and a private SaaS platform:
+
+- **Public Repository (`substrate-engine`)**: Contains the Go CLI, GitHub Action, and core diff logic. This builds trust, allows community audits, and acts as the distribution wedge via GitHub Marketplace.
+- **Private Repository (`substrate-app`)**: Contains the GitHub App webhook handler, API server, billing, and SvelteKit dashboard. This protects the proprietary business logic and SaaS platform.
+
+## Distribution & Go-to-Market (GTM)
+
+1. **GitHub Marketplace (The MVP Wedge) 🏆**: The immediate path to users is shipping the CLI as a GitHub Action. Developers search "API breaking changes", install the action, and get CI failures on breaking changes. This is the highest ROI acquisition channel.
+2. **"Optic Alternative" SEO**: With Optic sunset in 2026, teams are actively searching for replacements. Publishing content positioning Substrate as the modern alternative captures this high-intent traffic.
+3. **Developer Communities (HN, Reddit)**: Sharing the engineering journey (e.g., "Building an API contract checker in Go using oasdiff") generates organic awareness.
+4. **Direct Outreach**: Finding public repos with API specs and offering the tool directly to engineering managers to secure the first 10 design partners.
+
+---
+
 # Product Evolution
 
 ## Phase 1: Breaking Change Prevention

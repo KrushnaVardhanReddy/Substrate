@@ -57,6 +57,21 @@
 **Missing prompts to write:** T02, T03, T04
 **Ready to submit:** T01 (`python3 scripts/jules_submit.py --task 1`)
 
+---
+
+### Phase 1 MVP — GitHub Action (Distribution Wedge) 🏆
+
+> **Dependency:** Phase 1a CLI binary complete.
+> **Goal:** Get the engine onto GitHub Marketplace immediately to start acquiring users while the Phase 2 GitHub App is being built.
+
+| Task ID | Name | Owner | Status |
+|---|---|---|---|
+| P1-MVP | Create `action.yml` wrapper for the Go CLI | Antigravity | 🔒 |
+| P1-MVP | Publish to GitHub Marketplace | User | 🔒 |
+| P1-MVP | Write "Optic Alternative" launch post | Antigravity | 🔒 |
+
+---
+
 ### Phase 1b — SQL Migrations 🔒 BLOCKED on 1a
 
 | Task ID | Name | Owner | Status |
