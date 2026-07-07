@@ -1,6 +1,6 @@
 # Substrate — Task Tracker
 
-> Last updated: 2026-07-07 (P1-T06 ✅ merged, P1-T07 queued for Jules)
+> Last updated: 2026-07-07 (P1-T07 ✅ merged, P1b-T01 SQL spec ✅ approved)
 > Tracking all development phases, tasks, and their current status.
 
 ---
@@ -75,15 +75,15 @@
 
 ---
 
-### Phase 1b — SQL Migrations ⏳ READY TO START
+### Phase 1b — SQL Migrations 🔄 IN PROGRESS
 
 > **Dependency:** Phase 1a ✅ COMPLETE. Phase 1b is now unblocked.
-> **Spec Gate:** `docs/specs/breaking-change-rules-sql.md` must be written and approved before P1b-T01 is submitted to Jules.
+> **Spec Gate:** `docs/specs/breaking-change-rules-sql.md` ✅ APPROVED — 26 rules (14 BREAKING, 6 WARNING, 6 SAFE).
 
 | Task ID | Name | Owner | Status |
 |---|---|---|---|
-| P1b-T01 | SQL breaking change rules spec | Antigravity | ⏳ |
-| P1b-T02 | SQL DDL parser (PostgreSQL) | Jules | 🔒 |
+| P1b-T01 | SQL breaking change rules spec | Antigravity | ✅ |
+| P1b-T02 | SQL DDL parser (PostgreSQL) | Jules | ⏳ |
 | P1b-T03 | SQL rule engine + tests | Jules | 🔒 |
 
 ### Phase 1c — GraphQL SDL 🔒 BLOCKED on 1a
