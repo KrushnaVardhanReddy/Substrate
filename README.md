@@ -10,6 +10,103 @@ It acts as a proactive firewall for engineering teams by analyzing schema change
 
 ---
 
+# Quick Start — 3 Minutes to Protect Your API
+
+## Step 1 — Add the GitHub Action
+
+Create `.github/workflows/substrate.yml` in your repository:
+
+```yaml
+name: Substrate API Contract Guard
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  check-api-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # needed to access base branch files
+
+      - name: Check API Breaking Changes
+        uses: KrushnaVardhanReddy/Substrate@v0.1.0
+        with:
+          base_schema: openapi.yaml        # path to your OpenAPI spec on main
+          head_schema: openapi.yaml        # path to your OpenAPI spec in the PR
+          config: substrate.yaml          # optional — see Step 2
+```
+
+> **How it works:** When a PR is opened, Substrate fetches the spec from `main` (base) and compares it to the spec in the PR branch (head). If a breaking change is detected, the CI check fails and the merge is blocked.
+
+---
+
+## Step 2 — Add `substrate.yaml` (optional but recommended)
+
+Place `substrate.yaml` in the **root of your repository**:
+
+```yaml
+# substrate.yaml — Substrate configuration for this repository
+
+service: your-service-name          # human-readable name shown in CI output
+schema_type: openapi                # openapi | sql | graphql | protobuf
+spec_path: openapi.yaml             # path to your spec file from repo root
+
+owners:
+  - team: platform-team
+    contact: platform@yourcompany.com
+```
+
+If you skip this file, Substrate runs with defaults — no config required for basic usage.
+
+---
+
+## Step 3 — Open a PR with a Breaking Change
+
+Remove an endpoint or a required field from your OpenAPI spec and open a PR. You should see:
+
+```
+❌ BREAKING CHANGES (1)
+  ENDPOINT_REMOVED
+  Path: paths./customers/{id}
+  Description: Endpoint /customers/{id} was removed.
+  Recommendation: Add 'deprecated: true' before removing endpoints.
+
+Exit code: 2  ← CI fails, merge is blocked
+```
+
+---
+
+## Acknowledging a Breaking Change (Override)
+
+If a breaking change is intentional and all consumers have been migrated, you can acknowledge it in `substrate.yaml` to unblock the merge:
+
+```yaml
+overrides:
+  - rule_id: ENDPOINT_REMOVED
+    path: paths./customers/{id}
+    reason: "Legacy endpoint removed after all 3 consumers migrated to v2. See RFC-1042."
+    approved_by: you@yourcompany.com
+    expires: 2026-12-31
+```
+
+The CI check will pass and show `✅ Acknowledged (override active until 2026-12-31)` instead of failing.
+
+---
+
+## Exit Codes
+
+| Code | Meaning | CI Result |
+|---|---|---|
+| `0` | No changes, or all changes are SAFE | ✅ Pass |
+| `1` | WARNING-level changes detected | ✅ Pass (with warning) |
+| `2` | BREAKING changes detected | ❌ Fail — blocks merge |
+| `3` | Spec is invalid (parse error) | ❌ Fail |
+
+---
+
 # The Problem
 
 Modern engineering organizations have hundreds of interconnected systems:
