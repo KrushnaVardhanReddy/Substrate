@@ -676,7 +676,7 @@ Features:
 * **Developer Dashboard & Impact Analysis:** Cross-repo dependency graphs. "If I change this OpenAPI schema, which 3 repos will break?"
 * **Audit Trails:** Centralized view of all overridden breaking changes across the company.
 * **CI/CD Agnosticism:** Native integrations for Jenkins, GitLab CI, and Bitbucket (beyond GitHub) to capture the on-premise enterprise market.
-* **API Gateway & Schema Registry Sync:** Once a schema is marked safe and merged, Substrate acts as the single source of truth and pushes the approved schema via a generic plugin layer to API Gateways (Kong, AWS API Gateway, MuleSoft) and Event Registries (Confluent Schema Registry).
+* **API Gateway & Event Registry Sync:** Once a schema is marked safe and merged, Substrate acts as the single source of truth and pushes the approved schema via a generic plugin layer to API Gateways (Kong, AWS API Gateway, MuleSoft) and Event Registries (Apache Kafka, Confluent Schema Registry).
 * **Developer Portal Sync (Backstage):** Automatically push live dependency graphs, ownership metadata, and approved specs directly into Spotify Backstage.
 * **Data Catalog & Warehouse Sync:** Prevent broken ETL pipelines by syncing SQL and event schemas directly with Enterprise Data Catalogs (Collibra, Alation) and Data Warehouses (Teradata, Snowflake).
 * **Automated SDK Generation:** Webhook triggers to automatically regenerate downstream TypeScript/Python SDKs and open PRs on consumer repositories when a safe backend API change is merged.
