@@ -172,7 +172,7 @@
 | Task ID | Name | Owner | Status | Jules Prompt |
 |---|---|---|---|---|
 | P2-T01 | GitHub App scaffold + Cloudflare Worker webhook receiver | Jules | ✅ | `prompts/phase-2-github-app/t01_github_app_scaffold.txt` |
-| **P2-T02a** | **`substrate serve` HTTP mode** — adds `POST /diff` to Go binary (container service) | Jules | 🔄 *session: 12378420499826865949* | `prompts/phase-2-github-app/t02a_binary_serve_mode.txt` |
+| **P2-T02a** | **`substrate serve` HTTP mode** — adds `POST /diff` to Go binary (container service) | Jules | ✅ | `prompts/phase-2-github-app/t02a_binary_serve_mode.txt` |
 | P2-T03 | PR comment formatter (standalone TypeScript module) | Jules | 🔄 *session: 9046194793485505468* | `prompts/phase-2-github-app/t03_pr_comment_formatter.txt` |
 | **P2-T02b** | **Wire Worker → Container → GitHub APIs** — real diff results posted to PRs | Jules | 🔒 *blocked: needs T01 + T02a merged* | — |
 | P2-T04 | Required status check (merge blocker) | Jules | 🔒 *blocked: needs T02b* | — |
