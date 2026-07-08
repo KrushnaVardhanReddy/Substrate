@@ -1,6 +1,7 @@
-import { Env, DiffReport } from './types';
-import { validateWebhookSignature, parsePREvent } from './webhook';
-import { generateInstallationToken, fetchFileContent, postPRComment, setCommitStatus } from './github-client';
+import { Env, DiffReport } from './types.js';
+import { validateWebhookSignature, parsePREvent } from './webhook.js';
+import { generateInstallationToken, fetchFileContent, postPRComment, setCommitStatus } from './github-client.js';
+import { formatPRComment, formatMissingConfigComment, getCommitStatusState, getCommitStatusDescription } from './formatter.js';
 
 // YAML parser mock/regex for the stub phase
 function parseYaml(yaml: string): any {
@@ -11,7 +12,31 @@ function parseYaml(yaml: string): any {
   if (headMatch) result.head_schema = headMatch[1].trim();
   const onBreakingMatch = yaml.match(/on_breaking_change:\s*(.+)/);
   if (onBreakingMatch) result.on_breaking_change = onBreakingMatch[1].trim();
+  const schemaTypeMatch = yaml.match(/schema_type:\s*(.+)/);
+  if (schemaTypeMatch) result.schema_type = schemaTypeMatch[1].trim();
   return result;
+}
+
+async function callContainerService(containerUrl: string, baseSchema: string, headSchema: string, configContent: string, schemaType: string): Promise<DiffReport> {
+  let response;
+  try {
+    response = await fetch(`${containerUrl}/diff`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        base_schema: baseSchema,
+        head_schema: headSchema,
+        config: configContent,
+        schema_type: schemaType
+      })
+    });
+  } catch (err) {
+    throw new Error("container service error");
+  }
+  if (!response.ok) {
+    throw new Error("container service error");
+  }
+  return await response.json();
 }
 
 export default {
@@ -70,7 +95,7 @@ export default {
 
       // Step 7: If no substrate.yaml -> post missing-config comment, set 'pending' status, return 200
       if (!configContent) {
-        const missingConfigMsg = "## 👋 Substrate is installed but not configured\n\nRun `substrate init` to activate.\n\n*Powered by [Substrate](https://github.com/KrushnaVardhanReddy/Substrate)*";
+        const missingConfigMsg = formatMissingConfigComment();
         await postPRComment(token, event.owner, event.repo, event.prNumber, missingConfigMsg);
 
         // Ensure pending status remains (set neutrally above, spec says neutral/pending)
@@ -88,37 +113,51 @@ export default {
 
       // Step 8: Parse config, fetch base + head spec files from GitHub API
       const config = parseYaml(configContent);
+      let baseContent: string | null = null;
+      let headContent: string | null = null;
 
       if (config.base_schema && config.head_schema) {
-        // We fetch these just to fulfill step 8 (they will be sent to the Container Service in P2-T02)
-        await fetchFileContent(token, event.owner, event.repo, config.base_schema, event.baseBranch);
-        await fetchFileContent(token, event.owner, event.repo, config.head_schema, event.headSha);
+        baseContent = await fetchFileContent(token, event.owner, event.repo, config.base_schema, event.baseBranch);
+        headContent = await fetchFileContent(token, event.owner, event.repo, config.head_schema, event.headSha);
       }
 
-      // Step 9: STUB diff result
-      const diffReport: DiffReport = {
-        breaking: [],
-        warning: [],
-        info: [],
-        summary: {
-          breaking_count: 0,
-          warning_count: 0,
-          info_count: 0
-        }
-      };
+      if (!config.base_schema || !config.head_schema || baseContent === null || headContent === null) {
+        const configErrorMsg = "## ⚠️ Substrate — Config Error\n\nCould not fetch spec files. Check `base_schema` and `head_schema` in your `substrate.yaml`.\n\n*Powered by [Substrate](https://github.com/KrushnaVardhanReddy/Substrate)*";
+        await postPRComment(token, event.owner, event.repo, event.prNumber, configErrorMsg);
+        await setCommitStatus(token, event.owner, event.repo, event.headSha, 'failure', 'Substrate config error — check substrate.yaml');
+        return new Response('Config Error', { status: 200 });
+      }
 
-      // Step 10: Post PR comment (placeholder)
-      const allClearMsg = "## ✅ Substrate — All Clear\n\nNo breaking changes detected in this PR. Safe to merge. 🎉\n\n*Powered by [Substrate](https://github.com/KrushnaVardhanReddy/Substrate)*";
-      await postPRComment(token, event.owner, event.repo, event.prNumber, allClearMsg);
+      // Step 9: REAL Container Service call
+      let diffReport: DiffReport;
+      try {
+        const schemaType = config.schema_type || 'openapi';
+        diffReport = await callContainerService(
+          env.CONTAINER_SERVICE_URL,
+          baseContent,
+          headContent,
+          configContent,
+          schemaType
+        );
+      } catch (e: any) {
+        await setCommitStatus(token, event.owner, event.repo, event.headSha, 'failure', 'Substrate engine error — retry later');
+        return new Response('Engine Error', { status: 200 });
+      }
+
+      // Step 10: Post PR comment
+      const commentBody = formatPRComment(diffReport, config);
+      await postPRComment(token, event.owner, event.repo, event.prNumber, commentBody);
 
       // Step 11: Set final commit status
+      const statusState = getCommitStatusState(diffReport, config);
+      const statusDescription = getCommitStatusDescription(diffReport);
       await setCommitStatus(
         token,
         event.owner,
         event.repo,
         event.headSha,
-        'success',
-        'All clear — no breaking changes'
+        statusState,
+        statusDescription
       );
 
       // Step 12: Return 200
