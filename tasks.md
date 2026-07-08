@@ -233,21 +233,38 @@
 ## Phase 4 — AI Intelligence Layer 🧠 VISION
 
 > **Dependency:** Phase 3 contract registry + dependency graph complete.
-> **The Core Insight:** Phase 3 collects the data. Phase 4 uses it. Once Substrate holds a knowledge graph of every schema version, every dependency relationship, every breaking change event, and every override acknowledgment across your entire organization — that data becomes the training signal for an AI layer that can answer questions no other tool can.
 >
-> **The Moat:** The more schemas registered, the smarter the AI gets. This creates a data flywheel that is extremely hard for competitors to replicate. This is the difference between a tool and a platform.
+> **The Core Insight:** Phase 3 collects the data. Phase 4 uses it. The moat is not the model — the moat is the data. Substrate's accumulated schema evolution graph (versions, dependencies, breaking change history, override patterns) gives AI systems context that no competitor can replicate.
+>
+> **Architecture decision:** We do NOT train a general-purpose LLM (that's a $100M+ project). We use a **hybrid approach**:
+> - **MCP + Foundation Models** (Claude/GPT/Gemini) for reasoning-heavy tasks — these models reason over Substrate's data via MCP tools. Ship in weeks, not months.
+> - **Small Specialized Models** (classical ML / fine-tuned classifiers) for narrow, well-defined tasks where a small model clearly outperforms a prompted LLM (anomaly detection, prediction).
+> - **Never** fine-tune a general LLM — it won't beat GPT-4o even with schema data, and it'll be obsoleted by the next model release anyway.
+>
+> **Timeline reality:** Phase 4 splits into two sub-phases with very different timelines. Phase 4a is fast. Phase 4b needs data accumulation.
 
-| Task ID | Name | Owner | Status |
-|---|---|---|---|
-| **P4-T01** | **AI Impact Analyst** — natural language interface to the dependency graph. "What changed in the payments API last month that could affect checkout?" | Antigravity | 💡 |
-| **P4-T02** | **Auto-Migration Generator** — when a breaking change is detected, AI generates the migration code diff for each affected consumer automatically | Jules | 💡 |
-| **P4-T03** | **Predictive Breaking Change Detection** — before code is written, flag: "this API design pattern has historically broken consumers in 87% of similar cases" | Antigravity | 💡 |
-| **P4-T04** | **Schema Health Score** — per-team grade: "payments-api breaks consumers 3× more than your org average. Top 3 rule violations causing it: ..." | Jules | 💡 |
-| **P4-T05** | **Smart Deprecation Planner** — when a breaking change is repeatedly acknowledged, AI suggests a formal 30-day deprecation plan with migration window and auto-generated consumer notifications | Antigravity | 💡 |
-| **P4-T06** | **Anomaly Detection** — alert when a team's schema change velocity spikes unusually, providing early warning before a bad release hits production | Jules | 💡 |
-| **P4-T07** | **AI-powered PR review assistant** — "This PR touches 5 schemas. Here's the full cross-repo impact analysis with suggested reviewer assignments" | Antigravity | 💡 |
+### Phase 4a — MCP + Foundation Models 🚀 (fast — weeks after Phase 3 ships)
 
-> **Phase 4 is enabled by Phase 3's MCP server (P3-T08/09).** The MCP server exposes the schema graph to AI coding assistants (Antigravity, Cursor, Copilot, Claude). Phase 4 features are the structured AI products built on top of that raw access. The MCP server is the bridge — Phase 3 builds it, Phase 4 exploits it.
+> These features are essentially: **MCP server live + good system prompt + UI wrapper = done.** No ML training, no data accumulation needed. The foundation model does the reasoning. Your value is in the data tools you expose via MCP.
+
+| Task ID | Name | AI Approach | Owner | Status |
+|---|---|---|---|---|
+| **P4a-T01** | **AI Impact Analyst** — "What changed in the payments API last month that could affect checkout?" | MCP tools → Claude/GPT reasons over schema graph | Antigravity | 💡 |
+| **P4a-T02** | **Auto-Migration Generator** — breaking change detected → AI generates migration code diff for each affected consumer | MCP tools → foundation model generates code | Jules | 💡 |
+| **P4a-T03** | **Smart Deprecation Planner** — repeatedly acknowledged break → AI suggests 30-day deprecation plan + consumer notifications | MCP tools → foundation model reasons over acknowledgment history | Antigravity | 💡 |
+| **P4a-T04** | **AI-powered PR review assistant** — "This PR touches 5 schemas. Full cross-repo impact + suggested reviewers" | MCP tools → foundation model, triggered on PR open | Antigravity | 💡 |
+
+### Phase 4b — Specialized ML (slow — needs 6-12 months of real user data)
+
+> These features need enough accumulated data to train/tune on. **Do not start these until Phase 3 has been live for at least 6 months** and you have meaningful signal. Classical ML (no LLM) for the numerical tasks. Small classifier for prediction.
+
+| Task ID | Name | AI Approach | Owner | Status |
+|---|---|---|---|---|
+| **P4b-T01** | **Schema Health Score** — per-team grade on breaking change frequency vs org average | Statistics on historical registry data. No ML needed — just counting. Start here. | Jules | 💡 |
+| **P4b-T02** | **Anomaly Detection** — alert when schema change velocity spikes (early warning before bad release) | Classical ML: time-series anomaly detection (isolation forest / z-score baseline). NOT an LLM task. | Jules | 💡 |
+| **P4b-T03** | **Predictive Breaking Change Detection** — "this diff pattern has historically broken consumers in 87% of similar cases" | Small binary classifier trained on Substrate's accumulated diff history. Fine-tune only if >10k labelled examples. | Antigravity | 💡 |
+
+> **Phase 4b note:** P4b-T01 (Schema Health Score) is actually statistics, not ML — it can ship as soon as Phase 3 has any data at all. P4b-T02 and P4b-T03 are the real "needs data" items. Start collecting the training signal from day one of Phase 3.
 
 ---
 
