@@ -10,6 +10,8 @@ jobs:
   docker:
     name: Build & Push to Docker Hub
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout
