@@ -275,6 +275,11 @@
 
 These are not yet scheduled but are on the product roadmap:
 
+**Zero-Touch Onboarding & AI Spec Generation** 🚀 (High Priority for Client Demos)
+- [ ] **Auto-Discovery PR (GitHub App):** On installation, scan repo for schemas (`openapi.yaml`, `schema.graphql`) and automatically open a PR adding `substrate.yaml`. Zero manual config required.
+- [ ] **AI Spec Generator (Framework Integrations):** If no spec exists, detect the framework (e.g., Express, Gin, FastAPI) and use an AI agent to open a PR adding auto-generation tools (e.g., `swag`, `tsoa`) + CI steps.
+- [ ] **LLM Direct Spec Inference (Phase 4):** Use an LLM to read raw routing code (`routes.ts`) and dynamically generate/maintain the OpenAPI spec in the background without user intervention.
+
 **Override & Skip Config** ⚠️ Must ship before Phase 2 GitHub App
 - [x] Write `docs/specs/override-config.md` spec (P1-T00)
 - [x] Parse `substrate.yaml` overrides in the diff engine (P1-T03)
