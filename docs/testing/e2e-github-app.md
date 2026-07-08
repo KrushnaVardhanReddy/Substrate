@@ -21,7 +21,7 @@ The GitHub App relies on the Go binary to perform the actual diff computation. Y
 Open a terminal and run:
 ```bash
 cd engine
-go run cmd/substrate/main.go serve --port 8080
+go run ./cmd/substrate serve --port 8080
 ```
 *Leave this running in the background. It will listen for `POST /diff` requests.*
 
