@@ -1,6 +1,6 @@
 # Substrate — Task Tracker
 
-> Last updated: 2026-07-07 (repo private, distribution model changed to Docker Hub public image, P1-MVP blog post deferred post-Phase 2)
+> Last updated: 2026-07-08 (Phase 2 complete ✅ — Phase 3 Contract Registry in progress. Specs reorganized into `docs/specs/phase-1/`, `phase-2/`, `phase-3/` subdirectories.)
 > Tracking all development phases, tasks, and their current status.
 
 ---
@@ -28,9 +28,9 @@
 | Jules/Stitch automation scripts | Antigravity | ✅ | `scripts/jules_submit.py`, `scripts/stitch_submit.py` |
 | Delegation workflow doc | Antigravity | ✅ | `docs/stitch_jules_workflow.md` |
 | Environment setup | Antigravity | ✅ | `.env.local`, `.env.example`, `.gitignore` |
-| Diff engine architecture plan | Antigravity | ✅ | `docs/specs/diff-engine-plan.md` |
-| **DiffReport JSON schema spec** | Antigravity | ✅ | `docs/specs/diff-report-schema.md` |
-| **Breaking change rules spec** | Antigravity | ✅ | `docs/specs/breaking-change-rules.md` |
+| Diff engine architecture plan | Antigravity | ✅ | `docs/specs/phase-1/diff-engine-plan.md` |
+| **DiffReport JSON schema spec** | Antigravity | ✅ | `docs/specs/phase-1/diff-report-schema.md` |
+| **Breaking change rules spec** | Antigravity | ✅ | `docs/specs/phase-1/breaking-change-rules.md` |
 
 ---
 
@@ -207,22 +207,25 @@
 >
 > **How we can test this today (before Phase 3 infra):** Simulate multiple repos as subfolders in `engine/cmd/substrate/testdata/cross-repo/`. E2E tests run Substrate against `(provider_new_spec, consumer_stored_spec)` and assert cross-boundary breaks are detected. No real cross-repo infra needed for the engine tests.
 
-| Task ID | Name | Owner | Status |
-|---|---|---|---|
-| P3-T01 | PostgreSQL schema + Go API server | Jules | 🔄 |
-| P3-T02 | `substrate.yaml` multi-contract parser + dependency registration | Jules | 🔄 |
-| **P3-T02b** | **Contract registry** — store + sync consumer spec snapshots from registered repos | Jules | 🔄 |
-| **P3-T02c** | **Cross-repo compatibility check** — on provider PR, validate change against all consumer snapshots | Antigravity | 🔄 |
-| **P3-T02d** | **Cross-repo E2E fixture tests** — `testdata/cross-repo/` simulating multi-repo scenario | Jules | 🔄 |
-| P3-T03 | SvelteKit project setup + design system | Antigravity | 💡 |
-| P3-T04 | Connected repos list + schema browser | Antigravity + Jules | 💡 |
-| P3-T05 | Dependency graph visualization | Antigravity | 💡 |
-| P3-T06 | GitHub OAuth + org management | Jules | 💡 |
-| P3-T07 | Free tier limits + production deployment | Jules | 💡 |
-| **P3-T08** | **MCP server spec** (`docs/specs/mcp-server.md`) | Antigravity | 💡 |
-| **P3-T09** | **MCP server implementation** (Go, exposes graph + schema tools) | Jules | 💡 |
-| **P3-T10** | **MCP server deployment + IDE integration docs** | Antigravity | 💡 |
-| **P3-T11** | **Compatibility matrix dashboard** — provider version × consumer version grid showing green/red compatibility status for all registered cross-repo contracts | Antigravity | 💡 |
+> **Spec:** `docs/specs/phase-3/contract-registry.md`  
+> **Execution order:** P3-T01 → P3-T02+P3-T06 (parallel) → P3-T02b → P3-T02c+P3-T02d (parallel) → Dashboard → MCP
+
+| Task ID | Priority | Name | Owner | Status |
+|---|---|---|---|---|
+| P3-T01 | 🔴 P1 | PostgreSQL schema + Go API server | Jules | ⏳ |
+| P3-T02 | 🔴 P1 | `substrate.yaml` consumer declaration parser | Jules | 🔒 after P3-T01 |
+| **P3-T02b** | 🔴 P1 | **Contract registry sync** — snapshot consumer specs on push to `main` | Jules | 🔒 after P3-T02 |
+| **P3-T02c** | 🔴 P1 | **Cross-repo check on PR** — validate provider PR against all consumer snapshots | Jules | 🔒 after P3-T02b |
+| P3-T06 | 🟡 P2 | GitHub OAuth + org management | Jules | 🔒 after P3-T01 |
+| **P3-T02d** | 🟡 P2 | **Cross-repo E2E fixture tests** — `testdata/cross-repo/` | Jules | 🔒 after P3-T02c |
+| P3-T03 | 🟢 P3 | SvelteKit dashboard project setup + design system | Antigravity | 🔒 after P3-T01 |
+| P3-T04 | 🟢 P3 | Connected repos list + schema browser | Antigravity + Jules | 🔒 after P3-T03 |
+| P3-T05 | 🟢 P3 | Dependency graph visualization | Antigravity | 🔒 after P3-T04 |
+| **P3-T11** | 🟢 P3 | **Compatibility matrix dashboard** — provider × consumer version grid | Antigravity | 🔒 after P3-T05 |
+| **P3-T08** | 🔵 P4 | **MCP server spec** (`docs/specs/phase-3/mcp-server.md`) | Antigravity | 🔒 after P3-T04 |
+| **P3-T09** | 🔵 P4 | **MCP server implementation** (Go, JSON-RPC 2.0) | Jules | 🔒 after P3-T08 |
+| **P3-T10** | 🔵 P4 | **MCP deployment + IDE integration docs** | Antigravity | 🔒 after P3-T09 |
+| P3-T07 | ⚪ P5 | Free tier limits + production deployment | Jules | 🔒 after P3-T06 |
 
 > **P3-T11 rationale (inspired by PactFlow's compatibility matrix):** PactFlow's most requested enterprise dashboard feature. For a platform team managing 20+ microservices, this is the central control panel: "which version of `users-api` is compatible with which version of `frontend` and `mobile-app`?" Every cell in the grid is a green tick or red cross. This is what makes Substrate indispensable for large orgs and is a core enterprise upsell feature.
 
