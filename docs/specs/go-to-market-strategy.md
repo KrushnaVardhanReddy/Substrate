@@ -36,6 +36,31 @@ API schemas contain highly sensitive Intellectual Property. Substrate addresses 
 ## 5. The "Spec-First" Cultivation Strategy (New Projects)
 While Substrate can auto-generate specs for legacy projects, its ultimate goal is to change engineering culture. Substrate advocates for a **Design-First / Spec-First** approach for all new microservices:
 - **The Workflow:** Before a backend developer writes a single line of Go or Java, they use `substrate init --design` to scaffold an empty API contract.
-- **AI Design Assistant:** They chat with the Substrate CLI/MCP to design the API surface. The AI helps them write a robust, REST-compliant `openapi.yaml`.
+- **AI Design Assistant (Conversational UX):** The interface is as simple as texting a colleague. No giant forms or YAML knowledge required. Here is the target developer experience:
+  ```text
+  $ substrate init --design
+  🤖 Substrate AI Architect
+  What kind of API are you building today?
+
+  > I need a blog API. Users should be able to list posts, create a post, and add comments to a post.
+
+  🤖 Got it. I've drafted a standard REST schema with 4 endpoints:
+    - GET /posts
+    - POST /posts
+    - GET /posts/{id}/comments
+    - POST /posts/{id}/comments
+
+  Would you like to tweak anything? (e.g., "add authentication" or "add a published field")
+  Or press Enter to save.
+
+  > Make creating a post require a JWT Bearer token, and add an "author_id" field to the post.
+
+  🤖 Updated! 
+  🔒 Added JWT Bearer security scheme to POST /posts.
+  📝 Added 'author_id' (string, UUID) to the Post schema.
+
+  💾 Saved to api/openapi.yaml!
+  🚀 Run 'substrate check' anytime to validate your code against this design.
+  ```
 - **Enforcement:** Substrate enforces that the actual code implementation matches the design contract.
 - **The Result:** If we position Substrate as the standard tool for designing new APIs, it becomes the default starting point for every new microservice globally. Teams will start using Substrate on Day 1 of a new project, rather than waiting until they have a production outage.
