@@ -118,7 +118,7 @@
 
 | Task ID | Name | Owner | Status | Jules Prompt |
 |---|---|---|---|---|
-| P1d-T01 | `buf` checker adapter spec + implementation + tests | Jules | 🔄 Jules session submitted | `prompts/phase-1d-protobuf/t01_buf_adapter.txt` |
+| P1d-T01 | `buf` checker adapter spec + implementation + tests | Jules | 🔄 Jules session `15152674839790590105` | `prompts/phase-1d-protobuf/t01_buf_adapter.txt` |
 
 ### Phase 1e — AsyncAPI & Apache Avro 🔒 BLOCKED on Phase 2
 
