@@ -179,10 +179,33 @@
 
 > **Dependency:** Phase 2 GitHub App working end-to-end
 
+### The Core Phase 3 Feature: Cross-Repo Contract Registry
+
+> **Problem:** A SQL column is renamed in `backend-api` (PR #45). `frontend` and `mobile-app` both consume that field — but they have no open PRs. How does Substrate know they break?
+>
+> **Solution:** Substrate maintains a **contract registry** — a stored snapshot of each consumer's current spec pulled from their `main` branch. When a provider's PR lands, Substrate checks the proposed change against every registered consumer's snapshot — no cross-repo PRs needed.
+>
+> **Design:**
+> ```yaml
+> # substrate.yaml in frontend repo
+> consumers:
+>   - name: "users-api"
+>     type: openapi
+>     source: "github.com/myorg/backend-api"
+>     path: "openapi.yaml"
+>     branch: "main"
+> ```
+> When `backend-api` opens a PR with a breaking OpenAPI change, Substrate fetches `frontend`'s stored `schema.graphql` from the registry and checks compatibility. It comments directly on the provider's PR: *"⚠️ Consumer `frontend` will break — field `user_name` no longer exists."*
+>
+> **How we can test this today (before Phase 3 infra):** Simulate multiple repos as subfolders in `engine/cmd/substrate/testdata/cross-repo/`. E2E tests run Substrate against `(provider_new_spec, consumer_stored_spec)` and assert cross-boundary breaks are detected. No real cross-repo infra needed for the engine tests.
+
 | Task ID | Name | Owner | Status |
 |---|---|---|---|
 | P3-T01 | PostgreSQL schema + Go API server | Jules | 💡 |
-| P3-T02 | `substrate.yaml` parser + dependency registration | Jules | 💡 |
+| P3-T02 | `substrate.yaml` multi-contract parser + dependency registration | Jules | 💡 |
+| **P3-T02b** | **Contract registry** — store + sync consumer spec snapshots from registered repos | Jules | 💡 |
+| **P3-T02c** | **Cross-repo compatibility check** — on provider PR, validate change against all consumer snapshots | Antigravity | 💡 |
+| **P3-T02d** | **Cross-repo E2E fixture tests** — `testdata/cross-repo/` simulating multi-repo scenario | Jules | 💡 |
 | P3-T03 | SvelteKit project setup + design system | Antigravity | 💡 |
 | P3-T04 | Connected repos list + schema browser | Antigravity + Jules | 💡 |
 | P3-T05 | Dependency graph visualization | Antigravity | 💡 |
