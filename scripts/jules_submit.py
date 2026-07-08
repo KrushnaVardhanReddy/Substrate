@@ -153,6 +153,15 @@ TASKS = {
         "prompt": _load_prompt("prompts/phase-1b-sql/t03_sql_rule_engine_tests.txt"),
     },
 
+    # ── Phase 1d: Protobuf & gRPC (Wave 2 — no deps, submit now) ─────────────
+    # Independent of Phase 3. Just adds proto support to the engine.
+    # buf is invoked as a binary via exec.Command — no new Go dependencies.
+    103: {
+        "name": "P1d-T01 — Protobuf & gRPC Breaking Change Adapter (buf checker)",
+        "phase": "phase-1d-protobuf",
+        "prompt": _load_prompt("prompts/phase-1d-protobuf/t01_buf_adapter.txt"),
+    },
+
     # ── Phase 2: GitHub App ───────────────────────────────────────────────────
     # Dependency map:
     #   T01, T02a, T03 → NO mutual dependencies → submit all 3 in parallel

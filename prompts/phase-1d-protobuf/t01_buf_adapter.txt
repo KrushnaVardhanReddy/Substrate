@@ -1,0 +1,255 @@
+TASK: P1d-T01 — Protobuf & gRPC Breaking Change Adapter (`buf` checker)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Add Protobuf & gRPC breaking-change detection to the Substrate diff engine by
+wrapping the `buf breaking` CLI tool. Follows the same adapter pattern as the
+oasdiff checker adapter (P1-T06 in engine/internal/diff/openapi.go).
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-1/protobuf-checker-adapter.md
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT
+═══════════════════════════════════════════════════════════════
+The diff engine lives in engine/ (a Go module at engine/go.mod).
+
+Key existing files (READ ONLY — do not modify unless specified):
+  engine/internal/diff/openapi.go       — oasdiff adapter (study this pattern)
+  engine/internal/diff/openapi_test.go  — table-driven test pattern to follow
+  engine/internal/diff/testdata/        — existing YAML fixtures (DO NOT MODIFY)
+  engine/internal/report/               — DiffReport, Change, Severity types
+  engine/cmd/substrate/main.go          — CLI dispatch (ADD protobuf case here)
+  engine/cmd/substrate/serve.go         — HTTP serve mode (ADD protobuf case here)
+
+You will CREATE new files only. The only existing file to MODIFY is main.go and
+serve.go to add the protobuf dispatch case.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FILE: engine/internal/diff/proto.go  (CREATE NEW)
+
+   Package: package diff
+
+   Imports needed:
+     "bytes"
+     "encoding/json"
+     "fmt"
+     "os/exec"
+     "strings"
+     "time"
+     engine/internal/report (the existing report package)
+
+   Implement these functions:
+
+   a. CompareProto(baseDir, headDir string) (*report.DiffReport, error)
+      — Main entry point. Full implementation as per spec.
+
+   b. mapBufType(bufType string) string
+      — Returns Substrate rule ID from buf violation type.
+      — Full mapping table is in docs/specs/phase-1/protobuf-checker-adapter.md.
+      — Fallback: return "PROTO_" + bufType for unmapped types.
+
+   c. mapBufSeverity(bufType string) report.ChangeSeverity
+      — Returns BREAKING for all wire-break types, WARNING for package-level changes.
+      — Use the severity column from the spec mapping table.
+      — Default (unmapped): BREAKING.
+
+   d. recommendationFor(bufType string) string
+      — Returns a human-readable recommendation string.
+      — Full recommendations are in the spec.
+      — Default (unmapped): "This change breaks wire or source compatibility."
+
+   e. slugify(s string) string
+      — Replaces non-alphanumeric characters with underscores for use in IDs.
+      — Example: "user/v1/user.proto" → "user_v1_user_proto"
+
+   f. writeBufYAMLIfMissing(dir string) error
+      — Writes a minimal buf.yaml to dir if one does not already exist.
+      — Content: "version: v2\n"
+
+   Internal struct (unexported):
+   type bufViolation struct {
+     Path        string `json:"path"`
+     StartLine   int    `json:"start_line"`
+     StartColumn int    `json:"start_column"`
+     Type        string `json:"type"`
+     Message     string `json:"message"`
+   }
+
+   FULL CompareProto() flow:
+   Step 1: exec.LookPath("buf") — error if not found (include install hint)
+   Step 2: writeBufYAMLIfMissing(baseDir), writeBufYAMLIfMissing(headDir)
+   Step 3: exec.Command("buf", "breaking", headDir, "--against", baseDir, "--error-format", "json")
+           Capture stdout + stderr separately.
+   Step 4: If stderr non-empty AND stdout empty → return error (buf failed, not violations)
+   Step 5: Parse stdout line by line as newline-delimited JSON bufViolation structs
+   Step 6: Map each violation → report.Change using mapBufType + mapBufSeverity
+   Step 7: Build report.DiffReport{SchemaType: "protobuf", ...} and return it
+
+2. FILE: engine/internal/diff/proto_test.go  (CREATE NEW)
+
+   Package: package diff_test  (external test package — same as openapi_test.go)
+
+   Table-driven tests using t.Run(). All 10 test cases from the spec are MANDATORY:
+   1. No changes          — 0 BREAKING, 0 WARNING
+   2. Field removed       — 1 BREAKING: PROTO_FIELD_REMOVED
+   3. Field type changed  — 1 BREAKING: PROTO_FIELD_TYPE_CHANGED
+   4. Field number changed — 1 BREAKING: PROTO_FIELD_NUMBER_CHANGED
+   5. Service removed     — 1 BREAKING: PROTO_SERVICE_REMOVED
+   6. RPC method removed  — 1 BREAKING: PROTO_RPC_REMOVED
+   7. Enum value removed  — 1 BREAKING: PROTO_ENUM_VALUE_REMOVED
+   8. New field added     — 0 BREAKING (safe change)
+   9. New RPC added       — 0 BREAKING (safe change)
+   10. buf not on PATH    — error containing "buf is not installed"
+
+   IMPORTANT for test case 10: Do NOT mock the filesystem. Instead, temporarily
+   override the PATH env variable in the test to an empty string so exec.LookPath
+   cannot find buf. Restore PATH after the test.
+
+   Test helper: func protoTestdataPath(subdir string) string
+   Returns the absolute path to engine/internal/diff/testdata/proto/<subdir>/
+
+   Skip all tests (t.Skip) if buf is not installed on the test machine:
+     if _, err := exec.LookPath("buf"); err != nil {
+       t.Skip("buf not installed, skipping proto tests")
+     }
+   (Except test case 10 which tests the error path — that one must not skip)
+
+3. DIRECTORY: engine/internal/diff/testdata/proto/  (CREATE NEW)
+
+   Create these subdirectory pairs with valid proto3 files:
+
+   Use this template for ALL .proto files (adjust only the message/service content):
+   ```proto
+   syntax = "proto3";
+   package substrate.test.v1;
+   option go_package = "github.com/KrushnaVardhanReddy/Substrate/engine/internal/diff/testdata/proto;testpb";
+   ```
+
+   Directories to create:
+   a. base_no_change/user.proto + head_no_change/user.proto  (identical)
+      Message: User { string id = 1; string email = 2; }
+      Service: UserService { rpc GetUser(GetUserRequest) returns (User); }
+      Request: GetUserRequest { string id = 1; }
+
+   b. base_field_removed/user.proto  — User { string id = 1; string email = 2; }
+      head_field_removed/user.proto  — User { string id = 1; }  (email field deleted)
+
+   c. base_field_type_changed/user.proto  — User { string id = 1; }
+      head_field_type_changed/user.proto  — User { int32 id = 1; }  (type changed)
+
+   d. base_field_number_changed/user.proto  — User { string id = 1; string email = 2; }
+      head_field_number_changed/user.proto  — User { string id = 1; string email = 3; }  (field 2→3)
+
+   e. base_service_removed/user.proto  — has UserService
+      head_service_removed/user.proto  — UserService deleted entirely
+
+   f. base_rpc_removed/user.proto  — UserService with GetUser + ListUsers RPCs
+      head_rpc_removed/user.proto  — UserService with only ListUsers (GetUser deleted)
+      ListUsersRequest: { int32 page = 1; }
+      ListUsersResponse: { repeated User users = 1; }
+
+   g. base_enum_value_removed/user.proto  — Status enum { STATUS_UNSPECIFIED=0; STATUS_ACTIVE=1; STATUS_INACTIVE=2; }
+      head_enum_value_removed/user.proto  — Status enum { STATUS_UNSPECIFIED=0; STATUS_INACTIVE=2; }  (ACTIVE deleted)
+
+   h. base_safe_field_added/user.proto  — User { string id = 1; string email = 2; }
+      head_safe_field_added/user.proto   — User { string id = 1; string email = 2; string phone = 3; }
+
+   i. base_safe_rpc_added/user.proto  — UserService with GetUser only
+      head_safe_rpc_added/user.proto   — UserService with GetUser + DeleteUser (new RPC added)
+      DeleteUserRequest: { string id = 1; }
+      DeleteUserResponse: { bool success = 1; }
+
+4. MODIFY: engine/cmd/substrate/main.go
+   Find the schema_type dispatch switch/if-else block (where "openapi" and "sql" are handled).
+   Add a new case for protobuf:
+
+   case "protobuf", "proto":
+       diffReport, err = diff.CompareProto(baseSchema, headSchema)
+       if err != nil {
+           // handle same as other schema type errors
+       }
+
+   Do NOT modify any other part of main.go. Only add the new case.
+
+5. MODIFY: engine/cmd/substrate/serve.go
+   Find the schema_type dispatch in the HTTP handler (the /diff endpoint).
+   Add the same protobuf case as above.
+   Do NOT modify any other part of serve.go.
+
+═══════════════════════════════════════════════════════════════
+FULL BUF VIOLATION TYPE → SUBSTRATE RULE MAPPING
+═══════════════════════════════════════════════════════════════
+(copy from spec — implement as a switch or map in mapBufType())
+
+FIELD_SAME_TYPE          → PROTO_FIELD_TYPE_CHANGED      (BREAKING)
+FIELD_SAME_NUMBER        → PROTO_FIELD_NUMBER_CHANGED    (BREAKING)
+FIELD_SAME_NAME          → PROTO_FIELD_RENAMED           (BREAKING)
+FIELD_NO_DELETE          → PROTO_FIELD_REMOVED           (BREAKING)
+FIELD_SAME_LABEL         → PROTO_FIELD_LABEL_CHANGED     (BREAKING)
+FIELD_SAME_ONEOF         → PROTO_FIELD_ONEOF_CHANGED     (BREAKING)
+ENUM_NO_DELETE           → PROTO_ENUM_REMOVED            (BREAKING)
+ENUM_VALUE_NO_DELETE     → PROTO_ENUM_VALUE_REMOVED      (BREAKING)
+ENUM_VALUE_SAME_NUMBER   → PROTO_ENUM_VALUE_NUMBER_CHANGED (BREAKING)
+ENUM_VALUE_SAME_NAME     → PROTO_ENUM_VALUE_RENAMED      (BREAKING)
+MESSAGE_NO_DELETE        → PROTO_MESSAGE_REMOVED         (BREAKING)
+RPC_NO_DELETE            → PROTO_RPC_REMOVED             (BREAKING)
+RPC_SAME_REQUEST_TYPE    → PROTO_RPC_REQUEST_TYPE_CHANGED  (BREAKING)
+RPC_SAME_RESPONSE_TYPE   → PROTO_RPC_RESPONSE_TYPE_CHANGED (BREAKING)
+RPC_SAME_CLIENT_STREAMING → PROTO_RPC_STREAMING_CHANGED  (BREAKING)
+RPC_SAME_SERVER_STREAMING → PROTO_RPC_STREAMING_CHANGED  (BREAKING)
+SERVICE_NO_DELETE        → PROTO_SERVICE_REMOVED         (BREAKING)
+FILE_SAME_PACKAGE        → PROTO_PACKAGE_CHANGED         (WARNING)
+FILE_NO_DELETE           → PROTO_FILE_REMOVED            (BREAKING)
+PACKAGE_ENUM_NO_DELETE   → PROTO_ENUM_REMOVED            (BREAKING)
+PACKAGE_MESSAGE_NO_DELETE → PROTO_MESSAGE_REMOVED        (BREAKING)
+PACKAGE_SERVICE_NO_DELETE → PROTO_SERVICE_REMOVED        (BREAKING)
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- engine/internal/diff/proto.go
+- engine/internal/diff/proto_test.go
+- engine/internal/diff/testdata/proto/base_no_change/user.proto
+- engine/internal/diff/testdata/proto/head_no_change/user.proto
+- engine/internal/diff/testdata/proto/base_field_removed/user.proto
+- engine/internal/diff/testdata/proto/head_field_removed/user.proto
+- engine/internal/diff/testdata/proto/base_field_type_changed/user.proto
+- engine/internal/diff/testdata/proto/head_field_type_changed/user.proto
+- engine/internal/diff/testdata/proto/base_field_number_changed/user.proto
+- engine/internal/diff/testdata/proto/head_field_number_changed/user.proto
+- engine/internal/diff/testdata/proto/base_service_removed/user.proto
+- engine/internal/diff/testdata/proto/head_service_removed/user.proto
+- engine/internal/diff/testdata/proto/base_rpc_removed/user.proto
+- engine/internal/diff/testdata/proto/head_rpc_removed/user.proto
+- engine/internal/diff/testdata/proto/base_enum_value_removed/user.proto
+- engine/internal/diff/testdata/proto/head_enum_value_removed/user.proto
+- engine/internal/diff/testdata/proto/base_safe_field_added/user.proto
+- engine/internal/diff/testdata/proto/head_safe_field_added/user.proto
+- engine/internal/diff/testdata/proto/base_safe_rpc_added/user.proto
+- engine/internal/diff/testdata/proto/head_safe_rpc_added/user.proto
+
+FILES TO MODIFY:
+- engine/cmd/substrate/main.go    (add "protobuf"/"proto" case — minimal change)
+- engine/cmd/substrate/serve.go   (add "protobuf"/"proto" case — minimal change)
+
+FILES TO NOT TOUCH (READ-ONLY):
+- engine/internal/diff/openapi.go      (complete — do not modify)
+- engine/internal/diff/openapi_test.go (complete — do not modify)
+- engine/internal/diff/testdata/*.yaml (existing fixtures — do not touch)
+- engine/internal/report/              (DiffReport types — do not modify)
+- engine/go.mod                        (no new deps — buf is a binary, not a Go lib)
+- github-app/                          (TypeScript — do not touch)
+- api/                                 (API server — do not touch)
+- docs/specs/                          (ALL spec files are read-only)
+- action.yml
+- .github/workflows/
+
+Commit: "jules: P1d-T01 add Protobuf gRPC breaking change adapter using buf"
+Target branch: feature/p1d-t01-protobuf-adapter

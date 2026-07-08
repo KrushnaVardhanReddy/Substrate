@@ -111,14 +111,14 @@
 | P1c-T02 | GraphQL breaking change rules spec (~15–20 rules) | Antigravity | 🔒 |
 | P1c-T03 | GraphQL rule engine + tests | Jules | 🔒 |
 
-### Phase 1d — Protobuf & gRPC 🔒 BLOCKED on Phase 2 🏆
+### Phase 1d — Protobuf & gRPC 🔄 IN PROGRESS
 
-> **Library decision:** **`bufbuild/buf`** (Apache 2.0, written in Go). `buf breaking` is the `oasdiff` of Protobuf — 100+ wire-compatibility rules, field number checks, service/method detection. Drop into `go.mod`, write a `buf` checker adapter (identical pattern to `oasdiff` P1-T06). Parser + rules both covered. This is the easiest Wave 2 phase.
+> **Library decision:** **`bufbuild/buf`** (Apache 2.0, written in Go). `buf breaking` is the `oasdiff` of Protobuf — 100+ wire-compatibility rules, field number checks, service/method detection. Invoked via `exec.Command` (binary, not Go lib import). Adapter pattern identical to P1-T06 oasdiff. **Spec approved. Jules submitted 2026-07-08.**
+> **Spec:** `docs/specs/phase-1/protobuf-checker-adapter.md` ✅ APPROVED
 
-| Task ID | Name | Owner | Status |
-|---|---|---|---|
-| P1d-T01 | `buf` checker adapter spec (maps `buf breaking` output → `DiffReport`) | Antigravity | 🔒 |
-| P1d-T02 | `buf` checker adapter implementation + tests | Jules | 🔒 |
+| Task ID | Name | Owner | Status | Jules Prompt |
+|---|---|---|---|---|
+| P1d-T01 | `buf` checker adapter spec + implementation + tests | Jules | 🔄 Jules session submitted | `prompts/phase-1d-protobuf/t01_buf_adapter.txt` |
 
 ### Phase 1e — AsyncAPI & Apache Avro 🔒 BLOCKED on Phase 2
 
@@ -157,9 +157,9 @@
 
 ---
 
-> **Wave 2 execution order (after Phase 2):** Follow effort order, not numerical order. Start with the easiest win to build momentum:
-> `1d (Protobuf/buf — 2 tasks, near-zero custom code)` → `1c (GraphQL — custom rules on solved parser)` → `1f (AI/ML — no new deps)` → `1e (AsyncAPI/Avro — two formats, higher complexity)` → `1g (Enterprise — highest effort, ships last)`
-> Order within this list may shift based on real user demand signals after Phase 2 launches.
+> **Wave 2 execution order (Phase 2 complete ✅ — Wave 2 unblocked):** Follow effort order, not numerical order:
+> `1d (Protobuf/buf — IN PROGRESS 🔄)` → `1c (GraphQL — next)` → `1f (AI/ML — no new deps)` → `1e (AsyncAPI/Avro — two formats)` → `1g (Enterprise — highest effort, ships last)`
+> Order within this list may shift based on real user demand signals.
 
 ---
 
@@ -209,11 +209,12 @@
 
 > **Spec:** `docs/specs/phase-3/contract-registry.md`  
 > **Execution order:** P3-T01 → P3-T02+P3-T06 (parallel) → P3-T02b → P3-T02c+P3-T02d (parallel) → Dashboard → MCP
+> **Jules sessions submitted 2026-07-08:** P3-T01 `session:3925306055466858734` | P3-T02 `session:4407958795511618619`
 
 | Task ID | Priority | Name | Owner | Status |
 |---|---|---|---|---|
-| P3-T01 | 🔴 P1 | PostgreSQL schema + Go API server | Jules | ⏳ |
-| P3-T02 | 🔴 P1 | `substrate.yaml` consumer declaration parser | Jules | 🔒 after P3-T01 |
+| P3-T01 | 🔴 P1 | PostgreSQL schema + Go API server | Jules | 🔄 Jules session `3925306055466858734` |
+| P3-T02 | 🔴 P1 | `substrate.yaml` consumer declaration parser | Jules | 🔄 Jules session `4407958795511618619` |
 | **P3-T02b** | 🔴 P1 | **Contract registry sync** — snapshot consumer specs on push to `main` | Jules | 🔒 after P3-T02 |
 | **P3-T02c** | 🔴 P1 | **Cross-repo check on PR** — validate provider PR against all consumer snapshots | Jules | 🔒 after P3-T02b |
 | P3-T06 | 🟡 P2 | GitHub OAuth + org management | Jules | 🔒 after P3-T01 |
