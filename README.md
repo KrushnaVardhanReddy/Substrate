@@ -793,6 +793,19 @@ Features:
 
 ---
 
+
+### Enabling the Merge Blocker (Branch Protection)
+
+Substrate emits a commit status context called `substrate/breaking-changes` on every PR. For Substrate to actually block a merge, the repository administrator must configure this status context as a **Required Status Check**.
+
+To enable this:
+
+1. Go to your repository **Settings** > **Branches**.
+2. Edit the branch protection rule for your default branch (e.g., `main`).
+3. Enable **Require status checks to pass before merging** and search for `substrate/breaking-changes` to add it to the list.
+
+Once enabled, any PR with unacknowledged breaking changes (where `on_breaking_change: block`) will have its merge button disabled by GitHub.
+
 ## Phase 3: The Intelligence Layer & Enterprise Integrations
 
 Goal: Turn Substrate into the central registry of truth for the entire engineering ecosystem.
