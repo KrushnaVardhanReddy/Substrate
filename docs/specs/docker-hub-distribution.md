@@ -126,6 +126,19 @@ git push origin v0.2.0
 
 ---
 
+## Build Architecture & CGO
+
+**Requirement:** The Go binary must be compiled with `CGO_ENABLED=1`.
+
+The Phase 1b SQL Diff Engine relies on `github.com/pganalyze/pg_query_go`, which is a Go wrapper around the official PostgreSQL C parser. Because it uses C code:
+- The Docker `builder` stage cannot use a plain Alpine image without a C compiler.
+- We must use `golang:1.22-alpine` (or newer) and explicitly install `gcc` and `musl-dev` before running `go build`.
+- The final binary is dynamically linked to `musl` libc, so the final runtime image must also be Alpine-based (`FROM alpine:latest`).
+
+*Any future changes to the `Dockerfile` must preserve the CGO enabled build step and the C compiler dependencies.*
+
+---
+
 ## Security Considerations
 
 - The Docker image contains only the compiled Go binary and its runtime dependencies. No source files, no spec documents, no prompts, no `.env` files are baked in.
