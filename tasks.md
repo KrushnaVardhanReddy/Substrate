@@ -74,7 +74,6 @@
 | P1-MVP-1 | Create `action.yml` + `Dockerfile` + `entrypoint.sh` | Antigravity | ✅ |
 | P1-MVP-2 | Dogfood the action via `.github/workflows/test-action.yml` | Antigravity | ✅ |
 | P1-MVP-3 | Tag `v0.1.0` + publish to GitHub Marketplace | User | ✅ |
-| P1-MVP-4 | "Optic Alternative" blog post + HackerNews + platform launch | Antigravity | 🔒 *deferred: post-Phase 2* |
 | P1-MVP-5 | Create public repo `substrate-engine` in Docker Hub | User | ✅ |
 | P1-MVP-6 | Add `DOCKERHUB_USERNAME` + `DOCKERHUB_TOKEN` secrets to GitHub repo | User | ✅ |
 | P1-MVP-7 | Update `action.yml` Docker Hub image + verify release CI workflow fires on next tag | Antigravity | ✅ |
@@ -177,6 +176,7 @@
 | P2-T05 | Deployment (Cloudflare Workers) | Jules | 🔒 | — |
 | **P2-T06** | **`substrate check-deploy` command** — asks registry "is my current spec version safe to deploy given all registered consumer snapshots?" Blocks deployment if any consumer breaks. | Antigravity | 🔒 | — |
 | **P2-T07** | **Webhook re-verification** — when a consumer updates their spec on `main`, automatically trigger re-check against the provider's current `main` spec. Opens an issue/comment if it broke. | Jules | 🔒 | — |
+| **P2-T08** | **"Optic Alternative" blog post + HackerNews launch** — official launch of the Substrate GitHub App platform. | Antigravity | 💡 | — |
 
 > **P2-T06 rationale (inspired by Pact's `can-i-deploy`):** The `can-i-deploy` command is Pact's most loved feature. Substrate's equivalent: `substrate check-deploy --env production` queries the registry and asks "Is my provider's latest spec compatible with everything currently deployed to production?" This is the CI gate before deployment, not just before merge. Enterprise teams pay heavily for this because it answers the question: "Can I safely release this to prod right now?"
 >
