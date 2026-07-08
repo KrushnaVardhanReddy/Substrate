@@ -49,7 +49,7 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REPO_SOURCE = "sources/github/KrushnaVardhanReddy/Substrate"
 
 # Parse branch from args if provided
-BRANCH = "main"
+BRANCH = "feature/dev"
 if "--branch" in sys.argv:
     idx = sys.argv.index("--branch")
     if idx + 1 < len(sys.argv):
@@ -180,11 +180,18 @@ TASKS = {
         "prompt": _load_prompt("prompts/phase-2-github-app/t02b_wire_worker_container.txt"),
     },
 
-    # ── Phase 3: Dashboard + API + MCP ───────────────────────────────────────
+    # ── Phase 3: Contract Registry (P1 tasks — no dependencies, submit in parallel) ──
+    # P1 (Core Registry) tasks — P3-T01 and P3-T02 have NO dependencies → submit together
+    # P3-T02b and P3-T02c require T01+T02 merged first → submit in second wave
     20: {
-        "name": "P3-T01 — Go API Server Scaffold",
-        "phase": "phase-3-dashboard",
-        "prompt": _load_prompt("prompts/phase-3-dashboard/t01_api_server.txt"),
+        "name": "P3-T01 — Go API Server Scaffold + PostgreSQL Schema",
+        "phase": "phase-3-registry",
+        "prompt": _load_prompt("prompts/phase-3-registry/t01_api_server.txt"),
+    },
+    21: {
+        "name": "P3-T02 — substrate.yaml Consumer Declaration Parser",
+        "phase": "phase-3-registry",
+        "prompt": _load_prompt("prompts/phase-3-registry/t02_consumer_parser.txt"),
     },
 }
 
