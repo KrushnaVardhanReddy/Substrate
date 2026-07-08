@@ -174,6 +174,11 @@ TASKS = {
         "phase": "phase-2-github-app",
         "prompt": _load_prompt("prompts/phase-2-github-app/t03_pr_comment_formatter.txt"),
     },
+    13: {
+        "name": "P2-T02b — Wire Worker → Container Service → GitHub APIs (Real Diff Results)",
+        "phase": "phase-2-github-app",
+        "prompt": _load_prompt("prompts/phase-2-github-app/t02b_wire_worker_container.txt"),
+    },
 
     # ── Phase 3: Dashboard + API + MCP ───────────────────────────────────────
     20: {
