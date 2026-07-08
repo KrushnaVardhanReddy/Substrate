@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/config"
@@ -252,9 +253,23 @@ func main() {
 	initCmd.Flags().BoolVar(&initOptions.NoWorkflow, "no-workflow", false, "Skip generating .github/workflows/substrate.yml")
 	initCmd.Flags().BoolVar(&initOptions.NoConfig, "no-config", false, "Skip generating substrate.yaml")
 
+	var port string
+	var serveCmd = &cobra.Command{
+		Use:   "serve",
+		Short: "Start HTTP mode (Container Service)",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := runServe(port); err != nil {
+				log.Fatal(err)
+			}
+			return nil
+		},
+	}
+	serveCmd.Flags().StringVar(&port, "port", "8080", "Port to listen on")
+
 	rootCmd.AddCommand(diffCmd)
 	rootCmd.AddCommand(validateCmd)
 	rootCmd.AddCommand(initCmd)
+	rootCmd.AddCommand(serveCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
