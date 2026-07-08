@@ -84,6 +84,9 @@ runs:
 
 **Trigger:** Push of any tag matching `v*.*.*`
 
+**Required Permissions:**
+The workflow must explicitly declare `permissions: contents: write` so that it can push the updated `action.yml` file back to the repository.
+
 **Steps (in order):**
 1. Checkout source
 2. Set up Docker Buildx (multi-platform builds)
