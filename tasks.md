@@ -230,6 +230,27 @@
 
 ---
 
+## Phase 4 — AI Intelligence Layer 🧠 VISION
+
+> **Dependency:** Phase 3 contract registry + dependency graph complete.
+> **The Core Insight:** Phase 3 collects the data. Phase 4 uses it. Once Substrate holds a knowledge graph of every schema version, every dependency relationship, every breaking change event, and every override acknowledgment across your entire organization — that data becomes the training signal for an AI layer that can answer questions no other tool can.
+>
+> **The Moat:** The more schemas registered, the smarter the AI gets. This creates a data flywheel that is extremely hard for competitors to replicate. This is the difference between a tool and a platform.
+
+| Task ID | Name | Owner | Status |
+|---|---|---|---|
+| **P4-T01** | **AI Impact Analyst** — natural language interface to the dependency graph. "What changed in the payments API last month that could affect checkout?" | Antigravity | 💡 |
+| **P4-T02** | **Auto-Migration Generator** — when a breaking change is detected, AI generates the migration code diff for each affected consumer automatically | Jules | 💡 |
+| **P4-T03** | **Predictive Breaking Change Detection** — before code is written, flag: "this API design pattern has historically broken consumers in 87% of similar cases" | Antigravity | 💡 |
+| **P4-T04** | **Schema Health Score** — per-team grade: "payments-api breaks consumers 3× more than your org average. Top 3 rule violations causing it: ..." | Jules | 💡 |
+| **P4-T05** | **Smart Deprecation Planner** — when a breaking change is repeatedly acknowledged, AI suggests a formal 30-day deprecation plan with migration window and auto-generated consumer notifications | Antigravity | 💡 |
+| **P4-T06** | **Anomaly Detection** — alert when a team's schema change velocity spikes unusually, providing early warning before a bad release hits production | Jules | 💡 |
+| **P4-T07** | **AI-powered PR review assistant** — "This PR touches 5 schemas. Here's the full cross-repo impact analysis with suggested reviewer assignments" | Antigravity | 💡 |
+
+> **Phase 4 is enabled by Phase 3's MCP server (P3-T08/09).** The MCP server exposes the schema graph to AI coding assistants (Antigravity, Cursor, Copilot, Claude). Phase 4 features are the structured AI products built on top of that raw access. The MCP server is the bridge — Phase 3 builds it, Phase 4 exploits it.
+
+---
+
 ## Backlog / Future Phases 💡
 
 These are not yet scheduled but are on the product roadmap:
