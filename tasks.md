@@ -175,7 +175,7 @@
 | **P2-T02a** | **`substrate serve` HTTP mode** — adds `POST /diff` to Go binary (container service) | Jules | ✅ | `prompts/phase-2-github-app/t02a_binary_serve_mode.txt` |
 | P2-T03 | PR comment formatter (standalone TypeScript module) | Jules | ✅ | `prompts/phase-2-github-app/t03_pr_comment_formatter.txt` |
 | **P2-T02b** | **Wire Worker → Container → GitHub APIs** — real diff results posted to PRs | Jules | ✅ | `prompts/phase-2-github-app/t02b_wire_worker_container.txt` |
-| P2-T04 | Required status check (merge blocker) | Jules | 🔒 *blocked: needs T02b* | — |
+| P2-T04 | Required status check (merge blocker) | Jules | ⏳ | `prompts/phase-2-github-app/t04_required_status_check.txt` |
 | P2-T05 | Deployment (Cloudflare Workers + Container) | Jules | 🔒 *blocked: needs T04* | — |
 | **P2-T06** | **`substrate check-deploy`** — registry query: safe to deploy to production? | Antigravity | 🔒 *deferred: needs Phase 3 registry* | — |
 | **P2-T07** | **Webhook re-verification** — consumer spec drift → auto re-check provider | Jules | 🔒 *deferred: needs Phase 3 registry* | — |
