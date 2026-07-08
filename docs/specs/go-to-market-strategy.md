@@ -32,3 +32,10 @@ API schemas contain highly sensitive Intellectual Property. Substrate addresses 
 - **Deployment:** Self-hosted inside the client's own VPC via Docker Compose or Kubernetes Helm Chart.
 - **Data Privacy:** The PostgreSQL Contract Registry and Go Diff Engine run entirely behind their firewall. Substrate never sees their schemas or source code.
 - **Pluggable "BYO" AI:** Enterprise clients can plug in their own internal LLM endpoints (e.g., Azure OpenAI) or run local open-source models (e.g., Ollama/Llama 3). The code inference and schema generation never leave their network, completely disarming the primary security objection.
+
+## 5. The "Spec-First" Cultivation Strategy (New Projects)
+While Substrate can auto-generate specs for legacy projects, its ultimate goal is to change engineering culture. Substrate advocates for a **Design-First / Spec-First** approach for all new microservices:
+- **The Workflow:** Before a backend developer writes a single line of Go or Java, they use `substrate init --design` to scaffold an empty API contract.
+- **AI Design Assistant:** They chat with the Substrate CLI/MCP to design the API surface. The AI helps them write a robust, REST-compliant `openapi.yaml`.
+- **Enforcement:** Substrate enforces that the actual code implementation matches the design contract.
+- **The Result:** If we position Substrate as the standard tool for designing new APIs, it becomes the default starting point for every new microservice globally. Teams will start using Substrate on Day 1 of a new project, rather than waiting until they have a production outage.
