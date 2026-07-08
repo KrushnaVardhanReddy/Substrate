@@ -163,24 +163,26 @@
 
 ---
 
-## Phase 2 — GitHub App ⏳ BLOCKED
+## Phase 2 — GitHub App 🔄 IN PROGRESS
 
-> **Dependency:** Phase 1 diff engine binary complete
+> **Dependency:** Phase 1 diff engine binary complete ✅
+> **Spec Gate:** `docs/specs/github-app.md` ✅ APPROVED
+> **Jules sessions submitted:** 2026-07-08 — 3 parallel tasks running on `feature/dev`. Review PRs tomorrow.
 
 | Task ID | Name | Owner | Status | Jules Prompt |
 |---|---|---|---|---|
-| P2-T01 | GitHub App scaffold + webhook receiver | Jules | 🔒 | `prompts/phase-2-github-app/t01_github_app_scaffold.txt` |
-| P2-T02 | PR diff trigger → calls Go engine binary | Jules | 🔒 | — |
-| P2-T03 | PR comment formatter (impact report) | Jules | 🔒 | — |
-| P2-T04 | Required status check (merge blocker) | Antigravity | 🔒 | — |
-| P2-T05 | Deployment (Cloudflare Workers) | Jules | 🔒 | — |
-| **P2-T06** | **`substrate check-deploy` command** — asks registry "is my current spec version safe to deploy given all registered consumer snapshots?" Blocks deployment if any consumer breaks. | Antigravity | 🔒 | — |
-| **P2-T07** | **Webhook re-verification** — when a consumer updates their spec on `main`, automatically trigger re-check against the provider's current `main` spec. Opens an issue/comment if it broke. | Jules | 🔒 | — |
-| **P2-T08** | **"Optic Alternative" blog post + HackerNews launch** — official launch of the Substrate GitHub App platform. | Antigravity | 💡 | — |
+| P2-T01 | GitHub App scaffold + Cloudflare Worker webhook receiver | Jules | 🔄 *session: 332461586460335586* | `prompts/phase-2-github-app/t01_github_app_scaffold.txt` |
+| **P2-T02a** | **`substrate serve` HTTP mode** — adds `POST /diff` to Go binary (container service) | Jules | 🔄 *session: 12378420499826865949* | `prompts/phase-2-github-app/t02a_binary_serve_mode.txt` |
+| P2-T03 | PR comment formatter (standalone TypeScript module) | Jules | 🔄 *session: 9046194793485505468* | `prompts/phase-2-github-app/t03_pr_comment_formatter.txt` |
+| **P2-T02b** | **Wire Worker → Container → GitHub APIs** — real diff results posted to PRs | Jules | 🔒 *blocked: needs T01 + T02a merged* | — |
+| P2-T04 | Required status check (merge blocker) | Jules | 🔒 *blocked: needs T02b* | — |
+| P2-T05 | Deployment (Cloudflare Workers + Container) | Jules | 🔒 *blocked: needs T04* | — |
+| **P2-T06** | **`substrate check-deploy`** — registry query: safe to deploy to production? | Antigravity | 🔒 *deferred: needs Phase 3 registry* | — |
+| **P2-T07** | **Webhook re-verification** — consumer spec drift → auto re-check provider | Jules | 🔒 *deferred: needs Phase 3 registry* | — |
+| **P2-T08** | **Blog post + HackerNews launch** — official Substrate GitHub App launch | Antigravity | 💡 *after Phase 2 ships* | — |
 
-> **P2-T06 rationale (inspired by Pact's `can-i-deploy`):** The `can-i-deploy` command is Pact's most loved feature. Substrate's equivalent: `substrate check-deploy --env production` queries the registry and asks "Is my provider's latest spec compatible with everything currently deployed to production?" This is the CI gate before deployment, not just before merge. Enterprise teams pay heavily for this because it answers the question: "Can I safely release this to prod right now?"
->
-> **P2-T07 rationale (inspired by Pact's webhook-driven re-verification):** Without this, compatibility checks only run when the provider changes. But consumers can also drift away from the provider (consumer adds a new required field, consumer changes expected response format). Webhook re-verification catches consumer-side drift automatically — no manual trigger required.
+> **T01, T02a, T03 are parallel** — zero cross-dependencies. All 3 submitted simultaneously.
+> **Review checklist for tomorrow:** `tsc --noEmit` (TS) or `go build ./...` (Go) must pass. All tests green. No files outside the FILES LIST touched.
 
 ---
 
