@@ -154,10 +154,25 @@ TASKS = {
     },
 
     # ── Phase 2: GitHub App ───────────────────────────────────────────────────
+    # Dependency map:
+    #   T01, T02a, T03 → NO mutual dependencies → submit all 3 in parallel
+    #   T02b (wire together) → needs T01 + T02a merged first
+    #   T04 (status check)  → needs T02b
+    #   T05 (deploy)        → needs T01+T02a+T03+T04 all merged
     10: {
-        "name": "P2-T01 — GitHub App Scaffold + Webhook",
+        "name": "P2-T01 — GitHub App Scaffold + Cloudflare Worker Webhook Receiver",
         "phase": "phase-2-github-app",
         "prompt": _load_prompt("prompts/phase-2-github-app/t01_github_app_scaffold.txt"),
+    },
+    11: {
+        "name": "P2-T02a — substrate serve HTTP Mode (Container Service Binary)",
+        "phase": "phase-2-github-app",
+        "prompt": _load_prompt("prompts/phase-2-github-app/t02a_binary_serve_mode.txt"),
+    },
+    12: {
+        "name": "P2-T03 — PR Comment Formatter (Standalone TypeScript Module)",
+        "phase": "phase-2-github-app",
+        "prompt": _load_prompt("prompts/phase-2-github-app/t03_pr_comment_formatter.txt"),
     },
 
     # ── Phase 3: Dashboard + API + MCP ───────────────────────────────────────
