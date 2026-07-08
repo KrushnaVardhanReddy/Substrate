@@ -1,0 +1,73 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+1. Do NOT alter any file in `docs/specs/` — those are READ-ONLY source-of-truth specs.
+2. Commit message must start with "jules: " prefix.
+3. 100% SPEC-FIRST RULE: Implement exactly what `docs/specs/github-app.md` defines.
+
+Project: Substrate — GitHub App
+Tech stack: GitHub Actions, Docker, Fly.io, Cloudflare Workers
+Spec: docs/specs/github-app.md
+
+---
+
+TASK: P2-T05 — Deployment Automation (Cloudflare Worker + Container Service)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+The code for the Substrate GitHub App is complete, but we need automated deployment pipelines so we can push updates to the live app. 
+
+The architecture consists of two deployed components:
+1. **Cloudflare Worker** (Webhook Receiver)
+2. **Container Service** (Go Diff Engine running `substrate serve`)
+
+We will use **GitHub Actions** for the Worker deployment, and we will set up a **fly.toml** + **Dockerfile.serve** so the Container Service can be easily deployed to Fly.io.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FILE: `Dockerfile.serve` (ADD)
+   - Create a clean Dockerfile specifically for the HTTP Container Service.
+   - Use multi-stage builds (similar to the existing `Dockerfile`) to compile `engine/cmd/substrate/main.go`.
+   - The final stage should be a minimal alpine image.
+   - ENTRYPOINT should be `["/usr/local/bin/substrate", "serve", "--port", "8080"]`.
+   - EXPOSE port 8080.
+   - Do NOT use `entrypoint.sh` (that is for the GitHub Action only).
+
+2. FILE: `fly.toml` (ADD)
+   - Create a minimal `fly.toml` for deploying the Container Service.
+   - `app = "substrate-engine"`
+   - Configure the `[build]` section to use `dockerfile = "Dockerfile.serve"`.
+   - Configure the `[http_service]` block: internal_port = 8080, force_https = true, auto_stop_machines = false, auto_start_machines = true.
+
+3. FILE: `.github/workflows/deploy-worker.yml` (ADD)
+   - Create a GitHub Actions workflow that triggers on `push` to `main` ONLY when files in `github-app/**` change.
+   - Job: `deploy`
+   - Runs on `ubuntu-latest`.
+   - Steps:
+     1. Checkout code
+     2. Setup Node.js (v20)
+     3. Run `npm install` in `github-app/`
+     4. Deploy to Cloudflare using `cloudflare/wrangler-action@v3`. 
+        - Note: The action needs `apiToken: ${{ secrets.CF_API_TOKEN }}` and `accountId: ${{ secrets.CF_ACCOUNT_ID }}`.
+        - `workingDirectory: github-app`
+
+4. FILE: `README.md` (MODIFY)
+   - Add a brief section "Deploying the GitHub App yourself".
+   - Mention that you can deploy the container using `fly deploy` (requires Fly CLI).
+   - Mention that the Worker is deployed automatically via GitHub Actions, provided you set `CF_API_TOKEN` and `CF_ACCOUNT_ID` in GitHub repository secrets.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO ADD:
+- `Dockerfile.serve`
+- `fly.toml`
+- `.github/workflows/deploy-worker.yml`
+
+FILES TO MODIFY:
+- `README.md`
+
+Commit: "jules: P2-T05 implement deployment workflows for worker and container"
+Target branch: feature/p2-t05-deployment
