@@ -267,17 +267,25 @@ This generates a `substrate.yaml` in 30 seconds. [View setup guide →](https://
 
 ---
 
+## User Documentation
+
+To facilitate onboarding and Branch Protection setup, user guides are maintained in the repository:
+- `docs/usage/github-app-setup.md` — Detailed guide on installing the GitHub App and configuring `substrate/breaking-changes` as a required status check.
+- `README.md` — High-level overview and Quick Start guide.
+
+---
+
 ## Deployment
 
-**Worker:** Deployed via `wrangler deploy` to `substrate.kpakkiragari.workers.dev` (or a custom domain later).
+**Worker:** Deployed via `wrangler deploy` to `substrate.kpakkiragari.workers.dev`.
+- **Automation:** A GitHub Actions workflow (`.github/workflows/deploy-worker.yml`) automatically deploys the worker on pushes to the `github-app/` directory in `main`.
 
-**Container:** Deployed as a Cloudflare Container (or Fly.io service) running `kpakkiragari/substrate-engine:latest`. The Worker calls it via an internal service binding or HTTPS URL.
+**Container Service:** Deployed to Fly.io (or Cloudflare Containers).
+- **Automation:** Uses `fly.toml` and a dedicated `Dockerfile.serve` to run the engine in `substrate serve --port 8080` mode.
 
 **Environment separation:**
 - `production` — the live GitHub App
 - `staging` — a second GitHub App registration (`Substrate (Staging)`) for safe testing
-
----
 
 ## First-Time Setup Checklist
 
