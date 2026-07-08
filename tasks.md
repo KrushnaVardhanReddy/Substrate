@@ -176,7 +176,7 @@
 | P2-T03 | PR comment formatter (standalone TypeScript module) | Jules | ✅ | `prompts/phase-2-github-app/t03_pr_comment_formatter.txt` |
 | **P2-T02b** | **Wire Worker → Container → GitHub APIs** — real diff results posted to PRs | Jules | ✅ | `prompts/phase-2-github-app/t02b_wire_worker_container.txt` |
 | P2-T04 | Required status check (merge blocker) | Jules | ⏳ (Session: `11700692893078578703`) | `prompts/phase-2-github-app/t04_required_status_check.txt` |
-| P2-T05 | Deployment (Cloudflare Workers + Container) | Jules | ⏳ | `prompts/phase-2-github-app/t05_deployment.txt` |
+| P2-T05 | Deployment (Cloudflare Workers + Container) | Jules | ⏳ (Session: `3605207814737534566`) | `prompts/phase-2-github-app/t05_deployment.txt` |
 | **P2-T06** | **`substrate check-deploy`** — registry query: safe to deploy to production? | Antigravity | 🔒 *deferred: needs Phase 3 registry* | — |
 | **P2-T07** | **Webhook re-verification** — consumer spec drift → auto re-check provider | Jules | 🔒 *deferred: needs Phase 3 registry* | — |
 | **P2-T08** | **Blog post + HackerNews launch** — official Substrate GitHub App launch | Antigravity | 💡 *after Phase 2 ships* | — |
