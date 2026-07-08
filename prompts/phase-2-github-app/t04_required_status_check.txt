@@ -1,0 +1,57 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+1. Do NOT alter any file in `docs/specs/` — those are READ-ONLY source-of-truth specs.
+2. Commit message must start with "jules: " prefix.
+3. 100% SPEC-FIRST RULE: Implement exactly what `docs/specs/github-app.md` defines for the Commit Status Check.
+4. Ensure all Markdown is well-formatted and uses correct heading hierarchies.
+
+Project: Substrate — GitHub App
+Tech stack: Markdown
+Spec: docs/specs/github-app.md
+
+---
+
+TASK: P2-T04 — Required status check (merge blocker) Documentation & Setup Guide
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+The Substrate Cloudflare Worker now successfully sets a GitHub commit status (`substrate/breaking-changes`) on every PR. However, for Substrate to actually *block* a merge, the repository administrator must configure this status context as a **Required Status Check** in their GitHub branch protection rules.
+
+Your task is to update the repository documentation to clearly explain how users can enable this merge blocking functionality after installing the GitHub App.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FILE: `README.md` (MODIFY)
+   - Locate the "Phase 2: GitHub App" section or the installation instructions.
+   - Add a new sub-section titled "Enabling the Merge Blocker (Branch Protection)"
+   - Briefly explain that Substrate emits a commit status context called `substrate/breaking-changes`.
+   - Provide a short 3-step guide on how to make it required:
+     1. Go to repository **Settings** > **Branches**.
+     2. Edit the branch protection rule for your default branch (e.g., `main`).
+     3. Enable "Require status checks to pass before merging" and search for `substrate/breaking-changes` to add it to the list.
+   - Explain that once this is enabled, any PR with unacknowledged breaking changes (where `on_breaking_change: block`) will have its merge button disabled by GitHub.
+
+2. FILE: `docs/usage/github-app-setup.md` (ADD)
+   - Create a new comprehensive user guide for the GitHub App.
+   - Include the installation steps (installing the app from the marketplace/link).
+   - Detail the Branch Protection setup with clear formatting (similar to the README addition, but you can be more descriptive).
+   - Include a troubleshooting section: "Why isn't my PR blocked?" -> "Ensure `on_breaking_change` is set to `block` (the default) in `substrate.yaml` and that the status check is marked as required."
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO MODIFY:
+- `README.md`
+
+FILES TO ADD:
+- `docs/usage/github-app-setup.md`
+
+FILES TO NOT TOUCH:
+- `github-app/src/*` (The code is already complete)
+- `docs/specs/` (Specs are read-only)
+
+Commit: "jules: P2-T04 document required status check merge blocker"
+Target branch: feature/p2-t04-required-status-check
