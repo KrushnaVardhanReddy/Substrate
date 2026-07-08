@@ -1,0 +1,219 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+1. NEVER stub or mock the Container Service call — the /diff HTTP call to CONTAINER_SERVICE_URL MUST be real.
+2. Every file MUST pass TypeScript type-checking (tsc --noEmit) before committing.
+3. If a test fails, FIX the code or test — do NOT delete or skip tests.
+4. Do NOT alter any file in docs/specs/ — those are READ-ONLY source-of-truth specs.
+5. TESTING IS MANDATORY — use vi.fn() to mock fetch() for all integration tests in index.test.ts.
+6. Commit message must start with "jules: " prefix.
+7. 100% SPEC-FIRST RULE: The orchestration flow is defined exactly in docs/specs/github-app.md (Component 1). Do not deviate.
+8. Do NOT add any external npm dependencies — use only what is already in package.json.
+9. Do NOT modify formatter.ts, webhook.ts, github-client.ts, or types.ts — only index.ts changes.
+10. The Worker MUST always return HTTP 200 (even on Container Service error) — GitHub will disable the webhook on repeated non-2xx responses.
+11. YAML parsing MUST remain as the existing regex-based parseYaml() function — do NOT introduce a YAML library.
+12. CONTAINER_SERVICE_URL must be read from env (Env interface) — never hardcoded.
+13. The schema_type field sent to the Container Service MUST be read from substrate.yaml config (default: "openapi").
+14. On Container Service failure (non-200 or network error): set commit status to 'failure', description "Substrate engine error — retry later", return 200.
+
+Project: Substrate — GitHub App (Cloudflare Worker) — Integration Wiring
+Tech stack: TypeScript, Cloudflare Workers (Web Crypto API), Wrangler 3.x, Vitest
+Spec: docs/specs/github-app.md (Component 1 + Component 2 contract)
+
+---
+
+TASK: P2-T02b — Wire Worker → Container Service → GitHub APIs (Real Diff Results)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Replace the stubbed diff result in github-app/src/index.ts with a real HTTP POST
+to the Container Service (`substrate serve --port 8080`, already built in P2-T02a).
+
+Also replace the hardcoded comment strings in index.ts with calls to the
+formatter.ts module already built in P2-T03.
+
+After this task, the full end-to-end flow works:
+  GitHub PR → Cloudflare Worker → Container Service → DiffReport → PR Comment + Commit Status
+
+The implementation MUST follow docs/specs/github-app.md exactly.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — WHAT EXISTS AND WHAT CHANGES
+═══════════════════════════════════════════════════════════════
+Three modules were built in parallel and are already merged into feature/dev:
+
+  P2-T01 (github-app/src/index.ts):
+    - Full webhook validation flow ✅
+    - Steps 1–8 wired correctly ✅
+    - Step 9 is STUBBED: returns a hardcoded empty DiffReport (breaking: [], warning: [], info: [])
+    - Steps 10–11 use HARDCODED comment strings and always set status to 'success' ❌
+    - Missing: CONTAINER_SERVICE_URL is not in Env interface ❌
+    - Missing: import of formatter.ts functions ❌
+
+  P2-T02a (engine/cmd/substrate/serve.go):
+    - HTTP server listening on /diff ✅
+    - Accepts POST body: { base_schema, head_schema, config, schema_type } ✅
+    - Returns DiffReport JSON ✅
+
+  P2-T03 (github-app/src/formatter.ts):
+    - formatPRComment(report, config) ✅
+    - formatMissingConfigComment() ✅
+    - getCommitStatusState(report, config) ✅
+    - getCommitStatusDescription(report) ✅
+
+This task wires them together. The ONLY file that changes is index.ts (plus types.ts
+for the new Env field). Everything else is read-only.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FILE: github-app/src/types.ts  (MODIFY — add one field to Env only)
+   Add CONTAINER_SERVICE_URL to the Env interface:
+
+     export interface Env {
+       GITHUB_APP_ID: string;
+       GITHUB_APP_PRIVATE_KEY: string;
+       GITHUB_WEBHOOK_SECRET: string;
+       CONTAINER_SERVICE_URL: string;   // ← ADD THIS
+     }
+
+   Do NOT modify any other interface. Do NOT add new interfaces.
+
+2. FILE: github-app/src/index.ts  (MODIFY — targeted changes only)
+   All changes are in the existing fetch() handler. Implement the following:
+
+   a. ADD IMPORT at top of file:
+      import { formatPRComment, formatMissingConfigComment, getCommitStatusState, getCommitStatusDescription } from './formatter';
+
+   b. REPLACE Step 7 (missing config) hardcoded comment string:
+      REMOVE:  const missingConfigMsg = "## 👋 Substrate is installed but not configured\n\nRun `substrate init` to activate.\n\n*Powered by [Substrate](https://github.com/KrushnaVardhanReddy/Substrate)*";
+      ADD:     const missingConfigMsg = formatMissingConfigComment();
+
+   c. REPLACE Step 8 (parse config + fetch files):
+      The current code fetches the files but discards them. Change it to STORE them:
+        const baseContent = await fetchFileContent(token, event.owner, event.repo, config.base_schema, event.baseBranch);
+        const headContent = await fetchFileContent(token, event.owner, event.repo, config.head_schema, event.headSha);
+
+      If base_schema or head_schema is missing in config, or if either file returns null:
+        - Post a comment: "## ⚠️ Substrate — Config Error\n\nCould not fetch spec files. Check `base_schema` and `head_schema` in your `substrate.yaml`.\n\n*Powered by [Substrate](https://github.com/KrushnaVardhanReddy/Substrate)*"
+        - Set commit status: 'failure', description: "Substrate config error — check substrate.yaml"
+        - Return 200
+
+   d. REPLACE Step 9 (STUB → REAL Container Service call):
+      NEW function callContainerService(containerUrl: string, baseSchema: string, headSchema: string, configContent: string, schemaType: string): Promise<DiffReport>
+        - POST to `${containerUrl}/diff`
+        - Body: JSON.stringify({ base_schema: baseSchema, head_schema: headSchema, config: configContent, schema_type: schemaType })
+        - Headers: { 'Content-Type': 'application/json' }
+        - If response.ok: parse JSON as DiffReport, return it
+        - If !response.ok or network error: throw Error("container service error")
+
+      In the main handler, call it as:
+        const schemaType = config.schema_type || 'openapi';
+        const diffReport = await callContainerService(
+          env.CONTAINER_SERVICE_URL,
+          baseContent,
+          headContent,
+          configContent,  // the raw substrate.yaml string
+          schemaType
+        );
+
+      On thrown error: set commit status to 'failure', description "Substrate engine error — retry later", return 200.
+
+   e. REPLACE Step 10 (hardcoded PR comment → formatter):
+      REMOVE: const allClearMsg = "## ✅ Substrate — All Clear\n\n...";
+              await postPRComment(token, ..., allClearMsg);
+      ADD:    const commentBody = formatPRComment(diffReport, config);
+              await postPRComment(token, event.owner, event.repo, event.prNumber, commentBody);
+
+   f. REPLACE Step 11 (hardcoded commit status → formatter):
+      REMOVE: await setCommitStatus(token, ..., 'success', 'All clear — no breaking changes');
+      ADD:    const statusState = getCommitStatusState(diffReport, config);
+              const statusDescription = getCommitStatusDescription(diffReport);
+              await setCommitStatus(token, event.owner, event.repo, event.headSha, statusState, statusDescription);
+
+═══════════════════════════════════════════════════════════════
+COMPLETE EXPECTED FLOW (after this task)
+═══════════════════════════════════════════════════════════════
+Step 1:  Only accept POST → 405 otherwise
+Step 2:  Validate HMAC → 401 if invalid
+Step 3:  Parse PR event → 200 immediately if not a handled PR action
+Step 4:  Generate installation token
+Step 5:  Set 'pending' commit status ("Substrate is checking...")
+Step 6:  Fetch substrate.yaml from head commit
+Step 7:  If no substrate.yaml → formatMissingConfigComment(), set 'pending', return 200
+Step 8:  Parse config, fetch base + head spec files from GitHub API
+         → If missing or null → post config error comment, set 'failure', return 200
+Step 9:  POST to CONTAINER_SERVICE_URL/diff with { base_schema, head_schema, config, schema_type }
+         → If Container Service error → set 'failure', "Substrate engine error", return 200
+Step 10: Post PR comment using formatPRComment(diffReport, config)
+Step 11: Set commit status using getCommitStatusState() + getCommitStatusDescription()
+Step 12: Return 200
+
+═══════════════════════════════════════════════════════════════
+TESTS (MANDATORY)
+═══════════════════════════════════════════════════════════════
+
+FILE: github-app/test/index.test.ts
+Use Vitest. Mock ALL fetch() calls with vi.fn() — do NOT make real HTTP calls.
+The handler is the default export of index.ts — import and call it directly.
+
+Helper: build a valid signed webhook request using a known secret and real HMAC
+(use crypto.subtle to sign in the test setup — same API the handler uses).
+
+Tests required:
+
+1. Non-POST method → 405
+2. Missing X-Hub-Signature-256 header → 401
+3. Invalid HMAC signature → 401
+4. Valid signature, push event (X-GitHub-Event: push) → 200, no GitHub API calls made
+5. Valid signature, pull_request.closed → 200, no GitHub API calls made
+6. Valid signature, pull_request.opened, no substrate.yaml →
+   - generateInstallationToken called (mock returns "mock-token")
+   - setCommitStatus called with 'pending'
+   - fetchFileContent called for 'substrate.yaml' → returns null
+   - postPRComment called with a string containing "substrate init"
+   - setCommitStatus called with 'pending' and description containing "substrate.yaml"
+   - Response is 200
+7. Valid signature, pull_request.opened, substrate.yaml present, base file missing →
+   - Response is 200
+   - setCommitStatus called with 'failure' and description containing "config error"
+8. Valid signature, pull_request.opened, substrate.yaml + spec files present,
+   Container Service returns HTTP 500 →
+   - Response is 200
+   - setCommitStatus called with 'failure' and description containing "engine error"
+9. Valid signature, pull_request.opened, full happy path (0 breaking changes) →
+   - callContainerService mock returns { breaking: [], warning: [], info: [], summary: { breaking_count: 0, warning_count: 0, info_count: 0 } }
+   - postPRComment called with string containing "All Clear"
+   - setCommitStatus called with 'success'
+   - Response is 200
+10. Valid signature, pull_request.opened, full happy path (2 breaking changes) →
+    - callContainerService mock returns { breaking: [{...}, {...}], warning: [], info: [], summary: { breaking_count: 2, warning_count: 0, info_count: 0 } }
+    - postPRComment called with string containing "Breaking Changes Detected"
+    - setCommitStatus called with 'failure'
+    - Response is 200
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO MODIFY:
+- github-app/src/index.ts          (wire Container Service + formatter — targeted changes only)
+- github-app/src/types.ts          (add CONTAINER_SERVICE_URL to Env interface ONLY)
+
+FILES TO ADD:
+- github-app/test/index.test.ts    (Vitest integration tests for the full Worker flow)
+
+FILES TO NOT TOUCH (READ-ONLY):
+- github-app/src/formatter.ts      (complete — do not modify)
+- github-app/src/webhook.ts        (complete — do not modify)
+- github-app/src/github-client.ts  (complete — do not modify)
+- github-app/wrangler.toml         (secrets config — do not modify)
+- github-app/package.json          (no new deps — do not modify)
+- docs/specs/                      (ALL spec files are read-only)
+- engine/                          (do not touch the Go binary)
+- action.yml
+- Dockerfile
+- .github/workflows/
+
+Commit: "jules: P2-T02b wire worker to container service and formatter"
+Target branch: feature/p2-t02b-wire-worker-container
