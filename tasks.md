@@ -163,11 +163,11 @@
 
 ---
 
-## Phase 2 — GitHub App 🔄 IN PROGRESS
+## Phase 2 — GitHub App ✅ COMPLETE
 
 > **Dependency:** Phase 1 diff engine binary complete ✅
 > **Spec Gate:** `docs/specs/github-app.md` ✅ APPROVED
-> **Jules sessions submitted:** 2026-07-08 — 3 parallel tasks running on `feature/dev`. Review PRs tomorrow.
+> **Status:** All implementation tasks successfully deployed and validated end-to-end.
 
 | Task ID | Name | Owner | Status | Jules Prompt |
 |---|---|---|---|---|
@@ -181,14 +181,11 @@
 | **P2-T07** | **Webhook re-verification** — consumer spec drift → auto re-check provider | Jules | 🔒 *deferred: needs Phase 3 registry* | — |
 | **P2-T08** | **Blog post + HackerNews launch** — official Substrate GitHub App launch | Antigravity | 💡 *after Phase 2 ships* | — |
 
-> **T01, T02a, T03 are parallel** — zero cross-dependencies. All 3 submitted simultaneously.
-> **Review checklist for tomorrow:** `tsc --noEmit` (TS) or `go build ./...` (Go) must pass. All tests green. No files outside the FILES LIST touched.
-
 ---
 
-## Phase 3 — Dashboard, API & MCP Server 💡 PLANNED
+## Phase 3 — Dashboard, API & MCP Server 🔄 IN PROGRESS
 
-> **Dependency:** Phase 2 GitHub App working end-to-end
+> **Dependency:** Phase 2 GitHub App working end-to-end ✅
 
 ### The Core Phase 3 Feature: Cross-Repo Contract Registry
 
@@ -212,11 +209,11 @@
 
 | Task ID | Name | Owner | Status |
 |---|---|---|---|
-| P3-T01 | PostgreSQL schema + Go API server | Jules | 💡 |
-| P3-T02 | `substrate.yaml` multi-contract parser + dependency registration | Jules | 💡 |
-| **P3-T02b** | **Contract registry** — store + sync consumer spec snapshots from registered repos | Jules | 💡 |
-| **P3-T02c** | **Cross-repo compatibility check** — on provider PR, validate change against all consumer snapshots | Antigravity | 💡 |
-| **P3-T02d** | **Cross-repo E2E fixture tests** — `testdata/cross-repo/` simulating multi-repo scenario | Jules | 💡 |
+| P3-T01 | PostgreSQL schema + Go API server | Jules | 🔄 |
+| P3-T02 | `substrate.yaml` multi-contract parser + dependency registration | Jules | 🔄 |
+| **P3-T02b** | **Contract registry** — store + sync consumer spec snapshots from registered repos | Jules | 🔄 |
+| **P3-T02c** | **Cross-repo compatibility check** — on provider PR, validate change against all consumer snapshots | Antigravity | 🔄 |
+| **P3-T02d** | **Cross-repo E2E fixture tests** — `testdata/cross-repo/` simulating multi-repo scenario | Jules | 🔄 |
 | P3-T03 | SvelteKit project setup + design system | Antigravity | 💡 |
 | P3-T04 | Connected repos list + schema browser | Antigravity + Jules | 💡 |
 | P3-T05 | Dependency graph visualization | Antigravity | 💡 |
