@@ -1,0 +1,6 @@
+name = "substrate-github-app"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+# Secrets (NOT vars): GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY, GITHUB_WEBHOOK_SECRET
+# these are set via `wrangler secret put`, never committed to the file
