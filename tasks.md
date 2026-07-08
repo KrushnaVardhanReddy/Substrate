@@ -56,6 +56,9 @@
 | **P1-T06** | **oasdiff `checker` adapter** — replace shallow diff with semantic 37-rule engine | Jules | ✅ | `prompts/phase-1-diff-engine/t06_checker_adapter.txt` (spec: `docs/specs/openapi-checker-adapter.md`) |
 | **P1-T07** | **`substrate init` command** — scaffolds `substrate.yaml` + GitHub Actions workflow for new users | Jules | ✅ | `prompts/phase-1-diff-engine/t07_init_command.txt` (spec: `docs/specs/init-command.md`) |
 | **P1-T08** | **OASDiff Rules Refinement** — map granular required-property-removed rules to `FIELD_REMOVED` | Antigravity | ✅ | `docs/specs/openapi-checker-adapter.md` |
+| **P1-T09** | **Pending acknowledgments in `substrate.yaml`** — `status: pending` + optional `until:` expiry date for acknowledged breaking changes | Jules | ⏳ | spec: `docs/specs/override-config.md` (needs update) |
+
+> **P1-T09 rationale (inspired by Pact's "Pending Pacts"):** Today `substrate.yaml` lets teams override/ignore a breaking change. That's a binary on/off. We need a richer model: `status: pending` means "we know this breaks, we're fixing it in the next sprint." Substrate shows "⏳ Acknowledged" instead of blocking the merge. An optional `until: 2026-08-01` date auto-expires the acknowledgment, forcing re-review. This is the enterprise compliance feature that makes audit logs meaningful.
 
 **Spec Gate:** P1-T07 spec approved ✅ — Jules prompt written ✅ — submit via `python3 scripts/jules_submit.py --task 7`
 
@@ -172,6 +175,12 @@
 | P2-T03 | PR comment formatter (impact report) | Jules | 🔒 | — |
 | P2-T04 | Required status check (merge blocker) | Antigravity | 🔒 | — |
 | P2-T05 | Deployment (Cloudflare Workers) | Jules | 🔒 | — |
+| **P2-T06** | **`substrate check-deploy` command** — asks registry "is my current spec version safe to deploy given all registered consumer snapshots?" Blocks deployment if any consumer breaks. | Antigravity | 🔒 | — |
+| **P2-T07** | **Webhook re-verification** — when a consumer updates their spec on `main`, automatically trigger re-check against the provider's current `main` spec. Opens an issue/comment if it broke. | Jules | 🔒 | — |
+
+> **P2-T06 rationale (inspired by Pact's `can-i-deploy`):** The `can-i-deploy` command is Pact's most loved feature. Substrate's equivalent: `substrate check-deploy --env production` queries the registry and asks "Is my provider's latest spec compatible with everything currently deployed to production?" This is the CI gate before deployment, not just before merge. Enterprise teams pay heavily for this because it answers the question: "Can I safely release this to prod right now?"
+>
+> **P2-T07 rationale (inspired by Pact's webhook-driven re-verification):** Without this, compatibility checks only run when the provider changes. But consumers can also drift away from the provider (consumer adds a new required field, consumer changes expected response format). Webhook re-verification catches consumer-side drift automatically — no manual trigger required.
 
 ---
 
@@ -214,6 +223,10 @@
 | **P3-T08** | **MCP server spec** (`docs/specs/mcp-server.md`) | Antigravity | 💡 |
 | **P3-T09** | **MCP server implementation** (Go, exposes graph + schema tools) | Jules | 💡 |
 | **P3-T10** | **MCP server deployment + IDE integration docs** | Antigravity | 💡 |
+| **P3-T11** | **Compatibility matrix dashboard** — provider version × consumer version grid showing green/red compatibility status for all registered cross-repo contracts | Antigravity | 💡 |
+
+> **P3-T11 rationale (inspired by PactFlow's compatibility matrix):** PactFlow's most requested enterprise dashboard feature. For a platform team managing 20+ microservices, this is the central control panel: "which version of `users-api` is compatible with which version of `frontend` and `mobile-app`?" Every cell in the grid is a green tick or red cross. This is what makes Substrate indispensable for large orgs and is a core enterprise upsell feature.
+
 
 ---
 
