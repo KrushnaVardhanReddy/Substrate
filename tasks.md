@@ -72,8 +72,8 @@
 | P1-MVP-2 | Dogfood the action via `.github/workflows/test-action.yml` | Antigravity | ✅ |
 | P1-MVP-3 | Tag `v0.1.0` + publish to GitHub Marketplace | User | ✅ |
 | P1-MVP-4 | "Optic Alternative" blog post + HackerNews + platform launch | Antigravity | 🔒 *deferred: post-Phase 2* |
-| P1-MVP-5 | Create public repo `substrate-engine` in Docker Hub | User | ⏳ |
-| P1-MVP-6 | Add `DOCKERHUB_USERNAME` + `DOCKERHUB_TOKEN` secrets to GitHub repo | User | ⏳ |
+| P1-MVP-5 | Create public repo `substrate-engine` in Docker Hub | User | ✅ |
+| P1-MVP-6 | Add `DOCKERHUB_USERNAME` + `DOCKERHUB_TOKEN` secrets to GitHub repo | User | ✅ |
 | P1-MVP-7 | Update `action.yml` Docker Hub image + verify release CI workflow fires on next tag | Antigravity | ✅ |
 
 > **P1-MVP-5 and P1-MVP-6 require manual steps in the browser (Docker Hub + GitHub Settings). See instructions below.**
