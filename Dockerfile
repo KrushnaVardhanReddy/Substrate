@@ -1,6 +1,6 @@
-FROM golang:alpine AS builder
+FROM docker.io/library/golang:alpine AS builder
 
-RUN apk add --no-cache gcc musl-dev
+RUN apk add --no-cache gcc musl-dev git
 
 WORKDIR /app
 # We assume the action context is the root of the repository.
@@ -10,7 +10,7 @@ WORKDIR /app/engine
 RUN go mod download
 RUN CGO_ENABLED=1 GOOS=linux go build -o /substrate cmd/substrate/main.go
 
-FROM alpine:latest
+FROM docker.io/library/alpine:latest
 RUN apk --no-cache add ca-certificates bash git
 
 COPY --from=builder /substrate /usr/local/bin/substrate
