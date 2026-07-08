@@ -669,6 +669,16 @@ Repositories involved:
 
 # Architecture & Go-to-Market Strategy
 
+## Deploying the GitHub App yourself
+
+The Substrate architecture consists of two deployed components:
+1. **Container Service** (Go Diff Engine)
+2. **Cloudflare Worker** (Webhook Receiver)
+
+You can deploy the container using `fly deploy` (requires the Fly CLI and an account). This uses the `fly.toml` and `Dockerfile.serve` to spin up the engine.
+
+The Cloudflare Worker is deployed automatically via GitHub Actions (see `.github/workflows/deploy-worker.yml`), provided you set `CF_API_TOKEN` and `CF_ACCOUNT_ID` in your GitHub repository secrets.
+
 ## Distribution Model — Private Repo + Docker Hub Public Image
 
 Substrate keeps all source code, specs, and business logic in a **private repository**. The GitHub Action is distributed via a **public Docker Hub image** — users get a working, versioned binary with no source code exposed.
