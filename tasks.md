@@ -64,7 +64,7 @@
 ### Phase 1 MVP — GitHub Action (Distribution Wedge) 🏆 MOSTLY COMPLETE
 
 > **v0.1.0 tagged and published to GitHub Marketplace on 2026-07-06.**
-> **Distribution model changed:** Repo is now private. Action distributes via Docker Hub public image (`substratehq/engine`). Source is never exposed.
+> **Distribution model changed:** Repo is now private. Action distributes via Docker Hub public image (`kpakkiragari/substrate-engine`). Source is never exposed.
 
 | Task ID | Name | Owner | Status |
 |---|---|---|---|
@@ -72,13 +72,13 @@
 | P1-MVP-2 | Dogfood the action via `.github/workflows/test-action.yml` | Antigravity | ✅ |
 | P1-MVP-3 | Tag `v0.1.0` + publish to GitHub Marketplace | User | ✅ |
 | P1-MVP-4 | "Optic Alternative" blog post + HackerNews + platform launch | Antigravity | 🔒 *deferred: post-Phase 2* |
-| P1-MVP-5 | Create Docker Hub org `substratehq` + public repo `engine` | User | ⏳ |
+| P1-MVP-5 | Create public repo `substrate-engine` in Docker Hub | User | ⏳ |
 | P1-MVP-6 | Add `DOCKERHUB_USERNAME` + `DOCKERHUB_TOKEN` secrets to GitHub repo | User | ⏳ |
 | P1-MVP-7 | Update `action.yml` Docker Hub image + verify release CI workflow fires on next tag | Antigravity | ✅ |
 
 > **P1-MVP-5 and P1-MVP-6 require manual steps in the browser (Docker Hub + GitHub Settings). See instructions below.**
 >
-> **Docker Hub setup:** Go to [hub.docker.com](https://hub.docker.com) → Create org `substratehq` → Create public repo `engine` → Generate an access token → Add `DOCKERHUB_USERNAME=substratehq` and `DOCKERHUB_TOKEN=<token>` as GitHub Actions secrets in this repo's Settings → Security → Secrets.
+> **Docker Hub setup:** Go to [hub.docker.com](https://hub.docker.com) → Create public repo `substrate-engine` → Generate an access token → Add `DOCKERHUB_USERNAME=kpakkiragari` and `DOCKERHUB_TOKEN=<token>` as GitHub Actions secrets in this repo's Settings → Security → Secrets.
 >
 > **First image push:** After secrets are added, run `git tag v0.1.1 && git push origin v0.1.1` (or any new tag) to trigger the release workflow and push the first Docker Hub image. Then update `action.yml` to pin to that tag.
 

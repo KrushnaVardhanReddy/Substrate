@@ -674,8 +674,8 @@ Repositories involved:
 Substrate keeps all source code, specs, and business logic in a **private repository**. The GitHub Action is distributed via a **public Docker Hub image** — users get a working, versioned binary with no source code exposed.
 
 **How it works:**
-- Every release tag (`v0.x.0`) triggers a CI workflow that builds the Docker image and pushes it to `substratehq/engine` on Docker Hub (public).
-- `action.yml` references the image directly: `docker://substratehq/engine:v0.x.0`.
+- Every release tag (`v0.x.0`) triggers a CI workflow that builds the Docker image and pushes it to `kpakkiragari/substrate-engine` on Docker Hub (public).
+- `action.yml` references the image directly: `docker://kpakkiragari/substrate-engine:v0.x.0`.
 - Users install via `uses: KrushnaVardhanReddy/Substrate@v0.x.0` as usual. GitHub pulls the pre-built image — no source required.
 - **Nothing proprietary is ever exposed.** The image is a compiled binary black box.
 
@@ -683,7 +683,7 @@ Substrate keeps all source code, specs, and business logic in a **private reposi
 ```
 git tag v0.2.0 && git push origin v0.2.0
         ↓
-GitHub Actions: build Dockerfile → push substratehq/engine:v0.2.0 to Docker Hub
+GitHub Actions: build Dockerfile → push kpakkiragari/substrate-engine:v0.2.0 to Docker Hub
         ↓
 auto-commit: action.yml pinned to v0.2.0
         ↓

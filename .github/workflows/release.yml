@@ -36,14 +36,14 @@ jobs:
           push: true
           # Pushes two tags: the exact version (v0.2.0) and 'latest'
           tags: |
-            substratehq/engine:${{ steps.meta.outputs.version }}
-            substratehq/engine:latest
+            kpakkiragari/substrate-engine:${{ steps.meta.outputs.version }}
+            kpakkiragari/substrate-engine:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Update action.yml to pin new version
         run: |
-          sed -i "s|docker://substratehq/engine:.*|docker://substratehq/engine:${{ steps.meta.outputs.version }}\"|" action.yml
+          sed -i "s|docker://kpakkiragari/substrate-engine:.*|docker://kpakkiragari/substrate-engine:${{ steps.meta.outputs.version }}\"|" action.yml
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add action.yml

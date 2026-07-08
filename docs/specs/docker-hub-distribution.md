@@ -39,21 +39,21 @@ Private Repo (source)  →  CI Build  →  Docker Hub (public image)  →  GitHu
 
 ### Image Name
 ```
-substratehq/engine
+kpakkiragari/substrate-engine
 ```
 
 ### Tags Published Per Release
 
 | Tag | Example | Purpose |
 |---|---|---|
-| Version tag | `substratehq/engine:v0.2.0` | Pinned, immutable release |
-| `latest` | `substratehq/engine:latest` | Always points to newest release |
+| Version tag | `kpakkiragari/substrate-engine:v0.2.0` | Pinned, immutable release |
+| `latest` | `kpakkiragari/substrate-engine:latest` | Always points to newest release |
 
 ### Required Secrets (GitHub Actions)
 
 | Secret Name | Value | Where to Set |
 |---|---|---|
-| `DOCKERHUB_USERNAME` | `substratehq` | GitHub repo Settings → Secrets → Actions |
+| `DOCKERHUB_USERNAME` | `kpakkiragari` | GitHub repo Settings → Secrets → Actions |
 | `DOCKERHUB_TOKEN` | Docker Hub access token (read/write) | GitHub repo Settings → Secrets → Actions |
 
 **How to generate a Docker Hub token:** Docker Hub → Account Settings → Security → New Access Token → permissions: `Read, Write, Delete`.
@@ -67,7 +67,7 @@ The `runs` block in `action.yml` references the Docker Hub image directly. It mu
 ```yaml
 runs:
   using: "docker"
-  image: "docker://substratehq/engine:v0.X.Y"   # always pin to exact version
+  image: "docker://kpakkiragari/substrate-engine:v0.X.Y"   # always pin to exact version
   args:
     - ${{ inputs.base_schema }}
     - ${{ inputs.head_schema }}
@@ -89,7 +89,7 @@ runs:
 2. Set up Docker Buildx (multi-platform builds)
 3. Log in to Docker Hub using `DOCKERHUB_USERNAME` + `DOCKERHUB_TOKEN` secrets
 4. Build the `Dockerfile` in the repo root
-5. Push two tags: `substratehq/engine:v0.X.Y` (exact) and `substratehq/engine:latest`
+5. Push two tags: `kpakkiragari/substrate-engine:v0.X.Y` (exact) and `kpakkiragari/substrate-engine:latest`
 6. Auto-update `action.yml` to pin to the new version tag and commit back to `main`
 
 **Invariant:** After every release tag push, `action.yml` and the Docker Hub image are always in sync. No manual step required.
@@ -106,7 +106,7 @@ git push origin v0.2.0
 
 # 3. CI workflow fires automatically:
 #    - Builds Dockerfile
-#    - Pushes substratehq/engine:v0.2.0 and :latest to Docker Hub
+#    - Pushes kpakkiragari/substrate-engine:v0.2.0 and :latest to Docker Hub
 #    - Auto-commits action.yml pinned to v0.2.0
 
 # 4. GitHub Marketplace picks up the new tag automatically
@@ -116,13 +116,12 @@ git push origin v0.2.0
 
 ## First-Time Setup Checklist
 
-- [ ] Create Docker Hub org `substratehq` at [hub.docker.com](https://hub.docker.com)
-- [ ] Create public repository `engine` inside the org
+- [ ] Create public repository `substrate-engine` in your Docker Hub account
 - [ ] Generate Docker Hub access token (Read, Write, Delete)
 - [ ] Add `DOCKERHUB_USERNAME` secret to GitHub repo
 - [ ] Add `DOCKERHUB_TOKEN` secret to GitHub repo
 - [ ] Push first tag (`v0.1.1` or higher) to trigger initial image push
-- [ ] Verify `substratehq/engine:latest` appears on Docker Hub
+- [ ] Verify `kpakkiragari/substrate-engine:latest` appears on Docker Hub
 - [ ] Verify `action.yml` is auto-updated by the CI workflow
 
 ---
@@ -132,4 +131,4 @@ git push origin v0.2.0
 - The Docker image contains only the compiled Go binary and its runtime dependencies. No source files, no spec documents, no prompts, no `.env` files are baked in.
 - The `Dockerfile` uses a multi-stage build: build stage compiles the binary, final stage is a minimal `alpine` image with only the binary.
 - Docker Hub credentials are stored only as GitHub Actions secrets — never in code or committed files.
-- The `DOCKERHUB_TOKEN` should have the minimum required permissions (Read, Write, Delete on the `engine` repo only).
+- The `DOCKERHUB_TOKEN` should have the minimum required permissions (Read, Write, Delete on the `substrate-engine` repo only).
