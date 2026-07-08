@@ -1,155 +1,165 @@
-P2-T03 — PR Comment Formatter (Standalone TypeScript Module)
+MANDATORY RULES — VIOLATION = REJECTED PR:
+1. formatPRComment and all exports MUST be pure functions — no side effects, no HTTP calls, no imports from github-client.ts.
+2. Every file MUST pass TypeScript type-checking (tsc --noEmit) before committing.
+3. If a test fails, FIX the code — do NOT delete or skip tests.
+4. Do NOT alter any file in docs/specs/ — those are READ-ONLY source-of-truth specs.
+5. TESTING IS MANDATORY — every branch of the formatter (breaking, warning-only, all-clear) must be tested.
+6. Commit message must start with "jules: " prefix.
+7. 100% SPEC-FIRST RULE: The PR comment markdown templates are defined EXACTLY in docs/specs/github-app.md (Component 4). Implement them character-for-character.
+8. Do NOT import any markdown rendering libraries — build strings manually with template literals.
+9. Do NOT wire formatter.ts into index.ts in this task — that is P2-T02b.
+10. DiffReport arrays may be empty but will never be null/undefined — handle both cases defensively.
 
-READ FIRST: docs/specs/github-app.md — specifically "Component 4: PR Comment Format" section.
-This is the exact markdown template to implement. Do not deviate.
+Project: Substrate — PR Comment Formatter (Standalone TypeScript Module)
+Tech stack: TypeScript (pure, no Node.js APIs, no Cloudflare bindings), Vitest
+Spec: docs/specs/github-app.md (Component 4: PR Comment Format)
 
-=== OBJECTIVE ===
-Build a pure TypeScript module that converts a DiffReport JSON object into
-the markdown string that gets posted as a GitHub PR comment.
+---
 
-This module has ZERO dependencies on the Worker infrastructure (no GitHub API calls,
-no Cloudflare bindings). It is a pure function: DiffReport → string.
+TASK: P2-T03 — PR Comment Formatter (Standalone TypeScript Module)
 
-This can be developed and tested independently of P2-T01 and P2-T02a.
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Build a pure TypeScript module that converts DiffReport JSON into the
+markdown string that Substrate posts as a GitHub PR comment.
 
-=== WHAT TO BUILD ===
+This module is intentionally decoupled from the Worker infrastructure.
+It can be developed, tested, and iterated independently of P2-T01 and P2-T02a.
 
-1. New file: `github-app/src/formatter.ts`
+The markdown templates MUST match docs/specs/github-app.md (Component 4) exactly.
 
-   Types (define in `github-app/src/types.ts` if it doesn't exist yet):
-   ```typescript
-   export interface DiffChange {
-     rule: string;
-     severity: 'BREAKING' | 'WARNING' | 'INFO';
-     path: string;
-     message: string;
-   }
+═══════════════════════════════════════════════════════════════
+CONTEXT — WHY THIS IS NEEDED
+═══════════════════════════════════════════════════════════════
+The PR comment is the primary user-facing output of Substrate. It must be:
+  - Clear: devs should immediately understand what broke and where
+  - Consistent: the format never changes unexpectedly between versions
+  - Configurable: respects on_breaking_change: warn (advisory) vs block (failing)
+  - Non-spammy: the Worker upserts the comment, never duplicating it
 
-   export interface DiffSummary {
-     breaking_count: number;
-     warning_count: number;
-     info_count: number;
-   }
+By isolating the formatting as a pure function, we get:
+  - Easy unit testing (no mocking needed — pure input → output)
+  - Easy iteration on the markdown format without touching Worker logic
+  - Reusability in the API server (Phase 3) which also needs to render reports
 
-   export interface DiffReport {
-     breaking: DiffChange[];
-     warning: DiffChange[];
-     info: DiffChange[];
-     summary: DiffSummary;
-   }
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
 
-   export interface SubstrateConfig {
-     on_breaking_change?: 'block' | 'warn';  // default: 'block'
-     base_schema?: string;
-     head_schema?: string;
-   }
-   ```
+1. FILE: github-app/src/types.ts
+   If not already created by T01, create it. If it already exists, do NOT overwrite — only add
+   any types that are missing.
 
-   Main export:
-   ```typescript
-   export function formatPRComment(report: DiffReport, config: SubstrateConfig): string
-   ```
+   Required types:
+     export interface DiffChange {
+       rule: string;
+       severity: 'BREAKING' | 'WARNING' | 'INFO';
+       path: string;
+       message: string;
+     }
+     export interface DiffSummary {
+       breaking_count: number;
+       warning_count: number;
+       info_count: number;
+     }
+     export interface DiffReport {
+       breaking: DiffChange[];
+       warning: DiffChange[];
+       info: DiffChange[];
+       summary: DiffSummary;
+     }
+     export interface SubstrateConfig {
+       on_breaking_change?: 'block' | 'warn';  // default: 'block'
+       base_schema?: string;
+       head_schema?: string;
+     }
 
-2. Comment templates (implement exactly as spec'd in docs/specs/github-app.md):
+2. FILE: github-app/src/formatter.ts
+   Pure TypeScript module. NO imports from other github-app/ modules except types.ts.
 
-   When breaking_count > 0:
-   ```
-   ## 🔴 Substrate — Breaking Changes Detected
+   Export: formatPRComment(report: DiffReport, config: SubstrateConfig): string
+   Three cases — implement EXACTLY as specified in docs/specs/github-app.md:
 
-   This PR introduces **{N} breaking change(s)** to your contract.
-   Consumers of this API may break if this PR is merged without coordination.
+   Case 1: breaking_count > 0
+   "## 🔴 Substrate — Breaking Changes Detected\n\nThis PR introduces **{N} breaking change(s)**..."
+   - Table with ALL breaking changes (🔴 BREAKING rows) first, then warning rows (🟡 WARNING)
+   - <details> block for info changes only (not for breaking/warning)
+   - Attribution footer always present
 
-   | Severity | Rule | Path |
-   |---|---|---|
-   {rows for each breaking change: 🔴 BREAKING | `{rule}` | `{path}` }
-   {rows for each warning:         🟡 WARNING  | `{rule}` | `{path}` }
+   Case 2: breaking_count === 0, warning_count > 0
+   "## 🟡 Substrate — Warnings Only\n\nNo breaking changes, but {N} warning(s) detected..."
+   - Table with warning rows only
 
-   <details>
-   <summary>{warning_count} warning(s), {info_count} informational change(s) (click to expand)</summary>
+   Case 3: breaking_count === 0, warning_count === 0
+   "## ✅ Substrate — All Clear\n\nNo breaking changes detected..."
+   - No table
 
-   | Severity | Rule | Path |
-   |---|---|---|
-   {info rows}
-   </details>
+   Every case MUST end with:
+   "\n---\n*Powered by [Substrate](https://github.com/KrushnaVardhanReddy/Substrate)*"
 
-   ---
-   *To acknowledge a breaking change, add an override to your `substrate.yaml`.*
-   *Powered by [Substrate](https://github.com/KrushnaVardhanReddy/Substrate)*
-   ```
+   Export: formatMissingConfigComment(): string
+   Returns the setup prompt from docs/specs/github-app.md (Missing Config Behavior section).
+   Must contain: "substrate init", "substrate.yaml", and the Substrate attribution footer.
 
-   When breaking_count === 0 AND warning_count === 0:
-   ```
-   ## ✅ Substrate — All Clear
+   Export: getCommitStatusState(report: DiffReport, config: SubstrateConfig): 'success' | 'failure'
+   - breaking_count === 0 → always 'success'
+   - breaking_count > 0 AND on_breaking_change === 'warn' → 'success' (advisory mode)
+   - breaking_count > 0 AND on_breaking_change === 'block' (or undefined) → 'failure' (default)
 
-   No breaking changes detected in this PR. Safe to merge. 🎉
+   Export: getCommitStatusDescription(report: DiffReport): string
+   - breaking_count === 0 → "All clear — no breaking changes"
+   - breaking_count > 0 → "{N} breaking change(s) detected"
 
-   *Powered by [Substrate](https://github.com/KrushnaVardhanReddy/Substrate)*
-   ```
+═══════════════════════════════════════════════════════════════
+TESTS (MANDATORY)
+═══════════════════════════════════════════════════════════════
 
-   When breaking_count === 0 but warning_count > 0:
-   ```
-   ## 🟡 Substrate — Warnings Only
+FILE: github-app/test/formatter.test.ts
+Use Vitest. Zero mocking needed — all functions are pure.
 
-   No breaking changes, but {N} warning(s) detected.
+Required tests (all cases from the spec):
+- formatPRComment: 0 breaking, 0 warning → output contains "All Clear" and "✅"
+- formatPRComment: 0 breaking, 0 warning → output does NOT contain a markdown table
+- formatPRComment: 0 breaking, 2 warnings → output contains "Warnings Only" and "🟡"
+- formatPRComment: 0 breaking, 2 warnings → table has exactly 2 🟡 rows
+- formatPRComment: 3 breaking, 2 warning → output contains "Breaking Changes Detected" and "🔴"
+- formatPRComment: 3 breaking, 2 warning → table has 3 🔴 rows followed by 2 🟡 rows
+- formatPRComment: every case → output ends with "Powered by [Substrate]"
+- formatMissingConfigComment → contains "substrate init"
+- formatMissingConfigComment → contains "substrate.yaml"
+- getCommitStatusState: 0 breaking → 'success'
+- getCommitStatusState: 1 breaking, on_breaking_change: 'block' → 'failure'
+- getCommitStatusState: 1 breaking, on_breaking_change: 'warn' → 'success'
+- getCommitStatusState: 1 breaking, config undefined → 'failure' (block is default)
+- getCommitStatusDescription: 0 breaking → contains "All clear"
+- getCommitStatusDescription: 3 breaking → contains "3"
 
-   | Severity | Rule | Path |
-   |---|---|---|
-   {warning rows}
+Edge cases:
+- DiffReport with empty arrays [] (not undefined)
+- Rule name with backticks in it (should not break markdown table)
+- Path with pipe | character (escape it in table cells to avoid broken markdown)
 
-   *Powered by [Substrate](https://github.com/KrushnaVardhanReddy/Substrate)*
-   ```
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
 
-3. Also export the missing config comment:
-   ```typescript
-   export function formatMissingConfigComment(): string
-   ```
-   Returns the setup prompt message from the spec.
+FILES TO ADD:
+- github-app/src/formatter.ts          (formatPRComment, formatMissingConfigComment, getCommitStatusState, getCommitStatusDescription)
+- github-app/test/formatter.test.ts    (Vitest pure unit tests)
 
-4. Also export a function to determine the commit status state:
-   ```typescript
-   export function getCommitStatusState(
-     report: DiffReport,
-     config: SubstrateConfig
-   ): 'success' | 'failure' {
-     if (report.summary.breaking_count === 0) return 'success';
-     if (config.on_breaking_change === 'warn') return 'success';  // advisory mode
-     return 'failure';  // default: block
-   }
+FILES TO ADD OR MODIFY (if T01 hasn't been merged yet — add the types; if it has, check and only add missing types):
+- github-app/src/types.ts
 
-   export function getCommitStatusDescription(report: DiffReport): string {
-     if (report.summary.breaking_count === 0) return 'All clear — no breaking changes';
-     return `${report.summary.breaking_count} breaking change(s) detected`;
-   }
-   ```
+FILES TO NOT TOUCH (READ-ONLY):
+- docs/specs/github-app.md             (spec — implement comment templates from it exactly)
+- docs/specs/                          (ALL spec files are read-only)
+- engine/                              (do not touch the Go binary)
+- github-app/src/index.ts              (do not wire anything here — that is P2-T02b)
+- github-app/src/github-client.ts      (do not modify)
+- github-app/wrangler.toml
+- action.yml
+- Dockerfile
 
-=== TESTS (MANDATORY) ===
-
-New file: `github-app/test/formatter.test.ts`
-
-Use Vitest. All tests are pure — no mocking required (pure functions).
-
-Tests required:
-- formatPRComment with 0 breaking, 0 warnings → contains "All Clear" and "✅"
-- formatPRComment with 0 breaking, 1+ warnings → contains "Warnings Only" and "🟡"
-- formatPRComment with 1 breaking → contains "Breaking Changes Detected" and "🔴"
-- formatPRComment with 3 breaking, 2 warnings → table has 3 🔴 rows and 2 🟡 rows
-- formatPRComment always ends with "Powered by [Substrate]" attribution
-- getCommitStatusState: breaking_count > 0, on_breaking_change: 'block' → 'failure'
-- getCommitStatusState: breaking_count > 0, on_breaking_change: 'warn' → 'success'
-- getCommitStatusState: breaking_count === 0 → 'success' regardless of config
-- formatMissingConfigComment → contains "substrate init" and "substrate.yaml"
-
-Edge cases to test:
-- DiffReport with empty arrays (not null/undefined)
-- Very long rule names (should not break the table)
-- Special markdown characters in `path` (should not break the table)
-
-=== DO NOT ===
-- Do NOT import any markdown rendering libraries — build the string manually
-- Do NOT make any HTTP calls or use any Cloudflare bindings
-- Do NOT modify docs/specs/
-- Do NOT change any files in engine/
-
-=== COMMIT ===
-Commit message: "jules: P2-T03 pr comment formatter standalone typescript module"
+Commit: "jules: P2-T03 pr comment formatter standalone typescript module"
 Target branch: feature/p2-t03-comment-formatter

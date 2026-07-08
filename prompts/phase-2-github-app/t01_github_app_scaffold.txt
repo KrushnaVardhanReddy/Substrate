@@ -1,165 +1,175 @@
-P2-T01 — GitHub App Scaffold + Cloudflare Worker Webhook Receiver
+MANDATORY RULES — VIOLATION = REJECTED PR:
+1. NEVER stub, mock, or TODO the HMAC validation — it MUST be real and constant-time.
+2. Every file MUST pass TypeScript type-checking (tsc --noEmit) before committing.
+3. If a test fails, FIX the code or test — do NOT delete or skip tests.
+4. Do NOT alter any file in docs/specs/ — those are READ-ONLY source-of-truth specs.
+5. TESTING IS MANDATORY — unit tests required for webhook validation and GitHub API calls.
+6. Commit message must start with "jules: " prefix.
+7. 100% SPEC-FIRST RULE: Implement exactly what docs/specs/github-app.md defines. No deviations.
+8. Do NOT use external JWT libraries — use the Web Crypto API (available natively in Cloudflare Workers).
+9. Do NOT make real HTTP calls in tests — mock all fetch() calls with vi.fn().
+10. The Worker MUST return HTTP 200 for all valid webhook payloads (even ignored event types). GitHub will disable the webhook if it receives repeated non-2xx responses.
 
-READ FIRST: docs/specs/github-app.md — this is the authoritative spec. Implement exactly what it says.
+Project: Substrate — GitHub App (Cloudflare Worker)
+Tech stack: TypeScript, Cloudflare Workers (Web Crypto API), Wrangler 3.x, Vitest
+Spec: docs/specs/github-app.md
 
-=== OBJECTIVE ===
-Create the Cloudflare Worker that receives GitHub App webhook events and validates them.
-This is the thin orchestration layer for the Substrate GitHub App.
-The Worker does NOT call the diff engine yet (that is P2-T02b). It stubs the diff result for now.
+---
 
-=== WHAT TO BUILD ===
+TASK: P2-T01 — GitHub App Scaffold + Cloudflare Worker Webhook Receiver
 
-1. Create `github-app/` directory at repo root with this structure:
-   github-app/
-     src/
-       index.ts          ← main Worker entry point
-       webhook.ts        ← HMAC validation + event parsing
-       github-client.ts  ← GitHub API calls (fetch spec files, post comment, set status)
-       types.ts          ← TypeScript types for DiffReport, SubstrateConfig, GitHub events
-     test/
-       webhook.test.ts   ← Vitest unit tests
-       github-client.test.ts
-     wrangler.toml       ← Cloudflare Workers config
-     package.json        ← TypeScript, Wrangler, Vitest dependencies
-     tsconfig.json
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Create the Cloudflare Worker that is the entry point for all GitHub App webhook events.
+This Worker is the thin orchestration layer — it validates, parses, fetches files, and
+coordinates the diff engine call (stubbed in this task) and GitHub API responses.
 
-2. `wrangler.toml` configuration:
-   name = "substrate-github-app"
-   main = "src/index.ts"
-   compatibility_date = "2024-01-01"
+The implementation MUST follow docs/specs/github-app.md exactly.
 
-   [vars]
-   # Non-secret config vars here
+═══════════════════════════════════════════════════════════════
+CONTEXT — WHY THIS IS NEEDED
+═══════════════════════════════════════════════════════════════
+Phase 1 requires users to manually add a GitHub Actions workflow YAML to every repo.
+Phase 2 replaces that friction with a GitHub App: install once, protection everywhere.
 
-   # Secrets (set via `wrangler secret put`):
-   # GITHUB_APP_ID
-   # GITHUB_APP_PRIVATE_KEY  (PEM format)
-   # GITHUB_WEBHOOK_SECRET
+This Worker is triggered by GitHub when any PR is opened in a repo with Substrate installed.
+It must handle three critical responsibilities:
+  1. Prove to GitHub the webhook is legitimate (HMAC-SHA256 validation)
+  2. Generate a short-lived installation token from the App's private key (RS256 JWT)
+  3. Fetch the repo's spec files and substrate.yaml via the GitHub Contents API
 
-3. `src/webhook.ts` — HMAC validation (MANDATORY, never skip):
-   - Export: `validateWebhookSignature(signature: string, body: string, secret: string): boolean`
-   - Use the Web Crypto API (available in Workers): `crypto.subtle.importKey` + `crypto.subtle.sign`
-   - Constant-time comparison to prevent timing attacks
-   - If validation fails: return HTTP 401
-   - Parse the `X-GitHub-Event` header to determine event type
-   - Only process `pull_request` events with action: opened | synchronize | reopened
-   - All other events: return HTTP 200 immediately (acknowledge but ignore)
+The actual diff engine call is STUBBED in this task (returns a mock "no breaking changes"
+result). P2-T02b wires the real Container Service call after T01 + T02a are merged.
 
-4. `src/github-client.ts` — GitHub API interactions:
-   a. `generateInstallationToken(appId: string, privateKey: string, installationId: number): Promise<string>`
-      - Create a JWT from the App ID + private key (RS256, 10-minute expiry)
-      - Exchange JWT for an installation access token via POST /app/installations/{id}/access_tokens
-      - Use the Web Crypto API for JWT signing (no external jwt libraries)
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
 
-   b. `fetchFileContent(token: string, owner: string, repo: string, path: string, ref: string): Promise<string | null>`
+1. FILE: github-app/wrangler.toml
+   Cloudflare Workers configuration.
+   - name = "substrate-github-app"
+   - main = "src/index.ts"
+   - compatibility_date = "2024-01-01"
+   - Secrets (NOT vars): GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY, GITHUB_WEBHOOK_SECRET
+     (these are set via `wrangler secret put`, never committed to the file)
+
+2. FILE: github-app/src/types.ts
+   TypeScript interfaces shared across all modules:
+   - DiffChange { rule: string; severity: 'BREAKING'|'WARNING'|'INFO'; path: string; message: string }
+   - DiffSummary { breaking_count: number; warning_count: number; info_count: number }
+   - DiffReport { breaking: DiffChange[]; warning: DiffChange[]; info: DiffChange[]; summary: DiffSummary }
+   - SubstrateConfig { on_breaking_change?: 'block'|'warn'; base_schema?: string; head_schema?: string }
+   - Env { GITHUB_APP_ID: string; GITHUB_APP_PRIVATE_KEY: string; GITHUB_WEBHOOK_SECRET: string }
+
+3. FILE: github-app/src/webhook.ts
+   HMAC-SHA256 signature validation and PR event parsing.
+
+   Export: validateWebhookSignature(signature: string, body: string, secret: string): Promise<boolean>
+   - Use Web Crypto API: crypto.subtle.importKey (HMAC, SHA-256) + crypto.subtle.sign
+   - Constant-time comparison using crypto.subtle.verify — NOT string equality (timing attack)
+   - signature input is in format "sha256=<hex>" — strip the prefix before comparing
+
+   Export: parsePREvent(headers: Headers, body: string): PREvent | null
+   - Check X-GitHub-Event header === 'pull_request'
+   - Parse body as JSON
+   - Only return a value for actions: opened | synchronize | reopened
+   - All other events or actions: return null (Worker returns 200 immediately)
+
+   Export interface PREvent {
+     owner: string; repo: string; prNumber: number;
+     headSha: string; baseBranch: string; installationId: number;
+   }
+
+4. FILE: github-app/src/github-client.ts
+   GitHub API calls using the installation access token.
+
+   a. generateInstallationToken(appId: string, privateKey: string, installationId: number): Promise<string>
+      - Create RS256 JWT: header={alg:"RS256",typ:"JWT"}, payload={iss:appId, iat:now-60, exp:now+540}
+      - Sign using Web Crypto: crypto.subtle.importKey (PKCS8, RSA-PSS or RSASSA-PKCS1-v1_5) + subtle.sign
+      - POST to https://api.github.com/app/installations/{installationId}/access_tokens
+      - Return the token string from response.token
+
+   b. fetchFileContent(token: string, owner: string, repo: string, path: string, ref: string): Promise<string | null>
       - GET /repos/{owner}/{repo}/contents/{path}?ref={ref}
-      - Decode the base64 content field
-      - Return null if file does not exist (404)
+      - Decode base64 content field using atob()
+      - Return null if response is 404
 
-   c. `postPRComment(token: string, owner: string, repo: string, prNumber: number, body: string): Promise<void>`
-      - POST /repos/{owner}/{repo}/issues/{prNumber}/comments
-      - UPSERT behavior: first call GET /repos/{owner}/{repo}/issues/{prNumber}/comments
-      - If a comment by the GitHub App bot already exists, PATCH it instead of creating a new one
-      - Identify the bot's comment by checking `performed_via_github_app.slug === 'substrate'`
+   c. postPRComment(token: string, owner: string, repo: string, prNumber: number, body: string): Promise<void>
+      - UPSERT: GET /repos/{owner}/{repo}/issues/{prNumber}/comments first
+      - If a comment by the App bot exists (check user.type === 'Bot' and body starts with '## ' + a Substrate header marker), PATCH it
+      - Otherwise POST a new comment
 
-   d. `setCommitStatus(token: string, owner: string, repo: string, sha: string, state: 'success'|'failure'|'pending', description: string): Promise<void>`
+   d. setCommitStatus(token: string, owner: string, repo: string, sha: string, state: 'success'|'failure'|'pending', description: string): Promise<void>
       - POST /repos/{owner}/{repo}/statuses/{sha}
-      - context: "substrate/breaking-changes"
+      - Body: { state, description, context: "substrate/breaking-changes" }
 
-5. `src/index.ts` — Main Worker entry point:
-   ```typescript
-   export default {
-     async fetch(request: Request, env: Env): Promise<Response> {
-       // 1. Only accept POST
-       if (request.method !== 'POST') return new Response('Method Not Allowed', { status: 405 });
+5. FILE: github-app/src/index.ts
+   Main Worker entry point — orchestrates everything.
 
-       // 2. Validate HMAC signature
-       const signature = request.headers.get('X-Hub-Signature-256') ?? '';
-       const body = await request.text();
-       if (!validateWebhookSignature(signature, body, env.GITHUB_WEBHOOK_SECRET)) {
-         return new Response('Unauthorized', { status: 401 });
-       }
+   Flow (implement exactly as documented in docs/specs/github-app.md Component 1):
+   Step 1:  Only accept POST → 405 otherwise
+   Step 2:  Validate HMAC → 401 if invalid
+   Step 3:  Parse PR event → 200 immediately if not a handled PR action
+   Step 4:  Generate installation token
+   Step 5:  Set 'pending' commit status immediately ("Substrate is checking...")
+   Step 6:  Fetch substrate.yaml from head commit
+   Step 7:  If no substrate.yaml → post missing-config comment, set 'pending' status, return 200
+   Step 8:  Parse config, fetch base + head spec files from GitHub API
+   Step 9:  STUB diff result → { breaking: [], warning: [], info: [], summary: { breaking_count: 0, warning_count: 0, info_count: 0 } }
+   Step 10: Post PR comment (hardcode a simple placeholder for now — P2-T03 formatter replaces this)
+   Step 11: Set final commit status ('success' if 0 breaking, 'failure' otherwise)
+   Step 12: Return 200
 
-       // 3. Parse event
-       const event = request.headers.get('X-GitHub-Event');
-       const payload = JSON.parse(body);
-       if (event !== 'pull_request') return new Response('OK', { status: 200 });
-       if (!['opened', 'synchronize', 'reopened'].includes(payload.action)) {
-         return new Response('OK', { status: 200 });
-       }
+   Missing config comment (hardcode inline — replaced by P2-T03 formatter):
+   "## 👋 Substrate is installed but not configured\n\nRun `substrate init` to activate.\n\n*Powered by [Substrate](https://github.com/KrushnaVardhanReddy/Substrate)*"
 
-       // 4. Extract PR context
-       const { owner, repo, prNumber, headSha, baseSha, installationId } = extractPRContext(payload);
+═══════════════════════════════════════════════════════════════
+TESTS (MANDATORY)
+═══════════════════════════════════════════════════════════════
 
-       // 5. Generate installation token
-       const token = await generateInstallationToken(env.GITHUB_APP_ID, env.GITHUB_APP_PRIVATE_KEY, installationId);
+FILE: github-app/test/webhook.test.ts
+Use Vitest. Mock crypto.subtle with vi.fn().
+- Valid HMAC signature → validateWebhookSignature returns true
+- Invalid HMAC signature → validateWebhookSignature returns false
+- X-GitHub-Event: push → parsePREvent returns null
+- X-GitHub-Event: pull_request, action: closed → parsePREvent returns null
+- X-GitHub-Event: pull_request, action: opened → parsePREvent returns PREvent with correct fields
+- X-GitHub-Event: pull_request, action: synchronize → parsePREvent returns PREvent
 
-       // 6. Set pending status immediately
-       await setCommitStatus(token, owner, repo, headSha, 'pending', 'Substrate is checking your schemas...');
+FILE: github-app/test/github-client.test.ts
+Use Vitest with vi.fn() mocking globalThis.fetch.
+- fetchFileContent: 200 response with base64 content → returns decoded string
+- fetchFileContent: 404 response → returns null
+- postPRComment: no existing bot comment → calls POST /comments
+- postPRComment: existing bot comment found → calls PATCH (not POST)
+- setCommitStatus: sends correct JSON body with context "substrate/breaking-changes"
 
-       // 7. Fetch substrate.yaml from head commit
-       const configContent = await fetchFileContent(token, owner, repo, 'substrate.yaml', headSha);
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
 
-       // 8. If no substrate.yaml → post setup prompt comment + pending status
-       if (!configContent) {
-         const setupComment = buildMissingConfigComment();
-         await postPRComment(token, owner, repo, prNumber, setupComment);
-         await setCommitStatus(token, owner, repo, headSha, 'pending', 'substrate.yaml not found — run `substrate init` to activate');
-         return new Response('OK', { status: 200 });
-       }
+FILES TO ADD:
+- github-app/src/index.ts              (main Worker entry point)
+- github-app/src/webhook.ts            (HMAC validation + PR event parsing)
+- github-app/src/github-client.ts      (GitHub API: token, fetch files, post comment, set status)
+- github-app/src/types.ts              (shared TypeScript interfaces)
+- github-app/test/webhook.test.ts      (Vitest: HMAC + event parsing)
+- github-app/test/github-client.test.ts (Vitest: GitHub API calls)
+- github-app/wrangler.toml             (Cloudflare Workers config)
+- github-app/package.json              (TypeScript, Wrangler 3.x, Vitest)
+- github-app/tsconfig.json
 
-       // 9. Parse config, fetch base + head spec files
-       const config = parseSubstrateConfig(configContent);
-       const baseSpec = await fetchFileContent(token, owner, repo, config.base_schema, baseSha);
-       const headSpec = await fetchFileContent(token, owner, repo, config.head_schema, headSha);
+FILES TO MODIFY:
+(none — github-app/ is a brand new directory)
 
-       // 10. STUB: In this task, return a mock DiffReport (P2-T02b wires the real container call)
-       const mockDiffReport = { breaking: [], warning: [], info: [], summary: { breaking_count: 0, warning_count: 0, info_count: 0 } };
+FILES TO NOT TOUCH (READ-ONLY):
+- docs/specs/github-app.md             (spec — implement from it, never rewrite it)
+- docs/specs/                          (ALL spec files are read-only)
+- engine/                              (do not touch the Go binary)
+- action.yml
+- Dockerfile
+- .github/workflows/
 
-       // 11. Post comment + set final status (use the real formatter from P2-T03 once merged)
-       const comment = buildComment(mockDiffReport);
-       await postPRComment(token, owner, repo, prNumber, comment);
-       const finalState = mockDiffReport.summary.breaking_count > 0 ? 'failure' : 'success';
-       await setCommitStatus(token, owner, repo, headSha, finalState, `${mockDiffReport.summary.breaking_count} breaking changes`);
-
-       return new Response('OK', { status: 200 });
-     }
-   };
-   ```
-
-6. Missing config comment (hardcode inline for now, formatter improves in P2-T03):
-   ```
-   ## 👋 Substrate is installed but not configured
-
-   We noticed this repo has no `substrate.yaml`.
-   Run `substrate init` to activate breaking change protection in 30 seconds.
-
-   *This comment will not appear again once `substrate.yaml` is added.*
-   *Powered by [Substrate](https://github.com/KrushnaVardhanReddy/Substrate)*
-   ```
-
-=== TESTS (MANDATORY) ===
-
-`test/webhook.test.ts`:
-- Test: valid HMAC signature → passes validation
-- Test: invalid HMAC signature → returns 401
-- Test: non-pull_request event → returns 200 immediately
-- Test: pull_request.closed action → returns 200 immediately
-- Test: pull_request.opened action → processes the event
-- Use Vitest with mock `crypto.subtle`
-
-`test/github-client.test.ts`:
-- Test: `fetchFileContent` returns null on 404
-- Test: `postPRComment` calls PATCH if existing comment found, POST if not
-- Test: `setCommitStatus` sends correct payload
-- Mock all fetch() calls — do not make real HTTP requests in tests
-
-=== DO NOT ===
-- Do NOT call the diff engine container (that is P2-T02b)
-- Do NOT install external JWT libraries — use Web Crypto API
-- Do NOT store any spec content or user data in KV or Durable Objects
-- Do NOT modify anything in `engine/` or `docs/specs/`
-
-=== COMMIT ===
-Commit message: "jules: P2-T01 github app scaffold + cloudflare worker webhook receiver"
+Commit: "jules: P2-T01 github app scaffold + cloudflare worker webhook receiver"
 Target branch: feature/p2-t01-worker-scaffold

@@ -1,183 +1,149 @@
-P2-T02a — Add `substrate serve` HTTP Mode to Go Binary (Container Service)
+MANDATORY RULES — VIOLATION = REJECTED PR:
+1. NEVER stub or TODO the diff engine integration — the /diff endpoint MUST call real engine logic.
+2. Every file MUST build — run `go build ./...` and `go vet ./...` before committing.
+3. If a test fails, FIX the code or test — do NOT delete or skip tests.
+4. Do NOT alter any file in docs/specs/ — those are READ-ONLY source-of-truth specs.
+5. TESTING IS MANDATORY — use net/http/httptest for all HTTP server tests. Min 80% coverage on new code.
+6. Commit message must start with "jules: " prefix.
+7. 100% SPEC-FIRST RULE: Implement exactly what docs/specs/github-app.md (Component 2) defines.
+8. Do NOT add any new external Go dependencies — use net/http stdlib only.
+9. Do NOT add authentication to the /diff endpoint — the container is internal-only. The Worker handles auth.
+10. Do NOT change existing CLI commands (diff, init, version) — only ADD the serve subcommand.
+11. Temp files MUST be cleaned up with defer os.Remove() to prevent disk leaks in a long-running server.
 
-READ FIRST: docs/specs/github-app.md — specifically "Component 2: Container Service" section.
-This task adds an HTTP server mode to the existing substrate binary so it can run as a container service.
+Project: Substrate — Go Diff Engine CLI + HTTP Container Service
+Tech stack: Go 1.26, net/http stdlib, existing engine/internal/ packages (no new deps)
+Spec: docs/specs/github-app.md (Component 2: Container Service)
 
-=== OBJECTIVE ===
-Add a `serve` subcommand to the existing `substrate` CLI binary.
-When run as `substrate serve --port 8080`, it starts an HTTP server that accepts
-POST /diff requests and returns DiffReport JSON.
+---
 
-This enables the existing diff engine to be called by the Cloudflare Worker
-over HTTP, without any changes to the core diff logic.
+TASK: P2-T02a — Add `substrate serve` HTTP Mode (Container Service)
 
-=== WHAT TO BUILD ===
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Add a `serve` subcommand to the existing substrate CLI binary.
 
-1. New file: `engine/cmd/substrate/serve.go`
-   Add a `serve` subcommand to the existing CLI.
+When run as `substrate serve --port 8080`, it starts an HTTP server that:
+- Accepts POST /diff requests with JSON body containing raw spec file content
+- Runs the existing diff engine logic (openapi or sql based on schema_type)
+- Returns DiffReport JSON
 
-   Command signature:
-     substrate serve --port 8080
+This enables the Cloudflare Worker to call the diff engine over HTTP
+without needing to embed the binary or use WebAssembly.
 
-   HTTP server contract:
-   - Listen on 0.0.0.0:{port}
-   - Route: POST /diff
-   - Route: GET /health → returns HTTP 200 {"status": "ok"}
+The implementation MUST follow docs/specs/github-app.md (Component 2) exactly.
 
-2. `POST /diff` request body (JSON):
-   ```json
-   {
-     "base_schema": "<raw spec file content as string>",
-     "head_schema": "<raw spec file content as string>",
-     "config": "<raw substrate.yaml content as string, may be empty>",
-     "schema_type": "openapi"
-   }
-   ```
-   Accepted values for `schema_type`: "openapi", "sql"
-   If `schema_type` is unknown: return HTTP 400 {"error": "unsupported schema_type: {value}"}
+═══════════════════════════════════════════════════════════════
+CONTEXT — WHY THIS IS NEEDED
+═══════════════════════════════════════════════════════════════
+The Phase 1 CLI binary is invoked via `substrate diff <base> <head>` and reads from disk.
+The Cloudflare Worker cannot shell out to a process — it needs to call the engine via HTTP.
 
-3. `POST /diff` response body (JSON):
-   Return the existing `DiffReport` struct as JSON.
-   HTTP 200 on success.
-   HTTP 400 on bad request (malformed JSON, missing required fields).
-   HTTP 500 on internal error (diff engine panic/error).
+The cleanest architecture (selected in the spec) is:
+  Worker → HTTP POST /diff → Container Service → runs engine → returns DiffReport JSON
 
-4. Implementation in `engine/cmd/substrate/serve.go`:
-   ```go
-   package main
+The Container Service IS the same Docker image we already publish (kpakkiragari/substrate-engine).
+This task adds a new "serve" mode to that binary. CGO is already enabled (required for pg_query_go SQL parser).
+The existing diff logic in engine/internal/ is NOT changed — only called via HTTP.
 
-   import (
-       "encoding/json"
-       "fmt"
-       "log"
-       "net/http"
-       "os"
-   )
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
 
-   type DiffRequest struct {
-       BaseSchema string `json:"base_schema"`
-       HeadSchema string `json:"head_schema"`
-       Config     string `json:"config"`
-       SchemaType string `json:"schema_type"`
-   }
+1. FILE: engine/cmd/substrate/serve.go
+   New file. Contains the HTTP server and the DiffRequest struct.
 
-   func runServe(port string) error {
-       mux := http.NewServeMux()
+   DiffRequest struct:
+     BaseSchema string `json:"base_schema"`   // required: raw spec file content
+     HeadSchema string `json:"head_schema"`   // required: raw spec file content
+     Config     string `json:"config"`        // optional: raw substrate.yaml content
+     SchemaType string `json:"schema_type"`   // required: "openapi" | "sql"
 
-       mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-           w.Header().Set("Content-Type", "application/json")
-           w.WriteHeader(http.StatusOK)
-           w.Write([]byte(`{"status":"ok"}`))
-       })
+   Routes:
+     GET  /health → HTTP 200, body: {"status":"ok"}
+     POST /diff   → run diff, return DiffReport JSON
+     All other paths/methods → HTTP 404 or 405
 
-       mux.HandleFunc("/diff", func(w http.ResponseWriter, r *http.Request) {
-           if r.Method != http.MethodPost {
-               http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-               return
-           }
+   POST /diff logic:
+   a. Decode JSON body → DiffRequest
+   b. Validate required fields (base_schema, head_schema, schema_type present and non-empty)
+   c. Write base_schema and head_schema to temp files (os.CreateTemp)
+   d. Write config to temp file if non-empty
+   e. defer os.Remove() all temp files before returning
+   f. Call runOpenAPIDiff or runSQLDiff based on schema_type
+   g. Return DiffReport as JSON with Content-Type: application/json
 
-           var req DiffRequest
-           if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-               http.Error(w, `{"error":"invalid JSON"}`, http.StatusBadRequest)
-               return
-           }
+   Error responses (all as JSON):
+     HTTP 400: {"error": "base_schema, head_schema, and schema_type are required"}
+     HTTP 400: {"error": "unsupported schema_type: <value>"}
+     HTTP 400: {"error": "invalid JSON"}
+     HTTP 500: {"error": "internal diff error"}
 
-           if req.BaseSchema == "" || req.HeadSchema == "" || req.SchemaType == "" {
-               http.Error(w, `{"error":"base_schema, head_schema, and schema_type are required"}`, http.StatusBadRequest)
-               return
-           }
+   Function runOpenAPIDiff(basePath, headPath, configPath string) (*report.DiffReport, error):
+     - Call the existing CompareOpenAPI function from engine/internal/diff/openapi.go
+     - Apply overrides from configPath if non-empty (call existing config parsing logic)
+     - Return the DiffReport
 
-           // Write temp files (the existing diff engine reads from file paths)
-           baseFile, _ := os.CreateTemp("", "substrate-base-*")
-           headFile, _ := os.CreateTemp("", "substrate-head-*")
-           defer os.Remove(baseFile.Name())
-           defer os.Remove(headFile.Name())
-           baseFile.WriteString(req.BaseSchema)
-           headFile.WriteString(req.HeadSchema)
-           baseFile.Close()
-           headFile.Close()
+   Function runSQLDiff(basePath, headPath, configPath string) (*report.DiffReport, error):
+     - Call the existing CompareSQL function from engine/internal/diff/ (or equivalent)
+     - Apply overrides from configPath if non-empty
+     - Return the DiffReport
 
-           // Write config temp file if provided
-           configPath := ""
-           if req.Config != "" {
-               configFile, _ := os.CreateTemp("", "substrate-config-*.yaml")
-               configFile.WriteString(req.Config)
-               configFile.Close()
-               configPath = configFile.Name()
-               defer os.Remove(configPath)
-           }
+   Function runServe(port string) error:
+     - Create http.NewServeMux() and register /health and /diff handlers
+     - Listen on 0.0.0.0:{port} using http.ListenAndServe
+     - Log startup message: "substrate serve: listening on :{port}"
 
-           // Call the existing diff engine logic based on schema_type
-           var report interface{}
-           var err error
-           switch req.SchemaType {
-           case "openapi":
-               report, err = runOpenAPIDiff(baseFile.Name(), headFile.Name(), configPath)
-           case "sql":
-               report, err = runSQLDiff(baseFile.Name(), headFile.Name(), configPath)
-           default:
-               http.Error(w, fmt.Sprintf(`{"error":"unsupported schema_type: %s"}`, req.SchemaType), http.StatusBadRequest)
-               return
-           }
-
-           if err != nil {
-               log.Printf("diff error: %v", err)
-               http.Error(w, `{"error":"internal diff error"}`, http.StatusInternalServerError)
-               return
-           }
-
-           w.Header().Set("Content-Type", "application/json")
-           json.NewEncoder(w).Encode(report)
-       })
-
-       addr := "0.0.0.0:" + port
-       log.Printf("substrate serve: listening on %s", addr)
-       return http.ListenAndServe(addr, mux)
-   }
-   ```
-
-5. Wire `runOpenAPIDiff` and `runSQLDiff` to call the existing diff logic in
-   `engine/internal/` — do not duplicate logic, just call existing functions.
-   These functions should accept file paths and return (*DiffReport, error).
-
-6. Add the `serve` subcommand to `engine/cmd/substrate/main.go`:
-   ```go
-   case "serve":
+2. FILE: engine/cmd/substrate/main.go  (MODIFY — add serve case only)
+   Add to the existing subcommand switch:
+     case "serve":
        port := "8080"
-       for i, arg := range os.Args[2:] {
-           if arg == "--port" && i+1 < len(os.Args[2:]) {
-               port = os.Args[3+i]
-           }
-       }
+       // parse --port flag from os.Args
        if err := runServe(port); err != nil {
            log.Fatal(err)
        }
-   ```
+   Do NOT change any other cases or existing logic.
 
-=== TESTS (MANDATORY) ===
+═══════════════════════════════════════════════════════════════
+TESTS (MANDATORY)
+═══════════════════════════════════════════════════════════════
 
-New file: `engine/cmd/substrate/serve_test.go`
-
-Use `net/http/httptest` to test the server without starting a real listener.
-
-Tests required:
-- GET /health → HTTP 200, body contains "ok"
-- POST /diff with valid openapi schema_type → HTTP 200, returns valid DiffReport JSON
-- POST /diff with valid sql schema_type → HTTP 200, returns valid DiffReport JSON
-- POST /diff with unknown schema_type → HTTP 400
-- POST /diff with missing base_schema → HTTP 400
-- POST /diff with malformed JSON → HTTP 400
-- GET /diff (wrong method) → HTTP 405
-
-Use real fixture files from `engine/cmd/substrate/testdata/` for the openapi and sql tests.
+FILE: engine/cmd/substrate/serve_test.go
+Use net/http/httptest.NewRecorder() — do NOT start a real TCP listener.
+Use real fixture files from engine/cmd/substrate/testdata/ for the actual diff tests.
 Do NOT mock the diff engine — call the real implementation.
 
-=== DO NOT ===
-- Do NOT change any existing CLI commands (diff, init, version)
-- Do NOT change any files in docs/specs/
-- Do NOT add any new external Go dependencies for the HTTP server (use net/http stdlib)
-- Do NOT add authentication to the /diff endpoint (the Worker handles auth, container is internal only)
+Tests required:
+- GET /health → HTTP 200, body is valid JSON with status="ok"
+- POST /diff: schema_type=openapi with valid fixture files → HTTP 200, DiffReport JSON with correct structure
+- POST /diff: schema_type=sql with valid SQL fixture files → HTTP 200, DiffReport JSON
+- POST /diff: schema_type=protobuf (unknown) → HTTP 400
+- POST /diff: missing base_schema field → HTTP 400
+- POST /diff: missing schema_type field → HTTP 400
+- POST /diff: malformed JSON body → HTTP 400
+- GET /diff (wrong method) → HTTP 405
+- POST /health (wrong method) → HTTP 405 or 404
 
-=== COMMIT ===
-Commit message: "jules: P2-T02a add substrate serve http mode for container service"
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO ADD:
+- engine/cmd/substrate/serve.go        (HTTP server + DiffRequest + runServe)
+- engine/cmd/substrate/serve_test.go   (httptest-based unit tests)
+
+FILES TO MODIFY:
+- engine/cmd/substrate/main.go         (add "serve" case to subcommand switch ONLY)
+
+FILES TO NOT TOUCH (READ-ONLY):
+- docs/specs/                          (ALL spec files are read-only)
+- engine/internal/                     (do not change diff logic — only call it)
+- engine/go.mod / engine/go.sum        (do not add new dependencies)
+- github-app/                          (do not touch the Worker TypeScript code)
+- action.yml
+- Dockerfile
+- .github/workflows/
+
+Commit: "jules: P2-T02a add substrate serve http mode for container service"
 Target branch: feature/p2-t02a-serve-mode
