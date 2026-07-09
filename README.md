@@ -821,6 +821,7 @@ Features:
   * **Distributed Tracing:** Native ingestion of OpenTelemetry, Datadog APM, or New Relic traces.
   * **Network Layer (eBPF & Service Mesh):** Direct integration with Istio, Linkerd, or eBPF network logs to map service-to-service communication.
   * **Static Code Analysis:** AST scanning in CI to detect SDK imports and API calls.
+  * **Infrastructure as Code (Terraform):** Parsing `terraform_remote_state` and environment variable injections (e.g. AWS ECS wiring) to deterministically map cross-repo dependencies.
 * **Service Ownership:** Map every discovered node to a team and an alert channel.
 
 ---

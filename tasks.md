@@ -289,6 +289,7 @@ These are not yet scheduled but are on the product roadmap:
 
 **Phase 5 — Enterprise Automation & Governance** 🏢
 See the full spec: `docs/specs/enterprise-vision.md`
+- [ ] Dynamic Dependency Discovery (Terraform IaC, Datadog, eBPF, AST)
 - [ ] Custom Rules Engine (CEL / OPA Rego)
 - [ ] Traffic-Aware Diffing (Datadog/OTel integration for `WARNING (Unused)`)
 - [ ] ITSM Integration (Jira & ServiceNow Auto-Ticketing)
