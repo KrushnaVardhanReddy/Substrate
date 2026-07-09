@@ -1,0 +1,69 @@
+TASK: P3-T09 — MCP Server Implementation
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement the Substrate MCP Server as defined in the specification. 
+This exposes Substrate's intelligence to AI tools like Cursor and Claude.
+
+Spec: docs/specs/phase-3/mcp-server.md
+
+═══════════════════════════════════════════════════════════════
+REQUIREMENTS
+═══════════════════════════════════════════════════════════════
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Create the MCP Server Package
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Create `api/internal/mcp/server.go`.
+
+Implement a basic JSON-RPC 2.0 handler that processes lines from standard input (or HTTP requests). 
+It must support the following standard MCP methods:
+1. `initialize`
+2. `tools/list`
+3. `tools/call`
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. Expose the Core Tools
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+In the `tools/list` response, return the 7 tools defined in the spec:
+- `get_dependency_graph`
+- `check_compatibility`
+- `get_breaking_change_history`
+- `get_substrate_docs`
+- `analyze_repository`
+- `execute_cli_command`
+- `get_schema_file`
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. Wire the Tools (Mock or Real)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+For `tools/call`, implement the routing to handle each of the 7 tools.
+For now, you can return a static mock JSON response for `get_dependency_graph`, `get_breaking_change_history`, `analyze_repository`, `get_substrate_docs`, and `get_schema_file` just to prove the MCP protocol works. 
+
+For `execute_cli_command`, use `os/exec` to execute the `substrate` CLI.
+For `check_compatibility`, invoke the actual diff engine `diff.DiffSchemas(...)` using the provided inputs and return the `DiffReport`.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. Create the CLI Entrypoint
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Create `engine/cmd/substrate-mcp/main.go`.
+This binary should instantiate your MCP server, read JSON-RPC messages from `os.Stdin` line by line, pass them to the server, and write the JSON-RPC responses to `os.Stdout`.
+
+This binary will be configured in `claude_desktop_config.json` or Cursor's MCP settings by end-users.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE/MODIFY:
+- api/internal/mcp/server.go
+- engine/cmd/substrate-mcp/main.go
+
+FILES TO NOT TOUCH (READ-ONLY):
+- github-app/
+- dashboard/
+- docs/specs/
+
+Commit: "jules: P3-T09 implement MCP server via stdio"
+Target branch: feature/p3-t09-mcp
