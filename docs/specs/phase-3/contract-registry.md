@@ -140,17 +140,99 @@ consumers:
 - For each `consumers` entry, fetch the provider's current spec from GitHub using the GitHub App token
 - POST the snapshot to `POST /api/v1/sync` on the Registry API server
 
-**Flow:**
+**New Worker environment variables (add to `Env` interface in `types.ts`):**
+```
+REGISTRY_API_URL    — base URL of the Go Registry API (e.g. https://api.substrate.dev)
+REGISTRY_API_TOKEN  — internal service token (matches INTERNAL_SERVICE_TOKEN on api/ server)
+```
+
+**Push event detection:**
+- GitHub-Event header must equal `"push"`
+- `ref` must be `"refs/heads/main"` — ignore feature branch and tag pushes
+- `payload.deleted` must not be `true` — ignore branch deletion events
+
+**New TypeScript types (add to `types.ts`):**
+```ts
+interface ConsumerEntry {
+  name: string;
+  provider_repo: string;        // "myorg/backend-api"
+  schema_type: string;          // openapi | graphql | sql | protobuf
+  provider_spec_path: string;   // "api/openapi.yaml"
+  provider_branch: string;      // default "main"
+}
+
+interface SyncDependency {
+  provider_repo: string;
+  provider_github_repo_id: number;
+  schema_type: string;
+  spec_path: string;
+  branch: string;
+  raw_content: string;
+}
+
+interface SyncRequest {
+  installation_id: number;
+  org: string;
+  consumer_repo: string;            // full_name "myorg/frontend"
+  consumer_github_repo_id: number;
+  commit_sha: string;
+  dependencies: SyncDependency[];
+}
+```
+
+**Full push handler flow:**
+1. Validate webhook signature (same as PR handler)
+2. Check `X-GitHub-Event: push` → if not push, fall through to PR handler
+3. Parse push payload — if `ref !== "refs/heads/main"` or `deleted === true`, return 200 Ignored
+4. Generate installation token using existing `generateInstallationToken()`
+5. Fetch `substrate.yaml` from pushed commit SHA using existing `fetchFileContent()`
+6. Parse `consumers` block — if empty or missing, return 200 Ignored
+7. For each consumer entry (in parallel via `Promise.all`):
+   a. Fetch provider repo metadata: `GET https://api.github.com/repos/{provider_repo}` → extract `.id`
+   b. Fetch provider spec file: `fetchFileContent(token, owner, repo, entry.provider_spec_path, entry.provider_branch)`
+   c. Build `SyncDependency` object
+8. `POST {REGISTRY_API_URL}/api/v1/sync` with `Authorization: Bearer {REGISTRY_API_TOKEN}`
+9. Return 200 with `{ synced: N }`
+
+**Error handling:** Wrap entire push handler in `try/catch`. On any error: `console.error` + return 200 (never 5xx to GitHub).
+
+**New files:**
+- `github-app/src/registry-client.ts` — `parseConsumersFromYaml()` + `syncToRegistry()`
+
+**YAML parsing approach:** Regex-based stub (same pattern as existing `parseYaml()` in `index.ts`).
+Do NOT add a full YAML library — parse the `consumers:` block with targeted regex.
+
+**Test requirements (Vitest):**
+- `registry-client.test.ts`: 5 cases for `parseConsumersFromYaml()` (empty, no consumers, single, missing branch defaults to main, multiple)
+- `registry-client.test.ts`: 2 cases for `syncToRegistry()` (200 success, non-2xx throws)
+- `webhook.test.ts`: 5 new cases for push event parsing (main push, feature branch, tag, deleted, non-push)
+- `index.test.ts`: 5 new integration cases for push handler (consumers found, no substrate.yaml, no consumers, non-main branch, existing PR tests must still pass)
+
+**Files to create/modify:**
+- CREATE: `github-app/src/registry-client.ts`
+- CREATE: `github-app/src/registry-client.test.ts`
+- MODIFY: `github-app/src/types.ts` (add Env fields + interfaces above)
+- MODIFY: `github-app/src/webhook.ts` (add `parsePushEvent()`)
+- MODIFY: `github-app/src/index.ts` (add push handler before PR handler)
+- MODIFY: `github-app/src/webhook.test.ts` (add push test cases)
+- MODIFY: `github-app/src/index.test.ts` (add push integration tests)
+
+**Flow diagram:**
 ```
 push to frontend/main
     ↓
-Worker reads substrate.yaml → finds consumers block
+Worker validates HMAC → reads substrate.yaml from commit SHA
     ↓
-Worker fetches backend-api/api/openapi.yaml from GitHub (using App token)
+Worker parses consumers block → [{ provider_repo: "myorg/backend-api", ... }]
     ↓
-Worker POSTs snapshot to Registry API → stored in contracts table
+Worker fetches provider spec from GitHub API (parallel for all consumers)
     ↓
-dependencies row upserted: frontend → backend-api
+Worker POSTs SyncRequest to Registry API (/api/v1/sync)
+    ↓
+Registry: UpsertOrg → UpsertRepo (consumer) → UpsertRepo (provider) →
+          UpsertContract (provider spec snapshot) → UpsertDependency
+    ↓
+Worker returns 200 { synced: 1 }
 ```
 
 ---

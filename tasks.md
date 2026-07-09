@@ -120,17 +120,18 @@
 |---|---|---|---|---|
 | P1d-T01 | `buf` checker adapter spec + implementation + tests | Jules | ✅ | `prompts/phase-1d-protobuf/t01_buf_adapter.txt` |
 
-### Phase 1e — AsyncAPI & Apache Avro 🔒 BLOCKED on Phase 2
+### Phase 1e — AsyncAPI & Apache Avro 🔄 IN PROGRESS
 
 > **Library decision (AsyncAPI):** `asyncapi/parser-go` (Apache 2.0) for parsing. Custom diff rules (channel removed, operation changed, message schema breaking).
 > **Library decision (Avro):** Do **not** build a custom Avro compatibility checker. Call the Confluent/Apicurio Schema Registry **compatibility check API** — offloads complex Avro evolution rules (union promotion, defaults, field ordering) to a battle-tested engine. Substrate wraps the JSON response into `DiffReport`.
+> **Spec:** `docs/specs/phase-1/asyncapi-avro-adapter.md` ✅ APPROVED
 
 | Task ID | Name | Owner | Status |
 |---|---|---|---|
-| P1e-T01 | AsyncAPI parser using `asyncapi/parser-go` | Jules | 🔒 |
-| P1e-T02 | Avro adapter using Schema Registry compatibility API | Jules | 🔒 |
-| P1e-T03 | AsyncAPI + Avro breaking change rules spec | Antigravity | 🔒 |
-| P1e-T04 | Rule engine + tests | Jules | 🔒 |
+| P1e-T01 | AsyncAPI parser using `asyncapi/parser-go` | Jules | ⏳ ready to submit |
+| P1e-T02 | Avro adapter using Schema Registry compatibility API | Jules | ⏳ ready to submit |
+| P1e-T03 | AsyncAPI + Avro breaking change rules spec | Antigravity | ✅ |
+| P1e-T04 | Rule engine + tests | Jules | 🔒 after T01+T02 |
 
 ### Phase 1f — AI/ML Model Contracts ⭐ 🔒 BLOCKED on Phase 2
 
@@ -158,8 +159,8 @@
 ---
 
 > **Wave 2 execution order (Phase 2 complete ✅ — Wave 2 unblocked):** Follow effort order, not numerical order:
-> `1d (Protobuf/buf — IN PROGRESS 🔄)` → `1c (GraphQL — next)` → `1f (AI/ML — no new deps)` → `1e (AsyncAPI/Avro — two formats)` → `1g (Enterprise — highest effort, ships last)`
-> Order within this list may shift based on real user demand signals.
+> `1d ✅ (Protobuf/buf — COMPLETE)` → `1e 🔄 (AsyncAPI/Avro — T01+T02 ready)` → `1c (GraphQL — next)` → `1f (AI/ML — no new deps)` → `1g (Enterprise — highest effort, ships last)`
+> Note: 1e promoted ahead of 1c because spec is now written and T01+T02 can run in parallel.
 
 ---
 
