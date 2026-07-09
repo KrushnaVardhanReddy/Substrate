@@ -120,7 +120,7 @@ func setupMux() *http.ServeMux {
 			return
 		}
 
-		if req.SchemaType != "openapi" && req.SchemaType != "sql" && req.SchemaType != "protobuf" && req.SchemaType != "proto" {
+		if req.SchemaType != "openapi" && req.SchemaType != "sql" && req.SchemaType != "protobuf" && req.SchemaType != "proto" && req.SchemaType != "asyncapi" {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(fmt.Sprintf(`{"error": "unsupported schema_type: %s"}`, req.SchemaType)))
@@ -167,6 +167,11 @@ func setupMux() *http.ServeMux {
 		var rep *report.DiffReport
 		if req.SchemaType == "sql" {
 			rep, err = runSQLDiff(baseFile.Name(), headFile.Name(), configPath)
+		} else if req.SchemaType == "asyncapi" {
+			rep, err = diff.CompareAsyncAPI(baseFile.Name(), headFile.Name())
+			if err == nil {
+				rep = applyConfig(rep, configPath)
+			}
 		} else if req.SchemaType == "protobuf" || req.SchemaType == "proto" {
 			rep, err = diff.CompareProto(baseFile.Name(), headFile.Name())
 			if err == nil {
