@@ -18,38 +18,18 @@ Both sessions were submitted to the `feature/dev` branch. Review PRs tomorrow mo
 
 ## What We Completed Today
 
-1. **Merged PRs**:
-   - P1d-T01 (Protobuf Adapter) merged ✅
-   - P3-T01 (Go API Server Scaffold) merged ✅
-   - P3-T02 (substrate.yaml Consumer Parser) merged ✅
-   - P3-T02b (Contract Registry Sync push-to-main webhook) merged ✅
-2. **Specs Synced**: Ensured all actual implementation details from the merged PRs (Go structs, Store interfaces, env vars, `installation_id` fields) are documented in the respective specs.
-3. **Phase 1e Launched**: Wrote full spec for AsyncAPI and Avro adapters, and submitted T01 and T02 prompts to Jules.
+# Substrate — Handoff & Status
 
----
+## 🚀 Current State (End of Day)
+*   **Phase 1 (Diff Engine) is 100% COMPLETE.** All 8 adapters (including Enterprise Salesforce/SOAP) are merged into `feature/dev`. Wave 2 is fully wrapped up.
+*   **Phase 3 (Registry Orchestration) Core is COMPLETE.** The cross-repo GitHub App logic is merged.
+*   **Active Jules Sessions (Pending PRs):**
+    1.  `P3-T02d` (Cross-repo E2E Fixture tests): Jules session `1726802866484312234`
+    2.  `P3-T03` (SvelteKit Dashboard): Jules session `17010957366344488409`
+    3.  `P3-T09` (MCP Server via stdio): Jules session `15341875086230126168`
 
-## Next Steps (After Jules PRs Are Merged)
-
-**Tomorrow (priority order):**
-
-> 🚨 **CRITICAL RULE FOR ALL FUTURE TASKS:** 🚨
-> **First, specs MUST be checked and updated. ONLY THEN can prompts be created or submitted for ANY task.** Do not write a prompt unless the spec-first rule is fully satisfied.
-
-1. Review and merge Jules PRs for P1e-T01 and P1e-T02.
-2. **P3-T02c (Cross-Repo Compatibility Check on Provider PR)**
-   - Unblocked now that P3-T02b is merged.
-   - *Check the spec first* (`docs/specs/phase-3/contract-registry.md`). It should be complete, but verify.
-   - Write prompt and submit to Jules.
-3. **P3-T02d (Cross-repo E2E fixture tests)**
-   - Write prompt after P3-T02c is submitted.
-
----
-
-## Key File Locations
-
-| File | Purpose |
-|---|---|
-| `docs/specs/phase-3/contract-registry.md` | Phase 3 Registry Spec (READ-ONLY) |
-| `docs/specs/phase-1/asyncapi-avro-adapter.md` | Phase 1e AsyncAPI/Avro Spec (READ-ONLY) |
-| `tasks.md` | Full roadmap with priorities and Jules Session IDs |
-| `scripts/jules_submit.py` | Run `python3 scripts/jules_submit.py --list` to see available prompts |
+## 🎯 Next Steps (Tomorrow)
+1.  **Merge Pending PRs:** Review and merge the 3 active Jules sessions once they finish their tests.
+2.  **End-to-End Live Test:** Execute the full integration test without mocking, proving the architecture works across all 8 schema types with real GitHub webhooks.
+    *   👉 **See `docs/E2E_TEST_PLAN.md` for the exact step-by-step testing matrix.**
+3.  **Documentation & Release:** Spec out P3-T12 (Comprehensive Platform Docs), tag V1.0, and prepare the GitHub Marketplace release.
