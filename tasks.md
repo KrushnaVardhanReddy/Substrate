@@ -223,7 +223,7 @@
 | P3-T01 | 🔴 P1 | PostgreSQL schema + Go API server | Jules | ✅ |
 | P3-T02 | 🔴 P1 | `substrate.yaml` consumer declaration parser | Jules | ✅ |
 | **P3-T02b** | 🔴 P1 | **Contract registry sync** — snapshot consumer specs on push to `main` | Jules | ✅ | `prompts/phase-3-registry/t02b_contract_sync.txt` |
-| **P3-T02c** | 🔴 P1 | **Cross-repo check on PR** — validate provider PR against all consumer snapshots | Jules | 🔄 Jules session `4020297902909209700` | `prompts/phase-3-registry/t02c_cross_repo_check.txt` |
+| **P3-T02c** | 🔴 P1 | **Cross-repo check on PR** — validate provider PR against all consumer snapshots | Jules | ✅ | `prompts/phase-3-registry/t02c_cross_repo_check.txt` |
 | P3-T06 | 🟡 P2 | GitHub OAuth + org management | Jules | 🔒 after P3-T01 |
 | **P3-T02d** | 🟡 P2 | **Cross-repo E2E fixture tests** — `testdata/cross-repo/` | Jules | 🔒 after P3-T02c |
 | **P3-T03** | 🟢 P3 | **SvelteKit dashboard project setup + design system** | Jules | 🔄 Jules session `17010957366344488409` | `prompts/phase-3-registry/t03_dashboard.txt` |
