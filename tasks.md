@@ -208,14 +208,14 @@
 > **How we can test this today (before Phase 3 infra):** Simulate multiple repos as subfolders in `engine/cmd/substrate/testdata/cross-repo/`. E2E tests run Substrate against `(provider_new_spec, consumer_stored_spec)` and assert cross-boundary breaks are detected. No real cross-repo infra needed for the engine tests.
 
 > **Spec:** `docs/specs/phase-3/contract-registry.md`  
-> **Execution order:** P3-T01 → P3-T02+P3-T06 (parallel) → P3-T02b → P3-T02c+P3-T02d (parallel) → Dashboard → MCP
-> **Jules sessions submitted 2026-07-08:** P3-T01 `session:3925306055466858734` | P3-T02 `session:4407958795511618619`
+> **Execution order:** P3-T01 → P3-T02 → **P3-T02b (NOW)** → P3-T02c+P3-T02d (parallel) → Dashboard → MCP
+> **Jules sessions:** P3-T01 ✅ | P3-T02 ✅ | P3-T02b ⏳ ready to submit
 
 | Task ID | Priority | Name | Owner | Status |
 |---|---|---|---|---|
 | P3-T01 | 🔴 P1 | PostgreSQL schema + Go API server | Jules | ✅ |
 | P3-T02 | 🔴 P1 | `substrate.yaml` consumer declaration parser | Jules | ✅ |
-| **P3-T02b** | 🔴 P1 | **Contract registry sync** — snapshot consumer specs on push to `main` | Jules | 🔒 after P3-T02 |
+| **P3-T02b** | 🔴 P1 | **Contract registry sync** — snapshot consumer specs on push to `main` | Jules | ⏳ | `prompts/phase-3-registry/t02b_contract_sync.txt` |
 | **P3-T02c** | 🔴 P1 | **Cross-repo check on PR** — validate provider PR against all consumer snapshots | Jules | 🔒 after P3-T02b |
 | P3-T06 | 🟡 P2 | GitHub OAuth + org management | Jules | 🔒 after P3-T01 |
 | **P3-T02d** | 🟡 P2 | **Cross-repo E2E fixture tests** — `testdata/cross-repo/` | Jules | 🔒 after P3-T02c |
