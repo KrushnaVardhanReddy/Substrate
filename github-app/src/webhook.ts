@@ -3,6 +3,7 @@ import { PushEvent } from './types.js';
 export interface PREvent {
   owner: string;
   repo: string;
+  fullName: string;
   prNumber: number;
   headSha: string;
   baseBranch: string;
@@ -72,6 +73,7 @@ export function parsePREvent(headers: Headers, body: string): PREvent | null {
     return {
       owner: payload.repository.owner.login,
       repo: payload.repository.name,
+      fullName: payload.repository.full_name,
       prNumber: payload.pull_request.number,
       headSha: payload.pull_request.head.sha,
       baseBranch: payload.pull_request.base.ref,

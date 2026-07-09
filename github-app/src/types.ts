@@ -73,3 +73,43 @@ export interface PushEvent {
   githubRepoId: number;
   installationOrgId: number;
 }
+
+export interface CrossRepoBreakingChange {
+  rule: string;
+  path: string;
+  message: string;
+}
+
+export interface CrossRepoDiffSummary {
+  breaking_count: number;
+  warning_count: number;
+  info_count: number;
+}
+
+export interface CrossRepoDiffReport {
+  breaking: CrossRepoBreakingChange[];
+  warning: CrossRepoBreakingChange[];
+  info: CrossRepoBreakingChange[];
+  summary: CrossRepoDiffSummary;
+}
+
+export interface ConsumerResult {
+  consumer_repo: string;
+  status: 'breaking' | 'safe' | 'warning' | 'unknown';
+  diff_report: CrossRepoDiffReport;
+}
+
+export interface CrossRepoCheckRequest {
+  installation_id: number;
+  org: string;
+  provider_repo: string;
+  head_schema_content: string;
+  schema_type: string;
+}
+
+export interface CrossRepoCheckResponse {
+  total_consumers: number;
+  broken_consumers: number;
+  is_safe: boolean;
+  results: ConsumerResult[];
+}

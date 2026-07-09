@@ -3,9 +3,10 @@ import {
   formatPRComment,
   formatMissingConfigComment,
   getCommitStatusState,
-  getCommitStatusDescription
+  getCommitStatusDescription,
+  formatCrossRepoImpact
 } from '../src/formatter.js';
-import type { DiffReport, SubstrateConfig } from '../src/types.js';
+import type { DiffReport, SubstrateConfig, CrossRepoCheckResponse } from '../src/types.js';
 
 describe('formatter', () => {
   const emptyReport: DiffReport = {
@@ -147,5 +148,117 @@ describe('formatter', () => {
       expect(desc).toContain('3');
       expect(desc).toContain('breaking change(s) detected');
     });
+  });
+});
+
+
+
+
+describe('formatCrossRepoImpact', () => {
+  it('no consumers registered', () => {
+    const res: CrossRepoCheckResponse = { total_consumers: 0, broken_consumers: 0, is_safe: true, results: [] };
+    expect(formatCrossRepoImpact(res)).toBe('');
+  });
+
+  it('one breaking consumer', () => {
+    const res: CrossRepoCheckResponse = {
+      total_consumers: 1,
+      broken_consumers: 1,
+      is_safe: false,
+      results: [{
+        consumer_repo: 'myorg/frontend',
+        status: 'breaking',
+        diff_report: {
+          breaking: [{ rule: 'rule', path: 'GET /users/{id}', message: 'field email removed' }],
+          warning: [],
+          info: [],
+          summary: { breaking_count: 1, warning_count: 0, info_count: 0 }
+        }
+      }]
+    };
+    const md = formatCrossRepoImpact(res);
+    expect(md).toContain('1 registered consumer(s)');
+    expect(md).toContain('❌ BREAKING');
+    expect(md).toContain('`myorg/frontend`');
+    expect(md).toContain('`GET /users/{id}` — field email removed');
+    expect(md).toContain('⚠️ **Action required:**');
+  });
+
+  it('one safe consumer', () => {
+    const res: CrossRepoCheckResponse = {
+      total_consumers: 1,
+      broken_consumers: 0,
+      is_safe: true,
+      results: [{
+        consumer_repo: 'myorg/mobile-app',
+        status: 'safe',
+        diff_report: {
+          breaking: [],
+          warning: [],
+          info: [],
+          summary: { breaking_count: 0, warning_count: 0, info_count: 0 }
+        }
+      }]
+    };
+    const md = formatCrossRepoImpact(res);
+    expect(md).toContain('✅ Safe');
+    expect(md).toContain('✅ All registered consumers are compatible with this change.');
+  });
+
+  it('mixed: one breaking, one safe', () => {
+    const res: CrossRepoCheckResponse = {
+      total_consumers: 2,
+      broken_consumers: 1,
+      is_safe: false,
+      results: [
+        {
+          consumer_repo: 'myorg/frontend',
+          status: 'breaking',
+          diff_report: {
+            breaking: [{ rule: 'rule', path: 'GET /users/{id}', message: 'field email removed' }],
+            warning: [],
+            info: [],
+            summary: { breaking_count: 1, warning_count: 0, info_count: 0 }
+          }
+        },
+        {
+          consumer_repo: 'myorg/mobile-app',
+          status: 'safe',
+          diff_report: {
+            breaking: [],
+            warning: [],
+            info: [],
+            summary: { breaking_count: 0, warning_count: 0, info_count: 0 }
+          }
+        }
+      ]
+    };
+    const md = formatCrossRepoImpact(res);
+    expect(md).toContain('❌ BREAKING');
+    expect(md).toContain('✅ Safe');
+    expect(md).toContain('⚠️ **Action required:** Coordinate with the `myorg/frontend` team');
+  });
+
+  it('multiple breaking changes on one consumer', () => {
+    const res: CrossRepoCheckResponse = {
+      total_consumers: 1,
+      broken_consumers: 1,
+      is_safe: false,
+      results: [{
+        consumer_repo: 'myorg/frontend',
+        status: 'breaking',
+        diff_report: {
+          breaking: [
+            { rule: 'rule1', path: 'GET /a', message: 'msg1' },
+            { rule: 'rule2', path: 'GET /b', message: 'msg2' }
+          ],
+          warning: [],
+          info: [],
+          summary: { breaking_count: 2, warning_count: 0, info_count: 0 }
+        }
+      }]
+    };
+    const md = formatCrossRepoImpact(res);
+    expect(md).toContain('`GET /a` — msg1 (+1 more)');
   });
 });
