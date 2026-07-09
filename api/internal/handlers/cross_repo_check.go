@@ -15,12 +15,14 @@ type CrossRepoCheckRequest struct {
 	ProviderRepo      string `json:"provider_repo"`
 	HeadSchemaContent string `json:"head_schema_content"`
 	SchemaType        string `json:"schema_type"`
+	ConfigContent     string `json:"config_content,omitempty"`
 }
 
 type DiffEngineRequest struct {
 	BaseSchema string `json:"base_schema"`
 	HeadSchema string `json:"head_schema"`
 	SchemaType string `json:"schema_type"`
+	Config     string `json:"config,omitempty"`
 }
 
 type DiffReportSummary struct {
@@ -106,6 +108,7 @@ func CrossRepoCheckHandler(store db.Store) http.HandlerFunc {
 					BaseSchema: consumer.ContractRawContent,
 					HeadSchema: req.HeadSchemaContent,
 					SchemaType: req.SchemaType,
+					Config:     req.ConfigContent,
 				}
 
 				diffReqBytes, err := json.Marshal(diffReq)

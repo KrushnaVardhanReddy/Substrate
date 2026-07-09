@@ -255,7 +255,8 @@ export default {
           org: event.owner,
           provider_repo: event.fullName,
           head_schema_content: headContent,
-          schema_type: schemaType
+          schema_type: schemaType,
+          config_content: configContent
         };
         crossRepoResponse = await crossRepoCheck(env.REGISTRY_API_URL, env.REGISTRY_API_TOKEN, payload);
       } else {

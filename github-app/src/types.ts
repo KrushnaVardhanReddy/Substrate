@@ -105,6 +105,7 @@ export interface CrossRepoCheckRequest {
   provider_repo: string;
   head_schema_content: string;
   schema_type: string;
+  config_content?: string;
 }
 
 export interface CrossRepoCheckResponse {

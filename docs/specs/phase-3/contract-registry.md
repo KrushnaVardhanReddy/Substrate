@@ -332,6 +332,7 @@ interface CrossRepoCheckRequest {
   provider_repo: string;         // full_name e.g. "myorg/backend-api"
   head_schema_content: string;   // raw schema content from PR head
   schema_type: string;
+  config_content?: string;       // raw substrate.yaml content to apply overrides
 }
 interface CrossRepoCheckResponse {
   total_consumers: number;
