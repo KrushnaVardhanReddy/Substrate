@@ -96,7 +96,34 @@ CREATE TABLE dependencies (
 | `GET` | `/api/v1/graph/:org` | Return dependency graph as JSON (for dashboard) |
 | `GET` | `/health` | Health check (used by Fly.io / load balancer) |
 
----
+**Environment variables:**
+
+| Variable | Required | Default | Purpose |
+|---|---|---|---|
+| `DATABASE_URL` | ✅ Yes | — | PostgreSQL connection string |
+| `PORT` | No | `8090` | HTTP server port |
+| `INTERNAL_SERVICE_TOKEN` | ✅ Yes | — | Bearer token for Worker → Registry auth |
+| `DIFF_ENGINE_URL` | No | `http://localhost:8080` | URL of the diff engine (used by cross-repo-check) |
+
+**Store interface pattern (implemented in `api/internal/db/store.go`):**
+
+```go
+type Store interface {
+    UpsertOrg(ctx context.Context, installationID int64, orgName string) (uuid.UUID, error)
+    UpsertRepo(ctx context.Context, orgID uuid.UUID, githubRepoID int64, name, fullName string) (uuid.UUID, error)
+    UpsertContract(ctx context.Context, repoID uuid.UUID, schemaType, specPath, branch, commitSHA, rawContent string) (uuid.UUID, error)
+    UpsertDependency(ctx context.Context, consumerRepoID, providerContractID uuid.UUID) error
+    GetContractsByProviderFullName(ctx context.Context, providerFullName string) ([]Contract, error)
+    GetConsumersByProviderContract(ctx context.Context, providerContractID uuid.UUID) ([]ConsumerDependency, error)
+    ListReposByOrg(ctx context.Context, orgName string) ([]Repository, error)
+    GetDependencyGraph(ctx context.Context, orgName string) ([]DependencyEdge, error)
+}
+```
+
+All handlers accept `db.Store` as a dependency — `mock_store.go` provides a test double so handler tests require no real PostgreSQL connection.
+
+**Auth:** All non-health endpoints require `Authorization: Bearer <INTERNAL_SERVICE_TOKEN>` header.
+
 
 ### P3-T02: `substrate.yaml` Consumer Declaration Parser
 **Owner:** Jules  
@@ -268,6 +295,7 @@ This change affects **2 registered consumers**:
 Request:
 ```json
 {
+  "installation_id": 123456,
   "org": "myorg",
   "provider_repo": "myorg/backend-api",
   "head_schema_content": "openapi: 3.0.0 ...",
