@@ -280,6 +280,27 @@ Recommendation:
 Create migration before removing field
 ```
 
+## 2. Handling ORMs and Live Databases (Spec-First)
+
+Substrate requires a text-based schema definition (e.g., `schema.sql`) to analyze databases. If your team uses an ORM (like Prisma or Hibernate) and does not maintain a static `.sql` file in the repository, you can generate it on-the-fly in your CI/CD pipeline before running Substrate:
+
+```yaml
+- name: Spin up test database & apply ORM migrations
+  run: |
+    docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=pass postgres:15
+    npm run prisma:migrate
+    pg_dump --schema-only postgres://postgres:pass@localhost:5432/db > schema.sql
+
+- name: Check SQL Breaking Changes
+  uses: KrushnaVardhanReddy/Substrate@v0.1.0
+  with:
+    base_schema: schema.sql # Dump from main branch
+    head_schema: schema.sql # Dump from PR branch
+    schema_type: sql
+```
+
+This enforces our **Spec-First** philosophy without requiring direct connections to your staging or production databases.
+
 ---
 
 # Architecture
