@@ -1,6 +1,6 @@
 # Substrate — Task Tracker
 
-> Last updated: 2026-07-08 (Phase 2 complete ✅ — Phase 3 Contract Registry in progress. Specs reorganized into `docs/specs/phase-1/`, `phase-2/`, `phase-3/` subdirectories.)
+> Last updated: 2026-07-09 (Phase 2 complete ✅ — Phase 3 Contract Registry in progress. **P3-T09 MCP Server merged ✅.** Specs reorganized into `docs/specs/phase-1/`, `phase-2/`, `phase-3/` subdirectories.)
 > Tracking all development phases, tasks, and their current status.
 
 ---
@@ -227,8 +227,8 @@
 | P3-T05 | 🟢 P3 | Dependency graph visualization | Antigravity | 🔒 after P3-T04 |
 | **P3-T11** | 🟢 P3 | **Compatibility matrix dashboard** — provider × consumer version grid | Antigravity | 🔒 after P3-T05 |
 | **P3-T08** | 🔵 P4 | **MCP server spec** (`docs/specs/phase-3/mcp-server.md`) | Antigravity | ✅ |
-| **P3-T09** | 🔵 P4 | **MCP server implementation** (Go, JSON-RPC 2.0) | Jules | 🔄 Jules session `15341875086230126168` | `prompts/phase-3-registry/t09_mcp_implementation.txt` |
-| P3-T10 | 🔵 P4 | **MCP deployment + IDE integration docs** | Antigravity | 🔒 after P3-T09 |
+| **P3-T09** | 🔵 P4 | **MCP server implementation** (Go, JSON-RPC 2.0) | Jules | ✅ Merged `feature/dev` 2026-07-09 | `prompts/phase-3-registry/t09_mcp_implementation.txt` |
+| P3-T10 | 🔵 P4 | **MCP deployment + IDE integration docs** | Antigravity | ⏳ Ready (P3-T09 ✅) |
 | **P3-T12** | 🔵 P4 | **Comprehensive Substrate Platform Docs** — Deep-dive install, config, CLI params, and architecture guides optimized for both human reading and MCP/AI ingestion | Antigravity | 🔒 after P3-T10 | `docs/specs/documentation-strategy.md` |
 | **P3-T13** | 🟢 P3 | **Execution Modes (Enterprise Rollout)** — Add `--mode=legacy\|strict` to CLI for shadow mode / dry-run deployments | Jules | 🔒 after P3-T02d |
 | **P3-T14** | 🟢 P3 | **Interactive Diff Viewer URL** — Worker adds a "View Dashboard" link to GitHub comments, routing to the Svelte dashboard | Jules | 🔒 after P3-T03 |
@@ -322,9 +322,9 @@ See the full spec: `docs/specs/enterprise-vision.md`
 - [ ] Confirm no subprocess / Node.js dependency — single-binary promise must hold for all formats
 
 **MCP Server** ⭐ Phase 3 — Turns Substrate into an IDE-native knowledge layer
-- [ ] Write `docs/specs/mcp-server.md` spec (P3-T08)
-- [ ] Implement Go MCP server with tools: `get_schema`, `check_impact`, `list_consumers`, `get_change_history`, `validate_change`
-- [ ] Deploy MCP server endpoint
+- [x] Write `docs/specs/mcp-server.md` spec (P3-T08) ✅
+- [x] Implement Go MCP server with 7 tools: `get_dependency_graph`, `check_compatibility`, `get_breaking_change_history`, `get_substrate_docs`, `analyze_repository`, `execute_cli_command`, `get_schema_file` ✅ (P3-T09 merged 2026-07-09)
+- [ ] Deploy MCP server endpoint (P3-T10 — ⏳ next)
 - [ ] Write IDE integration guide (Antigravity, Cursor, Claude, Copilot)
 - [ ] Expose MCP server as self-hostable for Enterprise tier
 

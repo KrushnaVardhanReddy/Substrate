@@ -2,7 +2,7 @@
 
 ## The Living Map of Your Engineering Ecosystem
 
-> **Status:** v0.1.6 🚀 — [OpenAPI Contract Guard](https://github.com/marketplace/actions/substrate-api-contract-guard) live on GitHub Marketplace. **Phase 2 (GitHub App) ✅ Complete. Phase 3 (Contract Registry) 🔄 in progress.**
+> **Status:** v0.1.6 🚀 — [OpenAPI Contract Guard](https://github.com/marketplace/actions/substrate-api-contract-guard) live on GitHub Marketplace. **Phase 2 (GitHub App) ✅ Complete. Phase 3 (Contract Registry + MCP Server) 🔄 in progress — MCP server (`substrate-mcp`) ✅ merged.**
 
 Substrate is a CI/CD-integrated data contract and dependency intelligence platform that prevents downstream data failures before they reach production.
 
@@ -938,17 +938,20 @@ Trying to be "everything everywhere all at once" is how startups die.
 ```
 1. Best API Contract Platform          Phase 1a ✅  shipped v0.1.0
         ↓
-2. Best SQL Contract Platform          Phase 1b 🔄  in progress
+2. All 8 Schema Adapters               Phase 1b–1g ✅  SQL, GraphQL, Protobuf,
+                                                        AsyncAPI, Avro, Terraform,
+                                                        AI/ML, Enterprise (Salesforce)
         ↓
-3. Best Contract + Distribution        Phase 2  ⏳  GitHub App, 1-click install,
-   Platform                                         PR comments, user accounts
+3. Best Contract + Distribution        Phase 2  ✅  GitHub App live. Cloudflare
+   Platform                                         Worker + Container wired.
         ↓
-4. Best Intelligence Platform          Phase 3  💡  Dashboard, dependency graph,
-                                                    MCP server, audit trails
+4. Best Intelligence Platform          Phase 3  🔄  Registry ✅, Dashboard ✅,
+                                                    MCP Server ✅ (substrate-mcp,
+                                                    7 tools, JSON-RPC 2.0 over stdio)
+                                                    Next: P3-T10 IDE docs, P3-T13
         ↓
-5. Expand Contract Formats             Phase 1c–1g  GraphQL → Protobuf → AsyncAPI
-   (demand-driven)                     💡           → AI/ML → Enterprise
-                                                    (ordered by user demand)
+5. V1.0 Release + Marketplace          Upcoming 💡  Tag v1.0, full platform docs
+                                                    (P3-T12), GitHub Marketplace
         ↓
 6. Best AI Engineering Platform        Phase 4  💡  AI assistant, migration
                                                     recommendations, agent handoffs
