@@ -61,7 +61,8 @@ func main() {
 
 			var rep *report.DiffReport
 
-			if finalSchemaType == "sql" {
+			switch finalSchemaType {
+			case "sql":
 				base, err := sqlpkg.ParseSchema(basePath)
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
@@ -73,31 +74,31 @@ func main() {
 					os.Exit(3)
 				}
 				rep = sqlpkg.DiffSchemas(base, head)
-			} else if finalSchemaType == "asyncapi" {
+			case "asyncapi":
 				rep, err = diff.CompareAsyncAPI(basePath, revisionPath)
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 					os.Exit(3)
 				}
-			} else if finalSchemaType == "protobuf" || finalSchemaType == "proto" {
+			case "protobuf", "proto":
 				rep, err = diff.CompareProto(basePath, revisionPath)
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 					os.Exit(3)
 				}
-			} else if finalSchemaType == "terraform-plan" {
+			case "terraform-plan":
 				rep, err = diff.CompareTerraformPlan(revisionPath)
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 					os.Exit(3)
 				}
-			} else if finalSchemaType == "avro" {
+			case "avro":
 				rep, err = diff.CompareAvro(basePath, revisionPath, cfg)
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 					os.Exit(3)
 				}
-			} else {
+			default:
 				rep, err = diff.CompareOpenAPI(basePath, revisionPath, flattenAllOf)
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)

@@ -166,24 +166,25 @@ func setupMux() *http.ServeMux {
 		}
 
 		var rep *report.DiffReport
-		if req.SchemaType == "sql" {
+		switch req.SchemaType {
+		case "sql":
 			rep, err = runSQLDiff(baseFile.Name(), headFile.Name(), configPath)
-		} else if req.SchemaType == "terraform-plan" {
+		case "terraform-plan":
 			rep, err = diff.CompareTerraformPlan(headFile.Name())
 			if err == nil {
 				rep = applyConfig(rep, configPath)
 			}
-		} else if req.SchemaType == "asyncapi" {
+		case "asyncapi":
 			rep, err = diff.CompareAsyncAPI(baseFile.Name(), headFile.Name())
 			if err == nil {
 				rep = applyConfig(rep, configPath)
 			}
-		} else if req.SchemaType == "protobuf" || req.SchemaType == "proto" {
+		case "protobuf", "proto":
 			rep, err = diff.CompareProto(baseFile.Name(), headFile.Name())
 			if err == nil {
 				rep = applyConfig(rep, configPath)
 			}
-		} else if req.SchemaType == "avro" {
+		case "avro":
 			avroCfg := &config.SubstrateConfig{
 				Service: "unknown",
 				Avro: &config.AvroConfig{
@@ -194,7 +195,7 @@ func setupMux() *http.ServeMux {
 			if err == nil {
 				rep = applyConfig(rep, configPath)
 			}
-		} else {
+		default:
 			rep, err = runOpenAPIDiff(baseFile.Name(), headFile.Name(), configPath)
 		}
 
