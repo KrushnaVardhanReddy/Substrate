@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"encoding/json"
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 )
 
 var binaryPath string
@@ -106,5 +108,44 @@ func TestE2ECli(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestCrossRepoCheckE2E(t *testing.T) {
+	cmd := exec.Command(binaryPath, "diff", "testdata/cross-repo/consumer_snapshot.yaml", "testdata/cross-repo/provider_head.yaml", "--schema-type", "openapi", "--format", "json")
+	output, err := cmd.CombinedOutput()
+
+	exitCode := 0
+	if err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			exitCode = exitErr.ExitCode()
+		} else {
+			t.Fatalf("Failed to run command: %v\nOutput: %s", err, string(output))
+		}
+	}
+
+	if exitCode != 2 {
+		t.Errorf("Expected exit code 2, got %d.\nCommand: %s\nOutput:\n%s", exitCode, strings.Join(cmd.Args, " "), string(output))
+	}
+
+	var rep report.DiffReport
+	if err := json.Unmarshal(output, &rep); err != nil {
+		t.Fatalf("Failed to parse output as JSON: %v\nOutput: %s", err, string(output))
+	}
+
+	if rep.Summary.BreakingCount != 1 {
+		t.Errorf("Expected Summary.BreakingCount to be 1, got %d", rep.Summary.BreakingCount)
+	}
+
+	if len(rep.BreakingChanges) == 0 {
+		t.Fatalf("Expected at least 1 BreakingChange, got 0")
+	}
+
+	if rep.BreakingChanges[0].RuleID != "ENDPOINT_REMOVED" {
+		t.Errorf("Expected BreakingChanges[0].RuleID to be ENDPOINT_REMOVED, got %s", rep.BreakingChanges[0].RuleID)
+	}
+
+	if rep.BreakingChanges[0].Path != "GET /users" {
+		t.Errorf("Expected BreakingChanges[0].Path to be 'GET /users', got '%s'", rep.BreakingChanges[0].Path)
 	}
 }
