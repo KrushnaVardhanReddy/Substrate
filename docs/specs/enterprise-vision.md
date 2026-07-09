@@ -77,3 +77,21 @@ Because Substrate's Registry maps how all services connect, it can trace specifi
 
 ### Compliance Mapping (Inspired by Veracode)
 Substrate maps schema changes directly to SOC2, GDPR, or HIPAA requirements. Adding a field like `medical_history` triggers an automatic `[HIPAA]` tag in the registry and alerts the Compliance team.
+
+---
+
+## 5. Phase 6: QA & Automation Layer (The SDET Co-Pilot)
+
+If Substrate catches bugs in CI, it's a dev tool. If it automatically writes tests and updates QA environments, it becomes an **SDLC Orchestrator** that touches every role in the engineering organization.
+
+### Auto-Generating Edge-Case Test Data (Fuzzing)
+Because Substrate parses exactly what the API expects (e.g., `maxLength: 50`), the `substrate generate-tests` command instantly generates hundreds of JSON payloads (valid data, edge cases, negative numbers, massive strings, nulls) that QA can pipe directly into Postman or Playwright instead of manually creating test data.
+
+### Auto-Updating Postman & Cypress Tests
+When a developer safely changes an API (like renaming a field from `userID` to `userId`), it breaks the QA team's automated Postman collections and Cypress fixtures. Substrate automatically detects these changes and **opens a PR in the QA team's repository** to update their Postman JSON files, ensuring the QA test pipeline doesn't randomly break overnight.
+
+### "Shadow API" Test Coverage
+By combining Substrate's schema parsing with Datadog/OTel traffic, Substrate generates a coverage report: *"There are 15 fields defined in the OpenAPI spec, but during your E2E test run today, 4 of those fields were never touched. Your E2E tests are missing coverage."*
+
+### Regression "Snapshot" Replay
+If a production bug happens, QA spends hours trying to reproduce the exact state of the APIs from last Tuesday. Because the Substrate Registry stores a permanent timeline of every schema version, QA can use Substrate to "time travel", pulling the exact API schemas from the exact minute the bug occurred to perfectly reproduce the issue locally.
