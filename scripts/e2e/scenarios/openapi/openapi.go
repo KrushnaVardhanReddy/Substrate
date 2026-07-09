@@ -41,7 +41,7 @@ func RunOverride(ctx context.Context, client *github.Client, owner string) {
 	executeScenario(ctx, client, owner, "Config Override",
 		defaultSubstrateYaml(), defaultOpenAPIYaml(),
 		overrideSubstrateYaml(), removedEndpointYaml(),
-		"✅ Acknowledged")
+		"All Clear")
 }
 
 func RunWarning(ctx context.Context, client *github.Client, owner string) {
