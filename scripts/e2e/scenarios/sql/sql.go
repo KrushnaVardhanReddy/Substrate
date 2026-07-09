@@ -61,14 +61,14 @@ func executeScenario(ctx context.Context, client *github.Client, owner, scenario
 	helpers.SeedFile(ctx, client, owner, providerRepoName, "substrate.yaml", "main", baseConfig)
 	helpers.SeedFile(ctx, client, owner, providerRepoName, "schema.sql", "main", baseSchema)
 
-	// Seed the consumer!
-	consumerConfig := fmt.Sprintf(`service: test-consumer
+	consumerConfig := fmt.Sprintf(`# Seeded at %d
+service: test-consumer
 consumers:
   - name: sql-dep
     provider_repo: %s/%s
     schema_type: sql
     provider_spec_path: schema.sql
-`, owner, providerRepoName)
+`, time.Now().UnixNano(), owner, providerRepoName)
 	helpers.SeedFile(ctx, client, owner, consumerRepoName, "substrate.yaml", "main", consumerConfig)
 	
 	log.Println("Waiting 15s for the Registry API to sync baselines...")
