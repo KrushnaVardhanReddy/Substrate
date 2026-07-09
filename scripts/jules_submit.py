@@ -227,6 +227,11 @@ TASKS = {
         "phase": "phase-1c-graphql",
         "prompt": _load_prompt("prompts/phase-1c-graphql/t01_parser.txt"),
     },
+    27: {
+        "name": "P3-T02c — Cross-Repo Compatibility Check on PR",
+        "phase": "phase-3-registry",
+        "prompt": _load_prompt("prompts/phase-3-registry/t02c_cross_repo_check.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
