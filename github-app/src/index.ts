@@ -9,9 +9,14 @@ import { parseConsumersFromYaml, syncToRegistry, crossRepoCheck } from './regist
 function parseYaml(yaml: string): any {
   const result: any = {};
   const baseMatch = yaml.match(/base_schema:\s*(.+)/);
-  if (baseMatch) result.base_schema = baseMatch[1].trim();
   const headMatch = yaml.match(/head_schema:\s*(.+)/);
+  const specMatch = yaml.match(/spec_path:\s*(.+)/);
+  
+  if (baseMatch) result.base_schema = baseMatch[1].trim();
+  else if (specMatch) result.base_schema = specMatch[1].trim();
+  
   if (headMatch) result.head_schema = headMatch[1].trim();
+  else if (specMatch) result.head_schema = specMatch[1].trim();
   const onBreakingMatch = yaml.match(/on_breaking_change:\s*(.+)/);
   if (onBreakingMatch) result.on_breaking_change = onBreakingMatch[1].trim();
   const schemaTypeMatch = yaml.match(/schema_type:\s*(.+)/);
