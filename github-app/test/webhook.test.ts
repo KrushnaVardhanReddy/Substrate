@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { validateWebhookSignature, parsePREvent } from '../src/webhook';
+import { validateWebhookSignature, parsePREvent, parsePushEvent } from '../src/webhook.js';
 
 describe('webhook validation', () => {
   beforeEach(() => {
@@ -90,5 +90,71 @@ describe('PR event parsing', () => {
     });
     const result = parsePREvent(headers, body);
     expect(result).not.toBeNull();
+  });
+});
+
+describe('Push event parsing', () => {
+  it('returns PushEvent for push to main', () => {
+    const headers = new Headers({ 'X-GitHub-Event': 'push' });
+    const body = JSON.stringify({
+      ref: 'refs/heads/main',
+      after: 'abcdef',
+      deleted: false,
+      installation: { id: 123 },
+      repository: {
+        name: 'repo',
+        full_name: 'owner/repo',
+        id: 456,
+        owner: { login: 'owner', id: 789 }
+      }
+    });
+    const result = parsePushEvent(headers, body);
+    expect(result).toEqual({
+      ref: 'refs/heads/main',
+      after: 'abcdef',
+      installationId: 123,
+      owner: 'owner',
+      repo: 'repo',
+      fullName: 'owner/repo',
+      githubRepoId: 456,
+      installationOrgId: 789
+    });
+  });
+
+  it('returns null for push to feature branch', () => {
+    const headers = new Headers({ 'X-GitHub-Event': 'push' });
+    const body = JSON.stringify({
+      ref: 'refs/heads/feature',
+      deleted: false
+    });
+    const result = parsePushEvent(headers, body);
+    expect(result).toBeNull();
+  });
+
+  it('returns null for tag push', () => {
+    const headers = new Headers({ 'X-GitHub-Event': 'push' });
+    const body = JSON.stringify({
+      ref: 'refs/tags/v1.0',
+      deleted: false
+    });
+    const result = parsePushEvent(headers, body);
+    expect(result).toBeNull();
+  });
+
+  it('returns null for delete push', () => {
+    const headers = new Headers({ 'X-GitHub-Event': 'push' });
+    const body = JSON.stringify({
+      ref: 'refs/heads/main',
+      deleted: true
+    });
+    const result = parsePushEvent(headers, body);
+    expect(result).toBeNull();
+  });
+
+  it('returns null for non-push event', () => {
+    const headers = new Headers({ 'X-GitHub-Event': 'pull_request' });
+    const body = JSON.stringify({ ref: 'refs/heads/main' });
+    const result = parsePushEvent(headers, body);
+    expect(result).toBeNull();
   });
 });

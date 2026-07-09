@@ -1,7 +1,8 @@
-import { Env, DiffReport } from './types.js';
-import { validateWebhookSignature, parsePREvent } from './webhook.js';
+import { Env, DiffReport, SyncDependency } from './types.js';
+import { validateWebhookSignature, parsePREvent, parsePushEvent } from './webhook.js';
 import { generateInstallationToken, fetchFileContent, postPRComment, setCommitStatus } from './github-client.js';
 import { formatPRComment, formatMissingConfigComment, getCommitStatusState, getCommitStatusDescription } from './formatter.js';
+import { parseConsumersFromYaml, syncToRegistry } from './registry-client.js';
 
 // YAML parser mock/regex for the stub phase
 function parseYaml(yaml: string): any {
@@ -57,6 +58,99 @@ export default {
     const isValid = await validateWebhookSignature(signature, body, env.GITHUB_WEBHOOK_SECRET);
     if (!isValid) {
       return new Response('Unauthorized', { status: 401 });
+    }
+
+    const eventType = request.headers.get('X-GitHub-Event');
+    if (eventType === 'push') {
+      const pushEvent = parsePushEvent(request.headers, body);
+      if (!pushEvent) {
+        return new Response('Ignored', { status: 200 });
+      }
+
+      try {
+        const token = await generateInstallationToken(
+          env.GITHUB_APP_ID,
+          env.GITHUB_APP_PRIVATE_KEY,
+          pushEvent.installationId
+        );
+
+        const configContent = await fetchFileContent(
+          token,
+          pushEvent.owner,
+          pushEvent.repo,
+          'substrate.yaml',
+          pushEvent.after
+        );
+
+        if (!configContent) {
+          return new Response('Ignored', { status: 200 });
+        }
+
+        const consumerEntries = await parseConsumersFromYaml(configContent);
+        if (consumerEntries.length === 0) {
+          return new Response('Ignored', { status: 200 });
+        }
+
+        const syncDependencies: SyncDependency[] = [];
+
+        await Promise.all(consumerEntries.map(async (entry) => {
+          try {
+            // Fetch provider_github_repo_id using GitHub API
+            const repoResponse = await fetch(`https://api.github.com/repos/${entry.provider_repo}`, {
+              headers: {
+                'Accept': 'application/vnd.github.v3+json',
+                'Authorization': `Bearer ${token}`,
+                'User-Agent': 'Substrate-GitHub-App'
+              }
+            });
+
+            if (!repoResponse.ok) {
+              console.error(`Failed to fetch repo ${entry.provider_repo}`);
+              return;
+            }
+
+            const repoData = await repoResponse.json() as any;
+            const providerOwner = repoData.owner.login;
+            const providerRepoName = repoData.name;
+            const providerGithubRepoId = repoData.id;
+
+            const providerSpecContent = await fetchFileContent(
+              token,
+              providerOwner,
+              providerRepoName,
+              entry.provider_spec_path,
+              entry.provider_branch
+            );
+
+            if (providerSpecContent) {
+              syncDependencies.push({
+                provider_repo: entry.provider_repo,
+                provider_github_repo_id: providerGithubRepoId,
+                schema_type: entry.schema_type,
+                spec_path: entry.provider_spec_path,
+                branch: entry.provider_branch,
+                raw_content: providerSpecContent
+              });
+            }
+          } catch (err) {
+            console.error(`Error processing consumer entry ${entry.name}`, err);
+          }
+        }));
+
+        const syncResult = await syncToRegistry(env.REGISTRY_API_URL, env.REGISTRY_API_TOKEN, {
+          installation_id: pushEvent.installationId,
+          org: pushEvent.owner,
+          consumer_repo: pushEvent.fullName,
+          consumer_github_repo_id: pushEvent.githubRepoId,
+          commit_sha: pushEvent.after,
+          dependencies: syncDependencies
+        });
+
+        return new Response(JSON.stringify(syncResult), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      } catch (e: any) {
+        console.error(e);
+        return new Response('Error Processing Push', { status: 200 });
+      }
     }
 
     // Step 3: Parse PR event
