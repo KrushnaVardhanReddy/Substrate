@@ -141,14 +141,14 @@
 | P1f-T01 | AI/ML model contract diff adapter (inputs, outputs, serving, metadata rules) | Jules | ✅ | `prompts/phase-1f-aiml/t01_aiml_adapter.txt` |
 
 
-### Phase 1g — Enterprise Metadata (Salesforce & SOAP) 🔄 RUNNING
+### Phase 1g — Enterprise Metadata (Salesforce & SOAP) ✅ COMPLETE
 
 > **Library decision:** Use Go stdlib `encoding/xml` to parse both WSDL/XSD and Salesforce XML metadata. Both are purely XML diffing operations based on specific tags (`<CustomObject>`, `<definitions>`). **Single-binary promise maintained.**
 > **Spec:** `docs/specs/phase-1/enterprise-adapter.md` ✅ APPROVED
 
 | Task ID | Name | Owner | Status | Jules Prompt |
 |---|---|---|---|---|
-| **P1g-T01** | **Enterprise metadata diff adapter (Salesforce, SOAP)** | Jules | 🔄 Jules session `12204830310194018312` | `prompts/phase-1g-enterprise/t01_enterprise_adapter.txt` |
+| **P1g-T01** | **Enterprise metadata diff adapter (Salesforce, SOAP)** | Jules | ✅ | `prompts/phase-1g-enterprise/t01_enterprise_adapter.txt` |
 
 ### Phase 1h — Infrastructure as Code (Terraform) ⏳ READY
 
@@ -162,7 +162,7 @@
 ---
 
 > **Wave 2 execution order (Phase 2 complete ✅ — Wave 2 unblocked):** Follow effort order, not numerical order:
-> `1d ✅ (Protobuf)` → `1e ✅ (AsyncAPI/Avro)` → `1h ✅ (Terraform)` → `1c ✅ (GraphQL)` → `1f ✅ (AI/ML)` → `1g (Enterprise)`
+> `1d ✅ (Protobuf)` → `1e ✅ (AsyncAPI/Avro)` → `1h ✅ (Terraform)` → `1c ✅ (GraphQL)` → `1f ✅ (AI/ML)` → `1g ✅ (Enterprise)`
 
 ---
 
