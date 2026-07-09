@@ -299,6 +299,7 @@ See the full spec: `docs/specs/enterprise-vision.md`
 - [ ] Cross-Repo Auto-Fix PRs (Snyk-style auto-remediation)
 - [ ] Cross-Repo Data Flow Taint Analysis (Checkmarx style)
 - [ ] Compliance Mapping (SOC2, HIPAA, GDPR tags)
+- [ ] Interactive Diff Viewer UI (Vercel-style Previews)
 
 **Zero-Touch Onboarding & AI Spec Generation** 🚀 (High Priority for Client Demos)
 - [ ] **AI API Architect (For NEW Projects - "Spec-First"):** A `substrate design` CLI command. The user types "I need a blog API with posts and comments." The LLM generates a best-practice, REST-compliant `openapi.yaml` from scratch. Substrate acts as an AI software architect, establishing the contract before code is written.

@@ -38,6 +38,9 @@ Because the Substrate Contract Registry knows exactly which frontend consumes wh
 ### Local "Time-Travel" Mock Servers
 Developers struggle to test against distributed microservices locally. With the command `substrate mock --env production`, Substrate pulls the exact schemas of all live production services from the registry and instantly spins up local mock servers. The developer gets a perfect local replica of the production layer in seconds.
 
+### Interactive "Diff Viewer" UI (Vercel-style Previews)
+When Substrate posts a PR comment, reading a text list of 50 breaking changes is overwhelming. Substrate will post a "Preview URL" inside the PR. Clicking it opens a beautiful, interactive dashboard showing a side-by-side comparison of the old schema vs the new schema. It highlights exactly what broke in red, with inline recommendations on how to fix it, dramatically improving the developer experience.
+
 ---
 
 ## 3. Extending the Moat: Full-Stack & Runtime
