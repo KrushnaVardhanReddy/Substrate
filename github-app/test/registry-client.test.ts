@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { parseConsumersFromYaml, syncToRegistry } from '../src/registry-client.js';
+import { parseConsumersFromYaml, syncToRegistry, crossRepoCheck } from '../src/registry-client.js';
 
 describe('parseConsumersFromYaml', () => {
   it('returns empty array for empty yaml', async () => {
@@ -109,5 +109,100 @@ describe('syncToRegistry', () => {
     await expect(syncToRegistry('http://registry.api', 'token', {
       installation_id: 1, org: 'o', consumer_repo: 'o/c', consumer_github_repo_id: 2, commit_sha: 'a', dependencies: []
     })).rejects.toThrow('Failed to sync to registry: 500 internal server error');
+  });
+});
+
+
+
+describe('crossRepoCheck', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  const dummyPayload = {
+    installation_id: 1,
+    org: 'myorg',
+    provider_repo: 'myorg/backend-api',
+    head_schema_content: 'openapi: 3.0.0',
+    schema_type: 'openapi'
+  };
+
+  it('success — returns full ConsumerCompatibilityMatrix', async () => {
+    const mockResponse = {
+      total_consumers: 2,
+      broken_consumers: 1,
+      is_safe: false,
+      results: [
+        {
+          consumer_repo: 'myorg/frontend',
+          status: 'breaking',
+          diff_report: { breaking: [{}], warning: [], info: [], summary: { breaking_count: 1, warning_count: 0, info_count: 0 } }
+        },
+        {
+          consumer_repo: 'myorg/mobile-app',
+          status: 'safe',
+          diff_report: { breaking: [], warning: [], info: [], summary: { breaking_count: 0, warning_count: 0, info_count: 0 } }
+        }
+      ]
+    };
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockResponse
+    });
+    globalThis.fetch = fetchMock;
+
+    const res = await crossRepoCheck('http://registry.api', 'token', dummyPayload);
+    expect(res).toEqual(mockResponse);
+    expect(fetchMock).toHaveBeenCalledWith('http://registry.api/api/v1/cross-repo-check', expect.any(Object));
+  });
+
+  it('non-2xx response — returns safe default, does not throw', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      text: async () => 'Internal Server Error'
+    });
+    globalThis.fetch = fetchMock;
+
+    const res = await crossRepoCheck('http://registry.api', 'token', dummyPayload);
+    expect(res).toEqual({
+      total_consumers: 0,
+      broken_consumers: 0,
+      is_safe: true,
+      results: []
+    });
+    expect(fetchMock).toHaveBeenCalledWith('http://registry.api/api/v1/cross-repo-check', expect.any(Object));
+  });
+
+  it('no consumers registered — returns safe default', async () => {
+    const mockResponse = {
+      total_consumers: 0,
+      broken_consumers: 0,
+      is_safe: true,
+      results: []
+    };
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockResponse
+    });
+    globalThis.fetch = fetchMock;
+
+    const res = await crossRepoCheck('http://registry.api', 'token', dummyPayload);
+    expect(res).toEqual(mockResponse);
+    expect(fetchMock).toHaveBeenCalledWith('http://registry.api/api/v1/cross-repo-check', expect.any(Object));
+  });
+
+  it('fetch error (network issue) — returns safe default, does not throw', async () => {
+    const fetchMock = vi.fn().mockRejectedValue(new Error('Network error'));
+    globalThis.fetch = fetchMock;
+
+    const res = await crossRepoCheck('http://registry.api', 'token', dummyPayload);
+    expect(res).toEqual({
+      total_consumers: 0,
+      broken_consumers: 0,
+      is_safe: true,
+      results: []
+    });
+    expect(fetchMock).toHaveBeenCalledWith('http://registry.api/api/v1/cross-repo-check', expect.any(Object));
   });
 });

@@ -1,8 +1,9 @@
-import { Env, DiffReport, SyncDependency } from './types.js';
+import { Env, DiffReport, SyncDependency, CrossRepoCheckRequest, CrossRepoCheckResponse } from './types.js';
 import { validateWebhookSignature, parsePREvent, parsePushEvent } from './webhook.js';
 import { generateInstallationToken, fetchFileContent, postPRComment, setCommitStatus } from './github-client.js';
-import { formatPRComment, formatMissingConfigComment, getCommitStatusState, getCommitStatusDescription } from './formatter.js';
-import { parseConsumersFromYaml, syncToRegistry } from './registry-client.js';
+import { formatPRComment, formatMissingConfigComment, getCommitStatusState, getCommitStatusDescription, formatCrossRepoImpact } from './formatter.js';
+import { parseConsumersFromYaml, syncToRegistry, crossRepoCheck } from './registry-client.js';
+
 
 // YAML parser mock/regex for the stub phase
 function parseYaml(yaml: string): any {
@@ -238,13 +239,35 @@ export default {
         return new Response('Engine Error', { status: 200 });
       }
 
+      // Step 9.5: Cross Repo Check
+      let crossRepoResponse: CrossRepoCheckResponse | undefined;
+      const schemaType = config.schema_type || 'openapi';
+
+      if (env.REGISTRY_API_URL) {
+        const payload: CrossRepoCheckRequest = {
+          installation_id: event.installationId,
+          org: event.owner,
+          provider_repo: event.fullName,
+          head_schema_content: headContent,
+          schema_type: schemaType
+        };
+        crossRepoResponse = await crossRepoCheck(env.REGISTRY_API_URL, env.REGISTRY_API_TOKEN, payload);
+      } else {
+        crossRepoResponse = { total_consumers: 0, broken_consumers: 0, is_safe: true, results: [] };
+      }
+
+      const crossRepoSection = formatCrossRepoImpact(crossRepoResponse);
+
       // Step 10: Post PR comment
-      const commentBody = formatPRComment(diffReport, config);
+      let commentBody = formatPRComment(diffReport, config);
+      if (crossRepoSection) {
+        commentBody += "\n" + crossRepoSection;
+      }
       await postPRComment(token, event.owner, event.repo, event.prNumber, commentBody);
 
       // Step 11: Set final commit status
-      const statusState = getCommitStatusState(diffReport, config);
-      const statusDescription = getCommitStatusDescription(diffReport);
+      const statusState = getCommitStatusState(diffReport, config, crossRepoResponse);
+      const statusDescription = getCommitStatusDescription(diffReport, crossRepoResponse);
       await setCommitStatus(
         token,
         event.owner,

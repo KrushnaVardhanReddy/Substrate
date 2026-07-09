@@ -1,3 +1,4 @@
+import type { CrossRepoCheckRequest, CrossRepoCheckResponse, ConsumerResult } from './types.js';
 import { ConsumerEntry, SyncRequest } from './types.js';
 
 export async function parseConsumersFromYaml(yamlContent: string): Promise<ConsumerEntry[]> {
@@ -55,4 +56,45 @@ export async function syncToRegistry(
 
   const result = await response.json() as { synced: number };
   return result;
+}
+
+
+
+export async function crossRepoCheck(
+  registryUrl: string,
+  token: string,
+  payload: CrossRepoCheckRequest
+): Promise<CrossRepoCheckResponse> {
+  const safeDefault: CrossRepoCheckResponse = {
+    total_consumers: 0,
+    broken_consumers: 0,
+    is_safe: true,
+    results: []
+  };
+
+  try {
+    const url = `${registryUrl.replace(/\/$/, '')}/api/v1/cross-repo-check`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      console.error(`Failed cross-repo check: ${response.status}`);
+      return safeDefault;
+    }
+
+    const result = await response.json() as CrossRepoCheckResponse;
+    if (!result.results) {
+        return safeDefault;
+    }
+    return result;
+  } catch (err) {
+    console.error('Error during cross-repo check', err);
+    return safeDefault;
+  }
 }

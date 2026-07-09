@@ -1,4 +1,4 @@
-import type { DiffReport, SubstrateConfig } from './types.js';
+import type { DiffReport, SubstrateConfig, CrossRepoCheckResponse } from './types.js';
 
 function escapeMarkdown(text: string): string {
   // Escape pipes and backticks in markdown tables
@@ -102,8 +102,18 @@ This generates a \`substrate.yaml\` in 30 seconds. [View setup guide →](https:
 *Powered by [Substrate](https://github.com/KrushnaVardhanReddy/Substrate)*`;
 }
 
-export function getCommitStatusState(report: DiffReport, config: SubstrateConfig): 'success' | 'failure' {
+
+
+export function getCommitStatusState(
+  report: DiffReport,
+  config: SubstrateConfig,
+  crossRepo?: CrossRepoCheckResponse
+): 'success' | 'failure' {
   const breakingCount = report.summary?.breaking_count || 0;
+
+  if (crossRepo?.is_safe === false) {
+    return 'failure';
+  }
 
   if (breakingCount === 0) {
     return 'success';
@@ -118,12 +128,66 @@ export function getCommitStatusState(report: DiffReport, config: SubstrateConfig
   return 'failure';
 }
 
-export function getCommitStatusDescription(report: DiffReport): string {
+export function getCommitStatusDescription(
+  report: DiffReport,
+  crossRepo?: CrossRepoCheckResponse
+): string {
   const breakingCount = report.summary?.breaking_count || 0;
 
-  if (breakingCount === 0) {
-    return 'All clear — no breaking changes';
+  if (breakingCount > 0 && crossRepo?.is_safe === false) {
+    return `${breakingCount} breaking change(s) detected — ${crossRepo.broken_consumers} consumer(s) affected`;
   }
 
-  return `${breakingCount} breaking change(s) detected`;
+  if (breakingCount > 0) {
+    return `${breakingCount} breaking change(s) detected`;
+  }
+
+  if (crossRepo?.is_safe === false) {
+    return `${crossRepo.broken_consumers} downstream consumer(s) affected by this change`;
+  }
+
+  return 'All clear — no breaking changes';
+}
+
+export function formatCrossRepoImpact(response: CrossRepoCheckResponse): string {
+  if (response.total_consumers === 0) {
+    return '';
+  }
+
+  let text = `\n---\n\n## 🌐 Cross-Repo Impact\n\nThis change affects **${response.total_consumers} registered consumer(s)**:\n\n| Consumer | Status | Breaking Changes |\n|---|---|---|\n`;
+
+  for (const result of response.results) {
+    let statusText = '';
+    if (result.status === 'breaking') statusText = '❌ BREAKING';
+    else if (result.status === 'safe') statusText = '✅ Safe';
+    else if (result.status === 'warning') statusText = '⚠️ Warning';
+    else statusText = '❓ Unknown';
+
+    let breakingText = '';
+    const breakingCount = result.diff_report.summary.breaking_count || 0;
+    if (breakingCount === 0) {
+      breakingText = 'No breaking changes detected';
+    } else {
+      const firstChange = result.diff_report.breaking[0];
+      breakingText = `\`${escapeMarkdown(firstChange.path)}\` — ${escapeMarkdown(firstChange.message)}`;
+      if (breakingCount > 1) {
+        breakingText += ` (+${breakingCount - 1} more)`;
+      }
+    }
+
+    text += `| \`${escapeMarkdown(result.consumer_repo)}\` | ${statusText} | ${breakingText} |\n`;
+  }
+
+  if (response.broken_consumers > 0) {
+    const brokenRepos = response.results
+      .filter(r => r.status === 'breaking')
+      .map(r => `\`${escapeMarkdown(r.consumer_repo)}\``)
+      .join(', ');
+
+    text += `\n> ⚠️ **Action required:** Coordinate with the ${brokenRepos} team before merging.\n> The \`substrate/breaking-changes\` check is now **FAILING**.\n`;
+  } else {
+    text += `\n> ✅ All registered consumers are compatible with this change.\n`;
+  }
+
+  return text;
 }

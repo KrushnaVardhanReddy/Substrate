@@ -290,8 +290,11 @@ import { parseConsumersFromYaml, syncToRegistry } from '../src/registry-client.j
 
 vi.mock('../src/registry-client.js', () => ({
   parseConsumersFromYaml: vi.fn(),
-  syncToRegistry: vi.fn()
+  syncToRegistry: vi.fn(),
+  crossRepoCheck: vi.fn()
 }));
+
+import { crossRepoCheck } from '../src/registry-client.js';
 
 describe('Worker Handler Push Event', () => {
   beforeEach(() => {
@@ -412,4 +415,195 @@ describe('Worker Handler Push Event', () => {
     expect(response.status).toBe(200);
     expect(await response.text()).toBe('Ignored');
   });
+});
+
+describe('Worker Handler Cross Repo PR Events', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (githubClient.generateInstallationToken as any).mockResolvedValue('mock-token');
+  });
+
+  const basePayload = {
+    action: 'opened',
+    installation: { id: 1 },
+    repository: { owner: { login: 'owner' }, name: 'repo', full_name: 'owner/repo' },
+    pull_request: { head: { sha: 'headsha' }, base: { ref: 'main' }, number: 1 }
+  };
+
+  it('PR with breaking change + 1 broken consumer → status check FAILS, comment includes cross-repo section', async () => {
+    const payload = JSON.stringify(basePayload);
+    const sig = await signWebhook(payload, MOCK_ENV.GITHUB_WEBHOOK_SECRET);
+    const request = new Request('http://localhost', {
+      method: 'POST',
+      headers: { 'X-Hub-Signature-256': sig, 'X-GitHub-Event': 'pull_request' },
+      body: payload
+    });
+
+    (githubClient.fetchFileContent as any)
+      .mockResolvedValueOnce('base_schema: base.yaml\nhead_schema: head.yaml')
+      .mockResolvedValueOnce('base content')
+      .mockResolvedValueOnce('head content');
+
+    (globalThis.fetch as any).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        breaking: [{ rule: 'rule1', severity: 'BREAKING', path: 'path1', message: 'msg1' }],
+        warning: [], info: [],
+        summary: { breaking_count: 1, warning_count: 0, info_count: 0 }
+      })
+    });
+
+    const crossRepoRes = {
+      total_consumers: 1, broken_consumers: 1, is_safe: false,
+      results: [{ consumer_repo: 'org/consumer', status: 'breaking', diff_report: { breaking: [{ rule: 'rule', path: 'path', message: 'msg' }], summary: { breaking_count: 1 } } }]
+    };
+    (crossRepoCheck as any).mockResolvedValueOnce(crossRepoRes);
+
+    const envWithReg = { ...MOCK_ENV, REGISTRY_API_URL: 'http://reg.api', REGISTRY_API_TOKEN: 'token' };
+    const response = await worker.fetch(request, envWithReg as any);
+    expect(response.status).toBe(200);
+
+    expect(githubClient.postPRComment).toHaveBeenCalledWith(
+      'mock-token', 'owner', 'repo', 1, expect.stringContaining('Cross-Repo Impact')
+    );
+    expect(githubClient.setCommitStatus).toHaveBeenCalledWith(
+      'mock-token', 'owner', 'repo', 'headsha', 'failure', expect.stringContaining('1 breaking change(s) detected — 1 consumer(s) affected')
+    );
+  });
+
+  it('PR with breaking change + registry not configured (no REGISTRY_API_URL) → cross-repo check skipped', async () => {
+    const payload = JSON.stringify(basePayload);
+    const sig = await signWebhook(payload, MOCK_ENV.GITHUB_WEBHOOK_SECRET);
+    const request = new Request('http://localhost', {
+      method: 'POST',
+      headers: { 'X-Hub-Signature-256': sig, 'X-GitHub-Event': 'pull_request' },
+      body: payload
+    });
+
+    (githubClient.fetchFileContent as any)
+      .mockResolvedValueOnce('base_schema: base.yaml\nhead_schema: head.yaml')
+      .mockResolvedValueOnce('base content')
+      .mockResolvedValueOnce('head content');
+
+    (globalThis.fetch as any).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        breaking: [{ rule: 'rule1', severity: 'BREAKING', path: 'path1', message: 'msg1' }],
+        warning: [], info: [],
+        summary: { breaking_count: 1, warning_count: 0, info_count: 0 }
+      })
+    });
+
+    const envWithoutReg = { ...MOCK_ENV, REGISTRY_API_URL: '' };
+    const response = await worker.fetch(request, envWithoutReg as any);
+    expect(response.status).toBe(200);
+
+    expect(crossRepoCheck).not.toHaveBeenCalled();
+    expect(githubClient.postPRComment).toHaveBeenCalledWith(
+      'mock-token', 'owner', 'repo', 1, expect.not.stringContaining('Cross-Repo Impact')
+    );
+    expect(githubClient.setCommitStatus).toHaveBeenCalledWith(
+      'mock-token', 'owner', 'repo', 'headsha', 'failure', '1 breaking change(s) detected'
+    );
+  });
+
+  it('PR with no single-repo breaking changes + 1 broken consumer → status check FAILS (cross-repo is the blocker)', async () => {
+    const payload = JSON.stringify(basePayload);
+    const sig = await signWebhook(payload, MOCK_ENV.GITHUB_WEBHOOK_SECRET);
+    const request = new Request('http://localhost', {
+      method: 'POST',
+      headers: { 'X-Hub-Signature-256': sig, 'X-GitHub-Event': 'pull_request' },
+      body: payload
+    });
+
+    (githubClient.fetchFileContent as any)
+      .mockResolvedValueOnce('base_schema: base.yaml\nhead_schema: head.yaml')
+      .mockResolvedValueOnce('base content')
+      .mockResolvedValueOnce('head content');
+
+    (globalThis.fetch as any).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ breaking: [], warning: [], info: [], summary: { breaking_count: 0, warning_count: 0, info_count: 0 } })
+    });
+
+    const crossRepoRes = {
+      total_consumers: 1, broken_consumers: 1, is_safe: false,
+      results: [{ consumer_repo: 'org/consumer', status: 'breaking', diff_report: { breaking: [{ rule: 'rule', path: 'path', message: 'msg' }], summary: { breaking_count: 1 } } }]
+    };
+    (crossRepoCheck as any).mockResolvedValueOnce(crossRepoRes);
+
+    const envWithReg = { ...MOCK_ENV, REGISTRY_API_URL: 'http://reg.api', REGISTRY_API_TOKEN: 'token' };
+    const response = await worker.fetch(request, envWithReg as any);
+    expect(response.status).toBe(200);
+
+    expect(githubClient.setCommitStatus).toHaveBeenCalledWith(
+      'mock-token', 'owner', 'repo', 'headsha', 'failure', '1 downstream consumer(s) affected by this change'
+    );
+  });
+
+  it('PR with no breaking changes + all consumers safe → status check PASSES, no cross-repo callout in comment', async () => {
+    const payload = JSON.stringify(basePayload);
+    const sig = await signWebhook(payload, MOCK_ENV.GITHUB_WEBHOOK_SECRET);
+    const request = new Request('http://localhost', {
+      method: 'POST',
+      headers: { 'X-Hub-Signature-256': sig, 'X-GitHub-Event': 'pull_request' },
+      body: payload
+    });
+
+    (githubClient.fetchFileContent as any)
+      .mockResolvedValueOnce('base_schema: base.yaml\nhead_schema: head.yaml')
+      .mockResolvedValueOnce('base content')
+      .mockResolvedValueOnce('head content');
+
+    (globalThis.fetch as any).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ breaking: [], warning: [], info: [], summary: { breaking_count: 0, warning_count: 0, info_count: 0 } })
+    });
+
+    const crossRepoRes = {
+      total_consumers: 1, broken_consumers: 0, is_safe: true,
+      results: [{ consumer_repo: 'org/consumer', status: 'safe', diff_report: { breaking: [], summary: { breaking_count: 0 } } }]
+    };
+    (crossRepoCheck as any).mockResolvedValueOnce(crossRepoRes);
+
+    const envWithReg = { ...MOCK_ENV, REGISTRY_API_URL: 'http://reg.api', REGISTRY_API_TOKEN: 'token' };
+    const response = await worker.fetch(request, envWithReg as any);
+    expect(response.status).toBe(200);
+
+    expect(githubClient.setCommitStatus).toHaveBeenCalledWith(
+      'mock-token', 'owner', 'repo', 'headsha', 'success', 'All clear — no breaking changes'
+    );
+  });
+
+  it('Registry API returns 500 → cross-repo silently skipped, PR handler does not throw', async () => {
+    const payload = JSON.stringify(basePayload);
+    const sig = await signWebhook(payload, MOCK_ENV.GITHUB_WEBHOOK_SECRET);
+    const request = new Request('http://localhost', {
+      method: 'POST',
+      headers: { 'X-Hub-Signature-256': sig, 'X-GitHub-Event': 'pull_request' },
+      body: payload
+    });
+
+    (githubClient.fetchFileContent as any)
+      .mockResolvedValueOnce('base_schema: base.yaml\nhead_schema: head.yaml')
+      .mockResolvedValueOnce('base content')
+      .mockResolvedValueOnce('head content');
+
+    (globalThis.fetch as any).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ breaking: [], warning: [], info: [], summary: { breaking_count: 0, warning_count: 0, info_count: 0 } })
+    });
+
+    const crossRepoRes = { total_consumers: 0, broken_consumers: 0, is_safe: true, results: [] };
+    (crossRepoCheck as any).mockResolvedValueOnce(crossRepoRes);
+
+    const envWithReg = { ...MOCK_ENV, REGISTRY_API_URL: 'http://reg.api', REGISTRY_API_TOKEN: 'token' };
+    const response = await worker.fetch(request, envWithReg as any);
+    expect(response.status).toBe(200);
+
+    expect(githubClient.setCommitStatus).toHaveBeenCalledWith(
+      'mock-token', 'owner', 'repo', 'headsha', 'success', 'All clear — no breaking changes'
+    );
+  });
+
 });
