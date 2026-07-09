@@ -1,0 +1,15 @@
+TASK: P1h-T01 — Terraform Plan JSON adapter
+
+Implement the Terraform adapter for Substrate to detect infrastructure breaking changes from `terraform plan` JSON output.
+
+1. Create `engine/internal/diff/terraform.go`.
+2. Implement `CompareTerraformPlan(planJSONPath string) (*report.DiffReport, error)`.
+3. Parse the JSON plan using Go's `encoding/json`. Look at the `resource_changes` array and `output_changes` map.
+4. Implement the following breaking change rules:
+   - `TF_RESOURCE_DESTROYED` (Breaking): If `resource_change.actions` contains `"delete"` and the type is stateful (e.g., `aws_dynamodb_table`, `aws_s3_bucket`, `aws_db_instance`, `aws_rds_cluster`, `google_storage_bucket`), emit a breaking change.
+   - `TF_OUTPUT_REMOVED` (Breaking): If `output_changes[key].actions` contains `"delete"`.
+   - `TF_IAM_PERMISSION_REMOVED` (Warning): If `resource_change.actions` contains `"update"` on an IAM policy (`aws_iam_policy`, `aws_iam_role_policy`).
+5. Update `engine/cmd/substrate/serve.go` (the HTTP endpoint) and `engine/cmd/substrate/main.go` (the CLI) to support `schema-type` == "terraform-plan". Note that for terraform-plan, `base_schema` is ignored.
+6. Create `engine/internal/diff/terraform_test.go` with 100% test coverage using table-driven tests and mock JSON plan strings.
+
+Do NOT add any external dependencies. Use `encoding/json` only.

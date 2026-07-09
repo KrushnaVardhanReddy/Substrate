@@ -217,6 +217,11 @@ TASKS = {
         "phase": "phase-1e-asyncapi-avro",
         "prompt": _load_prompt("prompts/phase-1e-asyncapi-avro/t02_avro_adapter.txt"),
     },
+    25: {
+        "name": "P1h-T01 — Terraform Plan JSON adapter",
+        "phase": "phase-1h-iac",
+        "prompt": _load_prompt("prompts/phase-1h-iac/t01_terraform_adapter.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────

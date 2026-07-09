@@ -156,11 +156,19 @@
 | P1g-T03 | Enterprise breaking change rules spec | Antigravity | 🔒 |
 | P1g-T04 | Enterprise rule engine + tests | Jules | 🔒 |
 
+### Phase 1h — Infrastructure as Code (Terraform) ⏳ READY
+
+> **Library decision (Terraform):** Use Go stdlib `encoding/json` to parse `terraform show -json tfplan` output. No HCL parsing. 
+> **Spec:** `docs/specs/phase-1/iac-adapter.md` ✅ APPROVED
+
+| Task ID | Name | Owner | Status | Jules Prompt |
+|---|---|---|---|---|
+| P1h-T01 | Terraform Plan JSON adapter (`terraform-plan`) | Jules | ⏳ ready to submit | `prompts/phase-1h-iac/t01_terraform_adapter.txt` |
+
 ---
 
 > **Wave 2 execution order (Phase 2 complete ✅ — Wave 2 unblocked):** Follow effort order, not numerical order:
-> `1d ✅ (Protobuf/buf — COMPLETE)` → `1e 🔄 (AsyncAPI/Avro — T01+T02 ready)` → `1c (GraphQL — next)` → `1f (AI/ML — no new deps)` → `1g (Enterprise — highest effort, ships last)`
-> Note: 1e promoted ahead of 1c because spec is now written and T01+T02 can run in parallel.
+> `1d ✅ (Protobuf)` → `1e ✅ (AsyncAPI/Avro)` → `1h ⏳ (Terraform)` → `1c (GraphQL)` → `1f (AI/ML)` → `1g (Enterprise)`
 
 ---
 
