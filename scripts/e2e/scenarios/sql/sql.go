@@ -71,8 +71,8 @@ consumers:
 `, owner, providerRepoName)
 	helpers.SeedFile(ctx, client, owner, consumerRepoName, "substrate.yaml", "main", consumerConfig)
 	
-	log.Println("Waiting 5s for the Registry API to sync baselines...")
-	time.Sleep(5 * time.Second)
+	log.Println("Waiting 15s for the Registry API to sync baselines...")
+	time.Sleep(15 * time.Second)
 
 	branchName := fmt.Sprintf("e2e-sql-%d", time.Now().Unix())
 
