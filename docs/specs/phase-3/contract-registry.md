@@ -480,15 +480,16 @@ Response:
 ## 🟢 P3 — Dashboard
 
 ### P3-T03: SvelteKit Project Setup + Design System
-**Owner:** Antigravity  
+**Owner:** Jules  
 **Blocked by:** P3-T01 (needs API to wire to)  
+**Status:** 🔄 IN PROGRESS (Jules session `17010957366344488409`)
 
 **What to build:**
 - New `dashboard/` directory at repo root
 - SvelteKit + TypeScript + Vite setup
 - Design system: dark theme, teal accent (#00BFA5), Inter font
 - Core layout: sidebar (repos list) + main panel + top nav
-- Auth integration with P3-T06 GitHub OAuth
+- See `docs/specs/phase-3/dashboard.md` for full UI spec and HTML mockups.
 
 ---
 
