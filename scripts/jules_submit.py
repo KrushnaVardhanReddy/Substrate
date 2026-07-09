@@ -232,6 +232,11 @@ TASKS = {
         "phase": "phase-3-registry",
         "prompt": _load_prompt("prompts/phase-3-registry/t02c_cross_repo_check.txt"),
     },
+    28: {
+        "name": "P1f-T01 — AI/ML Model Contract Diff Adapter",
+        "phase": "phase-1f-aiml",
+        "prompt": _load_prompt("prompts/phase-1f-aiml/t01_aiml_adapter.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────

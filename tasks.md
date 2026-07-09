@@ -131,15 +131,15 @@
 | P1e-T03 | AsyncAPI + Avro breaking change rules spec | Antigravity | ✅ |
 | P1e-T04 | Rule engine + tests | Jules | 🔒 after T01+T02 |
 
-### Phase 1f — AI/ML Model Contracts ⭐ 🔒 BLOCKED on Phase 2
+### Phase 1f — AI/ML Model Contracts ⭐ ⏳ READY
 
-> **Library decision:** No new dependencies needed. `gopkg.in/yaml.v3` (model contracts) and `santhosh-tekuri/jsonschema` (dataset schema contracts) are **already in `go.mod`**. Substrate owns the `substrate.yaml` model contract spec — we define the format, the diff is field-by-field rule comparison. Drop 3 parser tasks from the original plan.
+> **Library decision:** No new dependencies needed. `gopkg.in/yaml.v3` and `github.com/santhosh-tekuri/jsonschema/v6` are **already in `go.mod`**. Substrate owns the `substrate.yaml` ml_model contract spec.
+> **Spec:** `docs/specs/phase-1/aiml-adapter.md` ✅ APPROVED
 
-| Task ID | Name | Owner | Status |
-|---|---|---|---|
-| P1f-T01 | `substrate.yaml` ML model contract spec (inputs, outputs, version constraints) | Antigravity | 🔒 |
-| P1f-T02 | ML contract diff engine using `yaml.v3` + `jsonschema` (no new deps) | Jules | 🔒 |
-| P1f-T03 | AI/ML rule engine + tests | Jules | 🔒 |
+| Task ID | Name | Owner | Status | Jules Prompt |
+|---|---|---|---|---|
+| P1f-T01 | AI/ML model contract diff adapter (inputs, outputs, serving, metadata rules) | Jules | ⏳ ready to submit | `prompts/phase-1f-aiml/t01_aiml_adapter.txt` |
+
 
 ### Phase 1g — Enterprise Metadata (Salesforce & SOAP) 🔒 BLOCKED on Phase 2
 
