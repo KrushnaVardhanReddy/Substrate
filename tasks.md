@@ -107,7 +107,7 @@
 
 | Task ID | Name | Owner | Status |
 |---|---|---|---|
-| P1c-T01 | GraphQL SDL Diff Adapter (`graphql`) | Jules | 🔄 Jules session `3278201698768619367` | `prompts/phase-1c-graphql/t01_parser.txt` |
+| P1c-T01 | GraphQL SDL Diff Adapter (`graphql`) | Jules | ✅ | `prompts/phase-1c-graphql/t01_parser.txt` |
 
 ### Phase 1d — Protobuf & gRPC 🔄 IN PROGRESS
 
@@ -166,7 +166,7 @@
 ---
 
 > **Wave 2 execution order (Phase 2 complete ✅ — Wave 2 unblocked):** Follow effort order, not numerical order:
-> `1d ✅ (Protobuf)` → `1e ✅ (AsyncAPI/Avro)` → `1h ✅ (Terraform)` → `1c (GraphQL)` → `1f (AI/ML)` → `1g (Enterprise)`
+> `1d ✅ (Protobuf)` → `1e ✅ (AsyncAPI/Avro)` → `1h ✅ (Terraform)` → `1c ✅ (GraphQL)` → `1f (AI/ML)` → `1g (Enterprise)`
 
 ---
 
