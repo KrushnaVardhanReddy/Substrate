@@ -2,7 +2,7 @@
 
 ## The Living Map of Your Engineering Ecosystem
 
-> **Status:** v0.1.6 🚀 — [OpenAPI Contract Guard](https://github.com/marketplace/actions/substrate-api-contract-guard) live on GitHub Marketplace. **Phase 2 (GitHub App) ✅ Complete. Phase 3 (Contract Registry + MCP Server) 🔄 in progress — MCP server (`substrate-mcp`) ✅ merged.**
+> **Status:** v0.1.6 🚀 — [OpenAPI Contract Guard](https://github.com/marketplace/actions/substrate-api-contract-guard) live on GitHub Marketplace. **Phase 2 (GitHub App) ✅ Complete. Phase 3 (Contract Registry + MCP Server) 🔄 in progress — P3-T13 active.**
 
 Substrate is a CI/CD-integrated data contract and dependency intelligence platform that prevents downstream data failures before they reach production.
 
@@ -948,7 +948,7 @@ Trying to be "everything everywhere all at once" is how startups die.
 4. Best Intelligence Platform          Phase 3  🔄  Registry ✅, Dashboard ✅,
                                                     MCP Server ✅ (substrate-mcp,
                                                     7 tools, JSON-RPC 2.0 over stdio)
-                                                    Next: P3-T10 IDE docs, P3-T13
+                                                    Active: P3-T13 Enterprise Modes
         ↓
 5. V1.0 Release + Marketplace          Upcoming 💡  Tag v1.0, full platform docs
                                                     (P3-T12), GitHub Marketplace
