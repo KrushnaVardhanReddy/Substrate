@@ -222,6 +222,11 @@ TASKS = {
         "phase": "phase-1h-iac",
         "prompt": _load_prompt("prompts/phase-1h-iac/t01_terraform_adapter.txt"),
     },
+    26: {
+        "name": "P1c-T01 — GraphQL Schema Diff Adapter",
+        "phase": "phase-1c-graphql",
+        "prompt": _load_prompt("prompts/phase-1c-graphql/t01_parser.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────

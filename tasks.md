@@ -107,9 +107,7 @@
 
 | Task ID | Name | Owner | Status |
 |---|---|---|---|
-| P1c-T01 | GraphQL SDL parser using `vektah/gqlparser` (MIT) | Jules | 🔒 |
-| P1c-T02 | GraphQL breaking change rules spec (~15–20 rules) | Antigravity | 🔒 |
-| P1c-T03 | GraphQL rule engine + tests | Jules | 🔒 |
+| P1c-T01 | GraphQL SDL Diff Adapter (`graphql`) | Jules | ⏳ ready to submit | `prompts/phase-1c-graphql/t01_parser.txt` |
 
 ### Phase 1d — Protobuf & gRPC 🔄 IN PROGRESS
 
