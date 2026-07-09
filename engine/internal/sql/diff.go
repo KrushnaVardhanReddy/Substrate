@@ -287,7 +287,10 @@ func diffColumns(bTable, hTable *Table, addChange func(id, ruleID string, severi
 func diffSingleColumn(tName string, bCol, hCol *Column, addChange func(id, ruleID string, severity report.ChangeSeverity, path, desc string)) {
 	cName := bCol.Name
 
-	if bCol.DataType != hCol.DataType || bCol.Length != hCol.Length || bCol.Precision != hCol.Precision {
+	lengthChanged := (bCol.Length == nil && hCol.Length != nil) || (bCol.Length != nil && hCol.Length == nil) || (bCol.Length != nil && hCol.Length != nil && *bCol.Length != *hCol.Length)
+	precisionChanged := (bCol.Precision == nil && hCol.Precision != nil) || (bCol.Precision != nil && hCol.Precision == nil) || (bCol.Precision != nil && hCol.Precision != nil && *bCol.Precision != *hCol.Precision)
+
+	if bCol.DataType != hCol.DataType || lengthChanged || precisionChanged {
 		if isWidening(bCol, hCol) {
 			addChange(
 				fmt.Sprintf("chg_column_type_widened_%s_%s", tName, cName),

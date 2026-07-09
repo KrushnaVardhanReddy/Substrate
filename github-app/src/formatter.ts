@@ -18,7 +18,8 @@ export function formatPRComment(report: DiffReport, config: SubstrateConfig): st
 
   if (breakingCount > 0) {
     comment += `## 🔴 Substrate — Breaking Changes Detected\n\n`;
-    comment += `This PR introduces **${breakingCount} breaking change(s)** to your OpenAPI contract.\n`;
+    const schemaName = (report as any).schema_type === 'sql' ? 'SQL' : 'OpenAPI';
+    comment += `This PR introduces **${breakingCount} breaking change(s)** to your ${schemaName} contract.\n`;
     comment += `Consumers of this API may break if this PR is merged without coordination.\n\n`;
 
     comment += `| Severity | Rule | Path |\n`;
