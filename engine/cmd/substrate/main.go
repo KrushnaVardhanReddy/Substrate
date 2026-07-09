@@ -20,6 +20,7 @@ var flattenAllOf bool
 var configPath string
 var format string
 var schemaType string
+var modeFlag string
 
 func main() {
 	var rootCmd = &cobra.Command{
@@ -141,6 +142,19 @@ func main() {
 				}
 			}
 
+			finalMode := "strict"
+			if modeFlag != "" {
+				if modeFlag == "strict" || modeFlag == "legacy" {
+					finalMode = modeFlag
+				} else {
+					fmt.Fprintf(os.Stderr, "Error: invalid mode '%s'. Must be 'strict' or 'legacy'\n", modeFlag)
+					os.Exit(3)
+				}
+			} else if cfg != nil && (cfg.Mode == "strict" || cfg.Mode == "legacy") {
+				finalMode = cfg.Mode
+			}
+			rep.Mode = finalMode
+
 			if format == "json" {
 				output, err := json.MarshalIndent(rep, "", "  ")
 				if err != nil {
@@ -149,6 +163,9 @@ func main() {
 				}
 				fmt.Println(string(output))
 			} else if format == "text" {
+				if finalMode == "legacy" && len(rep.BreakingChanges) > 0 {
+					fmt.Println("⚠️ LEGACY MODE: Breaking changes detected, but merge is not blocked.")
+				}
 				fmt.Println("Substrate Diff Report")
 				fmt.Println("─────────────────────")
 				fmt.Printf("Schema Type:  %s\n", rep.SchemaType)
@@ -240,12 +257,16 @@ func main() {
 				os.Exit(3)
 			}
 
-			if rep.Summary.BreakingCount > 0 {
-				os.Exit(2)
-			} else if rep.Summary.WarningCount > 0 {
-				os.Exit(1)
+			if finalMode == "legacy" {
+				os.Exit(0)
+			} else {
+				if rep.Summary.BreakingCount > 0 {
+					os.Exit(2)
+				} else if rep.Summary.WarningCount > 0 {
+					os.Exit(1)
+				}
+				os.Exit(0)
 			}
-			os.Exit(0)
 		},
 	}
 
@@ -253,6 +274,7 @@ func main() {
 	diffCmd.Flags().StringVar(&configPath, "config", "./substrate.yaml", "Path to override config file")
 	diffCmd.Flags().StringVar(&format, "format", "json", "Output format")
 	diffCmd.Flags().StringVar(&schemaType, "schema-type", "", "Force schema type")
+	diffCmd.Flags().StringVar(&modeFlag, "mode", "", "Execution mode: strict or legacy")
 
 	var validateCmd = &cobra.Command{
 		Use:   "validate [spec-file]",
