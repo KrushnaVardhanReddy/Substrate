@@ -285,6 +285,16 @@
 
 These are not yet scheduled but are on the product roadmap:
 
+**Phase 5 — Enterprise Automation & Governance** 🏢
+See the full spec: `docs/specs/enterprise-vision.md`
+- [ ] Execution Modes (`--mode=strict|default|legacy`)
+- [ ] Custom Rules Engine (CEL / OPA Rego)
+- [ ] Traffic-Aware Diffing (Datadog/OTel integration for `WARNING (Unused)`)
+- [ ] Auto-SDK PR Generation
+- [ ] Local Time-Travel Mock Servers
+- [ ] Runtime Drift Detection (eBPF / Envoy)
+- [ ] Security & PII Auditing
+
 **Zero-Touch Onboarding & AI Spec Generation** 🚀 (High Priority for Client Demos)
 - [ ] **AI API Architect (For NEW Projects - "Spec-First"):** A `substrate design` CLI command. The user types "I need a blog API with posts and comments." The LLM generates a best-practice, REST-compliant `openapi.yaml` from scratch. Substrate acts as an AI software architect, establishing the contract before code is written.
 - [ ] **Auto-Discovery PR (For LEGACY Projects):** On installation, GitHub App scans the repo for existing schemas and automatically opens a PR adding `substrate.yaml`. Zero manual config required.
