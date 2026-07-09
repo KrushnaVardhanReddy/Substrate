@@ -207,6 +207,16 @@ TASKS = {
         "phase": "phase-3-registry",
         "prompt": _load_prompt("prompts/phase-3-registry/t02b_contract_sync.txt"),
     },
+    23: {
+        "name": "P1e-T01 — AsyncAPI breaking change adapter",
+        "phase": "phase-1e-asyncapi-avro",
+        "prompt": _load_prompt("prompts/phase-1e-asyncapi-avro/t01_asyncapi_adapter.txt"),
+    },
+    24: {
+        "name": "P1e-T02 — Apache Avro Schema Registry compatibility adapter",
+        "phase": "phase-1e-asyncapi-avro",
+        "prompt": _load_prompt("prompts/phase-1e-asyncapi-avro/t02_avro_adapter.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
