@@ -128,8 +128,8 @@
 
 | Task ID | Name | Owner | Status |
 |---|---|---|---|
-| P1e-T01 | AsyncAPI parser using `asyncapi/parser-go` | Jules | 🔄 Jules session `3806940771454033087` |
-| P1e-T02 | Avro adapter using Schema Registry compatibility API | Jules | 🔄 Jules session `11212679817250327809` |
+| P1e-T01 | AsyncAPI parser using `asyncapi/parser-go` | Jules | ✅ |
+| P1e-T02 | Avro adapter using Schema Registry compatibility API | Jules | ✅ |
 | P1e-T03 | AsyncAPI + Avro breaking change rules spec | Antigravity | ✅ |
 | P1e-T04 | Rule engine + tests | Jules | 🔒 after T01+T02 |
 
