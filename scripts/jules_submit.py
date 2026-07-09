@@ -237,6 +237,11 @@ TASKS = {
         "phase": "phase-1f-aiml",
         "prompt": _load_prompt("prompts/phase-1f-aiml/t01_aiml_adapter.txt"),
     },
+    29: {
+        "name": "P3-T03 — SvelteKit Dashboard & Design System",
+        "phase": "phase-3-registry",
+        "prompt": _load_prompt("prompts/phase-3-registry/t03_dashboard.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
