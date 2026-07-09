@@ -132,7 +132,7 @@ The engine validates `substrate.yaml` on startup. Any validation failure exits w
 |---|---|
 | `service` is empty or missing | `substrate.yaml: 'service' is required` |
 | `spec_path` is empty or missing | `substrate.yaml: 'spec_path' is required` |
-| `spec_path` file does not exist in repo | `substrate.yaml: spec_path 'openapi/api.yaml' not found` |
+| `spec_path` file does not exist in repo | `substrate.yaml: spec_path 'openapi/api.yaml' not found` *(Note: This check is bypassed in HTTP/Cloud execution mode since the spec file is not physically on disk alongside the config)* |
 | `override.rule_id` is not a known rule ID | `substrate.yaml: unknown rule_id 'MY_CUSTOM_RULE'` |
 | `override.expires` is in the past by more than 30 days | `substrate.yaml: override for 'FIELD_REMOVED' expired on 2026-01-01 — remove or renew` |
 | `override.reason` is fewer than 20 characters | `substrate.yaml: override reason too short (min 20 chars)` |

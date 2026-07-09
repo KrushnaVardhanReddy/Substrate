@@ -133,11 +133,8 @@ func LoadConfig(path string) (*SubstrateConfig, error) {
 		return nil, fmt.Errorf("substrate.yaml: 'spec_path' is required")
 	}
 
-	repoRoot := filepath.Dir(path)
-	absSpecPath := filepath.Join(repoRoot, config.SpecPath)
-	if _, err := os.Stat(absSpecPath); os.IsNotExist(err) {
-		return nil, fmt.Errorf("substrate.yaml: spec_path '%s' not found", config.SpecPath)
-	}
+	// Removed os.Stat check for absSpecPath because the engine runs in a stateless HTTP context
+	// where the spec file is not physically on disk next to the temporary config file.
 
 	if config.SchemaType != "" {
 		switch config.SchemaType {
