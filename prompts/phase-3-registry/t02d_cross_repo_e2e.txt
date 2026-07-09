@@ -1,0 +1,99 @@
+TASK: P3-T02d — Cross-Repo E2E Fixture Tests
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Now that the Cross-Repo PR Check (P3-T02c) and Registry Sync (P3-T02b) logic 
+is built into the GitHub App, we need a robust Go E2E test inside the `engine/` 
+to simulate the core cross-repo validation logic that powers Substrate.
+
+Spec: docs/specs/phase-3/contract-registry.md
+
+═══════════════════════════════════════════════════════════════
+REQUIREMENTS
+═══════════════════════════════════════════════════════════════
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Create Cross-Repo Test Fixtures
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Create a new directory: `engine/cmd/substrate/testdata/cross-repo/`
+
+Inside it, create exactly three fixture files to simulate a multi-repository scenario. You MUST use these exact contents so the test is deterministic.
+
+**1. `provider_base.yaml` (The backend API's original OpenAPI spec)**
+```yaml
+openapi: 3.0.0
+info:
+  title: Provider API
+  version: 1.0.0
+paths:
+  /users:
+    get:
+      responses:
+        '200':
+          description: OK
+```
+
+**2. `provider_head.yaml` (The backend API's PR, introducing a breaking change)**
+```yaml
+openapi: 3.0.0
+info:
+  title: Provider API
+  version: 1.0.0
+paths:
+  /admin: # Changed from /users to /admin, deleting the /users path!
+    get:
+      responses:
+        '200':
+          description: OK
+```
+
+**3. `consumer_snapshot.yaml` (The frontend's required snapshot, exactly matching base)**
+```yaml
+openapi: 3.0.0
+info:
+  title: Provider API
+  version: 1.0.0
+paths:
+  /users:
+    get:
+      responses:
+        '200':
+          description: OK
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. Implement E2E Test (`engine/cmd/substrate/e2e_test.go`)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Add a new dedicated test function: `TestCrossRepoCheckE2E(t *testing.T)`
+
+You must simulate the orchestration layer. In production, the Worker runs the CLI comparing the `head` of the PR against the `snapshot` of the consumer.
+
+Execute the compiled CLI binary (using `exec.Command` like the other tests in this file) with the following arguments:
+`diff --base testdata/cross-repo/consumer_snapshot.yaml --head testdata/cross-repo/provider_head.yaml --type openapi --format json`
+
+**Assertions MUST check:**
+1. The process exit code MUST be `1` (indicating a breaking change).
+2. Read stdout into a `report.DiffReport` struct.
+3. Assert that `Summary.BreakingCount == 1`.
+4. Assert that `Breaking[0].Rule == "ENDPOINT_REMOVED"`.
+5. Assert that `Breaking[0].Path == "GET /users"`.
+
+This guarantees that the core diff engine accurately catches cross-repo breaking changes using the snapshot methodology.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE/MODIFY:
+- engine/cmd/substrate/testdata/cross-repo/provider_base.yaml
+- engine/cmd/substrate/testdata/cross-repo/provider_head.yaml
+- engine/cmd/substrate/testdata/cross-repo/consumer_snapshot.yaml
+- engine/cmd/substrate/e2e_test.go
+
+FILES TO NOT TOUCH (READ-ONLY):
+- github-app/
+- api/
+
+Commit: "jules: P3-T02d cross-repo E2E fixture tests"
+Target branch: feature/p3-t02d-e2e
