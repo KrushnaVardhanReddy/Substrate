@@ -29,7 +29,7 @@ func main() {
 	log.Printf("Running E2E tests as %s", owner)
 
 	// We can easily run each scenario here
-	openapi.Run(ctx, client, owner)
-	// sql.Run(ctx, client, owner)
-	// graphql.Run(ctx, client, owner)
+	openapi.RunAll(ctx, client, owner)
+	// sql.RunAll(ctx, client, owner)
+	// graphql.RunAll(ctx, client, owner)
 }
