@@ -1,3 +1,5 @@
+import { PushEvent } from './types.js';
+
 export interface PREvent {
   owner: string;
   repo: string;
@@ -74,6 +76,38 @@ export function parsePREvent(headers: Headers, body: string): PREvent | null {
       headSha: payload.pull_request.head.sha,
       baseBranch: payload.pull_request.base.ref,
       installationId: payload.installation.id
+    };
+  } catch (e) {
+    return null;
+  }
+}
+
+export function parsePushEvent(headers: Headers, body: string): PushEvent | null {
+  const eventType = headers.get('X-GitHub-Event');
+  if (eventType !== 'push') {
+    return null;
+  }
+
+  try {
+    const payload = JSON.parse(body);
+
+    if (payload.deleted === true) {
+      return null;
+    }
+
+    if (payload.ref !== 'refs/heads/main') {
+      return null;
+    }
+
+    return {
+      ref: payload.ref,
+      after: payload.after,
+      installationId: payload.installation?.id || 0,
+      owner: payload.repository.owner.login || payload.repository.owner.name,
+      repo: payload.repository.name,
+      fullName: payload.repository.full_name,
+      githubRepoId: payload.repository.id,
+      installationOrgId: payload.repository.owner.id
     };
   } catch (e) {
     return null;

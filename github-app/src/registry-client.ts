@@ -1,0 +1,58 @@
+import { ConsumerEntry, SyncRequest } from './types.js';
+
+export async function parseConsumersFromYaml(yamlContent: string): Promise<ConsumerEntry[]> {
+  const consumers: ConsumerEntry[] = [];
+
+  const consumersMatch = yamlContent.match(/consumers:\s*([\s\S]*)/);
+  if (!consumersMatch) return [];
+
+  // Very naive parser - finding blocks starting with `- name:`
+  const consumerBlocks = consumersMatch[1].split(/(?=\n\s*-\s*name:)/).filter(b => b.trim() !== '');
+
+  for (const block of consumerBlocks) {
+    if (!block.trim().startsWith('- name:')) continue;
+
+    const nameMatch = block.match(/-\s*name:\s*(.+)/);
+    const providerRepoMatch = block.match(/provider_repo:\s*(.+)/);
+    const schemaTypeMatch = block.match(/schema_type:\s*(.+)/);
+    const providerSpecPathMatch = block.match(/provider_spec_path:\s*(.+)/);
+    const providerBranchMatch = block.match(/provider_branch:\s*(.+)/);
+
+    if (nameMatch && providerRepoMatch && schemaTypeMatch && providerSpecPathMatch) {
+      consumers.push({
+        name: nameMatch[1].trim(),
+        provider_repo: providerRepoMatch[1].trim(),
+        schema_type: schemaTypeMatch[1].trim(),
+        provider_spec_path: providerSpecPathMatch[1].trim(),
+        provider_branch: providerBranchMatch ? providerBranchMatch[1].trim() : 'main'
+      });
+    }
+  }
+
+  return consumers;
+}
+
+export async function syncToRegistry(
+  registryUrl: string,
+  token: string,
+  payload: SyncRequest
+): Promise<{ synced: number }> {
+  const url = `${registryUrl.replace(/\/$/, '')}/api/v1/sync`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to sync to registry: ${response.status} ${errorText}`);
+  }
+
+  const result = await response.json() as { synced: number };
+  return result;
+}

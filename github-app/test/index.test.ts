@@ -285,3 +285,131 @@ describe('Worker Handler', () => {
     );
   });
 });
+
+import { parseConsumersFromYaml, syncToRegistry } from '../src/registry-client.js';
+
+vi.mock('../src/registry-client.js', () => ({
+  parseConsumersFromYaml: vi.fn(),
+  syncToRegistry: vi.fn()
+}));
+
+describe('Worker Handler Push Event', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (githubClient.generateInstallationToken as any).mockResolvedValue('mock-token');
+  });
+
+  it('11. push to main with consumers -> calls syncToRegistry, returns 200', async () => {
+    const payload = JSON.stringify({
+      ref: 'refs/heads/main',
+      after: 'sha123',
+      deleted: false,
+      installation: { id: 1 },
+      repository: { owner: { login: 'owner', id: 99 }, name: 'repo', full_name: 'owner/repo', id: 456 }
+    });
+    const sig = await signWebhook(payload, MOCK_ENV.GITHUB_WEBHOOK_SECRET);
+    const request = new Request('http://localhost', {
+      method: 'POST',
+      headers: {
+        'X-Hub-Signature-256': sig,
+        'X-GitHub-Event': 'push'
+      },
+      body: payload
+    });
+
+    (githubClient.fetchFileContent as any)
+      .mockResolvedValueOnce('consumers yaml content')
+      .mockResolvedValueOnce('provider spec content');
+
+    (parseConsumersFromYaml as any).mockResolvedValueOnce([{
+      name: 'c', provider_repo: 'org/prov', schema_type: 'openapi', provider_spec_path: 's.yaml', provider_branch: 'main'
+    }]);
+
+    (globalThis.fetch as any).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ owner: { login: 'org' }, name: 'prov', id: 123 })
+    });
+
+    (syncToRegistry as any).mockResolvedValueOnce({ synced: 1 });
+
+    const response = await worker.fetch(request, MOCK_ENV as any);
+    expect(response.status).toBe(200);
+
+    expect(syncToRegistry).toHaveBeenCalledWith(undefined, undefined, expect.objectContaining({
+      dependencies: expect.arrayContaining([expect.objectContaining({
+        raw_content: 'provider spec content'
+      })])
+    }));
+  });
+
+  it('12. push to main, no substrate.yaml -> returns 200 Ignored', async () => {
+    const payload = JSON.stringify({
+      ref: 'refs/heads/main',
+      after: 'sha123',
+      deleted: false,
+      installation: { id: 1 },
+      repository: { owner: { login: 'owner', id: 99 }, name: 'repo', full_name: 'owner/repo', id: 456 }
+    });
+    const sig = await signWebhook(payload, MOCK_ENV.GITHUB_WEBHOOK_SECRET);
+    const request = new Request('http://localhost', {
+      method: 'POST',
+      headers: {
+        'X-Hub-Signature-256': sig,
+        'X-GitHub-Event': 'push'
+      },
+      body: payload
+    });
+
+    (githubClient.fetchFileContent as any).mockResolvedValueOnce(null);
+
+    const response = await worker.fetch(request, MOCK_ENV as any);
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe('Ignored');
+  });
+
+  it('13. push to main, no consumers block -> returns 200 Ignored', async () => {
+    const payload = JSON.stringify({
+      ref: 'refs/heads/main',
+      after: 'sha123',
+      deleted: false,
+      installation: { id: 1 },
+      repository: { owner: { login: 'owner', id: 99 }, name: 'repo', full_name: 'owner/repo', id: 456 }
+    });
+    const sig = await signWebhook(payload, MOCK_ENV.GITHUB_WEBHOOK_SECRET);
+    const request = new Request('http://localhost', {
+      method: 'POST',
+      headers: {
+        'X-Hub-Signature-256': sig,
+        'X-GitHub-Event': 'push'
+      },
+      body: payload
+    });
+
+    (githubClient.fetchFileContent as any).mockResolvedValueOnce('content');
+    (parseConsumersFromYaml as any).mockResolvedValueOnce([]);
+
+    const response = await worker.fetch(request, MOCK_ENV as any);
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe('Ignored');
+  });
+
+  it('14. push to non-main branch -> returns 200 Ignored', async () => {
+    const payload = JSON.stringify({
+      ref: 'refs/heads/feature',
+      deleted: false
+    });
+    const sig = await signWebhook(payload, MOCK_ENV.GITHUB_WEBHOOK_SECRET);
+    const request = new Request('http://localhost', {
+      method: 'POST',
+      headers: {
+        'X-Hub-Signature-256': sig,
+        'X-GitHub-Event': 'push'
+      },
+      body: payload
+    });
+
+    const response = await worker.fetch(request, MOCK_ENV as any);
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe('Ignored');
+  });
+});
