@@ -28,6 +28,7 @@ For each supported schema adapter (`openapi`, `sql`, `graphql`, `protobuf`, `avr
 3. **Validation & Polling:**
    - Poll the GitHub API's Issue Comments endpoint for the newly created PR every 3 seconds.
    - Wait for the `substrate-local-test[bot]` to post the cross-repo impact comment.
+   - The Cross-Repo Impact analyzer MUST strictly filter downstream contracts by `schema_type` to prevent the Diff Engine from attempting to parse mismatched schema types (e.g., trying to parse an OpenAPI consumer dependency against a SQL PR).
    - If the Diff Engine encounters a fatal parsing error (e.g., `500 Internal Server Error` due to an incompatible schema type), the API MUST NOT swallow the error. It must mark the consumer as `❌ Error` and explicitly fail the cross-repo check.
    - Assert that the comment body contains the expected `rule_id` (e.g., `SQL_COLUMN_DROPPED`) and the `❌ BREAKING` cross-repo impact table.
    - Poll the GitHub API's Status Checks endpoint and assert that `substrate/breaking-changes` is `failure`.
