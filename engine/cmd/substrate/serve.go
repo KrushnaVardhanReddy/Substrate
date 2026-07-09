@@ -121,7 +121,7 @@ func setupMux() *http.ServeMux {
 			return
 		}
 
-		if req.SchemaType != "openapi" && req.SchemaType != "sql" && req.SchemaType != "protobuf" && req.SchemaType != "proto" && req.SchemaType != "asyncapi" && req.SchemaType != "avro" && req.SchemaType != "terraform-plan" {
+		if req.SchemaType != "graphql" && req.SchemaType != "openapi" && req.SchemaType != "sql" && req.SchemaType != "protobuf" && req.SchemaType != "proto" && req.SchemaType != "asyncapi" && req.SchemaType != "avro" && req.SchemaType != "terraform-plan" {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(fmt.Sprintf(`{"error": "unsupported schema_type: %s"}`, req.SchemaType)))
@@ -167,6 +167,11 @@ func setupMux() *http.ServeMux {
 
 		var rep *report.DiffReport
 		switch req.SchemaType {
+		case "graphql":
+			rep, err = diff.CompareGraphQL(baseFile.Name(), headFile.Name())
+			if err == nil {
+				rep = applyConfig(rep, configPath)
+			}
 		case "sql":
 			rep, err = runSQLDiff(baseFile.Name(), headFile.Name(), configPath)
 		case "terraform-plan":
