@@ -1,0 +1,80 @@
+TASK: P1g-T01 — Enterprise Metadata Diff Adapter (Salesforce & SOAP)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement the final diff engine adapter for Phase 1. This adapter will 
+handle legacy enterprise data contracts: Salesforce Custom Objects (`.object`) 
+and SOAP WSDLs (`.wsdl`). 
+
+Spec: docs/specs/phase-1/enterprise-adapter.md
+
+═══════════════════════════════════════════════════════════════
+REQUIREMENTS
+═══════════════════════════════════════════════════════════════
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. XML Parsing Structs
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+In `engine/internal/diff/enterprise.go`, define the necessary Go structs 
+with `xml` tags to parse both formats.
+
+For Salesforce:
+`CustomObject` containing a slice of `CustomField` (`<fields>`). 
+Track `FullName`, `Type`, `Required`, and `Length`.
+
+For WSDL:
+`Definitions` containing `PortType` -> `Operation` -> `Input` / `Output` / `Fault`.
+Also parse `<binding>` elements.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. Adapter Implementation
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Implement `type EnterpriseAdapter struct{}` matching the `DiffEngine` interface.
+- In `Diff(base, head []byte, config map[string]interface{})`, do a quick string 
+  check to see if the XML contains `<CustomObject>` (Salesforce) or `<definitions>` (WSDL).
+- Route to `diffSalesforce(...)` or `diffWSDL(...)`.
+- Populate a `report.DiffReport`.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. Rule Engine
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Implement the 8 exact rules defined in the specification.
+
+Salesforce:
+- `SFDC_FIELD_REMOVED` (Breaking)
+- `SFDC_FIELD_REQUIRED` (Breaking - false to true)
+- `SFDC_FIELD_TYPE_CHANGED` (Breaking)
+- `SFDC_FIELD_LENGTH_REDUCED` (Breaking)
+- `SFDC_FIELD_ADDED` (Safe)
+
+WSDL:
+- `WSDL_OPERATION_REMOVED` (Breaking)
+- `WSDL_INPUT_MESSAGE_CHANGED` (Breaking)
+- `WSDL_FAULT_ADDED` (Warning)
+- `WSDL_BINDING_REMOVED` (Breaking)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. Unit Testing
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Create `engine/internal/diff/enterprise_test.go` using table-driven tests.
+You must achieve 100% test coverage for these 8 rules.
+
+You must supply inline XML strings in your test cases (no external files needed 
+for the unit tests). Ensure you test valid/invalid XML parsing errors too.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE/MODIFY:
+- engine/internal/diff/enterprise.go
+- engine/internal/diff/enterprise_test.go
+
+FILES TO NOT TOUCH (READ-ONLY):
+- github-app/
+- api/
+- docs/specs/
+
+Commit: "jules: P1g-T01 enterprise metadata diff adapter"
+Target branch: feature/p1g-t01-enterprise

@@ -141,18 +141,14 @@
 | P1f-T01 | AI/ML model contract diff adapter (inputs, outputs, serving, metadata rules) | Jules | ✅ | `prompts/phase-1f-aiml/t01_aiml_adapter.txt` |
 
 
-### Phase 1g — Enterprise Metadata (Salesforce & SOAP) 🔒 BLOCKED on Phase 2
+### Phase 1g — Enterprise Metadata (Salesforce & SOAP) 🔄 RUNNING
 
-> **Library decision (WSDL/SOAP):** Use Go stdlib `encoding/xml` to parse WSDL/XSD into a struct tree. Rule set is small (operation removed, message type changed, required element added) — fully buildable on stdlib. No external dependency.
-> **Library decision (Salesforce):** Salesforce metadata files are XML snapshots (`*.object-meta.xml`, `*.field-meta.xml`). Parse with Go stdlib `encoding/xml`. Users retrieve snapshots via the Salesforce CLI (`sf project retrieve start`) as a **separate user step** — Substrate only receives and diffs two XML snapshot directories. No subprocess. **Single-binary promise maintained.**
-> **Note:** This is the highest-effort Wave 2 phase — ships last. Both parsers use stdlib only.
+> **Library decision:** Use Go stdlib `encoding/xml` to parse both WSDL/XSD and Salesforce XML metadata. Both are purely XML diffing operations based on specific tags (`<CustomObject>`, `<definitions>`). **Single-binary promise maintained.**
+> **Spec:** `docs/specs/phase-1/enterprise-adapter.md` ✅ APPROVED
 
-| Task ID | Name | Owner | Status |
-|---|---|---|---|
-| P1g-T01 | SOAP/WSDL parser using Go stdlib `encoding/xml` | Jules | 🔒 |
-| P1g-T02 | Salesforce metadata XML snapshot parser using Go stdlib `encoding/xml` | Jules | 🔒 |
-| P1g-T03 | Enterprise breaking change rules spec | Antigravity | 🔒 |
-| P1g-T04 | Enterprise rule engine + tests | Jules | 🔒 |
+| Task ID | Name | Owner | Status | Jules Prompt |
+|---|---|---|---|---|
+| **P1g-T01** | **Enterprise metadata diff adapter (Salesforce, SOAP)** | Jules | 🔄 Jules session `12204830310194018312` | `prompts/phase-1g-enterprise/t01_enterprise_adapter.txt` |
 
 ### Phase 1h — Infrastructure as Code (Terraform) ⏳ READY
 

@@ -247,6 +247,11 @@ TASKS = {
         "phase": "phase-3-registry",
         "prompt": _load_prompt("prompts/phase-3-registry/t02d_cross_repo_e2e.txt"),
     },
+    31: {
+        "name": "P1g-T01 — Enterprise Metadata Diff Adapter (Salesforce & SOAP)",
+        "phase": "phase-1g-enterprise",
+        "prompt": _load_prompt("prompts/phase-1g-enterprise/t01_enterprise_adapter.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
