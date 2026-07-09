@@ -146,6 +146,25 @@ The server will expose the following tools to the LLM.
 
 ---
 
+### Tool 7: `get_schema_file`
+**Description:** Retrieves the exact, raw text of a stored contract schema from the registry. The AI can use this to read a downstream team's OpenAPI or GraphQL schema so it can perfectly write integration code against it.
+**Input Schema:**
+```json
+{
+  "type": "object",
+  "properties": {
+    "repo": {
+      "type": "string",
+      "description": "The repository name (e.g. 'myorg/backend-api')"
+    }
+  },
+  "required": ["repo"]
+}
+```
+**Output:** A JSON object containing the raw schema string and its format.
+
+---
+
 ## 3. Implementation Plan (Jules)
 
 1. Create `api/internal/mcp/server.go`.
