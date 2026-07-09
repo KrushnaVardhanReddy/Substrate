@@ -22,3 +22,15 @@ e2e-override: check-token
 
 e2e-warning: check-token
 	cd scripts/e2e && go run main.go --scenario=openapi-warning
+
+e2e-sql-breaking: check-token
+	cd scripts/e2e && go run main.go --scenario=sql-breaking
+
+e2e-sql-safe: check-token
+	cd scripts/e2e && go run main.go --scenario=sql-safe
+
+e2e-sql-override: check-token
+	cd scripts/e2e && go run main.go --scenario=sql-override
+
+e2e-sql-warning: check-token
+	cd scripts/e2e && go run main.go --scenario=sql-warning
