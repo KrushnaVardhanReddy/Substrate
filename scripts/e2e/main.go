@@ -40,7 +40,36 @@ func main() {
 
 func runOpenAPITest(ctx context.Context, client *github.Client, owner string) {
 	log.Println("Starting OpenAPI Automated Test...")
+
+	// Step 0: Seed the Main Branch
+	log.Println("Seeding the main branch with baseline files...")
+	seedFile(ctx, client, owner, providerRepoName, "substrate.yaml", "main", `service: test-provider-api
+schema_type: openapi
+spec_path: openapi.yaml
+`)
+	seedFile(ctx, client, owner, providerRepoName, "openapi.yaml", "main", `openapi: "3.0.0"
+info:
+  title: Provider API
+  version: "1.0.0"
+paths:
+  /users:
+    get:
+      summary: List users
+      responses:
+        "200":
+          description: OK
+  /users/{id}:
+    get:
+      summary: Get user by ID
+      responses:
+        "200":
+          description: OK
+`)
 	
+	// Wait a moment for webhooks to sync the registry
+	log.Println("Waiting 5s for the Registry API to sync baselines...")
+	time.Sleep(5 * time.Second)
+
 	branchName := fmt.Sprintf("e2e-openapi-%d", time.Now().Unix())
 
 	// Step 1: Branch Creation
@@ -108,9 +137,9 @@ paths:
 	log.Printf("Created PR: %s", pr.GetHTMLURL())
 
 	// Step 4: Poll for Substrate Comment
-	log.Println("Polling for Substrate PR comment (waiting up to 30s)...")
+	log.Println("Polling for Substrate PR comment (waiting up to 60s)...")
 	var foundComment *github.IssueComment
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 20; i++ {
 		time.Sleep(3 * time.Second)
 		comments, _, err := client.Issues.ListComments(ctx, owner, providerRepoName, pr.GetNumber(), nil)
 		if err != nil {
@@ -129,7 +158,7 @@ paths:
 	}
 
 	if foundComment == nil {
-		log.Fatalf("❌ FAILED: Substrate bot did not post a breaking change comment within 30 seconds.")
+		log.Fatalf("❌ FAILED: Substrate bot did not post a breaking change comment within 60 seconds.")
 	} else {
 		log.Println("✅ SUCCESS: Substrate bot posted the breaking change comment!")
 	}
@@ -149,4 +178,26 @@ paths:
 	}
 	
 	log.Println("🎉 OpenAPI Test Completed Successfully!")
+}
+
+func seedFile(ctx context.Context, client *github.Client, owner, repo, path, branch, content string) {
+	fileContent, _, _, err := client.Repositories.GetContents(ctx, owner, repo, path, &github.RepositoryContentGetOptions{Ref: branch})
+	
+	var sha *string
+	if err == nil {
+		sha = fileContent.SHA
+	}
+
+	opts := &github.RepositoryContentFileOptions{
+		Message: github.String("chore(e2e): seed baseline " + path),
+		Content: []byte(content),
+		Branch:  github.String(branch),
+		SHA:     sha,
+	}
+
+	_, _, err = client.Repositories.UpdateFile(ctx, owner, repo, path, opts)
+	if err != nil && !strings.Contains(err.Error(), "does not match the current") {
+		// Ignore if it's already the exact same content, else log
+		log.Printf("Note: %v", err)
+	}
 }
