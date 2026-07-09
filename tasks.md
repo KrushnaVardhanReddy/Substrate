@@ -163,7 +163,7 @@
 
 | Task ID | Name | Owner | Status | Jules Prompt |
 |---|---|---|---|---|
-| P1h-T01 | Terraform Plan JSON adapter (`terraform-plan`) | Jules | ⏳ ready to submit | `prompts/phase-1h-iac/t01_terraform_adapter.txt` |
+| P1h-T01 | Terraform Plan JSON adapter (`terraform-plan`) | Jules | 🔄 Jules session `14149922715984452589` | `prompts/phase-1h-iac/t01_terraform_adapter.txt` |
 
 ---
 
