@@ -49,6 +49,7 @@ type SubstrateConfig struct {
 	Version    string               `yaml:"version"`
 	Service    string               `yaml:"service"`
 	SchemaType string               `yaml:"schema_type,omitempty"`
+	Mode       string               `yaml:"mode,omitempty"`
 	SpecPath   string               `yaml:"spec_path"`
 	Owners     []Owner              `yaml:"owners,omitempty"`
 	Overrides  []Override           `yaml:"overrides,omitempty"`
@@ -117,6 +118,11 @@ func LoadConfig(path string) (*SubstrateConfig, error) {
 	// Default version
 	if config.Version == "" {
 		config.Version = "1"
+	}
+
+	// Default mode
+	if config.Mode != "strict" && config.Mode != "legacy" {
+		config.Mode = "strict"
 	}
 
 	// Validation

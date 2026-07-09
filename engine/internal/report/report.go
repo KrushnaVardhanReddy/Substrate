@@ -50,6 +50,7 @@ type DiffReport struct {
 	SubstrateVersion string     `json:"substrate_version"`
 	SchemaType       SchemaType `json:"schema_type"`
 	ComparedAt       string     `json:"compared_at"`
+	Mode             string     `json:"mode"`
 	Summary          Summary    `json:"summary"`
 	BreakingChanges  []Change   `json:"breaking_changes"`
 	Warnings         []Change   `json:"warnings"`
