@@ -73,6 +73,12 @@ func main() {
 					os.Exit(3)
 				}
 				rep = sqlpkg.DiffSchemas(base, head)
+			} else if finalSchemaType == "protobuf" || finalSchemaType == "proto" {
+				rep, err = diff.CompareProto(basePath, revisionPath)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+					os.Exit(3)
+				}
 			} else {
 				rep, err = diff.CompareOpenAPI(basePath, revisionPath, flattenAllOf)
 				if err != nil {
