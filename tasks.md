@@ -227,7 +227,7 @@
 | P3-T05 | 🟢 P3 | Dependency graph visualization | Antigravity | 🔒 after P3-T04 |
 | **P3-T11** | 🟢 P3 | **Compatibility matrix dashboard** — provider × consumer version grid | Antigravity | 🔒 after P3-T05 |
 | **P3-T08** | 🔵 P4 | **MCP server spec** (`docs/specs/phase-3/mcp-server.md`) | Antigravity | ✅ |
-| **P3-T09** | 🔵 P4 | **MCP server implementation** (Go, JSON-RPC 2.0) | Jules | 🔒 after P3-T08 |
+| **P3-T09** | 🔵 P4 | **MCP server implementation** (Go, JSON-RPC 2.0) | Jules | 🔄 Jules session `13879481072473944020` | `prompts/phase-3-registry/t09_mcp_implementation.txt` |
 | P3-T10 | 🔵 P4 | **MCP deployment + IDE integration docs** | Antigravity | 🔒 after P3-T09 |
 | **P3-T12** | 🔵 P4 | **Comprehensive Substrate Platform Docs** — Deep-dive install, config, CLI params, and architecture guides optimized for both human reading and MCP/AI ingestion | Antigravity | 🔒 after P3-T10 | `docs/specs/documentation-strategy.md` |
 | P3-T07 | ⚪ P5 | Free tier limits + production deployment | Jules | 🔒 after P3-T06 |

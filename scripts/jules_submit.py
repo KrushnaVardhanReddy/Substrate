@@ -252,6 +252,11 @@ TASKS = {
         "phase": "phase-1g-enterprise",
         "prompt": _load_prompt("prompts/phase-1g-enterprise/t01_enterprise_adapter.txt"),
     },
+    32: {
+        "name": "P3-T09 — MCP Server Implementation",
+        "phase": "phase-3-registry",
+        "prompt": _load_prompt("prompts/phase-3-registry/t09_mcp_implementation.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
