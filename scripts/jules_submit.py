@@ -202,6 +202,11 @@ TASKS = {
         "phase": "phase-3-registry",
         "prompt": _load_prompt("prompts/phase-3-registry/t02_consumer_parser.txt"),
     },
+    22: {
+        "name": "P3-T02b — Contract Registry Sync (push-to-main webhook handler)",
+        "phase": "phase-3-registry",
+        "prompt": _load_prompt("prompts/phase-3-registry/t02b_contract_sync.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────

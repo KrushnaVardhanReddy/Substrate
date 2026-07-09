@@ -215,7 +215,7 @@
 |---|---|---|---|---|
 | P3-T01 | 🔴 P1 | PostgreSQL schema + Go API server | Jules | ✅ |
 | P3-T02 | 🔴 P1 | `substrate.yaml` consumer declaration parser | Jules | ✅ |
-| **P3-T02b** | 🔴 P1 | **Contract registry sync** — snapshot consumer specs on push to `main` | Jules | ⏳ | `prompts/phase-3-registry/t02b_contract_sync.txt` |
+| **P3-T02b** | 🔴 P1 | **Contract registry sync** — snapshot consumer specs on push to `main` | Jules | 🔄 Jules session `6062242128893079047` | `prompts/phase-3-registry/t02b_contract_sync.txt` |
 | **P3-T02c** | 🔴 P1 | **Cross-repo check on PR** — validate provider PR against all consumer snapshots | Jules | 🔒 after P3-T02b |
 | P3-T06 | 🟡 P2 | GitHub OAuth + org management | Jules | 🔒 after P3-T01 |
 | **P3-T02d** | 🟡 P2 | **Cross-repo E2E fixture tests** — `testdata/cross-repo/` | Jules | 🔒 after P3-T02c |
