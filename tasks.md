@@ -138,7 +138,7 @@
 
 | Task ID | Name | Owner | Status | Jules Prompt |
 |---|---|---|---|---|
-| P1f-T01 | AI/ML model contract diff adapter (inputs, outputs, serving, metadata rules) | Jules | ⏳ ready to submit | `prompts/phase-1f-aiml/t01_aiml_adapter.txt` |
+| P1f-T01 | AI/ML model contract diff adapter (inputs, outputs, serving, metadata rules) | Jules | 🔄 Jules session `948409059652874266` | `prompts/phase-1f-aiml/t01_aiml_adapter.txt` |
 
 
 ### Phase 1g — Enterprise Metadata (Salesforce & SOAP) 🔒 BLOCKED on Phase 2
