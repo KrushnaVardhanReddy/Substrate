@@ -92,6 +92,10 @@ func CrossRepoCheckHandler(store db.Store) http.HandlerFunc {
 		consumerSeen := make(map[string]bool)
 
 		for _, contract := range contracts {
+			if contract.SchemaType != req.SchemaType {
+				continue
+			}
+
 			consumers, err := store.GetConsumersByProviderContract(ctx, contract.ID)
 			if err != nil {
 				continue
