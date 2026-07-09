@@ -118,6 +118,16 @@ func CrossRepoCheckHandler(store db.Store) http.HandlerFunc {
 
 				diffResp, err := http.Post(diffEngineURL+"/diff", "application/json", bytes.NewBuffer(diffReqBytes))
 				if err != nil {
+					response.BrokenConsumers++
+					response.IsSafe = false
+					response.Results = append(response.Results, ConsumerResult{
+						ConsumerRepo: consumer.ConsumerFullName,
+						Status:       "error",
+						DiffReport: &DiffReport{
+							Breaking: []interface{}{map[string]interface{}{"severity": "BREAKING", "description": "Failed to connect to diff engine"}},
+							Summary:  DiffReportSummary{BreakingCount: 1},
+						},
+					})
 					continue
 				}
 
@@ -146,6 +156,7 @@ func CrossRepoCheckHandler(store db.Store) http.HandlerFunc {
 									"description": errMsg,
 								},
 							},
+							Summary: DiffReportSummary{BreakingCount: 1},
 						},
 					})
 					continue
@@ -154,6 +165,16 @@ func CrossRepoCheckHandler(store db.Store) http.HandlerFunc {
 				var diffReport DiffReport
 				if err := json.NewDecoder(diffResp.Body).Decode(&diffReport); err != nil {
 					diffResp.Body.Close()
+					response.BrokenConsumers++
+					response.IsSafe = false
+					response.Results = append(response.Results, ConsumerResult{
+						ConsumerRepo: consumer.ConsumerFullName,
+						Status:       "error",
+						DiffReport: &DiffReport{
+							Breaking: []interface{}{map[string]interface{}{"severity": "BREAKING", "description": "Malformed response from diff engine"}},
+							Summary:  DiffReportSummary{BreakingCount: 1},
+						},
+					})
 					continue
 				}
 				diffResp.Body.Close()
