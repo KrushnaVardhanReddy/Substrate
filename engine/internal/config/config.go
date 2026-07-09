@@ -38,6 +38,13 @@ type Override struct {
 	Expires    string `yaml:"expires"`
 }
 
+type AvroConfig struct {
+	SchemaRegistryURL string `yaml:"schema_registry_url"`
+	Subject           string `yaml:"subject,omitempty"`
+	Username          string `yaml:"username,omitempty"`
+	Password          string `yaml:"password,omitempty"`
+}
+
 type SubstrateConfig struct {
 	Version    string               `yaml:"version"`
 	Service    string               `yaml:"service"`
@@ -46,6 +53,7 @@ type SubstrateConfig struct {
 	Owners     []Owner              `yaml:"owners,omitempty"`
 	Overrides  []Override           `yaml:"overrides,omitempty"`
 	Consumers  []ConsumerDependency `yaml:"consumers,omitempty"`
+	Avro       *AvroConfig          `yaml:"avro,omitempty"`
 }
 
 func (c *SubstrateConfig) HasConsumers() bool {
@@ -127,10 +135,10 @@ func LoadConfig(path string) (*SubstrateConfig, error) {
 
 	if config.SchemaType != "" {
 		switch config.SchemaType {
-		case "openapi", "sql", "graphql", "protobuf":
+		case "openapi", "sql", "graphql", "protobuf", "asyncapi", "avro":
 			// valid
 		default:
-			return nil, fmt.Errorf("substrate.yaml: unknown schema_type '%s' (supported: openapi, sql, graphql, protobuf)", config.SchemaType)
+			return nil, fmt.Errorf("substrate.yaml: unknown schema_type '%s' (supported: openapi, sql, graphql, protobuf, asyncapi, avro)", config.SchemaType)
 		}
 	}
 

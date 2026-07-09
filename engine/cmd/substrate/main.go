@@ -85,6 +85,12 @@ func main() {
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 					os.Exit(3)
 				}
+			} else if finalSchemaType == "avro" {
+				rep, err = diff.CompareAvro(basePath, revisionPath, cfg)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+					os.Exit(3)
+				}
 			} else {
 				rep, err = diff.CompareOpenAPI(basePath, revisionPath, flattenAllOf)
 				if err != nil {

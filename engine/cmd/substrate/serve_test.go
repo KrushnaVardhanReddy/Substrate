@@ -82,7 +82,7 @@ func TestServeDiff(t *testing.T) {
 	})
 
 	t.Run("Unknown schema_type", func(t *testing.T) {
-		body := `{"base_schema": "foo", "head_schema": "foo", "schema_type": "avro"}`
+		body := `{"base_schema": "foo", "head_schema": "foo", "schema_type": "unknown_format"}`
 		req, _ := http.NewRequest(http.MethodPost, "/diff", bytes.NewBuffer([]byte(body)))
 		rr := httptest.NewRecorder()
 		mux.ServeHTTP(rr, req)
