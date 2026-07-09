@@ -118,7 +118,7 @@
 
 | Task ID | Name | Owner | Status | Jules Prompt |
 |---|---|---|---|---|
-| P1d-T01 | `buf` checker adapter spec + implementation + tests | Jules | 🔄 Jules session `15152674839790590105` | `prompts/phase-1d-protobuf/t01_buf_adapter.txt` |
+| P1d-T01 | `buf` checker adapter spec + implementation + tests | Jules | ✅ | `prompts/phase-1d-protobuf/t01_buf_adapter.txt` |
 
 ### Phase 1e — AsyncAPI & Apache Avro 🔒 BLOCKED on Phase 2
 
@@ -213,8 +213,8 @@
 
 | Task ID | Priority | Name | Owner | Status |
 |---|---|---|---|---|
-| P3-T01 | 🔴 P1 | PostgreSQL schema + Go API server | Jules | 🔄 Jules session `3925306055466858734` |
-| P3-T02 | 🔴 P1 | `substrate.yaml` consumer declaration parser | Jules | 🔄 Jules session `4407958795511618619` |
+| P3-T01 | 🔴 P1 | PostgreSQL schema + Go API server | Jules | ✅ |
+| P3-T02 | 🔴 P1 | `substrate.yaml` consumer declaration parser | Jules | ✅ |
 | **P3-T02b** | 🔴 P1 | **Contract registry sync** — snapshot consumer specs on push to `main` | Jules | 🔒 after P3-T02 |
 | **P3-T02c** | 🔴 P1 | **Cross-repo check on PR** — validate provider PR against all consumer snapshots | Jules | 🔒 after P3-T02b |
 | P3-T06 | 🟡 P2 | GitHub OAuth + org management | Jules | 🔒 after P3-T01 |
