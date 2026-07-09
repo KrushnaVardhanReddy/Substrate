@@ -1,0 +1,15 @@
+asyncapi: "2.6.0"
+info:
+  title: User Events
+  version: "1.0.0"
+channels:
+  user/signedup:
+    subscribe:
+      message:
+        payload:
+          type: object
+          required: [id, email, phone]
+          properties:
+            id: { type: string }
+            email: { type: string }
+            phone: { type: string }
