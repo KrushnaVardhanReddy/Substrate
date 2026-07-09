@@ -1,6 +1,6 @@
 # Substrate — Protobuf & gRPC Checker Adapter Specification (Phase 1d)
 
-> **Status:** APPROVED ✅
+> **Status:** APPROVED ✅ — Implemented & merged (PR #17)
 > **Spec-First Gate:** Jules MUST NOT implement Phase 1d until this document is approved.
 > **Scope:** Add Protobuf & gRPC breaking-change detection to the Substrate diff engine using `bufbuild/buf` as the underlying checker. Follows the identical adapter pattern established by the oasdiff checker adapter (P1-T06).
 > **Depends on:** `docs/specs/phase-1/diff-report-schema.md` (the DiffReport contract)

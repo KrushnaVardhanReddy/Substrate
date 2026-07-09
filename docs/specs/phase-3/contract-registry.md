@@ -128,6 +128,7 @@ All handlers accept `db.Store` as a dependency — `mock_store.go` provides a te
 ### P3-T02: `substrate.yaml` Consumer Declaration Parser
 **Owner:** Jules  
 **Blocked by:** P3-T01  
+**Status:** ✅ Complete (merged PR #18)
 
 **What to build:**
 - Extend the existing `substrate.yaml` parser in the Go engine to support a new `consumers` block
@@ -152,6 +153,25 @@ consumers:
     provider_spec_path: "openapi.yaml"
     provider_branch: "main"
 ```
+
+**Go struct (implemented in `engine/internal/config/config.go`):**
+```go
+type ConsumerDependency struct {
+    Name             string `yaml:"name"`
+    ProviderRepo     string `yaml:"provider_repo"`
+    SchemaType       string `yaml:"schema_type"`
+    ProviderSpecPath string `yaml:"provider_spec_path"`
+    ProviderBranch   string `yaml:"provider_branch"`
+}
+
+// DefaultedBranch returns ProviderBranch or "main" if empty.
+func (d *ConsumerDependency) DefaultedBranch() string
+
+// HasConsumers returns true if the config has at least one consumer entry.
+func (c *SubstrateConfig) HasConsumers() bool
+```
+
+`SubstrateConfig.Consumers []ConsumerDependency` added with `yaml:"consumers,omitempty"`.
 
 > **Note:** The naming is intentional. The `frontend` repo is declaring who it consumes. The backend repos need no changes at all — Substrate discovers them from the consumer side. This is the zero-config approach for providers.
 

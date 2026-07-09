@@ -326,7 +326,7 @@ Also update the validation guard to accept `"asyncapi"` and `"avro"` as valid sc
 | `engine/internal/diff/testdata/asyncapi/*/asyncapi.yaml` | CREATE — fixture files |
 | `engine/internal/diff/avro.go` | CREATE — Avro adapter |
 | `engine/internal/diff/avro_test.go` | CREATE — 5 test cases |
-| `engine/internal/config/config.go` | MODIFY — add AvroConfig struct |
+| `engine/internal/config/config.go` | MODIFY — add AvroConfig struct + **add `"asyncapi"` and `"avro"` to schema_type validator** |
 | `engine/internal/config/config_test.go` | MODIFY — add Avro config parse test |
 | `engine/cmd/substrate/main.go` | MODIFY — add asyncapi + avro cases |
 | `engine/cmd/substrate/serve.go` | MODIFY — add asyncapi + avro cases |
