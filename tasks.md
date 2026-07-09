@@ -138,7 +138,7 @@
 
 | Task ID | Name | Owner | Status | Jules Prompt |
 |---|---|---|---|---|
-| P1f-T01 | AI/ML model contract diff adapter (inputs, outputs, serving, metadata rules) | Jules | 🔄 Jules session `948409059652874266` | `prompts/phase-1f-aiml/t01_aiml_adapter.txt` |
+| P1f-T01 | AI/ML model contract diff adapter (inputs, outputs, serving, metadata rules) | Jules | ✅ | `prompts/phase-1f-aiml/t01_aiml_adapter.txt` |
 
 
 ### Phase 1g — Enterprise Metadata (Salesforce & SOAP) 🔒 BLOCKED on Phase 2
@@ -166,7 +166,7 @@
 ---
 
 > **Wave 2 execution order (Phase 2 complete ✅ — Wave 2 unblocked):** Follow effort order, not numerical order:
-> `1d ✅ (Protobuf)` → `1e ✅ (AsyncAPI/Avro)` → `1h ✅ (Terraform)` → `1c ✅ (GraphQL)` → `1f (AI/ML)` → `1g (Enterprise)`
+> `1d ✅ (Protobuf)` → `1e ✅ (AsyncAPI/Avro)` → `1h ✅ (Terraform)` → `1c ✅ (GraphQL)` → `1f ✅ (AI/ML)` → `1g (Enterprise)`
 
 ---
 
