@@ -98,6 +98,12 @@ func main() {
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 					os.Exit(3)
 				}
+			case "ai-model":
+				rep, err = diff.CompareAIML(basePath, revisionPath)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+					os.Exit(3)
+				}
 			case "avro":
 				rep, err = diff.CompareAvro(basePath, revisionPath, cfg)
 				if err != nil {

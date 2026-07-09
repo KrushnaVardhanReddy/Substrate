@@ -71,6 +71,12 @@ func TestE2ECli(t *testing.T) {
 			expectedCode:   3,
 			expectedOutput: []string{"substrate.yaml: 'service' is required"},
 		},
+		{
+			name:           "AIML Breaking change -> Expect exit code 2",
+			args:           []string{"diff", "testdata/aiml/base.yaml", "testdata/aiml/head_breaking.yaml", "--schema-type=ai-model", "--format=json"},
+			expectedCode:   2,
+			expectedOutput: []string{`"overall_severity": "BREAKING"`, `"AIML_INPUT_REMOVED"`},
+		},
 	}
 
 	for _, tt := range tests {
