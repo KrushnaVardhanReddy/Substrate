@@ -15,10 +15,11 @@ import (
 )
 
 type DiffRequest struct {
-	BaseSchema string `json:"base_schema"`
-	HeadSchema string `json:"head_schema"`
-	Config     string `json:"config"`
-	SchemaType string `json:"schema_type"`
+	BaseSchema      string `json:"base_schema"`
+	HeadSchema      string `json:"head_schema"`
+	Config          string `json:"config"`
+	SchemaType      string `json:"schema_type"`
+	AvroRegistryURL string `json:"avro_registry_url,omitempty"`
 }
 
 func applyConfig(rep *report.DiffReport, configPath string) *report.DiffReport {
@@ -120,7 +121,7 @@ func setupMux() *http.ServeMux {
 			return
 		}
 
-		if req.SchemaType != "openapi" && req.SchemaType != "sql" && req.SchemaType != "protobuf" && req.SchemaType != "proto" {
+		if req.SchemaType != "openapi" && req.SchemaType != "sql" && req.SchemaType != "protobuf" && req.SchemaType != "proto" && req.SchemaType != "avro" {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(fmt.Sprintf(`{"error": "unsupported schema_type: %s"}`, req.SchemaType)))
@@ -169,6 +170,17 @@ func setupMux() *http.ServeMux {
 			rep, err = runSQLDiff(baseFile.Name(), headFile.Name(), configPath)
 		} else if req.SchemaType == "protobuf" || req.SchemaType == "proto" {
 			rep, err = diff.CompareProto(baseFile.Name(), headFile.Name())
+			if err == nil {
+				rep = applyConfig(rep, configPath)
+			}
+		} else if req.SchemaType == "avro" {
+			avroCfg := &config.SubstrateConfig{
+				Service: "unknown",
+				Avro: &config.AvroConfig{
+					SchemaRegistryURL: req.AvroRegistryURL,
+				},
+			}
+			rep, err = diff.CompareAvro(baseFile.Name(), headFile.Name(), avroCfg)
 			if err == nil {
 				rep = applyConfig(rep, configPath)
 			}

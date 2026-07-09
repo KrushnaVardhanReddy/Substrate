@@ -111,10 +111,10 @@ overrides:
 			yamlContent: `
 service: my-service
 spec_path: openapi.yaml
-schema_type: avro
+schema_type: unknownformat
 `,
 			wantErr: true,
-			errMsg:  "substrate.yaml: unknown schema_type 'avro'",
+			errMsg:  "substrate.yaml: unknown schema_type 'unknownformat' (supported: openapi, sql, graphql, protobuf, asyncapi, avro)",
 		},
 	}
 
@@ -288,6 +288,94 @@ consumers:
 		t.Run(tt.name, func(t *testing.T) {
 			configPath := filepath.Join(tempDir, "substrate.yaml")
 			if err := os.WriteFile(configPath, []byte(tt.yamlContent), 0644); err != nil {
+				t.Fatal(err)
+			}
+
+			config, err := LoadConfig(configPath)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("LoadConfig() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if err != nil && tt.errMsg != "" {
+				if err.Error() != tt.errMsg && !contains(err.Error(), tt.errMsg) {
+					t.Errorf("LoadConfig() error msg = %v, want %v", err.Error(), tt.errMsg)
+				}
+			}
+
+			if err == nil && tt.validate != nil {
+				tt.validate(t, config)
+			}
+		})
+	}
+}
+
+func TestAvroParsing(t *testing.T) {
+	tempDir := t.TempDir()
+	specPath := filepath.Join(tempDir, "openapi.yaml")
+	if err := os.WriteFile(specPath, []byte("dummy"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	tests := []struct {
+		name        string
+		yamlContent string
+		wantErr     bool
+		errMsg      string
+		validate    func(t *testing.T, c *SubstrateConfig)
+	}{
+		{
+			name: "avro config parsed",
+			yamlContent: `
+service: payments
+schema_type: avro
+spec_path: schemas/payment.avsc
+avro:
+  schema_registry_url: https://registry.example.com
+  subject: payments-value
+  username: user
+  password: pass
+`,
+			validate: func(t *testing.T, c *SubstrateConfig) {
+				if c.Avro == nil {
+					t.Fatal("Expected cfg.Avro != nil")
+				}
+				if c.Avro.SchemaRegistryURL != "https://registry.example.com" {
+					t.Errorf("Expected URL 'https://registry.example.com', got '%s'", c.Avro.SchemaRegistryURL)
+				}
+				if c.Avro.Subject != "payments-value" {
+					t.Errorf("Expected subject 'payments-value', got '%s'", c.Avro.Subject)
+				}
+				if c.Avro.Username != "user" {
+					t.Errorf("Expected username 'user', got '%s'", c.Avro.Username)
+				}
+			},
+		},
+		{
+			name: "avro config omitted",
+			yamlContent: `
+service: my-api
+schema_type: openapi
+spec_path: openapi.yaml
+`,
+			validate: func(t *testing.T, c *SubstrateConfig) {
+				if c.Avro != nil {
+					t.Errorf("Expected cfg.Avro == nil, got %v", c.Avro)
+				}
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			configPath := filepath.Join(tempDir, "substrate.yaml")
+			if err := os.WriteFile(configPath, []byte(tt.yamlContent), 0644); err != nil {
+				t.Fatal(err)
+			}
+
+			// Needs dummy avsc for testing spec exists check
+			if err := os.MkdirAll(filepath.Join(tempDir, "schemas"), 0755); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(filepath.Join(tempDir, "schemas/payment.avsc"), []byte("dummy"), 0644); err != nil {
 				t.Fatal(err)
 			}
 
