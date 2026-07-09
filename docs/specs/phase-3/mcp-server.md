@@ -95,6 +95,57 @@ The server will expose the following tools to the LLM.
 
 ---
 
+### Tool 4: `get_substrate_docs`
+**Description:** Retrieves the official Substrate configuration guide and `substrate.yaml` schema. The AI uses this to learn the rules before helping the user configure their repository.
+**Input Schema:**
+```json
+{
+  "type": "object",
+  "properties": {}
+}
+```
+**Output:** A string containing the markdown documentation for `substrate.yaml`.
+
+---
+
+### Tool 5: `analyze_repository`
+**Description:** Scans the user's local directory tree to automatically detect API contracts (e.g., finding `openapi.yaml`, `.proto` files, or `.graphql` files) to recommend a `substrate.yaml` configuration.
+**Input Schema:**
+```json
+{
+  "type": "object",
+  "properties": {
+    "directory": {
+      "type": "string",
+      "description": "The local directory path to scan (default: current directory)"
+    }
+  }
+}
+```
+**Output:** A JSON list of detected contract files and their inferred types.
+
+---
+
+### Tool 6: `execute_cli_command`
+**Description:** Allows the AI to safely execute the local `substrate` CLI binary (e.g., to run a local dry-run diff or initialize a repository).
+**Input Schema:**
+```json
+{
+  "type": "object",
+  "properties": {
+    "args": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Arguments to pass to the substrate CLI (e.g., ['diff', '--base', 'a.yaml', '--head', 'b.yaml'])"
+    }
+  },
+  "required": ["args"]
+}
+```
+**Output:** The stdout and exit code of the CLI execution.
+
+---
+
 ## 3. Implementation Plan (Jules)
 
 1. Create `api/internal/mcp/server.go`.
