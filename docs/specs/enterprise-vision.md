@@ -56,10 +56,10 @@ Substrate can detect if a PR accidentally exposes sensitive data. If a schema up
 To justify Enterprise tier pricing to a VP of Engineering, Substrate provides a management dashboard calculating literal ROI:
 *"Substrate prevented 14 cross-repo breaking changes this month. At an average incident cost of $5,000, Substrate saved the company $70,000 and 84 hours of downtime."*
 
-### ITSM Integration (Jira & ServiceNow)
-Enterprise workflows require paper trails. When Substrate catches a breaking change, or when an architect explicitly overrides a warning, Substrate automatically opens a **Jira Ticket** or **ServiceNow Incident** assigned to the downstream consumer team:
-*"Action Required: The `billing-api` team is deprecating the `card_type` field in 30 days. Please update your `ios-app` code to use `payment_method_type` instead."*
-This completely automates the cross-team communication overhead of API evolution.
+### ITSM Integration (Jira & ServiceNow Dynamic Approvals)
+Enterprise workflows require paper trails and Change Advisory Boards (CABs). When an architect intentionally pushes a breaking change, Substrate automatically opens a **ServiceNow Change Request** or **Jira Ticket**. 
+**The Magic:** Because Substrate's Registry knows exactly which downstream repositories are affected, Substrate automatically populates the **Approvers List** in ServiceNow with the specific Tech Leads of the affected consumer teams, bypassing generic CAB reviews and dramatically speeding up the approval process:
+*"Action Required: The `billing-api` team is deprecating the `card_type` field. Substrate has automatically routed this ServiceNow Change Request to the `ios-app` and `web-frontend` leads for approval."*
 
 ---
 
