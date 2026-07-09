@@ -130,7 +130,7 @@ spec_path: openapi.yaml
 
 overrides:
   - rule_id: ENDPOINT_REMOVED
-    path: paths./users/{id}
+    path: "GET /users/{id}"
     reason: "E2E testing override functionality"
 `
 }
