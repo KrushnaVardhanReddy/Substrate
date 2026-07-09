@@ -163,12 +163,45 @@ Add the following TypeScript interfaces (do NOT remove any existing types):
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-3. ADD: github-app/src/formatter.ts (MODIFY — add new exported function)
+3. ADD: github-app/src/formatter.ts (MODIFY — add new exported functions)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Add a new exported function (do NOT touch the existing formatDiffReport):
+EXISTING functions in formatter.ts (READ ONLY — do NOT modify their signatures):
+  - formatPRComment(report: DiffReport, config: SubstrateConfig): string
+  - formatMissingConfigComment(): string
 
-  export function formatCrossRepoImpact(response: CrossRepoCheckResponse): string
+EXISTING functions to UPDATE (signatures change to accept cross-repo result):
+
+  // Currently:
+  // export function getCommitStatusState(report: DiffReport, config: SubstrateConfig): 'success' | 'failure'
+  // UPDATE to:
+  export function getCommitStatusState(
+    report: DiffReport,
+    config: SubstrateConfig,
+    crossRepo?: CrossRepoCheckResponse   // optional — defaults to safe if omitted
+  ): 'success' | 'failure'
+  Logic: return 'failure' if report has breaking_count > 0 (and on_breaking_change !== 'warn')
+         OR if crossRepo is provided and crossRepo.is_safe === false.
+         Otherwise return 'success'.
+
+  // Currently:
+  // export function getCommitStatusDescription(report: DiffReport): string
+  // UPDATE to:
+  export function getCommitStatusDescription(
+    report: DiffReport,
+    crossRepo?: CrossRepoCheckResponse
+  ): string
+  Logic:
+    - If report.breaking_count > 0 AND crossRepo?.is_safe === false:
+        return `${breakingCount} breaking change(s) detected — ${crossRepo.broken_consumers} consumer(s) affected`
+    - If report.breaking_count > 0 only:
+        return `${breakingCount} breaking change(s) detected`  (existing behaviour)
+    - If crossRepo?.is_safe === false only (no single-repo breaking changes):
+        return `${crossRepo.broken_consumers} downstream consumer(s) affected by this change`
+    - Otherwise:
+        return 'All clear — no breaking changes'  (existing behaviour)
+
+NEW function to ADD:
 
   Implementation rules:
   - If response.total_consumers === 0, return an empty string "".
@@ -234,15 +267,13 @@ FULL updated PR handler flow (steps that are NEW are marked with [NEW]):
   6. [NEW] Format cross-repo section:
        crossRepoSection = formatCrossRepoImpact(crossRepoResponse)
   7. Build PR comment body:
-       comment = formatDiffReport(singleRepoDiffReport) + "\n" + crossRepoSection
-       (if crossRepoSection is empty string, just use formatDiffReport result)
+       comment = formatPRComment(singleRepoDiffReport, config) + "\n" + crossRepoSection
+       (if crossRepoSection is empty string, just use formatPRComment result)
   8. Post PR comment (existing)
-  9. [NEW] Determine overall status check result:
-       - If singleRepoDiffReport has breaking changes → FAIL (existing behaviour)
-       - [NEW] If crossRepoResponse.is_safe === false → FAIL
-       - Otherwise → PASS
-     The status check description should include cross-repo info if broken:
-       "Breaking changes detected — {N} consumer(s) affected"
+  9. [NEW] Determine overall status check result using updated formatter functions:
+       - Call updated getCommitStatusState(singleRepoDiffReport, config, crossRepoResponse)
+       - Call updated getCommitStatusDescription(singleRepoDiffReport, crossRepoResponse)
+       See Deliverable 3b for the updated signatures.
   10. Post GitHub status check (existing)
 
 IMPORTANT: The REGISTRY_API_URL env var check (step 5) is the feature flag.
@@ -271,11 +302,12 @@ New test cases:
 
   
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-6. CREATE: github-app/test/formatter.test.ts (MODIFY — add new test cases)
+6. MODIFY: github-app/test/formatter.test.ts — Add new test cases
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Add test cases for formatCrossRepoImpact() to the existing formatter.test.ts.
-Do NOT remove any existing test cases for formatDiffReport.
+NOTE: Test files are in github-app/test/ (not github-app/src/).
+Do NOT remove any existing test cases for formatPRComment, formatMissingConfigComment,
+getCommitStatusState, or getCommitStatusDescription.
 
 New test cases for formatCrossRepoImpact():
   1. "no consumers registered" → total_consumers: 0 → returns ""
@@ -332,14 +364,15 @@ FILES TO MODIFY:
 - github-app/src/registry-client.ts  (add crossRepoCheck function)
 - github-app/src/formatter.ts        (add formatCrossRepoImpact function)
 - github-app/src/index.ts            (wire cross-repo check into PR handler flow)
-- github-app/src/registry-client.test.ts  (add crossRepoCheck test cases)
-- github-app/test/formatter.test.ts       (add formatCrossRepoImpact test cases)
-- github-app/src/index.test.ts            (add PR handler integration tests)
+- github-app/test/registry-client.test.ts  (add crossRepoCheck test cases)
+- github-app/test/formatter.test.ts        (add formatCrossRepoImpact + updated status fn tests)
+- github-app/test/index.test.ts            (add PR handler integration tests)
 
 FILES TO NOT TOUCH (READ-ONLY):
 - github-app/src/github-client.ts   (GitHub API client — complete)
 - github-app/src/webhook.ts         (push/PR event parsers — complete)
-- github-app/src/webhook.test.ts    (existing push test cases must still pass)
+- github-app/test/webhook.test.ts   (existing push test cases must still pass)
+- github-app/test/github-client.test.ts  (must still pass)
 - api/                              (Go Registry API — all handlers are complete)
 - engine/                           (Go diff engine — do not touch)
 - docs/specs/                       (ALL spec files are read-only)
