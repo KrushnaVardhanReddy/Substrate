@@ -168,7 +168,7 @@
 ---
 
 > **Wave 2 execution order (Phase 2 complete ✅ — Wave 2 unblocked):** Follow effort order, not numerical order:
-> `1d ✅ (Protobuf)` → `1e ✅ (AsyncAPI/Avro)` → `1h ⏳ (Terraform)` → `1c (GraphQL)` → `1f (AI/ML)` → `1g (Enterprise)`
+> `1d ✅ (Protobuf)` → `1e ✅ (AsyncAPI/Avro)` → `1h ✅ (Terraform)` → `1c (GraphQL)` → `1f (AI/ML)` → `1g (Enterprise)`
 
 ---
 
