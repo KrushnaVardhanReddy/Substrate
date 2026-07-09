@@ -283,6 +283,10 @@
 
 These are not yet scheduled but are on the product roadmap:
 
+**Phase 7 — Expanded Data Ecosystem** 🗄️
+*   **Expanded SQL Dialects:** Add parsers for MySQL/MariaDB, SQL Server (T-SQL), Oracle, and SQLite. (Leverages the existing generic SQL rules engine).
+*   **NoSQL Schema Diffing (MongoDB / DynamoDB):** Since NoSQL is "schema-less" at the DB layer, Substrate will parse application-level ODMs (Mongoose schemas, Prisma, Python Pydantic models) or generic JSON Schema exports to detect when a document structure changes and breaks downstream consumers.
+
 **Phase 5 — Enterprise Automation & Governance** 🏢
 See the full spec: `docs/specs/enterprise-vision.md`
 - [ ] Custom Rules Engine (CEL / OPA Rego)
