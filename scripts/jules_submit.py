@@ -242,6 +242,11 @@ TASKS = {
         "phase": "phase-3-registry",
         "prompt": _load_prompt("prompts/phase-3-registry/t03_dashboard.txt"),
     },
+    30: {
+        "name": "P3-T02d — Cross-Repo E2E Fixture Tests",
+        "phase": "phase-3-registry",
+        "prompt": _load_prompt("prompts/phase-3-registry/t02d_cross_repo_e2e.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
