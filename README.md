@@ -728,14 +728,15 @@ Phase 1 ships incrementally as schema format support is added to the same diff e
 
 **Wave 2 — Extended Contract Formats (resumes after Phase 2):**
 
-> These are deferred until Phase 2 (GitHub App + distribution) is live. Once Phase 2 is live, real user demand — not guesswork — will drive which format ships next. **Execution order within Wave 2 follows effort (easiest first):** 1d → 1c → 1f → 1e → 1g.
+> These are deferred until Phase 2 (GitHub App + distribution) is live. Once Phase 2 is live, real user demand — not guesswork — will drive which format ships next. **Execution order within Wave 2 follows effort (easiest first):** 1d → 1e → 1h → 1c → 1f → 1g.
 
 | Format | Effort | Status | Library Strategy |
 |---|---|---|---|
-| **1d — Protobuf & gRPC** | 🟢 Lowest | 🔒 *post-Phase 2* | **`bufbuild/buf`** (Apache 2.0) — the `oasdiff` of Protobuf 🏆 same adapter pattern |
+| **1d — Protobuf & gRPC** | 🟢 Lowest | ✅ *shipped* | **`bufbuild/buf`** (Apache 2.0) — the `oasdiff` of Protobuf 🏆 same adapter pattern |
+| **1e — AsyncAPI & Apache Avro** | 🟢 Lowest | ✅ *shipped* | `asyncapi/parser-go` (Apache 2.0) + Confluent Schema Registry API for Avro compat |
+| **1h — Infrastructure as Code (Terraform)** | 🟢 Lowest | ✅ *shipped* | Go stdlib `encoding/json` parsing of `terraform plan` output. |
 | **1c — GraphQL SDL** | 🟡 Medium | 🔒 *post-Phase 2* | `vektah/gqlparser` (MIT) for parsing; custom rules (~15–20); pure Go, no subprocess |
 | **1f — AI/ML Model Contracts** | 🟡 Medium | 🔒 *post-Phase 2* | `yaml.v3` + `jsonschema` — both **already in `go.mod`**, no new deps |
-| **1e — AsyncAPI & Apache Avro** | 🟠 High | 🔒 *post-Phase 2* | `asyncapi/parser-go` (Apache 2.0) + Confluent Schema Registry API for Avro compat |
 | **1g — Enterprise Metadata** | 🔴 Highest | 🔒 *post-Phase 2* | Go stdlib `encoding/xml` for both WSDL and Salesforce metadata XML snapshots — pure single-binary |
 
 Core features in all sub-phases:
