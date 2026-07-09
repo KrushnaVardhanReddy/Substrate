@@ -74,6 +74,12 @@ func main() {
 					os.Exit(3)
 				}
 				rep = sqlpkg.DiffSchemas(base, head)
+			case "graphql":
+				rep, err = diff.CompareGraphQL(basePath, revisionPath)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+					os.Exit(3)
+				}
 			case "asyncapi":
 				rep, err = diff.CompareAsyncAPI(basePath, revisionPath)
 				if err != nil {
