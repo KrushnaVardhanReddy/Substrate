@@ -30,7 +30,7 @@ func RunBreaking(ctx context.Context, client *github.Client, owner string) {
 	executeScenario(ctx, client, owner, "Breaking Change",
 		defaultSubstrateYaml(), defaultOpenAPIYaml(),
 		defaultSubstrateYaml(), removedEndpointYaml(),
-		"❌ BREAKING")
+		"BREAKING")
 }
 
 func RunSafe(ctx context.Context, client *github.Client, owner string) {

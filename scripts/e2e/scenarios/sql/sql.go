@@ -30,7 +30,7 @@ func RunBreaking(ctx context.Context, client *github.Client, owner string) {
 	executeScenario(ctx, client, owner, "SQL Breaking Change",
 		defaultSubstrateYaml(), defaultSQL(),
 		defaultSubstrateYaml(), removedColumnSQL(),
-		"❌ BREAKING")
+		"BREAKING")
 }
 
 func RunSafe(ctx context.Context, client *github.Client, owner string) {
