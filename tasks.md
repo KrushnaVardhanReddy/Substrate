@@ -107,7 +107,7 @@
 
 | Task ID | Name | Owner | Status |
 |---|---|---|---|
-| P1c-T01 | GraphQL SDL Diff Adapter (`graphql`) | Jules | ⏳ ready to submit | `prompts/phase-1c-graphql/t01_parser.txt` |
+| P1c-T01 | GraphQL SDL Diff Adapter (`graphql`) | Jules | 🔄 Jules session `3278201698768619367` | `prompts/phase-1c-graphql/t01_parser.txt` |
 
 ### Phase 1d — Protobuf & gRPC 🔄 IN PROGRESS
 
