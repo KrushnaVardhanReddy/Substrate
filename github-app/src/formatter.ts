@@ -10,9 +10,9 @@ export function formatPRComment(report: DiffReport, config: SubstrateConfig): st
   const warningCount = report.summary?.warning_count || 0;
   const infoCount = report.summary?.info_count || 0;
 
-  const breakingChanges = report.breaking || [];
-  const warningChanges = report.warning || [];
-  const infoChanges = report.info || [];
+  const breakingChanges = report.breaking_changes || [];
+  const warningChanges = report.warnings || [];
+  const infoChanges = report.safe_changes || [];
 
   let comment = '';
 
@@ -25,10 +25,10 @@ export function formatPRComment(report: DiffReport, config: SubstrateConfig): st
     comment += `|---|---|---|\n`;
 
     for (const change of breakingChanges) {
-      comment += `| 🔴 BREAKING | \`${escapeMarkdown(change.rule)}\` | \`${escapeMarkdown(change.path)}\` |\n`;
+      comment += `| 🔴 BREAKING | \`${escapeMarkdown(change.rule_id || '')}\` | \`${escapeMarkdown(change.path || '')}\` |\n`;
     }
     for (const change of warningChanges) {
-      comment += `| 🟡 WARNING | \`${escapeMarkdown(change.rule)}\` | \`${escapeMarkdown(change.path)}\` |\n`;
+      comment += `| 🟡 WARNING | \`${escapeMarkdown(change.rule_id || '')}\` | \`${escapeMarkdown(change.path || '')}\` |\n`;
     }
 
     comment += '\n';
@@ -58,7 +58,7 @@ export function formatPRComment(report: DiffReport, config: SubstrateConfig): st
     comment += `|---|---|---|\n`;
 
     for (const change of warningChanges) {
-      comment += `| 🟡 WARNING | \`${escapeMarkdown(change.rule)}\` | \`${escapeMarkdown(change.path)}\` |\n`;
+      comment += `| 🟡 WARNING | \`${escapeMarkdown(change.rule_id || '')}\` | \`${escapeMarkdown(change.path || '')}\` |\n`;
     }
 
     comment += '\n';
@@ -168,9 +168,10 @@ export function formatCrossRepoImpact(response: CrossRepoCheckResponse): string 
     if (breakingCount === 0) {
       breakingText = 'No breaking changes detected';
     } else {
-      const firstChange = result.diff_report.breaking[0];
-      breakingText = `\`${escapeMarkdown(firstChange.path)}\` — ${escapeMarkdown(firstChange.message)}`;
-      if (breakingCount > 1) {
+     if (result.diff_report.breaking_changes && result.diff_report.breaking_changes.length > 0) {
+      const firstChange = result.diff_report.breaking_changes[0];
+      breakingText = `\`${escapeMarkdown(firstChange.path || '')}\` — ${escapeMarkdown(firstChange.description || '')}`;
+    }  if (breakingCount > 1) {
         breakingText += ` (+${breakingCount - 1} more)`;
       }
     }

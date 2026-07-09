@@ -1,8 +1,8 @@
 export interface DiffChange {
-  rule: string;
+  rule_id: string;
   severity: 'BREAKING' | 'WARNING' | 'INFO';
   path: string;
-  message: string;
+  description: string;
 }
 
 export interface DiffSummary {
@@ -12,9 +12,9 @@ export interface DiffSummary {
 }
 
 export interface DiffReport {
-  breaking: DiffChange[];
-  warning: DiffChange[];
-  info: DiffChange[];
+  breaking_changes: DiffChange[];
+  warnings: DiffChange[];
+  safe_changes: DiffChange[];
   summary: DiffSummary;
 }
 
@@ -75,9 +75,9 @@ export interface PushEvent {
 }
 
 export interface CrossRepoBreakingChange {
-  rule: string;
+  rule_id: string;
   path: string;
-  message: string;
+  description: string;
 }
 
 export interface CrossRepoDiffSummary {
@@ -87,9 +87,9 @@ export interface CrossRepoDiffSummary {
 }
 
 export interface CrossRepoDiffReport {
-  breaking: CrossRepoBreakingChange[];
-  warning: CrossRepoBreakingChange[];
-  info: CrossRepoBreakingChange[];
+  breaking_changes: CrossRepoBreakingChange[];
+  warnings: CrossRepoBreakingChange[];
+  safe_changes: CrossRepoBreakingChange[];
   summary: CrossRepoDiffSummary;
 }
 

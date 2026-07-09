@@ -210,9 +210,10 @@ func setupMux() *http.ServeMux {
 		}
 
 		if err != nil {
+			log.Printf("internal diff error: %v", err)
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{"error": "internal diff error"}`))
+			w.Write([]byte(fmt.Sprintf(`{"error": "internal diff error: %v"}`, err)))
 			return
 		}
 

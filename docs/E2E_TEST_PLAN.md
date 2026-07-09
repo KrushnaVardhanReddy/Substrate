@@ -54,7 +54,14 @@ cd api && go run cmd/server/main.go
 
 Verify: `curl http://localhost:8090/health` should return `{"status":"ok"}`.
 
-### Terminal 3 — SvelteKit Dashboard
+### Terminal 3 — Go Diff Engine (Container Service)
+
+```bash
+cd engine && go run ./cmd/substrate serve
+# Should log: "substrate serve: listening on :8080"
+```
+
+### Terminal 4 — SvelteKit Dashboard
 
 ```bash
 cd dashboard && npm run dev

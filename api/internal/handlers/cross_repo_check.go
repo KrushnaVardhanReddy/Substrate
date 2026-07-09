@@ -30,9 +30,9 @@ type DiffReportSummary struct {
 }
 
 type DiffReport struct {
-	Breaking []interface{}     `json:"breaking"`
-	Warning  []interface{}     `json:"warning"`
-	Info     []interface{}     `json:"info"`
+	Breaking []interface{}     `json:"breaking_changes"`
+	Warning  []interface{}     `json:"warnings"`
+	Info     []interface{}     `json:"safe_changes"`
 	Summary  DiffReportSummary `json:"summary"`
 }
 

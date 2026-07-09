@@ -311,14 +311,14 @@ After the single-repo diff runs on a PR, the Cloudflare Worker also calls `POST 
 **New TypeScript Types (add to `github-app/src/types.ts`):**
 ```ts
 interface CrossRepoBreakingChange {
-  rule: string;     // e.g. "ENDPOINT_MODIFIED"
+  rule_id: string;     // e.g. "ENDPOINT_MODIFIED"
   path: string;     // e.g. "GET /users/{id}"
-  message: string;
+  description: string;
 }
 interface CrossRepoDiffReport {
-  breaking: CrossRepoBreakingChange[];
-  warning: CrossRepoBreakingChange[];
-  info: CrossRepoBreakingChange[];
+  breaking_changes: CrossRepoBreakingChange[];
+  warnings: CrossRepoBreakingChange[];
+  safe_changes: CrossRepoBreakingChange[];
   summary: { breaking_count: number; warning_count: number; info_count: number; };
 }
 interface ConsumerResult {

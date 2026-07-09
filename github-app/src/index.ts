@@ -240,6 +240,7 @@ export default {
           schemaType
         );
       } catch (e: any) {
+        console.error("Engine Call Failed:", e);
         await setCommitStatus(token, event.owner, event.repo, event.headSha, 'failure', 'Substrate engine error — retry later');
         return new Response('Engine Error', { status: 200 });
       }

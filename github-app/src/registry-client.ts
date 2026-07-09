@@ -19,13 +19,15 @@ export async function parseConsumersFromYaml(yamlContent: string): Promise<Consu
     const providerSpecPathMatch = block.match(/provider_spec_path:\s*(.+)/);
     const providerBranchMatch = block.match(/provider_branch:\s*(.+)/);
 
+    const stripQuotes = (val: string) => val.replace(/^["']|["']$/g, '').trim();
+
     if (nameMatch && providerRepoMatch && schemaTypeMatch && providerSpecPathMatch) {
       consumers.push({
-        name: nameMatch[1].trim(),
-        provider_repo: providerRepoMatch[1].trim(),
-        schema_type: schemaTypeMatch[1].trim(),
-        provider_spec_path: providerSpecPathMatch[1].trim(),
-        provider_branch: providerBranchMatch ? providerBranchMatch[1].trim() : 'main'
+        name: stripQuotes(nameMatch[1]),
+        provider_repo: stripQuotes(providerRepoMatch[1]),
+        schema_type: stripQuotes(schemaTypeMatch[1]),
+        provider_spec_path: stripQuotes(providerSpecPathMatch[1]),
+        provider_branch: providerBranchMatch ? stripQuotes(providerBranchMatch[1]) : 'main'
       });
     }
   }
