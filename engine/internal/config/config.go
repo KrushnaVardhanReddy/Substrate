@@ -10,6 +10,21 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type ConsumerDependency struct {
+	Name             string `yaml:"name"`
+	ProviderRepo     string `yaml:"provider_repo"`
+	SchemaType       string `yaml:"schema_type"`
+	ProviderSpecPath string `yaml:"provider_spec_path"`
+	ProviderBranch   string `yaml:"provider_branch"`
+}
+
+func (d *ConsumerDependency) DefaultedBranch() string {
+	if d.ProviderBranch == "" {
+		return "main"
+	}
+	return d.ProviderBranch
+}
+
 type Owner struct {
 	Team    string `yaml:"team"`
 	Contact string `yaml:"contact,omitempty"`
@@ -24,12 +39,17 @@ type Override struct {
 }
 
 type SubstrateConfig struct {
-	Version    string     `yaml:"version"`
-	Service    string     `yaml:"service"`
-	SchemaType string     `yaml:"schema_type,omitempty"`
-	SpecPath   string     `yaml:"spec_path"`
-	Owners     []Owner    `yaml:"owners,omitempty"`
-	Overrides  []Override `yaml:"overrides,omitempty"`
+	Version    string               `yaml:"version"`
+	Service    string               `yaml:"service"`
+	SchemaType string               `yaml:"schema_type,omitempty"`
+	SpecPath   string               `yaml:"spec_path"`
+	Owners     []Owner              `yaml:"owners,omitempty"`
+	Overrides  []Override           `yaml:"overrides,omitempty"`
+	Consumers  []ConsumerDependency `yaml:"consumers,omitempty"`
+}
+
+func (c *SubstrateConfig) HasConsumers() bool {
+	return len(c.Consumers) > 0
 }
 
 var KnownRules = map[string]bool{
