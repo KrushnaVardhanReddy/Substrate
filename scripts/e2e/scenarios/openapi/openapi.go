@@ -132,6 +132,8 @@ overrides:
   - rule_id: ENDPOINT_REMOVED
     path: "GET /users/{id}"
     reason: "E2E testing override functionality"
+    approved_by: "e2e-bot@example.com"
+    expires: "2099-12-31"
 `
 }
 
