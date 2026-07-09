@@ -121,6 +121,36 @@ func CrossRepoCheckHandler(store db.Store) http.HandlerFunc {
 					continue
 				}
 
+				if diffResp.StatusCode != http.StatusOK {
+					// Extract the error message from the engine if possible
+					var errResp struct {
+						Error string `json:"error"`
+					}
+					json.NewDecoder(diffResp.Body).Decode(&errResp)
+					diffResp.Body.Close()
+
+					errMsg := "Internal Engine Error"
+					if errResp.Error != "" {
+						errMsg = errResp.Error
+					}
+
+					response.BrokenConsumers++
+					response.IsSafe = false
+					response.Results = append(response.Results, ConsumerResult{
+						ConsumerRepo: consumer.ConsumerFullName,
+						Status:       "error",
+						DiffReport: &DiffReport{
+							Breaking: []interface{}{
+								map[string]interface{}{
+									"severity":    "BREAKING",
+									"description": errMsg,
+								},
+							},
+						},
+					})
+					continue
+				}
+
 				var diffReport DiffReport
 				if err := json.NewDecoder(diffResp.Body).Decode(&diffReport); err != nil {
 					diffResp.Body.Close()

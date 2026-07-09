@@ -13,8 +13,9 @@ To guarantee the resilience of the Substrate orchestrator (Diff Engine, Registry
 For each supported schema adapter (`openapi`, `sql`, `graphql`, `protobuf`, `avro`, `terraform`, `aiml`), the Go script will execute the following state machine concurrently:
 
 1. **Setup & Seeding (Main Branch):**
-   - Use the GitHub API to update `substrate.yaml` in both the provider and consumer repositories to the target `schema_type`.
-   - Commit and push a valid, baseline schema (e.g., `schema.sql`) to both repositories' `main` branches.
+   - Use the GitHub API to update `substrate.yaml` in **both** the provider (`substrate-test-provider`) and consumer (`substrate-test-consumer`) repositories.
+   - For the consumer, ensure the `substrate.yaml` correctly references the provider and the new `schema_type` to trigger the Cloudflare Worker to update the Postgres registry.
+   - Commit and push a valid, baseline schema (e.g., `schema.sql`) to both repositories.
    - *Wait 5 seconds* to allow the Cloudflare Worker to process the push webhook and sync the baselines into the PostgreSQL registry.
 
 2. **Execution of 4 Discrete Scenarios:**
@@ -27,6 +28,7 @@ For each supported schema adapter (`openapi`, `sql`, `graphql`, `protobuf`, `avr
 3. **Validation & Polling:**
    - Poll the GitHub API's Issue Comments endpoint for the newly created PR every 3 seconds.
    - Wait for the `substrate-local-test[bot]` to post the cross-repo impact comment.
+   - If the Diff Engine encounters a fatal parsing error (e.g., `500 Internal Server Error` due to an incompatible schema type), the API MUST NOT swallow the error. It must mark the consumer as `❌ Error` and explicitly fail the cross-repo check.
    - Assert that the comment body contains the expected `rule_id` (e.g., `SQL_COLUMN_DROPPED`) and the `❌ BREAKING` cross-repo impact table.
    - Poll the GitHub API's Status Checks endpoint and assert that `substrate/breaking-changes` is `failure`.
 

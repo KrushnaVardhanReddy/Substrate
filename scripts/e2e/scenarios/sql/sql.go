@@ -12,7 +12,10 @@ import (
 	"github.com/google/go-github/v62/github"
 )
 
-const providerRepoName = "substrate-test-provider"
+const (
+	providerRepoName = "substrate-test-provider"
+	consumerRepoName = "substrate-test-consumer"
+)
 
 func RunAll(ctx context.Context, client *github.Client, owner string) {
 	log.Println("Starting SQL Automated Test Suite...")
@@ -57,6 +60,16 @@ func executeScenario(ctx context.Context, client *github.Client, owner, scenario
 	log.Println("Seeding the main branch with baseline files...")
 	helpers.SeedFile(ctx, client, owner, providerRepoName, "substrate.yaml", "main", baseConfig)
 	helpers.SeedFile(ctx, client, owner, providerRepoName, "schema.sql", "main", baseSchema)
+
+	// Seed the consumer!
+	consumerConfig := fmt.Sprintf(`service: test-consumer
+consumers:
+  - name: sql-dep
+    provider_repo: %s/%s
+    schema_type: sql
+    provider_spec_path: schema.sql
+`, owner, providerRepoName)
+	helpers.SeedFile(ctx, client, owner, consumerRepoName, "substrate.yaml", "main", consumerConfig)
 	
 	log.Println("Waiting 5s for the Registry API to sync baselines...")
 	time.Sleep(5 * time.Second)
