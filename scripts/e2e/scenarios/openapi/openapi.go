@@ -40,6 +40,12 @@ paths:
   /users/{id}:
     get:
       summary: Get user by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         "200":
           description: OK
