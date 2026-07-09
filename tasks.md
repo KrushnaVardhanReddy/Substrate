@@ -291,6 +291,7 @@ These are not yet scheduled but are on the product roadmap:
 See the full spec: `docs/specs/enterprise-vision.md`
 - [ ] Custom Rules Engine (CEL / OPA Rego)
 - [ ] Traffic-Aware Diffing (Datadog/OTel integration for `WARNING (Unused)`)
+- [ ] ITSM Integration (Jira & ServiceNow Auto-Ticketing)
 - [ ] Auto-SDK PR Generation
 - [ ] Local Time-Travel Mock Servers
 - [ ] Runtime Drift Detection (eBPF / Envoy)
