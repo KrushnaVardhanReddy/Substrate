@@ -1,0 +1,7 @@
+syntax = "proto3";
+package substrate.test.v1;
+option go_package = "github.com/KrushnaVardhanReddy/Substrate/engine/internal/diff/testdata/proto;testpb";
+
+message User {
+  int32 id = 1;
+}

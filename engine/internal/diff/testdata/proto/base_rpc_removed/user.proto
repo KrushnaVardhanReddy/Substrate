@@ -1,0 +1,24 @@
+syntax = "proto3";
+package substrate.test.v1;
+option go_package = "github.com/KrushnaVardhanReddy/Substrate/engine/internal/diff/testdata/proto;testpb";
+
+message User {
+  string id = 1;
+}
+
+message GetUserRequest {
+  string id = 1;
+}
+
+message ListUsersRequest {
+  int32 page = 1;
+}
+
+message ListUsersResponse {
+  repeated User users = 1;
+}
+
+service UserService {
+  rpc GetUser(GetUserRequest) returns (User);
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+}
