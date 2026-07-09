@@ -230,6 +230,8 @@
 | **P3-T09** | 🔵 P4 | **MCP server implementation** (Go, JSON-RPC 2.0) | Jules | 🔄 Jules session `15341875086230126168` | `prompts/phase-3-registry/t09_mcp_implementation.txt` |
 | P3-T10 | 🔵 P4 | **MCP deployment + IDE integration docs** | Antigravity | 🔒 after P3-T09 |
 | **P3-T12** | 🔵 P4 | **Comprehensive Substrate Platform Docs** — Deep-dive install, config, CLI params, and architecture guides optimized for both human reading and MCP/AI ingestion | Antigravity | 🔒 after P3-T10 | `docs/specs/documentation-strategy.md` |
+| **P3-T13** | 🟢 P3 | **Execution Modes (Enterprise Rollout)** — Add `--mode=legacy\|strict` to CLI for shadow mode / dry-run deployments | Jules | 🔒 after P3-T02d |
+| **P3-T14** | 🟢 P3 | **Interactive Diff Viewer URL** — Worker adds a "View Dashboard" link to GitHub comments, routing to the Svelte dashboard | Jules | 🔒 after P3-T03 |
 | P3-T07 | ⚪ P5 | Free tier limits + production deployment | Jules | 🔒 after P3-T06 |
 
 > **P3-T11 rationale (inspired by PactFlow's compatibility matrix):** PactFlow's most requested enterprise dashboard feature. For a platform team managing 20+ microservices, this is the central control panel: "which version of `users-api` is compatible with which version of `frontend` and `mobile-app`?" Every cell in the grid is a green tick or red cross. This is what makes Substrate indispensable for large orgs and is a core enterprise upsell feature.
@@ -256,10 +258,12 @@
 
 | Task ID | Name | AI Approach | Owner | Status |
 |---|---|---|---|---|
-| **P4a-T01** | **AI Impact Analyst** — "What changed in the payments API last month that could affect checkout?" | MCP tools → Claude/GPT reasons over schema graph | Antigravity | 💡 |
-| **P4a-T02** | **Auto-Migration Generator** — breaking change detected → AI generates migration code diff for each affected consumer | MCP tools → foundation model generates code | Jules | 💡 |
-| **P4a-T03** | **Smart Deprecation Planner** — repeatedly acknowledged break → AI suggests 30-day deprecation plan + consumer notifications | MCP tools → foundation model reasons over acknowledgment history | Antigravity | 💡 |
-| **P4a-T04** | **AI-powered PR review assistant** — "This PR touches 5 schemas. Full cross-repo impact + suggested reviewers" | MCP tools → foundation model, triggered on PR open | Antigravity | 💡 |
+| **P4a-T01** | **AI Impact Analyst** — "What changed in the payments API last month that could affect checkout?" | MCP tools → Claude/GPT reasons over schema graph | Antigravity | ✅ Solved by P3-T09 (MCP Server) |
+| **P4a-T02** | **Zero-Touch Auto-Discovery PR** — On installation, GitHub App scans legacy repos and automatically opens PR adding `substrate.yaml` | MCP/LLM scans repo and generates config | Jules | 💡 |
+| **P4a-T03** | **AI API Architect (Spec-First)** — `substrate design` CLI command generates best-practice OpenAPI from text | LLM generates perfect schema | Antigravity | 💡 |
+| **P4a-T04** | **Auto-Migration Generator** — breaking change detected → AI generates migration code diff for each affected consumer | MCP tools → foundation model generates code | Jules | 💡 |
+| **P4a-T05** | **Smart Deprecation Planner** — repeatedly acknowledged break → AI suggests 30-day deprecation plan | MCP tools → foundation model reasons over history | Antigravity | 💡 |
+| **P4a-T06** | **AI-powered PR review assistant** — "This PR touches 5 schemas. Full cross-repo impact + suggested reviewers" | MCP tools → foundation model, triggered on PR open | Antigravity | 💡 |
 
 ### Phase 4b — Specialized ML (slow — needs 6-12 months of real user data)
 
@@ -281,7 +285,6 @@ These are not yet scheduled but are on the product roadmap:
 
 **Phase 5 — Enterprise Automation & Governance** 🏢
 See the full spec: `docs/specs/enterprise-vision.md`
-- [ ] Execution Modes (`--mode=strict|default|legacy`)
 - [ ] Custom Rules Engine (CEL / OPA Rego)
 - [ ] Traffic-Aware Diffing (Datadog/OTel integration for `WARNING (Unused)`)
 - [ ] Auto-SDK PR Generation
@@ -293,11 +296,6 @@ See the full spec: `docs/specs/enterprise-vision.md`
 - [ ] Cross-Repo Auto-Fix PRs (Snyk-style auto-remediation)
 - [ ] Cross-Repo Data Flow Taint Analysis (Checkmarx style)
 - [ ] Compliance Mapping (SOC2, HIPAA, GDPR tags)
-- [ ] Interactive Diff Viewer UI (Vercel-style Previews)
-
-**Zero-Touch Onboarding & AI Spec Generation** 🚀 (High Priority for Client Demos)
-- [ ] **AI API Architect (For NEW Projects - "Spec-First"):** A `substrate design` CLI command. The user types "I need a blog API with posts and comments." The LLM generates a best-practice, REST-compliant `openapi.yaml` from scratch. Substrate acts as an AI software architect, establishing the contract before code is written.
-- [ ] **Auto-Discovery PR (For LEGACY Projects):** On installation, GitHub App scans the repo for existing schemas and automatically opens a PR adding `substrate.yaml`. Zero manual config required.
 - [ ] **LLM Direct Spec Inference (For LEGACY Projects):** If no spec exists, use an LLM (Approach 1) to read raw routing code (`routes.ts`) and dynamically generate the OpenAPI spec in the background without user intervention.
 
 **Override & Skip Config** ⚠️ Must ship before Phase 2 GitHub App
