@@ -169,10 +169,10 @@ export function formatCrossRepoImpact(response: CrossRepoCheckResponse): string 
     if (breakingCount === 0) {
       breakingText = 'No breaking changes detected';
     } else {
-     if (result.diff_report.breaking_changes && result.diff_report.breaking_changes.length > 0) {
-      const firstChange = result.diff_report.breaking_changes[0];
-      breakingText = `\`${escapeMarkdown(firstChange.path || '')}\` — ${escapeMarkdown(firstChange.description || '')}`;
-    }  if (breakingCount > 1) {
+      if (result.diff_report.breaking_changes && result.diff_report.breaking_changes.length > 0) {
+        const firstChange = result.diff_report.breaking_changes[0];
+        breakingText = `\`${escapeMarkdown(firstChange.path || '')}\` — ${escapeMarkdown(firstChange.description || '')}`;
+      } if (breakingCount > 1) {
         breakingText += ` (+${breakingCount - 1} more)`;
       }
     }

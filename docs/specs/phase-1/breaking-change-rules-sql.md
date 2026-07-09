@@ -282,6 +282,9 @@ ALTER TABLE orders ADD COLUMN customer_id BIGINT NOT NULL DEFAULT 0;
 | **Pattern** | A column's data type changes in a non-widening way (e.g., `VARCHAR` → `INTEGER`, `TEXT` → `BOOLEAN`, `TIMESTAMP` → `DATE`) |
 | **Rationale** | ORM deserialization fails. Existing data may be incompatible with the new type. |
 
+**Implementation Note (`pg_query_go` AST Pointers):**
+Because `pg_query_go` allocates new memory pointers for AST components like `*int` for `Length` or `Precision` during parsing, diffing logic MUST safely dereference values (`*bCol.Length != *hCol.Length`) instead of directly comparing memory addresses (`bCol.Length != hCol.Length`). Comparing pointer addresses will result in catastrophic false positive `COLUMN_TYPE_CHANGED` evaluations for identical types like `VARCHAR(255)`.
+
 ---
 
 #### COLUMN_TYPE_WIDENED
