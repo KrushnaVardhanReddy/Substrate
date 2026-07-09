@@ -289,7 +289,16 @@ These are not yet scheduled but are on the product roadmap:
 
 **Phase 5 — Enterprise Automation & Governance** 🏢
 See the full spec: `docs/specs/enterprise-vision.md`
-- [ ] Dynamic Dependency Discovery (Terraform IaC, Datadog, eBPF, AST)
+- [ ] **Dynamic Dependency Discovery** — Full spec: `docs/specs/phase-5/dependency-discovery.md`
+  - **Tier 1a — Env Var Scanner:** `.env.example`, `docker-compose.yml`, K8s manifests, GitHub Actions `env:` blocks, `fly.toml`, `Dockerfile ENV` → extract `*_API_URL` / `*_ENDPOINT` patterns, resolve against URL→Repo registry
+  - **Tier 1b — Package Manifest Scanner:** `package.json` (`@myorg/*`), `go.mod` (internal modules), `requirements.txt`, `pom.xml` → SDK import = contract dependency
+  - **Tier 1c — OpenAPI Generator Config Scanner:** `openapitools.json`, `.openapi-generator-config.yaml`, `Makefile` generator targets → `inputSpec` URL is a direct, deterministic schema reference
+  - **Tier 1d — Docker Compose / K8s / Helm:** `depends_on` blocks + env var values with K8s DNS patterns (`*.svc.cluster.local`)
+  - **Tier 2a — Terraform Extended:** env var injections from resource references + `output` URL scraping
+  - **Tier 2b — Message Queue / Event-Driven:** AsyncAPI `$ref` cross-repo URLs + Kafka topic consumer/producer mapping
+  - **Tier 3 — Runtime Confirmation:** OTel/Datadog trace ingestion + eBPF/Service Mesh (enterprise)
+  - **URL→Repo Registry:** GitHub Deployments API auto-population + `substrate.yaml deployed_urls` declaration + Terraform output scraping
+  - **Confidence Scoring:** Multi-signal scoring system (0–100 pts) — High (80+), Medium (50–79), Low (<50) — shown in dashboard dependency graph
 - [ ] Custom Rules Engine (CEL / OPA Rego)
 - [ ] Traffic-Aware Diffing (Datadog/OTel integration for `WARNING (Unused)`)
 - [ ] ITSM Integration (Jira & ServiceNow Auto-Ticketing)

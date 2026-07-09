@@ -817,11 +817,16 @@ Goal: Move from CLI-only to a fully automated CI/CD bot.
 
 Features:
 * **1-click GitHub App installation:** Automated PR comments and merge blocking.
-* **Automated Dependency Discovery:** Eliminate manual YAML configuration by automatically mapping the dependency graph through:
-  * **Distributed Tracing:** Native ingestion of OpenTelemetry, Datadog APM, or New Relic traces.
-  * **Network Layer (eBPF & Service Mesh):** Direct integration with Istio, Linkerd, or eBPF network logs to map service-to-service communication.
-  * **Static Code Analysis:** AST scanning in CI to detect SDK imports and API calls.
-  * **Infrastructure as Code (Terraform):** Parsing `terraform_remote_state` and environment variable injections (e.g. AWS ECS wiring) to deterministically map cross-repo dependencies.
+* **Automated Dependency Discovery:** Eliminate manual `substrate.yaml` configuration by automatically building the full dependency graph from signals already present in your codebase. Multi-signal, confidence-scored. Full spec: `docs/specs/phase-5/dependency-discovery.md`.
+  * **Environment Variable Scanning ⭐:** Scans `.env.example`, `docker-compose.yml`, K8s manifests, GitHub Actions `env:` blocks, `fly.toml`, and `Dockerfile` for `*_API_URL` / `*_ENDPOINT` patterns. Resolves URL values against a URL→Repo registry (auto-populated via GitHub Deployments API). **Zero infrastructure required.**
+  * **Package Manifest Analysis:** Detects internal SDK imports (`@myorg/users-sdk` in `package.json`, internal modules in `go.mod`) as direct schema contract dependencies. The SDK import IS the dependency.
+  * **OpenAPI Generator Config:** Scans `openapitools.json` and `.openapi-generator-config.yaml` for `inputSpec` URLs — the most deterministic signal possible (100% explicit reference to the provider's schema).
+  * **Docker Compose / Kubernetes / Helm:** Extracts `depends_on` blocks and environment variable URL values; resolves Kubernetes DNS patterns (`users-service.default.svc.cluster.local`) against the service registry.
+  * **Infrastructure as Code (Terraform):** Parses `terraform_remote_state` data sources and environment variable injections from resource references (e.g. AWS ECS task definitions wiring services together).
+  * **Message Queue / Event-Driven:** AsyncAPI `$ref` cross-repo URLs and Kafka consumer group → topic → producer mappings for event-driven architectures.
+  * **Distributed Tracing (Runtime Confirmation):** OTel, Datadog APM, New Relic — confirms statically-discovered dependencies with live traffic evidence.
+  * **Network Layer (Enterprise):** eBPF and Istio/Envoy service mesh logs for kernel-level dependency mapping in Kubernetes environments.
+  * **Confidence Scoring:** All signals are combined into a 0–100 confidence score per dependency edge. High (80+), Medium (50–79), Low (<50) — shown as solid/dashed/hidden edges in the dependency graph.
 * **Service Ownership:** Map every discovered node to a team and an alert channel.
 
 ---
