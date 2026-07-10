@@ -20,16 +20,38 @@ func corsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func ServiceTokenMiddleware(registryApiToken string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			authHeader := r.Header.Get("Authorization")
+			if authHeader == "" || authHeader != "Bearer "+registryApiToken {
+				http.Error(w, "unauthorized", http.StatusUnauthorized)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
 // NewRouter creates a new router with all the routes registered.
-func NewRouter(store db.Store) http.Handler {
+func NewRouter(store db.Store, authConfig handlers.AuthConfig, registryApiToken, jwtSecret string) http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /health", handlers.HealthHandler)
-	mux.HandleFunc("POST /api/v1/sync", handlers.SyncHandler(store))
-	mux.HandleFunc("POST /api/v1/cross-repo-check", handlers.CrossRepoCheckHandler(store))
-	mux.HandleFunc("GET /api/v1/graph/{org}", handlers.GraphHandler(store))
-	mux.HandleFunc("GET /api/v1/repos/{org}", handlers.ReposHandler(store))
-	mux.HandleFunc("GET /api/v1/schema/{owner}/{repo}", handlers.SchemaHandler(store))
+	// Unprotected Auth routes
+	mux.HandleFunc("GET /api/v1/auth/github/login", handlers.HandleGitHubLogin(authConfig))
+	mux.HandleFunc("GET /api/v1/auth/github/callback", handlers.HandleGitHubCallback(authConfig))
+
+	// Protected routes (Service Token only)
+	serviceTokenMW := ServiceTokenMiddleware(registryApiToken)
+	mux.Handle("POST /api/v1/sync", serviceTokenMW(http.HandlerFunc(handlers.SyncHandler(store))))
+	mux.Handle("POST /api/v1/cross-repo-check", serviceTokenMW(http.HandlerFunc(handlers.CrossRepoCheckHandler(store))))
+
+	// Protected routes (Service Token OR JWT)
+	authMW := AuthMiddleware(registryApiToken, jwtSecret)
+	mux.Handle("GET /api/v1/graph/{org}", authMW(http.HandlerFunc(handlers.GraphHandler(store))))
+	mux.Handle("GET /api/v1/repos/{org}", authMW(http.HandlerFunc(handlers.ReposHandler(store))))
+	mux.Handle("GET /api/v1/schema/{owner}/{repo}", authMW(http.HandlerFunc(handlers.SchemaHandler(store))))
 
 	return corsMiddleware(mux)
 }
