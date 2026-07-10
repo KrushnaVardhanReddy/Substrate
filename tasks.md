@@ -223,7 +223,7 @@
 | **P3-T06** | 🟡 P2 | **GitHub OAuth + org management** | Jules | ✅ Merged `feature/dev` 2026-07-10 (`1fc0f16`) | `prompts/phase-3-registry/t06_auth_org.txt` |
 | **P3-T02d** | 🟡 P2 | **Cross-repo E2E fixture tests** — `testdata/cross-repo/` | Jules | ✅ | `prompts/phase-3-registry/t02d_cross_repo_e2e.txt` |
 | **P3-T03** | 🟢 P3 | **SvelteKit dashboard project setup + design system** | Jules | ✅ | `prompts/phase-3-registry/t03_dashboard.txt` |
-| **P3-T04** | 🟢 P3 | **Connected repos list + schema browser** | Jules | 🔄 **Jules session `11882998022726290629`** submitted 2026-07-10 | `prompts/phase-3-registry/t04_dashboard_repos.txt` |
+| **P3-T04** | 🟢 P3 | **Connected repos list + schema browser** | Jules | ✅ Merged `feature/dev` 2026-07-10 (`c2fa3ce`) | `prompts/phase-3-registry/t04_dashboard_repos.txt` |
 | P3-T05 | 🟢 P3 | Dependency graph visualization | Antigravity | 🔒 after P3-T04 |
 | **P3-T11** | 🟢 P3 | **Compatibility matrix dashboard** — provider × consumer version grid | Antigravity | 🔒 after P3-T05 |
 | **P3-T08** | 🔵 P4 | **MCP server spec** (`docs/specs/phase-3/mcp-server.md`) | Antigravity | ✅ |
