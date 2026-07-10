@@ -268,6 +268,21 @@
 | **P4a-T05** | **Smart Deprecation Planner** — repeatedly acknowledged break → AI suggests 30-day deprecation plan | MCP tools → foundation model reasons over history | Antigravity | 💡 |
 | **P4a-T06** | **AI-powered PR review assistant** — "This PR touches 5 schemas. Full cross-repo impact + suggested reviewers" | MCP tools → foundation model, triggered on PR open | Antigravity | 💡 |
 
+### Phase 4 Implementation Tasks 🏗️ (Ready to execute after P3-T15/P3-T16)
+
+> Concrete engineering tasks. Full spec: `docs/specs/phase-4/ai-intelligence.md`
+
+| Task ID | Priority | Description | Owner | Status |
+|---|---|---|---|---|
+| **P4-T01** | 🔴 P1 | **AI Reasoning Bridge** — Wire LLM (Gemini/Claude) to MCP tools via Go API | Antigravity | 📐 Spec |
+| **P4-T02** | 🔴 P1 | **Streaming SSE Handler** — `POST /api/v1/ai/analyze` with real-time token streaming | Jules | 📐 Spec |
+| **P4-T03** | 🟡 P2 | **Cross-Repo Auto-Fix PR Generator** — AI opens draft PRs in consumer repos | Jules | 📐 Spec |
+| **P4-T04** | 🟡 P2 | **GitHub PR Comment Upgrade** — Add AI analysis + auto-fix links to PR comments | Jules | 📐 Spec |
+| **P4-T05** | 🟢 P3 | **Wire Real AI to Playground** — Replace mock in P3-T16 with live SSE stream | Antigravity | 🔒 after P4-T02 |
+| **P4-T06** | 🔵 P4 | **Shift-Left VSCode Extension** — Inline breaking-change warnings in the editor | Jules | 💡 |
+| **P4-T07** | ⚪ P5 | **Traffic-Aware Diffing** — Prometheus/OTel integration to suppress unused-field warnings | Jules | 💡 |
+| **P4-T08** | ⚪ P5 | **PII & Compliance Auditing** — Auto-tag `[HIPAA]`, `[PCI]`, `[PII]` fields on diff | Antigravity | 💡 |
+
 ### Phase 4b — Specialized ML (slow — needs 6-12 months of real user data)
 
 > These features need enough accumulated data to train/tune on. **Do not start these until Phase 3 has been live for at least 6 months** and you have meaningful signal. Classical ML (no LLM) for the numerical tasks. Small classifier for prediction.
