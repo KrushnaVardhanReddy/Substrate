@@ -55,5 +55,8 @@ func NewRouter(store db.Store, authConfig handlers.AuthConfig, registryApiToken,
 	mux.Handle("GET /api/v1/repos/{org}", authMW(http.HandlerFunc(handlers.ReposHandler(store))))
 	mux.Handle("GET /api/v1/schema/{owner}/{repo}", authMW(http.HandlerFunc(handlers.SchemaHandler(store))))
 
+	// AI routes (public — no auth required, LLM is BYOK)
+	mux.HandleFunc("POST /api/v1/ai/analyze", handlers.AIAnalyzeHandler())
+
 	return corsMiddleware(mux)
 }
