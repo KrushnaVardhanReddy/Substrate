@@ -29,6 +29,7 @@ func NewRouter(store db.Store) http.Handler {
 	mux.HandleFunc("POST /api/v1/cross-repo-check", handlers.CrossRepoCheckHandler(store))
 	mux.HandleFunc("GET /api/v1/graph/{org}", handlers.GraphHandler(store))
 	mux.HandleFunc("GET /api/v1/repos/{org}", handlers.ReposHandler(store))
+	mux.HandleFunc("GET /api/v1/schema/{owner}/{repo}", handlers.SchemaHandler(store))
 
 	return corsMiddleware(mux)
 }

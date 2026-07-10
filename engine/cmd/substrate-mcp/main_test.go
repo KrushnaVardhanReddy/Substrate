@@ -23,7 +23,7 @@ func TestMCPServerE2E(t *testing.T) {
 	requests := []string{
 		`{"jsonrpc": "2.0", "id": 1, "method": "initialize"}`,
 		`{"jsonrpc": "2.0", "id": 2, "method": "tools/list"}`,
-		`{"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "get_dependency_graph", "arguments": {"org": "myorg"}}}`,
+		`{"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "get_substrate_docs", "arguments": {}}}`,
 	}
 	inputStr := strings.Join(requests, "\n") + "\n"
 
@@ -90,7 +90,7 @@ func TestMCPServerE2E(t *testing.T) {
 	if !ok {
 		t.Fatalf("Expected text string in content")
 	}
-	if !strings.Contains(text, "mock/provider") {
-		t.Errorf("Expected 'mock/provider' in response, got %s", text)
+	if !strings.Contains(text, "Substrate Configuration Guide") {
+		t.Errorf("Expected 'Substrate Configuration Guide' in response, got %s", text)
 	}
 }

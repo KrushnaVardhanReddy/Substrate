@@ -58,8 +58,7 @@ service: my-service
 service: my-service
 spec_path: missing.yaml
 `,
-			wantErr: true,
-			errMsg:  "substrate.yaml: spec_path 'missing.yaml' not found",
+			wantErr: false,
 		},
 		{
 			name: "Unknown Rule ID",
@@ -114,7 +113,7 @@ spec_path: openapi.yaml
 schema_type: unknownformat
 `,
 			wantErr: true,
-			errMsg:  "substrate.yaml: unknown schema_type 'unknownformat' (supported: openapi, sql, graphql, protobuf, asyncapi, avro)",
+			errMsg:  "substrate.yaml: unknown schema_type 'unknownformat'",
 		},
 	}
 

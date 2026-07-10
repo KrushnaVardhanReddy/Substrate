@@ -146,11 +146,14 @@ func TestCompareProto(t *testing.T) {
 
 func TestCompareProto_BufNotInstalled(t *testing.T) {
 	origPath := os.Getenv("PATH")
+	origHome := os.Getenv("HOME")
 	t.Cleanup(func() {
 		os.Setenv("PATH", origPath)
+		os.Setenv("HOME", origHome)
 	})
 
 	os.Setenv("PATH", "")
+	os.Setenv("HOME", "/tmp/fakehome")
 
 	_, err := diff.CompareProto(protoTestdataPath("base_no_change"), protoTestdataPath("head_no_change"))
 	if err == nil {
