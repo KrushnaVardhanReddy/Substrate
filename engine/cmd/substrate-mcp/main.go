@@ -30,7 +30,35 @@ func main() {
 			"required": []string{"org"},
 		},
 		Handler: func(params json.RawMessage) (any, error) {
-			return `[{"provider": "mock/provider", "consumer": "mock/consumer", "status": "active"}]`, nil
+			var args struct {
+				Org string `json:"org"`
+			}
+			if err := json.Unmarshal(params, &args); err != nil {
+				return nil, err
+			}
+
+			// Call the live Registry API (defaulting to localhost:8090 if REGISTRY_API_URL is not set)
+			apiURL := os.Getenv("REGISTRY_API_URL")
+			if apiURL == "" {
+				apiURL = "http://localhost:8090"
+			}
+
+			resp, err := http.Get(fmt.Sprintf("%s/api/v1/graph/%s", apiURL, args.Org))
+			if err != nil {
+				return nil, fmt.Errorf("failed to fetch dependency graph: %w", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				return nil, fmt.Errorf("registry API returned status: %d", resp.StatusCode)
+			}
+
+			body, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return nil, err
+			}
+
+			return string(body), nil
 		},
 	})
 

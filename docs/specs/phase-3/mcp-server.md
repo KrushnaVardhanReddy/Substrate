@@ -13,12 +13,13 @@ By exposing the Substrate Registry API as an MCP server, developers using AI IDE
 
 ## 1. Architecture & Setup
 
-The MCP Server will be embedded directly into our existing Go REST API Server (`api/cmd/server/main.go`). 
+The MCP Server is implemented as a standalone CLI tool (`substrate-mcp`) that runs locally on the developer's machine using the **stdio** transport layer. This allows seamless integration with AI IDEs like Cursor and Windsurf.
 
-We will expose a new endpoint: `POST /mcp`
-This endpoint will implement the **JSON-RPC 2.0** protocol as defined by the MCP specification. 
+However, because the Substrate data (dependency graph, breaking change history, consumer schemas) is global to the engineering organization, the local `substrate-mcp` binary operates statelessly. It makes **JSON HTTP requests** to the centralized **Registry API** (e.g., `https://substrate.internal.company.com/api/v1/...`) to fetch cross-repository data.
 
-Because we want Cursor/Claude to talk to the local API server while developing, the MCP server must support Standard Input/Output (stdio) integration via a small wrapper script, OR the AI client must support SSE (Server-Sent Events) HTTP transport. For maximum compatibility with IDEs, we will implement the **stdio** transport in a standalone CLI command: `substrate-mcp`.
+This architecture provides the best of both worlds:
+1. **Local Execution**: The AI can instantly diff schemas and execute local commands (`execute_cli_command`, `check_compatibility`) securely on the developer's laptop without uploading drafts.
+2. **Global Context**: The AI can securely pull the real-time, global dependency graph (`get_dependency_graph`) from the shared company registry.
 
 ---
 

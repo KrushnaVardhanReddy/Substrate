@@ -923,7 +923,7 @@ To run Substrate locally, you need 5 terminals running simultaneously:
 **Why multiple Golang binaries?**
 - `engine/cmd/substrate`: A stateless CLI tool that can be run in Github Actions or as a microservice (`serve`).
 - `api/cmd/server`: A stateful API that requires Postgres. Separated from the engine so the engine can be used purely locally/offline.
-- `engine/cmd/substrate-mcp`: A specialized wrapper that runs the engine functions over standard input/output (stdio) using the JSON-RPC Model Context Protocol for AI IDEs like Cursor and Claude.
+- `engine/cmd/substrate-mcp`: A specialized wrapper for AI IDEs (Cursor, Claude) that provides tools via JSON-RPC over stdio. It operates statelessly locally, but makes HTTP requests to the centralized `api/cmd/server` to fetch the global cross-repo dependency graph.
 
 ---
 
