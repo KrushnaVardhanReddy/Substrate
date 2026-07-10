@@ -1,6 +1,44 @@
-.PHONY: e2e e2e-breaking e2e-safe e2e-override e2e-warning
+.PHONY: help e2e e2e-breaking e2e-safe e2e-override e2e-warning
 
-# Ensure GITHUB_TOKEN is set before running these
+# ==============================================================================
+# SUBSTRATE LOCAL DEVELOPMENT ARCHITECTURE
+#
+# Substrate is built as a highly decoupled, microservice-like architecture to 
+# allow maximum flexibility (CLI-mode vs Cloud-mode vs IDE-mode).
+#
+# To run Substrate locally, you need 5 terminals running simultaneously:
+#
+# 1. Database (make postgres)
+#    - Runs a local PostgreSQL 15 container to store the cross-repo graph.
+# 2. Registry API (cd api && go run ./cmd/server)
+#    - The stateful brain. Connects to Postgres, maps dependencies, and 
+#      exposes the graph to the Dashboard and MCP.
+# 3. Diff Engine (cd engine && go run ./cmd/substrate serve)
+#    - The stateless worker. It only takes two schemas, compares them, and 
+#      returns the breaking changes. Exposed over port 8080.
+# 4. GitHub Worker (cd github-app && npm run dev)
+#    - The Cloudflare Worker that listens to GitHub Webhooks, fetches the 
+#      PR files, and orchestrates the Registry API and Diff Engine.
+# 5. Svelte Dashboard (cd dashboard && npm run dev)
+#    - The visualizer UI to see the live graph and audit history.
+#
+# Why multiple Golang binaries?
+# - engine/cmd/substrate: A stateless CLI tool that can be run in Github Actions 
+#   or as a microservice (serve).
+# - api/cmd/server: A stateful API that requires Postgres. Separated from the 
+#   engine so the engine can be used purely locally/offline.
+# - engine/cmd/substrate-mcp: A specialized wrapper that runs the engine 
+#   functions over standard input/output (stdio) using the JSON-RPC Model 
+#   Context Protocol for AI IDEs like Cursor and Claude.
+# ==============================================================================
+
+help:
+	@echo "Substrate Local Development Commands:"
+	@echo "--------------------------------------------------------"
+	@echo "make postgres     - Start the Postgres database in Docker"
+	@echo "make e2e-*        - Run the E2E matrix test suites"
+	@echo "--------------------------------------------------------"
+	@echo "See the Makefile source for the 5-terminal architecture setup."# Ensure GITHUB_TOKEN is set before running these
 check-token:
 	@if [ -z "$(GITHUB_TOKEN)" ]; then \
 		echo "Error: GITHUB_TOKEN is not set."; \
