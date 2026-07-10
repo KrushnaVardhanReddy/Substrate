@@ -21,9 +21,11 @@ type DiffRequest struct {
 	Config          string `json:"config"`
 	SchemaType      string `json:"schema_type"`
 	AvroRegistryURL string `json:"avro_registry_url,omitempty"`
+	ProviderOrg     string `json:"provider_org,omitempty"`
+	ProviderRepo    string `json:"provider_repo,omitempty"`
 }
 
-func applyConfig(rep *report.DiffReport, configPath string) *report.DiffReport {
+func applyConfig(rep *report.DiffReport, configPath, org, repo string) *report.DiffReport {
 	if configPath == "" {
 		return rep
 	}
@@ -32,19 +34,19 @@ func applyConfig(rep *report.DiffReport, configPath string) *report.DiffReport {
 		return rep
 	}
 
-	return diff.ApplyConfigAndTraffic(rep, cfg, "", "")
+	return diff.ApplyConfigAndTraffic(rep, cfg, org, repo)
 }
 
-func runOpenAPIDiff(basePath, headPath, configPath string) (*report.DiffReport, error) {
+func runOpenAPIDiff(basePath, headPath, configPath, org, repo string) (*report.DiffReport, error) {
 	rep, err := diff.CompareOpenAPI(basePath, headPath, true)
 	if err != nil {
 		return nil, err
 	}
-	rep = applyConfig(rep, configPath)
+	rep = applyConfig(rep, configPath, org, repo)
 	return rep, nil
 }
 
-func runSQLDiff(basePath, headPath, configPath string) (*report.DiffReport, error) {
+func runSQLDiff(basePath, headPath, configPath, org, repo string) (*report.DiffReport, error) {
 	base, err := sqlpkg.ParseSchema(basePath)
 	if err != nil {
 		return nil, err
@@ -54,7 +56,7 @@ func runSQLDiff(basePath, headPath, configPath string) (*report.DiffReport, erro
 		return nil, err
 	}
 	rep := sqlpkg.DiffSchemas(base, head)
-	rep = applyConfig(rep, configPath)
+	rep = applyConfig(rep, configPath, org, repo)
 	return rep, nil
 }
 
@@ -190,29 +192,29 @@ func setupMux() *http.ServeMux {
 		case "graphql":
 			rep, err = diff.CompareGraphQL(baseTarget, headTarget)
 			if err == nil {
-				rep = applyConfig(rep, configPath)
+				rep = applyConfig(rep, configPath, req.ProviderOrg, req.ProviderRepo)
 			}
 		case "sql":
-			rep, err = runSQLDiff(baseTarget, headTarget, configPath)
+			rep, err = runSQLDiff(baseTarget, headTarget, configPath, req.ProviderOrg, req.ProviderRepo)
 		case "terraform-plan":
 			rep, err = diff.CompareTerraformPlan(headTarget)
 			if err == nil {
-				rep = applyConfig(rep, configPath)
+				rep = applyConfig(rep, configPath, req.ProviderOrg, req.ProviderRepo)
 			}
 		case "ai-model":
 			rep, err = diff.CompareAIML(baseTarget, headTarget)
 			if err == nil {
-				rep = applyConfig(rep, configPath)
+				rep = applyConfig(rep, configPath, req.ProviderOrg, req.ProviderRepo)
 			}
 		case "asyncapi":
 			rep, err = diff.CompareAsyncAPI(baseTarget, headTarget)
 			if err == nil {
-				rep = applyConfig(rep, configPath)
+				rep = applyConfig(rep, configPath, req.ProviderOrg, req.ProviderRepo)
 			}
 		case "protobuf", "proto":
 			rep, err = diff.CompareProto(baseTarget, headTarget)
 			if err == nil {
-				rep = applyConfig(rep, configPath)
+				rep = applyConfig(rep, configPath, req.ProviderOrg, req.ProviderRepo)
 			}
 		case "avro":
 			var cfg *config.SubstrateConfig
@@ -221,10 +223,10 @@ func setupMux() *http.ServeMux {
 			}
 			rep, err = diff.CompareAvro(baseTarget, headTarget, cfg)
 			if err == nil {
-				rep = applyConfig(rep, configPath)
+				rep = applyConfig(rep, configPath, req.ProviderOrg, req.ProviderRepo)
 			}
 		default:
-			rep, err = runOpenAPIDiff(baseTarget, headTarget, configPath)
+			rep, err = runOpenAPIDiff(baseTarget, headTarget, configPath, req.ProviderOrg, req.ProviderRepo)
 		}
 
 		if err != nil {

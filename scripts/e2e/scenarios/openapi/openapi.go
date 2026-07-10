@@ -25,6 +25,7 @@ func RunAll(ctx context.Context, client *github.Client, owner string) {
 	RunWarning(ctx, client, owner)
 	RunAIAutofix(ctx, client, owner)
 	RunPIIAuditing(ctx, client, owner)
+	RunTrafficAware(ctx, client, owner)
 	log.Println("🎉 All OpenAPI Scenarios Completed Successfully!")
 }
 
@@ -49,6 +50,14 @@ func RunPIIAuditing(ctx context.Context, client *github.Client, owner string) {
 		defaultSubstrateYaml(), defaultOpenAPIYaml(),
 		defaultSubstrateYaml(), addedPIIEndpointYaml(),
 		"All Clear", "PII:SSN")
+}
+
+func RunTrafficAware(ctx context.Context, client *github.Client, owner string) {
+	// P4-T07: Verify low traffic downgrades BREAKING to WARNING
+	executeScenario(ctx, client, owner, "Phase 4 - Traffic Aware Diffing",
+		defaultSubstrateYaml(), defaultOpenAPIYaml(),
+		trafficSubstrateYaml(), removedEndpointYaml(),
+		"Warnings Only", "Downgraded due to low traffic")
 }
 
 func RunSafe(ctx context.Context, client *github.Client, owner string) {
@@ -320,5 +329,18 @@ paths:
       responses:
         "200":
           description: OK
+`
+}
+
+func trafficSubstrateYaml() string {
+	return `service: test-provider-api
+schema_type: openapi
+spec_path: openapi.yaml
+
+traffic:
+  provider: prometheus
+  endpoint: "http://prometheus.internal:9090"
+  lookback_days: 30
+  downgrade_threshold: 0
 `
 }
