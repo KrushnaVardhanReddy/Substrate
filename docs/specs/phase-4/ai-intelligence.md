@@ -37,7 +37,7 @@ Phase 4 is what transforms Substrate from a CI/CD tool into a **developer co-pil
 **Effort:** ~1 day
 
 ### Overview
-Wire a language model to Substrate's existing MCP server tools (`get_schema_file`, `analyze_breaking_changes`, `get_breaking_change_history`). This is the foundation that all other Phase 4 features are built on.
+Wire **any OpenAI-compatible language model** to Substrate's existing MCP server tools (`get_schema_file`, `analyze_breaking_changes`, `get_breaking_change_history`). The Go client uses the OpenAI Chat Completions API format — the same interface exposed by LM Studio, Ollama, Gemini, Claude, and OpenRouter. No vendor lock-in.
 
 ### Architecture
 ```
@@ -45,7 +45,10 @@ Developer Input (schema pair)
         ↓
   [Go API: POST /api/v1/ai/analyze]
         ↓
-  LLM (Gemini Flash / Claude Haiku)
+  OpenAI-compatible Client (provider-agnostic)
+  ├── LOCAL:  LM Studio → Qwen2.5-Coder-7B  (default, free, no API key)
+  ├── CLOUD:  OpenRouter → any model        (pay-per-token, production)
+  └── SELF:   Ollama → any model            (CLI-first alternative)
   + Tool: analyze_breaking_changes (MCP)
   + Tool: get_breaking_change_history (MCP)
         ↓
@@ -53,6 +56,21 @@ Developer Input (schema pair)
         ↓
   Dashboard Playground / IDE Extension
 ```
+
+### Why Qwen2.5-Coder for Local Dev?
+- Runs fully offline on a laptop (7B = ~5GB VRAM, also works CPU-only).
+- Fine-tuned on code and structured data — ideal for YAML/JSON/SQL schema diffs.
+- Exposed by LM Studio as a local OpenAI-compatible endpoint (`http://localhost:1234/v1`).
+- Zero API cost during development and E2E testing.
+
+### Provider Configuration (env vars)
+
+| Environment | `SUBSTRATE_AI_BASE_URL` | `SUBSTRATE_AI_API_KEY` | `SUBSTRATE_AI_MODEL` |
+|---|---|---|---|
+| **Local (LM Studio)** | `http://localhost:1234/v1` | `lm-studio` (ignored) | `qwen2.5-coder-7b-instruct` |
+| **Local (Ollama)** | `http://localhost:11434/v1` | `ollama` (ignored) | `qwen2.5-coder:7b` |
+| **Production (OpenRouter)** | `https://openrouter.ai/api/v1` | `sk-or-...` | `qwen/qwen-2.5-coder-32b-instruct` |
+| **Enterprise (self-hosted)** | `http://internal-llm/v1` | internal token | any compatible model |
 
 ### API Endpoint
 ```
@@ -287,12 +305,23 @@ var piiPatterns = map[string]string{
 ## Env Variables Added in Phase 4
 
 ```bash
-# AI Provider (choose one)
-GEMINI_API_KEY=your-gemini-api-key
-ANTHROPIC_API_KEY=your-claude-api-key   # Alternative
+# ── AI Provider (OpenAI-compatible — pick one) ────────────────────────────────
+# Default local dev: LM Studio + Qwen2.5-Coder (free, offline, no key needed)
+SUBSTRATE_AI_BASE_URL=http://localhost:1234/v1
+SUBSTRATE_AI_API_KEY=lm-studio
+SUBSTRATE_AI_MODEL=qwen2.5-coder-7b-instruct
+
+# Alternative: Ollama (also local, CLI-first)
+# SUBSTRATE_AI_BASE_URL=http://localhost:11434/v1
+# SUBSTRATE_AI_API_KEY=ollama
+# SUBSTRATE_AI_MODEL=qwen2.5-coder:7b
+
+# Production: OpenRouter (cloud, pay-per-token, model-agnostic)
+# SUBSTRATE_AI_BASE_URL=https://openrouter.ai/api/v1
+# SUBSTRATE_AI_API_KEY=sk-or-your-key
+# SUBSTRATE_AI_MODEL=qwen/qwen-2.5-coder-32b-instruct
 
 # Traffic Integration (optional)
-SUBSTRATE_TRAFFIC_PROVIDER=prometheus
 SUBSTRATE_PROMETHEUS_ENDPOINT=http://prometheus.internal:9090
 
 # PII Alerting (optional)
