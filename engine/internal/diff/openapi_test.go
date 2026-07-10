@@ -9,13 +9,13 @@ import (
 
 func TestCompareOpenAPI(t *testing.T) {
 	tests := []struct {
-		name              string
-		baseFile          string
-		revisionFile      string
-		expectedSev       report.Severity
-		expectedRuleID    string
-		expectError       bool
-		expectedBucket    string // "breaking", "warning", "safe", or "none"
+		name           string
+		baseFile       string
+		revisionFile   string
+		expectedSev    report.Severity
+		expectedRuleID string
+		expectError    bool
+		expectedBucket string // "breaking", "warning", "safe", or "none"
 	}{
 		{
 			name:           "No changes (identical specs)",
@@ -97,10 +97,10 @@ func TestCompareOpenAPI(t *testing.T) {
 			expectedBucket: "breaking",
 		},
 		{
-			name:           "Invalid base spec -> error returned, no DiffReport",
-			baseFile:       "testdata/base_invalid.yaml",
-			revisionFile:   "testdata/base_invalid.yaml", // using same invalid for both is fine
-			expectError:    true,
+			name:         "Invalid base spec -> error returned, no DiffReport",
+			baseFile:     "testdata/base_invalid.yaml",
+			revisionFile: "testdata/base_invalid.yaml", // using same invalid for both is fine
+			expectError:  true,
 		},
 	}
 

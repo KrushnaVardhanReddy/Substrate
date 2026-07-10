@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/KrushnaVardhanReddy/substrate/engine/internal/compliance"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 	"github.com/asyncapi/parser-go/pkg/parser"
 	"gopkg.in/yaml.v3"
@@ -78,7 +77,6 @@ func CompareAsyncAPI(baseFile, headFile string) (*report.DiffReport, error) {
 	rep.Summary.WarningCount = len(rep.Warnings)
 	rep.Summary.SafeCount = len(rep.SafeChanges)
 
-	compliance.Audit(rep)
 	return rep, nil
 }
 

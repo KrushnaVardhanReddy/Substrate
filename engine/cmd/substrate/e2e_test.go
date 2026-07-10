@@ -1,13 +1,13 @@
 package main
 
 import (
+	"encoding/json"
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
-	"encoding/json"
-	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 )
 
 var binaryPath string

@@ -24,12 +24,12 @@ func TestCompareProto(t *testing.T) {
 	}
 
 	tests := []struct {
-		name          string
-		baseDir       string
-		headDir       string
-		wantBreaking  int
-		wantWarnings  int
-		wantRuleID    string
+		name         string
+		baseDir      string
+		headDir      string
+		wantBreaking int
+		wantWarnings int
+		wantRuleID   string
 	}{
 		{
 			name:         "No changes",

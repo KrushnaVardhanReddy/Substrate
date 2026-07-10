@@ -294,9 +294,9 @@ var piiPatterns = map[string]string{
 | **P4-T03** | Safe Schema Patch Generator | 1 day | ✅ Done |
 | **P4-T04** | GitHub PR Comment Upgrade | 2 hrs | ✅ Done |
 | **P4-T05** | Wire Real AI to Playground | 2 hrs | ✅ Done |
-| **P4-T06** | Shift-Left VSCode Extension | 2 days | 🔄 Session `12313603243365170647` |
-| **P4-T07** | Traffic-Aware Diffing | 1 day | 🔄 Session `5076986930381268348` |
-| **P4-T08** | PII & Compliance Auditing | 1 day | 🔄 Session `629975728467178176` |
+| **P4-T06** | Shift-Left VSCode Extension | 2 days | ✅ Done |
+| **P4-T07** | Traffic-Aware Diffing | 1 day | ✅ Done |
+| **P4-T08** | PII & Compliance Auditing | 1 day | ✅ Done |
 
 **Total Estimated Phase 4 Duration:** ~1–2 weeks (with Jules parallelization)
 

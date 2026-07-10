@@ -12,8 +12,8 @@ import (
 	initcmd "github.com/KrushnaVardhanReddy/substrate/engine/internal/init"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 	sqlpkg "github.com/KrushnaVardhanReddy/substrate/engine/internal/sql"
-	"path/filepath"
 	"github.com/spf13/cobra"
+	"path/filepath"
 )
 
 var flattenAllOf bool
@@ -120,26 +120,7 @@ func main() {
 			}
 
 			if cfg != nil {
-				var activeBreaking []report.Change
-				for _, bc := range rep.BreakingChanges {
-					if cfg.IsOverrideActive(bc.RuleID, bc.Path) {
-						continue
-					}
-					activeBreaking = append(activeBreaking, bc)
-				}
-
-				rep.BreakingChanges = activeBreaking
-				rep.Summary.BreakingCount = len(rep.BreakingChanges)
-
-				if rep.Summary.BreakingCount > 0 {
-					rep.Summary.OverallSeverity = report.SeverityBreaking
-				} else if rep.Summary.WarningCount > 0 {
-					rep.Summary.OverallSeverity = report.SeverityWarning
-				} else if rep.Summary.TotalChanges > 0 {
-					rep.Summary.OverallSeverity = report.SeveritySafe
-				} else {
-					rep.Summary.OverallSeverity = report.SeverityNoChanges
-				}
+				rep = diff.ApplyConfigAndTraffic(rep, cfg, "", "")
 			}
 
 			finalMode := "strict"

@@ -6,7 +6,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/KrushnaVardhanReddy/substrate/engine/internal/compliance"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 )
 
@@ -124,6 +123,5 @@ func CompareTerraformPlan(planJSONPath string) (*report.DiffReport, error) {
 		rep.Summary.OverallSeverity = report.SeverityNoChanges
 	}
 
-	compliance.Audit(rep)
 	return rep, nil
 }

@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/KrushnaVardhanReddy/substrate/engine/internal/compliance"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 )
 
@@ -210,6 +209,5 @@ func CompareProto(baseDir, headDir string) (*report.DiffReport, error) {
 		rep.Summary.OverallSeverity = report.SeverityNoChanges
 	}
 
-	compliance.Audit(rep)
 	return rep, nil
 }

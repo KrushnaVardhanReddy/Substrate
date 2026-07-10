@@ -32,10 +32,10 @@ type PortType struct {
 }
 
 type Operation struct {
-	Name   string   `xml:"name,attr"`
-	Input  *Input   `xml:"input"`
-	Output *Output  `xml:"output"`
-	Fault  []Fault  `xml:"fault"`
+	Name   string  `xml:"name,attr"`
+	Input  *Input  `xml:"input"`
+	Output *Output `xml:"output"`
+	Fault  []Fault `xml:"fault"`
 }
 
 type Input struct {

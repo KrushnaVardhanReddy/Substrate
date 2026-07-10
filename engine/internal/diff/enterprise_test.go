@@ -8,58 +8,58 @@ func TestCompareEnterprise_Salesforce(t *testing.T) {
 	adapter := &EnterpriseAdapter{}
 
 	tests := []struct {
-		name          string
-		baseXML       string
-		headXML       string
-		wantErr       bool
-		wantBreaking  int
-		wantWarning   int
-		wantSafe      int
-		wantRules     []string
+		name         string
+		baseXML      string
+		headXML      string
+		wantErr      bool
+		wantBreaking int
+		wantWarning  int
+		wantSafe     int
+		wantRules    []string
 	}{
 		{
-			name: "SFDC_FIELD_REMOVED",
-			baseXML: `<?xml version="1.0" encoding="UTF-8"?><CustomObject><fields><fullName>OldField</fullName><type>Text</type></fields></CustomObject>`,
-			headXML: `<?xml version="1.0" encoding="UTF-8"?><CustomObject></CustomObject>`,
+			name:         "SFDC_FIELD_REMOVED",
+			baseXML:      `<?xml version="1.0" encoding="UTF-8"?><CustomObject><fields><fullName>OldField</fullName><type>Text</type></fields></CustomObject>`,
+			headXML:      `<?xml version="1.0" encoding="UTF-8"?><CustomObject></CustomObject>`,
 			wantBreaking: 1,
-			wantRules: []string{"SFDC_FIELD_REMOVED"},
+			wantRules:    []string{"SFDC_FIELD_REMOVED"},
 		},
 		{
-			name: "SFDC_FIELD_REQUIRED",
-			baseXML: `<?xml version="1.0" encoding="UTF-8"?><CustomObject><fields><fullName>MyField</fullName><type>Text</type><required>false</required></fields></CustomObject>`,
-			headXML: `<?xml version="1.0" encoding="UTF-8"?><CustomObject><fields><fullName>MyField</fullName><type>Text</type><required>true</required></fields></CustomObject>`,
+			name:         "SFDC_FIELD_REQUIRED",
+			baseXML:      `<?xml version="1.0" encoding="UTF-8"?><CustomObject><fields><fullName>MyField</fullName><type>Text</type><required>false</required></fields></CustomObject>`,
+			headXML:      `<?xml version="1.0" encoding="UTF-8"?><CustomObject><fields><fullName>MyField</fullName><type>Text</type><required>true</required></fields></CustomObject>`,
 			wantBreaking: 1,
-			wantRules: []string{"SFDC_FIELD_REQUIRED"},
+			wantRules:    []string{"SFDC_FIELD_REQUIRED"},
 		},
 		{
-			name: "SFDC_FIELD_TYPE_CHANGED",
-			baseXML: `<?xml version="1.0" encoding="UTF-8"?><CustomObject><fields><fullName>MyField</fullName><type>Text</type></fields></CustomObject>`,
-			headXML: `<?xml version="1.0" encoding="UTF-8"?><CustomObject><fields><fullName>MyField</fullName><type>Number</type></fields></CustomObject>`,
+			name:         "SFDC_FIELD_TYPE_CHANGED",
+			baseXML:      `<?xml version="1.0" encoding="UTF-8"?><CustomObject><fields><fullName>MyField</fullName><type>Text</type></fields></CustomObject>`,
+			headXML:      `<?xml version="1.0" encoding="UTF-8"?><CustomObject><fields><fullName>MyField</fullName><type>Number</type></fields></CustomObject>`,
 			wantBreaking: 1,
-			wantRules: []string{"SFDC_FIELD_TYPE_CHANGED"},
+			wantRules:    []string{"SFDC_FIELD_TYPE_CHANGED"},
 		},
 		{
-			name: "SFDC_FIELD_LENGTH_REDUCED",
-			baseXML: `<?xml version="1.0" encoding="UTF-8"?><CustomObject><fields><fullName>MyField</fullName><type>Text</type><length>255</length></fields></CustomObject>`,
-			headXML: `<?xml version="1.0" encoding="UTF-8"?><CustomObject><fields><fullName>MyField</fullName><type>Text</type><length>100</length></fields></CustomObject>`,
+			name:         "SFDC_FIELD_LENGTH_REDUCED",
+			baseXML:      `<?xml version="1.0" encoding="UTF-8"?><CustomObject><fields><fullName>MyField</fullName><type>Text</type><length>255</length></fields></CustomObject>`,
+			headXML:      `<?xml version="1.0" encoding="UTF-8"?><CustomObject><fields><fullName>MyField</fullName><type>Text</type><length>100</length></fields></CustomObject>`,
 			wantBreaking: 1,
-			wantRules: []string{"SFDC_FIELD_LENGTH_REDUCED"},
+			wantRules:    []string{"SFDC_FIELD_LENGTH_REDUCED"},
 		},
 		{
-			name: "SFDC_FIELD_ADDED",
-			baseXML: `<?xml version="1.0" encoding="UTF-8"?><CustomObject></CustomObject>`,
-			headXML: `<?xml version="1.0" encoding="UTF-8"?><CustomObject><fields><fullName>NewField</fullName><type>Text</type></fields></CustomObject>`,
-			wantSafe: 1,
+			name:      "SFDC_FIELD_ADDED",
+			baseXML:   `<?xml version="1.0" encoding="UTF-8"?><CustomObject></CustomObject>`,
+			headXML:   `<?xml version="1.0" encoding="UTF-8"?><CustomObject><fields><fullName>NewField</fullName><type>Text</type></fields></CustomObject>`,
+			wantSafe:  1,
 			wantRules: []string{"SFDC_FIELD_ADDED"},
 		},
 		{
-			name: "Invalid XML Base",
+			name:    "Invalid XML Base",
 			baseXML: `<?xml version="1.0" encoding="UTF-8"?><CustomObject><fields><fullName>NewField</fullName>`,
 			headXML: `<?xml version="1.0" encoding="UTF-8"?><CustomObject></CustomObject>`,
 			wantErr: true,
 		},
 		{
-			name: "Invalid XML Head",
+			name:    "Invalid XML Head",
 			baseXML: `<?xml version="1.0" encoding="UTF-8"?><CustomObject></CustomObject>`,
 			headXML: `<?xml version="1.0" encoding="UTF-8"?><CustomObject><fields><fullName>NewField</fullName>`,
 			wantErr: true,
@@ -118,65 +118,65 @@ func TestCompareEnterprise_WSDL(t *testing.T) {
 	adapter := &EnterpriseAdapter{}
 
 	tests := []struct {
-		name          string
-		baseXML       string
-		headXML       string
-		wantErr       bool
-		wantBreaking  int
-		wantWarning   int
-		wantSafe      int
-		wantRules     []string
+		name         string
+		baseXML      string
+		headXML      string
+		wantErr      bool
+		wantBreaking int
+		wantWarning  int
+		wantSafe     int
+		wantRules    []string
 	}{
 		{
-			name: "WSDL_OPERATION_REMOVED",
-			baseXML: `<?xml version="1.0" encoding="UTF-8"?><definitions><portType name="MyPort"><operation name="OldOp"></operation></portType></definitions>`,
-			headXML: `<?xml version="1.0" encoding="UTF-8"?><definitions><portType name="MyPort"></portType></definitions>`,
+			name:         "WSDL_OPERATION_REMOVED",
+			baseXML:      `<?xml version="1.0" encoding="UTF-8"?><definitions><portType name="MyPort"><operation name="OldOp"></operation></portType></definitions>`,
+			headXML:      `<?xml version="1.0" encoding="UTF-8"?><definitions><portType name="MyPort"></portType></definitions>`,
 			wantBreaking: 1,
-			wantRules: []string{"WSDL_OPERATION_REMOVED"},
+			wantRules:    []string{"WSDL_OPERATION_REMOVED"},
 		},
 		{
-			name: "WSDL_PORTTYPE_REMOVED",
-			baseXML: `<?xml version="1.0" encoding="UTF-8"?><definitions><portType name="MyPort"><operation name="OldOp"></operation></portType></definitions>`,
-			headXML: `<?xml version="1.0" encoding="UTF-8"?><definitions></definitions>`,
+			name:         "WSDL_PORTTYPE_REMOVED",
+			baseXML:      `<?xml version="1.0" encoding="UTF-8"?><definitions><portType name="MyPort"><operation name="OldOp"></operation></portType></definitions>`,
+			headXML:      `<?xml version="1.0" encoding="UTF-8"?><definitions></definitions>`,
 			wantBreaking: 1,
-			wantRules: []string{"WSDL_OPERATION_REMOVED"},
+			wantRules:    []string{"WSDL_OPERATION_REMOVED"},
 		},
 		{
-			name: "WSDL_INPUT_MESSAGE_CHANGED",
-			baseXML: `<?xml version="1.0" encoding="UTF-8"?><definitions><portType name="MyPort"><operation name="Op"><input message="Msg1"/></operation></portType></definitions>`,
-			headXML: `<?xml version="1.0" encoding="UTF-8"?><definitions><portType name="MyPort"><operation name="Op"><input message="Msg2"/></operation></portType></definitions>`,
+			name:         "WSDL_INPUT_MESSAGE_CHANGED",
+			baseXML:      `<?xml version="1.0" encoding="UTF-8"?><definitions><portType name="MyPort"><operation name="Op"><input message="Msg1"/></operation></portType></definitions>`,
+			headXML:      `<?xml version="1.0" encoding="UTF-8"?><definitions><portType name="MyPort"><operation name="Op"><input message="Msg2"/></operation></portType></definitions>`,
 			wantBreaking: 1,
-			wantRules: []string{"WSDL_INPUT_MESSAGE_CHANGED"},
+			wantRules:    []string{"WSDL_INPUT_MESSAGE_CHANGED"},
 		},
 		{
-			name: "WSDL_INPUT_MESSAGE_REMOVED",
-			baseXML: `<?xml version="1.0" encoding="UTF-8"?><definitions><portType name="MyPort"><operation name="Op"><input message="Msg1"/></operation></portType></definitions>`,
-			headXML: `<?xml version="1.0" encoding="UTF-8"?><definitions><portType name="MyPort"><operation name="Op"></operation></portType></definitions>`,
+			name:         "WSDL_INPUT_MESSAGE_REMOVED",
+			baseXML:      `<?xml version="1.0" encoding="UTF-8"?><definitions><portType name="MyPort"><operation name="Op"><input message="Msg1"/></operation></portType></definitions>`,
+			headXML:      `<?xml version="1.0" encoding="UTF-8"?><definitions><portType name="MyPort"><operation name="Op"></operation></portType></definitions>`,
 			wantBreaking: 1,
-			wantRules: []string{"WSDL_INPUT_MESSAGE_CHANGED"},
+			wantRules:    []string{"WSDL_INPUT_MESSAGE_CHANGED"},
 		},
 		{
-			name: "WSDL_FAULT_ADDED",
-			baseXML: `<?xml version="1.0" encoding="UTF-8"?><definitions><portType name="MyPort"><operation name="Op"></operation></portType></definitions>`,
-			headXML: `<?xml version="1.0" encoding="UTF-8"?><definitions><portType name="MyPort"><operation name="Op"><fault name="Fault1" message="MsgFault"/></operation></portType></definitions>`,
+			name:        "WSDL_FAULT_ADDED",
+			baseXML:     `<?xml version="1.0" encoding="UTF-8"?><definitions><portType name="MyPort"><operation name="Op"></operation></portType></definitions>`,
+			headXML:     `<?xml version="1.0" encoding="UTF-8"?><definitions><portType name="MyPort"><operation name="Op"><fault name="Fault1" message="MsgFault"/></operation></portType></definitions>`,
 			wantWarning: 1,
-			wantRules: []string{"WSDL_FAULT_ADDED"},
+			wantRules:   []string{"WSDL_FAULT_ADDED"},
 		},
 		{
-			name: "WSDL_BINDING_REMOVED",
-			baseXML: `<?xml version="1.0" encoding="UTF-8"?><definitions><binding name="MyBinding"></binding></definitions>`,
-			headXML: `<?xml version="1.0" encoding="UTF-8"?><definitions></definitions>`,
+			name:         "WSDL_BINDING_REMOVED",
+			baseXML:      `<?xml version="1.0" encoding="UTF-8"?><definitions><binding name="MyBinding"></binding></definitions>`,
+			headXML:      `<?xml version="1.0" encoding="UTF-8"?><definitions></definitions>`,
 			wantBreaking: 1,
-			wantRules: []string{"WSDL_BINDING_REMOVED"},
+			wantRules:    []string{"WSDL_BINDING_REMOVED"},
 		},
 		{
-			name: "Invalid XML Base",
+			name:    "Invalid XML Base",
 			baseXML: `<?xml version="1.0" encoding="UTF-8"?><definitions><binding name="MyBinding">`,
 			headXML: `<?xml version="1.0" encoding="UTF-8"?><definitions></definitions>`,
 			wantErr: true,
 		},
 		{
-			name: "Invalid XML Head",
+			name:    "Invalid XML Head",
 			baseXML: `<?xml version="1.0" encoding="UTF-8"?><definitions></definitions>`,
 			headXML: `<?xml version="1.0" encoding="UTF-8"?><definitions><binding name="MyBinding">`,
 			wantErr: true,

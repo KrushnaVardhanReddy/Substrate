@@ -21,16 +21,16 @@ func TestCompareAvro(t *testing.T) {
 	}
 
 	tests := []struct {
-		name             string
-		setupServer      func() *httptest.Server
-		cfgFactory       func(url string) *config.SubstrateConfig
-		wantBreaking     int
-		wantWarning      int
-		wantRule         string
-		descContains     string
+		name         string
+		setupServer  func() *httptest.Server
+		cfgFactory   func(url string) *config.SubstrateConfig
+		wantBreaking int
+		wantWarning  int
+		wantRule     string
+		descContains string
 	}{
 		{
-			name: "no registry URL configured",
+			name:        "no registry URL configured",
 			setupServer: func() *httptest.Server { return nil },
 			cfgFactory: func(url string) *config.SubstrateConfig {
 				return &config.SubstrateConfig{}

@@ -32,28 +32,7 @@ func applyConfig(rep *report.DiffReport, configPath string) *report.DiffReport {
 		return rep
 	}
 
-	var activeBreaking []report.Change
-	for _, bc := range rep.BreakingChanges {
-		if cfg.IsOverrideActive(bc.RuleID, bc.Path) {
-			continue
-		}
-		activeBreaking = append(activeBreaking, bc)
-	}
-
-	rep.BreakingChanges = activeBreaking
-	rep.Summary.BreakingCount = len(rep.BreakingChanges)
-
-	if rep.Summary.BreakingCount > 0 {
-		rep.Summary.OverallSeverity = report.SeverityBreaking
-	} else if rep.Summary.WarningCount > 0 {
-		rep.Summary.OverallSeverity = report.SeverityWarning
-	} else if rep.Summary.TotalChanges > 0 {
-		rep.Summary.OverallSeverity = report.SeveritySafe
-	} else {
-		rep.Summary.OverallSeverity = report.SeverityNoChanges
-	}
-
-	return rep
+	return diff.ApplyConfigAndTraffic(rep, cfg, "", "")
 }
 
 func runOpenAPIDiff(basePath, headPath, configPath string) (*report.DiffReport, error) {
@@ -159,13 +138,13 @@ func setupMux() *http.ServeMux {
 			headDir := filepath.Join(tempDir, "head")
 			os.Mkdir(baseDir, 0755)
 			os.Mkdir(headDir, 0755)
-			
+
 			baseFilePath := filepath.Join(baseDir, "schema.proto")
 			os.WriteFile(baseFilePath, []byte(req.BaseSchema), 0644)
-			
+
 			headFilePath := filepath.Join(headDir, "schema.proto")
 			os.WriteFile(headFilePath, []byte(req.HeadSchema), 0644)
-			
+
 			baseTarget = baseDir
 			headTarget = headDir
 		} else {
