@@ -334,9 +334,12 @@ See the full spec: `docs/specs/enterprise-vision.md`
 **MCP Server** ⭐ Phase 3 — Turns Substrate into an IDE-native knowledge layer
 - [x] Write `docs/specs/mcp-server.md` spec (P3-T08) ✅
 - [x] Implement Go MCP server with 7 tools: `get_dependency_graph`, `check_compatibility`, `get_breaking_change_history`, `get_substrate_docs`, `analyze_repository`, `execute_cli_command`, `get_schema_file` ✅ (P3-T09 merged 2026-07-09)
+- [x] **Test `check_compatibility`:** Verified live integration with the Diff Engine via local execution.
+- [ ] **Wire Mock Endpoints to Postgres:** Currently, tools like `get_dependency_graph` and `get_breaking_change_history` return mock data. They need to be wired to the live PostgreSQL Registry API and validated later.
 - [ ] Deploy MCP server endpoint (P3-T10 — ⏳ next)
 - [ ] Write IDE integration guide (Antigravity, Cursor, Claude, Copilot)
 - [ ] Expose MCP server as self-hostable for Enterprise tier
+- [ ] **AI Pre-flight Validation Workflow:** Expand MCP tools to allow the AI to automatically create, validate configurations/schemas locally (using the local Diff Engine CLI), and auto-remediate breaking changes *before* committing code.
 
 **Legal / Pre-launch Checklist** ⚖️
 - [x] Add `NOTICES` file at repo root with Apache 2.0 attribution for oasdiff
@@ -344,6 +347,9 @@ See the full spec: `docs/specs/enterprise-vision.md`
 - [ ] Review all Go module dependencies in `go.mod` for license compatibility before v1.0 release
 
 
+**Developer Experience (DX) & Tooling**
+- [ ] Surface exact Engine error logs (e.g. invalid schema_type, parsing errors) inside GitHub PR comments for faster debugging.
+- [ ] Implement a local CLI command (`substrate validate` or `substrate diff`) to allow developers to test schema compatibility and configurations locally before committing.
 
 **Integrations**
 - [ ] Slack integration for PR notifications

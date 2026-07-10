@@ -1,17 +1,16 @@
 # Substrate Project Handoff
 
-**Date:** July 9, 2026 (End of Session)
+**Date:** July 10, 2026 (End of Session)
 
-## 🚀 Current State (End of Day)
-*   **Phase 1 (Diff Engine) is 100% COMPLETE.** All 8 adapters (including Enterprise Salesforce/SOAP) are merged into `feature/dev`. Wave 2 is fully wrapped up.
-*   **Phase 3 (Registry Orchestration) Core is COMPLETE.** The cross-repo GitHub App logic is merged.
-*   **Phase 3 (Dashboard & E2E) is COMPLETE.** The SvelteKit dashboard and cross-repo E2E fixtures have been successfully tested and merged.
-*   **Phase 3 (MCP Server) is COMPLETE.** `P3-T09` MCP server via stdio has been validated and merged into `feature/dev`. ✅
-*   **Phase 3 (Enterprise Modes) is COMPLETE.** `P3-T13` execution modes (`strict|legacy`) has been validated and merged into `feature/dev`. ✅
-*   **No Pending PRs.** All Jules sessions have been merged.
+## 🚀 What is Tested & Working (100% COMPLETE)
+*   **Diff Engine (Phase 1):** All 8 adapters (OpenAPI, SQL, GraphQL, Protobuf, AsyncAPI, Avro, Terraform, AI/ML) are fully implemented and passing unit tests.
+*   **Live E2E Pipeline (Phase 3):** The automated matrix test script (`make e2e-*`) successfully seeded the database and verified both Safe and Breaking PR status checks across all schema types via the GitHub Worker.
+*   **Registry API (Phase 3):** All 5 core Go handlers (`/health`, `/sync`, `/cross-repo-check`, `/graph`, `/repos`) are fully tested and have 100% passing unit tests. CORS is fixed and active.
+*   **Svelte UI Dashboard (Phase 4 MVP):** Verified working on `http://localhost:3000`. It correctly fetches live Postgres data from the API and renders the visual dependency graph (`consumer → provider`) and breaking change history.
+*   **MCP Server (Phase 3):** Verified working via `stdio`. The `check_compatibility` endpoint correctly integrates with the live Diff Engine and outputs standard JSON-RPC 2.0.
 
-## 🎯 Next Steps (Tomorrow)
-1.  **End-to-End Live Test:** Execute the full integration test without mocking, proving the architecture works across all 8 schema types with real GitHub webhooks.
-    *   👉 **See `docs/E2E_TEST_PLAN.md` for the exact step-by-step testing matrix.**
-    *   Don't forget **Section 5** — test the `substrate-mcp` binary with Claude Desktop: point `claude_desktop_config.json` to the local `substrate-mcp` binary and run the compatibility check prompt.
-3.  **Documentation & Release:** Spec out P3-T12 (Comprehensive Platform Docs), tag V1.0, and prepare the GitHub Marketplace release.
+## 🎯 What is Pending (Next Steps)
+1.  **Wire Mock MCP Endpoints to DB:** The MCP registry lookup tools (`get_dependency_graph`, `get_breaking_change_history`, `get_schema_file`) currently return mock data. They need to be formally wired to the live PostgreSQL API so AI Agents can read real architectural state.
+2.  **Svelte UI Interactive Features:** The Dashboard is currently a static visualizer MVP. Authentication, Settings, API Keys generation, and "Connect Repository" GitHub OAuth flows need to be built out.
+3.  **DX & Local Tooling:** Build the `substrate validate` local CLI tool so developers (and AI Agents) can test schemas locally before committing.
+4.  **Documentation & Launch:** Prepare the final platform documentation, tag `V1.0`, and release the Substrate App to the GitHub Marketplace!

@@ -50,7 +50,7 @@ func TestCrossRepoCheckHandler_ValidRequest_0Consumers(t *testing.T) {
 
 	mockStore := &db.MockStore{
 		GetContractsByProviderFullNameFunc: func(ctx context.Context, providerFullName string) ([]db.Contract, error) {
-			return []db.Contract{{ID: uuid.New()}}, nil
+			return []db.Contract{{ID: uuid.New(), SchemaType: "openapi"}}, nil
 		},
 		GetConsumersByProviderContractFunc: func(ctx context.Context, providerContractID uuid.UUID) ([]db.ConsumerDependency, error) {
 			return []db.ConsumerDependency{}, nil
@@ -115,7 +115,7 @@ func TestCrossRepoCheckHandler_ValidRequest_1BrokenConsumer(t *testing.T) {
 
 	mockStore := &db.MockStore{
 		GetContractsByProviderFullNameFunc: func(ctx context.Context, providerFullName string) ([]db.Contract, error) {
-			return []db.Contract{{ID: uuid.New()}}, nil
+			return []db.Contract{{ID: uuid.New(), SchemaType: "openapi"}}, nil
 		},
 		GetConsumersByProviderContractFunc: func(ctx context.Context, providerContractID uuid.UUID) ([]db.ConsumerDependency, error) {
 			return []db.ConsumerDependency{
