@@ -162,6 +162,50 @@ var KnownRules = map[string]bool{
 	"PROTO_SERVICE_REMOVED":             true,
 	"PROTO_PACKAGE_CHANGED":             true,
 	"PROTO_FILE_REMOVED":                true,
+	// AsyncAPI Rules
+	"ASYNCAPI_CHANNEL_REMOVED":                      true,
+	"ASYNCAPI_CHANNEL_ADDRESS_CHANGED":              true,
+	"ASYNCAPI_CHANNEL_DEPRECATED":                   true,
+	"ASYNCAPI_CHANNEL_ADDED":                        true,
+	"ASYNCAPI_OPERATION_REMOVED":                    true,
+	"ASYNCAPI_OPERATION_ADDED":                      true,
+	"ASYNCAPI_MESSAGE_CONTENT_TYPE_CHANGED":         true,
+	"ASYNCAPI_MESSAGE_PAYLOAD_FIELD_REMOVED":        true,
+	"ASYNCAPI_MESSAGE_PAYLOAD_FIELD_TYPE_CHANGED":   true,
+	"ASYNCAPI_MESSAGE_PAYLOAD_ENUM_VALUE_REMOVED":   true,
+	"ASYNCAPI_MESSAGE_PAYLOAD_ENUM_VALUE_ADDED":     true,
+	"ASYNCAPI_MESSAGE_PAYLOAD_FIELD_ADDED_OPTIONAL": true,
+	"ASYNCAPI_MESSAGE_PAYLOAD_REQUIRED_ADDED":       true,
+	"ASYNCAPI_MESSAGE_PAYLOAD_REQUIRED_REMOVED":     true,
+	"ASYNCAPI_SERVER_REMOVED":                       true,
+	"ASYNCAPI_SERVER_PROTOCOL_CHANGED":              true,
+	"ASYNCAPI_SERVER_URL_CHANGED":                   true,
+	// Avro Rules
+	"AVRO_NO_REGISTRY_CONFIGURED": true,
+	"AVRO_REGISTRY_UNAVAILABLE":   true,
+	"AVRO_INCOMPATIBLE":           true,
+	// Terraform Rules
+	"TF_RESOURCE_DESTROYED":     true,
+	"TF_IAM_PERMISSION_REMOVED": true,
+	"TF_OUTPUT_REMOVED":         true,
+	// AI/ML Rules
+	"AIML_TASK_CHANGED":              true,
+	"AIML_FRAMEWORK_CHANGED":         true,
+	"AIML_VERSION_MAJOR_BUMP":        true,
+	"AIML_INPUT_REMOVED":             true,
+	"AIML_INPUT_TYPE_CHANGED":        true,
+	"AIML_INPUT_ENUM_VALUE_REMOVED":  true,
+	"AIML_INPUT_ENUM_VALUE_ADDED":    true,
+	"AIML_INPUT_REQUIRED_ADDED":      true,
+	"AIML_INPUT_OPTIONAL_ADDED":      true,
+	"AIML_OUTPUT_REMOVED":            true,
+	"AIML_OUTPUT_TYPE_CHANGED":       true,
+	"AIML_OUTPUT_ENUM_VALUE_REMOVED": true,
+	"AIML_OUTPUT_RANGE_NARROWED":     true,
+	"AIML_OUTPUT_ADDED":              true,
+	"AIML_SERVING_ENDPOINT_CHANGED":  true,
+	"AIML_SERVING_METHOD_CHANGED":    true,
+	"AIML_SERVING_FORMAT_CHANGED":    true,
 }
 
 func LoadConfig(path string) (*SubstrateConfig, error) {
@@ -201,10 +245,10 @@ func LoadConfig(path string) (*SubstrateConfig, error) {
 
 	if config.SchemaType != "" {
 		switch config.SchemaType {
-		case "openapi", "sql", "graphql", "protobuf", "asyncapi", "avro":
+		case "openapi", "sql", "graphql", "protobuf", "asyncapi", "avro", "terraform-plan", "ai-model":
 			// valid
 		default:
-			return nil, fmt.Errorf("substrate.yaml: unknown schema_type '%s' (supported: openapi, sql, graphql, protobuf, asyncapi, avro)", config.SchemaType)
+			return nil, fmt.Errorf("substrate.yaml: unknown schema_type '%s'", config.SchemaType)
 		}
 	}
 

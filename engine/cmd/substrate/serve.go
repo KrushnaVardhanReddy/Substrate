@@ -236,13 +236,11 @@ func setupMux() *http.ServeMux {
 				rep = applyConfig(rep, configPath)
 			}
 		case "avro":
-			avroCfg := &config.SubstrateConfig{
-				Service: "unknown",
-				Avro: &config.AvroConfig{
-					SchemaRegistryURL: req.AvroRegistryURL,
-				},
+			var cfg *config.SubstrateConfig
+			if configPath != "" {
+				cfg, _ = config.LoadConfig(configPath)
 			}
-			rep, err = diff.CompareAvro(baseTarget, headTarget, avroCfg)
+			rep, err = diff.CompareAvro(baseTarget, headTarget, cfg)
 			if err == nil {
 				rep = applyConfig(rep, configPath)
 			}

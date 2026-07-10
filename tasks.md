@@ -118,7 +118,7 @@
 |---|---|---|---|---|
 | P1d-T01 | `buf` checker adapter spec + implementation + tests | Jules | ✅ | `prompts/phase-1d-protobuf/t01_buf_adapter.txt` |
 
-### Phase 1e — AsyncAPI & Apache Avro 🔄 IN PROGRESS
+### Phase 1e — AsyncAPI & Apache Avro ✅ COMPLETE
 
 > **Library decision (AsyncAPI):** `asyncapi/parser-go` (Apache 2.0) for parsing. Custom diff rules (channel removed, operation changed, message schema breaking).
 > **Library decision (Avro):** Do **not** build a custom Avro compatibility checker. Call the Confluent/Apicurio Schema Registry **compatibility check API** — offloads complex Avro evolution rules (union promotion, defaults, field ordering) to a battle-tested engine. Substrate wraps the JSON response into `DiffReport`.
@@ -131,14 +131,14 @@
 | P1e-T03 | AsyncAPI + Avro breaking change rules spec | Antigravity | ✅ |
 | P1e-T04 | Rule engine + tests | Jules | 🔒 after T01+T02 |
 
-### Phase 1f — AI/ML Model Contracts ⭐ ⏳ READY
+### Phase 1f — AI/ML Model Contracts ⭐ ✅ COMPLETE
 
 > **Library decision:** No new dependencies needed. `gopkg.in/yaml.v3` and `github.com/santhosh-tekuri/jsonschema/v6` are **already in `go.mod`**. Substrate owns the `substrate.yaml` ml_model contract spec.
 > **Spec:** `docs/specs/phase-1/aiml-adapter.md` ✅ APPROVED
 
 | Task ID | Name | Owner | Status | Jules Prompt |
 |---|---|---|---|---|
-| P1f-T01 | AI/ML model contract diff adapter (inputs, outputs, serving, metadata rules) | Jules | ✅ | `prompts/phase-1f-aiml/t01_aiml_adapter.txt` |
+| P1f-T01 | AI/ML model contract diff adapter implementation | Jules | ✅ | `prompts/phase-1f-aiml/t01_aiml_adapter.txt` |
 
 
 ### Phase 1g — Enterprise Metadata (Salesforce & SOAP) ✅ COMPLETE
@@ -150,7 +150,7 @@
 |---|---|---|---|---|
 | **P1g-T01** | **Enterprise metadata diff adapter (Salesforce, SOAP)** | Jules | ✅ | `prompts/phase-1g-enterprise/t01_enterprise_adapter.txt` |
 
-### Phase 1h — Infrastructure as Code (Terraform) ⏳ READY
+### Phase 1h — Infrastructure as Code (Terraform) ✅ COMPLETE
 
 > **Library decision (Terraform):** Use Go stdlib `encoding/json` to parse `terraform show -json tfplan` output. No HCL parsing. 
 > **Spec:** `docs/specs/phase-1/iac-adapter.md` ✅ APPROVED

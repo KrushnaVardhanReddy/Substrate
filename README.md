@@ -757,8 +757,8 @@ Phase 1 ships incrementally as schema format support is added to the same diff e
 | **1e — AsyncAPI & Apache Avro** | 🟢 Lowest | ✅ *shipped* | `asyncapi/parser-go` (Apache 2.0) + Confluent Schema Registry API for Avro compat |
 | **1h — Infrastructure as Code (Terraform)** | 🟢 Lowest | ✅ *shipped* | Go stdlib `encoding/json` parsing of `terraform plan` output. |
 | **1c — GraphQL SDL** | 🟡 Medium | ✅ *shipped* | `vektah/gqlparser` (MIT) for parsing; custom rules (~15–20); pure Go, no subprocess |
-| **1f — AI/ML Model Contracts** | 🟡 Medium | 🔒 *post-Phase 2* | `yaml.v3` + `jsonschema` — both **already in `go.mod`**, no new deps |
-| **1g — Enterprise Metadata** | 🔴 Highest | 🔒 *post-Phase 2* | Go stdlib `encoding/xml` for both WSDL and Salesforce metadata XML snapshots — pure single-binary |
+| **1f — AI/ML Model Contracts** | 🟡 Medium | ✅ *shipped* | `yaml.v3` + `jsonschema` — both **already in `go.mod`**, no new deps |
+| **1g — Enterprise Metadata** | 🔴 Highest | ✅ *shipped* | Go stdlib `encoding/xml` for both WSDL and Salesforce metadata XML snapshots — pure single-binary |
 
 Core features in all sub-phases:
 

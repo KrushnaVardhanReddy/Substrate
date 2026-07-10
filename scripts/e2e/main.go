@@ -7,10 +7,14 @@ import (
 	"os"
 	"strings"
 
+	"e2e/scenarios/asyncapi"
+	"e2e/scenarios/avro"
 	"e2e/scenarios/graphql"
 	"e2e/scenarios/openapi"
 	"e2e/scenarios/protobuf"
 	"e2e/scenarios/sql"
+	"e2e/scenarios/terraform"
+	"e2e/scenarios/aiml"
 
 	"github.com/google/go-github/v62/github"
 )
@@ -39,6 +43,11 @@ func main() {
 		openapi.RunAll(ctx, client, owner)
 		sql.RunAll(ctx, client, owner)
 		graphql.RunAll(ctx, client, owner)
+		protobuf.RunAll(ctx, client, owner)
+		asyncapi.RunAll(ctx, client, owner)
+		avro.RunAll(ctx, client, owner)
+		terraform.RunAll(ctx, client, owner)
+		aiml.RunAll(ctx, client, owner)
 	case "openapi":
 		openapi.RunAll(ctx, client, owner)
 	case "sql":
@@ -47,6 +56,40 @@ func main() {
 		graphql.RunAll(ctx, client, owner)
 	case "protobuf":
 		protobuf.RunAll(ctx, client, owner)
+	case "asyncapi":
+		asyncapi.RunAll(ctx, client, owner)
+	case "asyncapi-breaking":
+		asyncapi.RunBreaking(ctx, client, owner)
+	case "asyncapi-safe":
+		asyncapi.RunSafe(ctx, client, owner)
+	case "asyncapi-override":
+		asyncapi.RunOverride(ctx, client, owner)
+	case "asyncapi-warning":
+		asyncapi.RunWarning(ctx, client, owner)
+	case "avro":
+		avro.RunAll(ctx, client, owner)
+	case "avro-breaking":
+		avro.RunBreaking(ctx, client, owner)
+	case "avro-safe":
+		avro.RunSafe(ctx, client, owner)
+	case "avro-override":
+		avro.RunOverride(ctx, client, owner)
+	case "terraform":
+		terraform.RunAll(ctx, client, owner)
+	case "terraform-breaking":
+		terraform.RunBreaking(ctx, client, owner)
+	case "terraform-safe":
+		terraform.RunSafe(ctx, client, owner)
+	case "terraform-override":
+		terraform.RunOverride(ctx, client, owner)
+	case "aiml":
+		aiml.RunAll(ctx, client, owner)
+	case "aiml-breaking":
+		aiml.RunBreaking(ctx, client, owner)
+	case "aiml-safe":
+		aiml.RunSafe(ctx, client, owner)
+	case "aiml-override":
+		aiml.RunOverride(ctx, client, owner)
 	case "openapi-breaking":
 		openapi.RunBreaking(ctx, client, owner)
 	case "openapi-safe":

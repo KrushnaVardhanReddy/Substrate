@@ -72,3 +72,51 @@ e2e-protobuf-override: check-token
 e2e-protobuf-warning: check-token
 	cd scripts/e2e && go run main.go --scenario=protobuf-warning
 
+e2e-asyncapi: check-token
+	cd scripts/e2e && go run main.go --scenario=asyncapi
+
+e2e-asyncapi-breaking: check-token
+	cd scripts/e2e && go run main.go --scenario=asyncapi-breaking
+
+e2e-asyncapi-safe: check-token
+	cd scripts/e2e && go run main.go --scenario=asyncapi-safe
+
+e2e-asyncapi-override: check-token
+	cd scripts/e2e && go run main.go --scenario=asyncapi-override
+
+e2e-asyncapi-warning: check-token
+	cd scripts/e2e && go run main.go --scenario=asyncapi-warning
+
+e2e-avro: check-token
+	cd scripts/e2e && go run main.go --scenario=avro
+
+e2e-avro-breaking: check-token
+	cd scripts/e2e && go run main.go --scenario=avro-breaking
+
+e2e-avro-safe: check-token
+	cd scripts/e2e && go run main.go --scenario=avro-safe
+
+e2e-terraform: check-token
+	cd scripts/e2e && go run main.go --scenario=terraform
+
+e2e-terraform-breaking: check-token
+	cd scripts/e2e && go run main.go --scenario=terraform-breaking
+
+e2e-terraform-safe: check-token
+	cd scripts/e2e && go run main.go --scenario=terraform-safe
+
+e2e-terraform-override: check-token
+	cd scripts/e2e && go run main.go --scenario=terraform-override
+
+e2e-aiml: check-token
+	cd scripts/e2e && go run main.go --scenario=aiml
+
+e2e-aiml-breaking: check-token
+	cd scripts/e2e && go run main.go --scenario=aiml-breaking
+
+e2e-aiml-safe: check-token
+	cd scripts/e2e && go run main.go --scenario=aiml-safe
+
+e2e-aiml-override: check-token
+	cd scripts/e2e && go run main.go --scenario=aiml-override
+
