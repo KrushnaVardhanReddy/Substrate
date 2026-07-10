@@ -6,8 +6,8 @@ The Substrate Model Context Protocol (MCP) Server is what transforms Substrate f
 
 By exposing the Substrate Registry API as an MCP server, developers using AI IDEs (Cursor, Windsurf) or AI chat interfaces (Claude Desktop) can natively query the cross-repository dependency graph *before* they even write code.
 
-**Status:** ⏳ READY  
-**Owner:** Antigravity (Spec) / Jules (Implementation)
+**Status:** 🔄 P3-T09b IN PROGRESS  
+**Owner:** Antigravity (Spec + Implementation)
 
 ---
 
@@ -15,20 +15,35 @@ By exposing the Substrate Registry API as an MCP server, developers using AI IDE
 
 The MCP Server is implemented as a standalone CLI tool (`substrate-mcp`) that runs locally on the developer's machine using the **stdio** transport layer. This allows seamless integration with AI IDEs like Cursor and Windsurf.
 
-However, because the Substrate data (dependency graph, breaking change history, consumer schemas) is global to the engineering organization, the local `substrate-mcp` binary operates statelessly. It makes **JSON HTTP requests** to the centralized **Registry API** (e.g., `https://substrate.internal.company.com/api/v1/...`) to fetch cross-repository data.
+Because the Substrate data (dependency graph, breaking change history, consumer schemas) is global to the engineering organization, the local `substrate-mcp` binary operates statelessly. It makes **JSON HTTP requests** to the centralized **Registry API** to fetch cross-repository data.
+
+**Configuration:** The Registry API URL is set via the `REGISTRY_API_URL` environment variable (defaults to `http://localhost:8090` for local development).
 
 This architecture provides the best of both worlds:
-1. **Local Execution**: The AI can instantly diff schemas and execute local commands (`execute_cli_command`, `check_compatibility`) securely on the developer's laptop without uploading drafts.
-2. **Global Context**: The AI can securely pull the real-time, global dependency graph (`get_dependency_graph`) from the shared company registry.
+1. **Local Execution**: Tools like `check_compatibility`, `execute_cli_command`, and `analyze_repository` run entirely on the developer's machine — fast, secure, no data uploaded.
+2. **Global Context**: Tools like `get_dependency_graph`, `get_schema_file`, and `get_breaking_change_history` make HTTP calls to the shared company Registry API to fetch live organizational data.
 
 ---
 
-## 2. Exposed MCP Tools
+## 2. Exposed MCP Tools — Implementation Status
 
-The server will expose the following tools to the LLM.
+| Tool | Local vs. Remote | Registry API Endpoint | Status |
+|---|---|---|---|
+| `get_dependency_graph` | 🌐 Remote (Registry API) | `GET /api/v1/graph/{org}` ✅ exists | ✅ **Wired** |
+| `check_compatibility` | 💻 Local (Diff Engine) | N/A | ✅ **Working** |
+| `get_breaking_change_history` | 🌐 Remote (Registry API) | `GET /api/v1/history/{repo}` ❌ missing | 🔴 **Deferred (needs new DB table)** |
+| `get_substrate_docs` | 💻 Local (embedded docs) | N/A | 🟡 **Mock → Real docs string** |
+| `analyze_repository` | 💻 Local (filesystem walk) | N/A | 🟡 **Mock → Real file scan** |
+| `execute_cli_command` | 💻 Local (CLI exec) | N/A | ✅ **Working** |
+| `get_schema_file` | 🌐 Remote (Registry API) | `GET /api/v1/schema/{repo}` ❌ missing | 🟡 **Needs new endpoint (SQL exists)** |
 
-### Tool 1: `get_dependency_graph`
+---
+
+### Tool 1: `get_dependency_graph` ✅ WIRED
 **Description:** Returns the full map of which repositories consume which providers. Useful for understanding the blast radius of a change.
+
+**Backend:** Calls `GET /api/v1/graph/{org}` on the Registry API.
+
 **Input Schema:**
 ```json
 {
@@ -42,7 +57,7 @@ The server will expose the following tools to the LLM.
   "required": ["org"]
 }
 ```
-**Output:** A JSON array of `{ provider, consumer, status }`.
+**Output:** A JSON array of `{ consumer, provider, status }`.
 
 ---
 

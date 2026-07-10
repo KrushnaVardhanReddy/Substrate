@@ -257,6 +257,16 @@ TASKS = {
         "phase": "phase-3-registry",
         "prompt": _load_prompt("prompts/phase-3-registry/t09_mcp_implementation.txt"),
     },
+    33: {
+        "name": "P3-T09b — Wire MCP Server to live Registry API",
+        "phase": "phase-3-registry",
+        "prompt": _load_prompt("prompts/phase-3-registry/t09b_wire_mcp_registry.txt"),
+    },
+    34: {
+        "name": "P3-T14 — Interactive Diff Viewer URL in GitHub PR Comments",
+        "phase": "phase-3-registry",
+        "prompt": _load_prompt("prompts/phase-3-registry/t14_interactive_diff_url.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────

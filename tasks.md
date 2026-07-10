@@ -1,6 +1,6 @@
 # Substrate — Task Tracker
 
-> Last updated: 2026-07-09 (Phase 2 complete ✅ — Phase 3 Contract Registry in progress. **P3-T09 MCP Server merged ✅.** Specs reorganized into `docs/specs/phase-1/`, `phase-2/`, `phase-3/` subdirectories.)
+> Last updated: 2026-07-10 (Phase 2 complete ✅ — Phase 3 Contract Registry in progress. **P3-T09 MCP Server merged ✅.** P3-T09b + P3-T14 submitted to Jules 2026-07-10. 2 active Jules sessions running.)
 > Tracking all development phases, tasks, and their current status.
 
 ---
@@ -228,11 +228,11 @@
 | **P3-T11** | 🟢 P3 | **Compatibility matrix dashboard** — provider × consumer version grid | Antigravity | 🔒 after P3-T05 |
 | **P3-T08** | 🔵 P4 | **MCP server spec** (`docs/specs/phase-3/mcp-server.md`) | Antigravity | ✅ |
 | **P3-T09** | 🔵 P4 | **MCP server implementation** (Go, JSON-RPC 2.0) | Jules | ✅ Merged `feature/dev` 2026-07-09 | `prompts/phase-3-registry/t09_mcp_implementation.txt` |
-| **P3-T09b** | 🔵 P4 | **Wire MCP to live Registry API (Postgres)** | Antigravity | 🔄 IN PROGRESS | — |
-| P3-T10 | 🔵 P4 | **MCP deployment + IDE integration docs** | Antigravity | ⏳ Ready (P3-T09b ✅) |
+| **P3-T09b** | 🔵 P4 | **Wire MCP to live Registry API** — `get_schema_file` (new endpoint), `analyze_repository` (local fs walk), `get_substrate_docs` (embedded docs). `get_breaking_change_history` deferred to Phase 4 (needs new DB table). | Jules | 🔄 **Jules session `1585271913973233143`** submitted 2026-07-10 | `prompts/phase-3-registry/t09b_wire_mcp_registry.txt` |
+| P3-T10 | 🔵 P4 | **MCP deployment + IDE integration docs** | Antigravity | ⏳ Ready after P3-T09b ✅ |
 | **P3-T12** | 🔵 P4 | **Comprehensive Substrate Platform Docs** — Deep-dive install, config, CLI params, and architecture guides optimized for both human reading and MCP/AI ingestion | Antigravity | 🔒 after P3-T10 | `docs/specs/documentation-strategy.md` |
 | **P3-T13** | 🟢 P3 | **Execution Modes (Enterprise Rollout)** — Add `--mode=legacy\|strict` to CLI for shadow mode / dry-run deployments | Jules | ✅ Merged `feature/dev` 2026-07-09 | `prompts/phase-3-registry/t13_enterprise_modes.txt` |
-| **P3-T14** | 🟢 P3 | **Interactive Diff Viewer URL** — Worker adds a "View Dashboard" link to GitHub comments, routing to the Svelte dashboard | Jules | 🔒 after P3-T03 |
+| **P3-T14** | 🟢 P3 | **Interactive Diff Viewer URL** — Worker adds a "View Dashboard" link to GitHub comments, routing to the Svelte dashboard | Jules | 🔄 **Jules session `18306599017133753703`** submitted 2026-07-10 | `prompts/phase-3-registry/t14_interactive_diff_url.txt` |
 | P3-T07 | ⚪ P5 | Free tier limits + production deployment | Jules | 🔒 after P3-T06 |
 
 > **P3-T11 rationale (inspired by PactFlow's compatibility matrix):** PactFlow's most requested enterprise dashboard feature. For a platform team managing 20+ microservices, this is the central control panel: "which version of `users-api` is compatible with which version of `frontend` and `mobile-app`?" Every cell in the grid is a green tick or red cross. This is what makes Substrate indispensable for large orgs and is a core enterprise upsell feature.

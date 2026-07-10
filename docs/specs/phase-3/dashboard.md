@@ -83,3 +83,57 @@ The dashboard will fetch data from the Go API Server built in P3-T01.
 2. **SvelteKit Init:** Run `npm create svelte@latest dashboard` to scaffold the project.
 3. **Jules Porting:** Port the Stitch HTML/CSS into Svelte `+layout.svelte` and `+page.svelte` files.
 4. **API Wiring:** Connect the Sidebar to the `/api/v1/repos/:org` endpoint.
+
+---
+
+## 6. P3-T14: Interactive Diff Viewer URL (GitHub Worker → Dashboard)
+
+**Status:** 🔄 IN PROGRESS (Jules task P3-T14)
+**Dependency:** P3-T03 ✅
+
+### Overview
+Every Substrate PR comment currently ends with:
+```
+*Powered by [Substrate](https://github.com/KrushnaVardhanReddy/Substrate)*
+```
+
+This task adds a **"View in Dashboard →"** link directly in the PR comment footer so engineers can click through to the live dependency graph and diff report on the Substrate Dashboard.
+
+### How it works
+
+The GitHub Worker Cloudflare environment already has a `DASHBOARD_URL` binding (to be added). When the formatter builds the PR comment, it appends a dashboard deep-link to every comment footer.
+
+The deep-link format:
+```
+https://<DASHBOARD_URL>/diff?owner=<owner>&repo=<repo>&pr=<prNumber>
+```
+
+Example:
+```
+https://substrate.mycompany.com/diff?owner=myorg&repo=backend-api&pr=45
+```
+
+If `DASHBOARD_URL` is not set in the Worker's environment, the link is **omitted silently** — the comment still renders correctly, just without the dashboard link. This ensures zero regressions in existing deployments.
+
+### Changes required
+
+**1. `github-app/src/types.ts`**
+Add `DASHBOARD_URL?: string` to the `Env` interface (optional — existing deployments without the variable still work).
+
+**2. `github-app/src/formatter.ts`**
+- Update `formatPRComment` signature to accept an optional `dashboardUrl?: string` parameter.
+- Replace the `*Powered by Substrate*` footer line in all three branches (breaking, warning, all-clear) with a new `formatFooter(dashboardUrl?, owner?, repo?, prNumber?)` helper that builds the correct footer.
+- If `dashboardUrl` is provided: footer becomes:
+  ```
+  [View in Dashboard →](<dashboardUrl>/diff?owner=<owner>&repo=<repo>&pr=<prNumber>)
+  *Powered by [Substrate](https://github.com/KrushnaVardhanReddy/Substrate)*
+  ```
+- If `dashboardUrl` is NOT provided: footer is just the existing powered-by line (no regression).
+
+**3. `github-app/src/index.ts`**
+- When calling `formatPRComment(report, config)`, also pass `env.DASHBOARD_URL`, `event.owner`, `event.repo`, and `event.prNumber`.
+
+**4. `github-app/test/index.test.ts` and `github-app/test/formatter.test.ts`**
+- Add test cases asserting the dashboard link appears when `DASHBOARD_URL` is set.
+- Add test cases asserting the comment renders correctly when `DASHBOARD_URL` is absent.
+
