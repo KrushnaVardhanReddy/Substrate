@@ -1,0 +1,32 @@
+{
+  "name": "substrate-vscode",
+  "displayName": "Substrate",
+  "publisher": "substrate",
+  "version": "0.0.1",
+  "description": "Shift-Left IDE Extension for Substrate",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "activationEvents": [
+    "onLanguage:yaml",
+    "onLanguage:json",
+    "onLanguage:graphql",
+    "onLanguage:sql"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": []
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "@types/vscode": "^1.80.0",
+    "@vitest/coverage-v8": "^1.6.1",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  }
+}
