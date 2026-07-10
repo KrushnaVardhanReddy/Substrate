@@ -299,6 +299,11 @@ TASKS = {
         "phase": "phase-4-ai",
         "prompt": _load_prompt("prompts/phase-4/t03_safe_schema_patch_generator.txt"),
     },
+    42: {
+        "name": "P4-T04 — GitHub PR Comment Upgrade (Wire AI Autofix)",
+        "phase": "phase-4-ai",
+        "prompt": _load_prompt("prompts/phase-4/t04_github_pr_comment_upgrade.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────

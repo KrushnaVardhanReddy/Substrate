@@ -1,0 +1,108 @@
+TASK: P4-T04 — GitHub PR Comment Upgrade (AI-Enhanced)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Modify the Cloudflare Worker (`github-app/src/index.ts`) to call the new `/api/v1/ai/autofix` endpoint on the Registry API Server when breaking changes are detected, and pass the AI's explanation and safe patch to the PR comment formatter.
+
+This task wires together the AI autofix handler (built in P4-T03) with the PR comment formatter (also updated in P4-T03 to accept `aiExplanation` and `aiSafePatch`).
+
+═══════════════════════════════════════════════════════════════
+CONTEXT
+═══════════════════════════════════════════════════════════════
+
+The Go API endpoint `POST /api/v1/ai/autofix` expects:
+{
+  "provider_repo": "owner/repo",
+  "schema_type": "openapi",
+  "current_schema": "...",
+  "proposed_schema": "...",
+  "breaking_changes": [ { "rule_id": "...", "path": "...", "description": "...", "severity": "BREAKING" } ]
+}
+
+And returns:
+{
+  "explanation": "...",
+  "safe_patch": "...",
+  "patch_language": "yaml",
+  "mock_mode": false
+}
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+──────────────────────────────────────────────────────────────
+1. MODIFY: github-app/src/types.ts
+──────────────────────────────────────────────────────────────
+Add the following interfaces at the bottom of the file:
+
+export interface AIAutofixRequest {
+  provider_repo: string;
+  schema_type: string;
+  current_schema: string;
+  proposed_schema: string;
+  breaking_changes: any[];
+}
+
+export interface AIAutofixResponse {
+  explanation: string;
+  safe_patch: string;
+  patch_language: string;
+  mock_mode: boolean;
+}
+
+──────────────────────────────────────────────────────────────
+2. MODIFY: github-app/src/index.ts
+──────────────────────────────────────────────────────────────
+Inside `fetch()` method for the PR event (around Step 9.5 or 10):
+
+If there are breaking changes (`diffReport.summary.breaking_count > 0`) and `env.REGISTRY_API_URL` is set, make an HTTP POST request to `${env.REGISTRY_API_URL}/api/v1/ai/autofix`.
+
+Body should be an `AIAutofixRequest`:
+- `provider_repo`: `event.fullName`
+- `schema_type`: `config.schema_type || 'openapi'`
+- `current_schema`: `baseContent`
+- `proposed_schema`: `headContent`
+- `breaking_changes`: `diffReport.breaking_changes`
+
+Catch any errors during the `fetch` and silently fail (so the PR comment still posts, just without AI features).
+
+Then, pass the `explanation` and `safe_patch` from the response to the `formatPRComment` function:
+`let commentBody = formatPRComment(diffReport, config, env.DASHBOARD_URL, event.owner, event.repo, event.prNumber, aiExplanation, aiSafePatch);`
+
+──────────────────────────────────────────────────────────────
+3. MODIFY: github-app/test/index.test.ts
+──────────────────────────────────────────────────────────────
+Update the mock `fetch` implementation in the test file to mock the `/api/v1/ai/autofix` endpoint.
+When `url.endsWith('/api/v1/ai/autofix')` is called, return a 200 response with a mock `AIAutofixResponse`:
+{
+  explanation: "Mock AI explanation",
+  safe_patch: "mock:\n  safe: patch",
+  patch_language: "yaml",
+  mock_mode: true
+}
+
+This ensures the E2E worker test doesn't fail when the worker tries to call the autofix endpoint.
+
+──────────────────────────────────────────────────────────────
+4. VERIFY: All tests pass
+──────────────────────────────────────────────────────────────
+Run `cd github-app && npm run typecheck && npm test`
+Ensure everything passes.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO MODIFY:
+- github-app/src/types.ts
+- github-app/src/index.ts
+- github-app/test/index.test.ts
+
+FILES TO NOT TOUCH:
+- api/
+- engine/
+- github-app/src/formatter.ts (Already updated in P4-T03)
+
+Commit: "feat: P4-T04 wire AI autofix to PR comment formatter"
+Target branch: feature/dev
