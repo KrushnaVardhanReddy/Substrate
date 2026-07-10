@@ -44,8 +44,10 @@ func NewRouter(store db.Store, authConfig handlers.AuthConfig, registryApiToken,
 
 	// Protected routes (Service Token only)
 	serviceTokenMW := ServiceTokenMiddleware(registryApiToken)
-	mux.Handle("POST /api/v1/sync", serviceTokenMW(http.HandlerFunc(handlers.SyncHandler(store))))
-	mux.Handle("POST /api/v1/cross-repo-check", serviceTokenMW(http.HandlerFunc(handlers.CrossRepoCheckHandler(store))))
+	limitsMW := TierLimitsMiddleware(store)
+
+	mux.Handle("POST /api/v1/sync", serviceTokenMW(limitsMW(http.HandlerFunc(handlers.SyncHandler(store)))))
+	mux.Handle("POST /api/v1/cross-repo-check", serviceTokenMW(limitsMW(http.HandlerFunc(handlers.CrossRepoCheckHandler(store)))))
 
 	// Protected routes (Service Token OR JWT)
 	authMW := AuthMiddleware(registryApiToken, jwtSecret)

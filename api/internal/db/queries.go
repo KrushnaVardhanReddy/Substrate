@@ -223,3 +223,42 @@ func GetDependencyGraph(ctx context.Context, pool *pgxpool.Pool, orgName string)
 	}
 	return edges, rows.Err()
 }
+
+// CountReposByOrg returns the number of repositories connected to an organization.
+func (s *PGStore) CountReposByOrg(ctx context.Context, orgName string) (int, error) {
+	return CountReposByOrg(ctx, s.pool, orgName)
+}
+
+func CountReposByOrg(ctx context.Context, pool *pgxpool.Pool, orgName string) (int, error) {
+	var count int
+	err := pool.QueryRow(ctx, `
+		SELECT COUNT(r.id)
+		FROM repositories r
+		JOIN organizations o ON r.org_id = o.id
+		WHERE o.github_org_name = $1
+	`, orgName).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count repos: %w", err)
+	}
+	return count, nil
+}
+
+// CountDownstreamDependencies returns the number of unique downstream consumers for a provider.
+func (s *PGStore) CountDownstreamDependencies(ctx context.Context, providerFullName string) (int, error) {
+	return CountDownstreamDependencies(ctx, s.pool, providerFullName)
+}
+
+func CountDownstreamDependencies(ctx context.Context, pool *pgxpool.Pool, providerFullName string) (int, error) {
+	var count int
+	err := pool.QueryRow(ctx, `
+		SELECT COUNT(DISTINCT d.consumer_repo_id)
+		FROM dependencies d
+		JOIN contracts c ON d.provider_contract_id = c.id
+		JOIN repositories r ON c.repo_id = r.id
+		WHERE r.full_name = $1
+	`, providerFullName).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count downstream dependencies: %w", err)
+	}
+	return count, nil
+}

@@ -48,4 +48,6 @@ type Store interface {
 	GetConsumersByProviderContract(ctx context.Context, providerContractID uuid.UUID) ([]ConsumerDependency, error)
 	ListReposByOrg(ctx context.Context, orgName string) ([]Repository, error)
 	GetDependencyGraph(ctx context.Context, orgName string) ([]DependencyEdge, error)
+	CountReposByOrg(ctx context.Context, orgName string) (int, error)
+	CountDownstreamDependencies(ctx context.Context, providerFullName string) (int, error)
 }
