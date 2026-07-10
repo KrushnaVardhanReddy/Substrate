@@ -10,9 +10,9 @@ import type { DiffReport, SubstrateConfig, CrossRepoCheckResponse } from '../src
 
 describe('formatter', () => {
   const emptyReport: DiffReport = {
-    breaking: [],
-    warning: [],
-    info: [],
+    breaking_changes: [],
+    warnings: [],
+    safe_changes: [],
     summary: { breaking_count: 0, warning_count: 0, info_count: 0 }
   };
 
@@ -29,12 +29,12 @@ describe('formatter', () => {
 
     it('0 breaking, 2 warnings -> output contains "Warnings Only" and "🟡"', () => {
       const report: DiffReport = {
-        breaking: [],
-        warning: [
-          { rule: 'rule-1', path: 'path-1', severity: 'WARNING', message: '' },
-          { rule: 'rule-2', path: 'path-2', severity: 'WARNING', message: '' }
+        breaking_changes: [],
+        warnings: [
+          { rule_id: 'rule-1', path: 'path-1', severity: 'WARNING', description: '' },
+          { rule_id: 'rule-2', path: 'path-2', severity: 'WARNING', description: '' }
         ],
-        info: [],
+        safe_changes: [],
         summary: { breaking_count: 0, warning_count: 2, info_count: 0 }
       };
       const comment = formatPRComment(report, emptyConfig);
@@ -48,16 +48,16 @@ describe('formatter', () => {
 
     it('3 breaking, 2 warning -> output contains "Breaking Changes Detected" and "🔴"', () => {
       const report: DiffReport = {
-        breaking: [
-          { rule: 'b-1', path: 'p-1', severity: 'BREAKING', message: '' },
-          { rule: 'b-2', path: 'p-2', severity: 'BREAKING', message: '' },
-          { rule: 'b-3', path: 'p-3', severity: 'BREAKING', message: '' }
+        breaking_changes: [
+          { rule_id: 'b-1', path: 'p-1', severity: 'BREAKING', description: '' },
+          { rule_id: 'b-2', path: 'p-2', severity: 'BREAKING', description: '' },
+          { rule_id: 'b-3', path: 'p-3', severity: 'BREAKING', description: '' }
         ],
-        warning: [
-          { rule: 'w-1', path: 'p-4', severity: 'WARNING', message: '' },
-          { rule: 'w-2', path: 'p-5', severity: 'WARNING', message: '' }
+        warnings: [
+          { rule_id: 'w-1', path: 'p-4', severity: 'WARNING', description: '' },
+          { rule_id: 'w-2', path: 'p-5', severity: 'WARNING', description: '' }
         ],
-        info: [],
+        safe_changes: [],
         summary: { breaking_count: 3, warning_count: 2, info_count: 0 }
       };
       const comment = formatPRComment(report, emptyConfig);
@@ -81,11 +81,11 @@ describe('formatter', () => {
 
     it('handles rule name with backticks without breaking markdown table', () => {
       const report: DiffReport = {
-        breaking: [
-          { rule: 'rule`name', path: 'path', severity: 'BREAKING', message: '' }
+        breaking_changes: [
+          { rule_id: 'rule`name', path: 'path', severity: 'BREAKING', description: '' }
         ],
-        warning: [],
-        info: [],
+        warnings: [],
+        safe_changes: [],
         summary: { breaking_count: 1, warning_count: 0, info_count: 0 }
       };
       const comment = formatPRComment(report, emptyConfig);
@@ -94,11 +94,11 @@ describe('formatter', () => {
 
     it('handles path with pipe character | without breaking markdown table', () => {
       const report: DiffReport = {
-        breaking: [
-          { rule: 'rule', path: 'path|pipe', severity: 'BREAKING', message: '' }
+        breaking_changes: [
+          { rule_id: 'rule', path: 'path|pipe', severity: 'BREAKING', description: '' }
         ],
-        warning: [],
-        info: [],
+        warnings: [],
+        safe_changes: [],
         summary: { breaking_count: 1, warning_count: 0, info_count: 0 }
       };
       const comment = formatPRComment(report, emptyConfig);
@@ -169,9 +169,9 @@ describe('formatCrossRepoImpact', () => {
         consumer_repo: 'myorg/frontend',
         status: 'breaking',
         diff_report: {
-          breaking: [{ rule: 'rule', path: 'GET /users/{id}', message: 'field email removed' }],
-          warning: [],
-          info: [],
+          breaking_changes: [{ rule_id: 'rule', path: 'GET /users/{id}', description: 'field email removed' }],
+          warnings: [],
+          safe_changes: [],
           summary: { breaking_count: 1, warning_count: 0, info_count: 0 }
         }
       }]
@@ -193,9 +193,9 @@ describe('formatCrossRepoImpact', () => {
         consumer_repo: 'myorg/mobile-app',
         status: 'safe',
         diff_report: {
-          breaking: [],
-          warning: [],
-          info: [],
+          breaking_changes: [],
+          warnings: [],
+          safe_changes: [],
           summary: { breaking_count: 0, warning_count: 0, info_count: 0 }
         }
       }]
@@ -215,9 +215,9 @@ describe('formatCrossRepoImpact', () => {
           consumer_repo: 'myorg/frontend',
           status: 'breaking',
           diff_report: {
-            breaking: [{ rule: 'rule', path: 'GET /users/{id}', message: 'field email removed' }],
-            warning: [],
-            info: [],
+            breaking_changes: [{ rule_id: 'rule', path: 'GET /users/{id}', description: 'field email removed' }],
+            warnings: [],
+            safe_changes: [],
             summary: { breaking_count: 1, warning_count: 0, info_count: 0 }
           }
         },
@@ -225,9 +225,9 @@ describe('formatCrossRepoImpact', () => {
           consumer_repo: 'myorg/mobile-app',
           status: 'safe',
           diff_report: {
-            breaking: [],
-            warning: [],
-            info: [],
+            breaking_changes: [],
+            warnings: [],
+            safe_changes: [],
             summary: { breaking_count: 0, warning_count: 0, info_count: 0 }
           }
         }
@@ -248,12 +248,12 @@ describe('formatCrossRepoImpact', () => {
         consumer_repo: 'myorg/frontend',
         status: 'breaking',
         diff_report: {
-          breaking: [
-            { rule: 'rule1', path: 'GET /a', message: 'msg1' },
-            { rule: 'rule2', path: 'GET /b', message: 'msg2' }
+          breaking_changes: [
+            { rule_id: 'rule1', path: 'GET /a', description: 'msg1' },
+            { rule_id: 'rule2', path: 'GET /b', description: 'msg2' }
           ],
-          warning: [],
-          info: [],
+          warnings: [],
+          safe_changes: [],
           summary: { breaking_count: 2, warning_count: 0, info_count: 0 }
         }
       }]

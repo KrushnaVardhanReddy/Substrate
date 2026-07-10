@@ -266,7 +266,7 @@ export default {
       const crossRepoSection = formatCrossRepoImpact(crossRepoResponse);
 
       // Step 10: Post PR comment
-      let commentBody = formatPRComment(diffReport, config);
+      let commentBody = formatPRComment(diffReport, config, env.DASHBOARD_URL, event.owner, event.repo, event.prNumber);
       if (crossRepoSection) {
         commentBody += "\n" + crossRepoSection;
       }

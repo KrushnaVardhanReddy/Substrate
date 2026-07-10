@@ -5,7 +5,23 @@ function escapeMarkdown(text: string): string {
   return text.replace(/\|/g, '\\|').replace(/`/g, '\\`');
 }
 
-export function formatPRComment(report: DiffReport, config: SubstrateConfig): string {
+function formatFooter(dashboardUrl?: string, owner?: string, repo?: string, prNumber?: number): string {
+  const poweredBy = `*Powered by [Substrate](https://github.com/KrushnaVardhanReddy/Substrate)*`;
+  if (dashboardUrl && owner && repo && prNumber) {
+    const link = `${dashboardUrl}/diff?owner=${owner}&repo=${repo}&pr=${prNumber}`;
+    return `[View in Dashboard →](${link})\n${poweredBy}`;
+  }
+  return poweredBy;
+}
+
+export function formatPRComment(
+  report: DiffReport,
+  config: SubstrateConfig,
+  dashboardUrl?: string,
+  owner?: string,
+  repo?: string,
+  prNumber?: number
+): string {
   const breakingCount = report.summary?.breaking_count || 0;
   const warningCount = report.summary?.warning_count || 0;
   const infoCount = report.summary?.info_count || 0;
@@ -49,7 +65,7 @@ export function formatPRComment(report: DiffReport, config: SubstrateConfig): st
 
     comment += `---\n`;
     comment += `*To acknowledge a breaking change, add an override to your \`substrate.yaml\`.*\n`;
-    comment += `*Powered by [Substrate](https://github.com/KrushnaVardhanReddy/Substrate)*`;
+    comment += `${formatFooter(dashboardUrl, owner, repo, prNumber)}`;
 
   } else if (warningCount > 0) {
     comment += `## 🟡 Substrate — Warnings Only\n\n`;
@@ -73,14 +89,14 @@ export function formatPRComment(report: DiffReport, config: SubstrateConfig): st
     }
 
     comment += `---\n`;
-    comment += `*Powered by [Substrate](https://github.com/KrushnaVardhanReddy/Substrate)*`;
+    comment += `${formatFooter(dashboardUrl, owner, repo, prNumber)}`;
 
   } else {
     comment += `## ✅ Substrate — All Clear\n\n`;
     comment += `No breaking changes detected in this PR. Safe to merge. 🎉\n\n`;
 
     comment += `---\n`;
-    comment += `*Powered by [Substrate](https://github.com/KrushnaVardhanReddy/Substrate)*`;
+    comment += `${formatFooter(dashboardUrl, owner, repo, prNumber)}`;
   }
 
   return comment;

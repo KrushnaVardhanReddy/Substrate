@@ -226,7 +226,7 @@ describe('Worker Handler', () => {
     (globalThis.fetch as any).mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        breaking: [], warning: [], info: [],
+        breaking_changes: [], warnings: [], safe_changes: [],
         summary: { breaking_count: 0, warning_count: 0, info_count: 0 }
       })
     });
@@ -267,9 +267,9 @@ describe('Worker Handler', () => {
     (globalThis.fetch as any).mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        breaking: [{ rule: 'rule1', severity: 'BREAKING', path: 'path1', message: 'msg1' },
-                   { rule: 'rule2', severity: 'BREAKING', path: 'path2', message: 'msg2' }],
-        warning: [], info: [],
+        breaking_changes: [{ rule_id: 'rule1', severity: 'BREAKING', path: 'path1', description: 'msg1' },
+                   { rule_id: 'rule2', severity: 'BREAKING', path: 'path2', description: 'msg2' }],
+        warnings: [], safe_changes: [],
         summary: { breaking_count: 2, warning_count: 0, info_count: 0 }
       })
     });
@@ -447,15 +447,15 @@ describe('Worker Handler Cross Repo PR Events', () => {
     (globalThis.fetch as any).mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        breaking: [{ rule: 'rule1', severity: 'BREAKING', path: 'path1', message: 'msg1' }],
-        warning: [], info: [],
+        breaking_changes: [{ rule_id: 'rule1', severity: 'BREAKING', path: 'path1', description: 'msg1' }],
+        warnings: [], safe_changes: [],
         summary: { breaking_count: 1, warning_count: 0, info_count: 0 }
       })
     });
 
     const crossRepoRes = {
       total_consumers: 1, broken_consumers: 1, is_safe: false,
-      results: [{ consumer_repo: 'org/consumer', status: 'breaking', diff_report: { breaking: [{ rule: 'rule', path: 'path', message: 'msg' }], summary: { breaking_count: 1 } } }]
+      results: [{ consumer_repo: 'org/consumer', status: 'breaking', diff_report: { breaking_changes: [{ rule_id: 'rule', path: 'path', description: 'msg' }], summary: { breaking_count: 1 } } }]
     };
     (crossRepoCheck as any).mockResolvedValueOnce(crossRepoRes);
 
@@ -488,8 +488,8 @@ describe('Worker Handler Cross Repo PR Events', () => {
     (globalThis.fetch as any).mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        breaking: [{ rule: 'rule1', severity: 'BREAKING', path: 'path1', message: 'msg1' }],
-        warning: [], info: [],
+        breaking_changes: [{ rule_id: 'rule1', severity: 'BREAKING', path: 'path1', description: 'msg1' }],
+        warnings: [], safe_changes: [],
         summary: { breaking_count: 1, warning_count: 0, info_count: 0 }
       })
     });
@@ -523,12 +523,12 @@ describe('Worker Handler Cross Repo PR Events', () => {
 
     (globalThis.fetch as any).mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ breaking: [], warning: [], info: [], summary: { breaking_count: 0, warning_count: 0, info_count: 0 } })
+      json: async () => ({ breaking_changes: [], warnings: [], safe_changes: [], summary: { breaking_count: 0, warning_count: 0, info_count: 0 } })
     });
 
     const crossRepoRes = {
       total_consumers: 1, broken_consumers: 1, is_safe: false,
-      results: [{ consumer_repo: 'org/consumer', status: 'breaking', diff_report: { breaking: [{ rule: 'rule', path: 'path', message: 'msg' }], summary: { breaking_count: 1 } } }]
+      results: [{ consumer_repo: 'org/consumer', status: 'breaking', diff_report: { breaking_changes: [{ rule_id: 'rule', path: 'path', description: 'msg' }], summary: { breaking_count: 1 } } }]
     };
     (crossRepoCheck as any).mockResolvedValueOnce(crossRepoRes);
 
@@ -557,12 +557,12 @@ describe('Worker Handler Cross Repo PR Events', () => {
 
     (globalThis.fetch as any).mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ breaking: [], warning: [], info: [], summary: { breaking_count: 0, warning_count: 0, info_count: 0 } })
+      json: async () => ({ breaking_changes: [], warnings: [], safe_changes: [], summary: { breaking_count: 0, warning_count: 0, info_count: 0 } })
     });
 
     const crossRepoRes = {
       total_consumers: 1, broken_consumers: 0, is_safe: true,
-      results: [{ consumer_repo: 'org/consumer', status: 'safe', diff_report: { breaking: [], summary: { breaking_count: 0 } } }]
+      results: [{ consumer_repo: 'org/consumer', status: 'safe', diff_report: { breaking_changes: [], summary: { breaking_count: 0 } } }]
     };
     (crossRepoCheck as any).mockResolvedValueOnce(crossRepoRes);
 
@@ -572,6 +572,76 @@ describe('Worker Handler Cross Repo PR Events', () => {
 
     expect(githubClient.setCommitStatus).toHaveBeenCalledWith(
       'mock-token', 'owner', 'repo', 'headsha', 'success', 'All clear — no breaking changes'
+    );
+  });
+
+  it('PR comment includes dashboard link when DASHBOARD_URL is set', async () => {
+    const payload = JSON.stringify(basePayload);
+    const sig = await signWebhook(payload, MOCK_ENV.GITHUB_WEBHOOK_SECRET);
+    const request = new Request('http://localhost', {
+      method: 'POST',
+      headers: { 'X-Hub-Signature-256': sig, 'X-GitHub-Event': 'pull_request' },
+      body: payload
+    });
+
+    (githubClient.fetchFileContent as any)
+      .mockResolvedValueOnce('base_schema: base.yaml\nhead_schema: head.yaml')
+      .mockResolvedValueOnce('base content')
+      .mockResolvedValueOnce('head content');
+
+    (globalThis.fetch as any).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        breaking_changes: [{ rule_id: 'rule1', severity: 'BREAKING', path: 'path1', description: 'msg1' }],
+        warnings: [], safe_changes: [],
+        summary: { breaking_count: 1, warning_count: 0, info_count: 0 }
+      })
+    });
+
+    const envWithDashboard = { ...MOCK_ENV, DASHBOARD_URL: 'https://substrate.example.com', REGISTRY_API_URL: '' };
+    const response = await worker.fetch(request, envWithDashboard as any);
+    expect(response.status).toBe(200);
+
+    expect(githubClient.postPRComment).toHaveBeenCalledWith(
+      'mock-token', 'owner', 'repo', 1, expect.stringContaining('View in Dashboard →')
+    );
+    expect(githubClient.postPRComment).toHaveBeenCalledWith(
+      'mock-token', 'owner', 'repo', 1, expect.stringContaining('https://substrate.example.com/diff?owner=owner&repo=repo&pr=1')
+    );
+  });
+
+  it('PR comment renders correctly when DASHBOARD_URL is not set', async () => {
+    const payload = JSON.stringify(basePayload);
+    const sig = await signWebhook(payload, MOCK_ENV.GITHUB_WEBHOOK_SECRET);
+    const request = new Request('http://localhost', {
+      method: 'POST',
+      headers: { 'X-Hub-Signature-256': sig, 'X-GitHub-Event': 'pull_request' },
+      body: payload
+    });
+
+    (githubClient.fetchFileContent as any)
+      .mockResolvedValueOnce('base_schema: base.yaml\nhead_schema: head.yaml')
+      .mockResolvedValueOnce('base content')
+      .mockResolvedValueOnce('head content');
+
+    (globalThis.fetch as any).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        breaking_changes: [{ rule_id: 'rule1', severity: 'BREAKING', path: 'path1', description: 'msg1' }],
+        warnings: [], safe_changes: [],
+        summary: { breaking_count: 1, warning_count: 0, info_count: 0 }
+      })
+    });
+
+    const envWithoutDashboard = { ...MOCK_ENV, DASHBOARD_URL: undefined, REGISTRY_API_URL: '' };
+    const response = await worker.fetch(request, envWithoutDashboard as any);
+    expect(response.status).toBe(200);
+
+    expect(githubClient.postPRComment).toHaveBeenCalledWith(
+      'mock-token', 'owner', 'repo', 1, expect.stringContaining('Powered by [Substrate]')
+    );
+    expect(githubClient.postPRComment).not.toHaveBeenCalledWith(
+      'mock-token', 'owner', 'repo', 1, expect.stringContaining('View in Dashboard')
     );
   });
 
@@ -591,7 +661,7 @@ describe('Worker Handler Cross Repo PR Events', () => {
 
     (globalThis.fetch as any).mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ breaking: [], warning: [], info: [], summary: { breaking_count: 0, warning_count: 0, info_count: 0 } })
+      json: async () => ({ breaking_changes: [], warnings: [], safe_changes: [], summary: { breaking_count: 0, warning_count: 0, info_count: 0 } })
     });
 
     const crossRepoRes = { total_consumers: 0, broken_consumers: 0, is_safe: true, results: [] };
