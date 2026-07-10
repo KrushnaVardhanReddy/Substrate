@@ -277,6 +277,16 @@ TASKS = {
         "phase": "phase-3-registry",
         "prompt": _load_prompt("prompts/phase-3-registry/t04_dashboard_repos.txt"),
     },
+    37: {
+        "name": "P3-T07 — Free Tier Limits + Production Deployment",
+        "phase": "phase-3-registry",
+        "prompt": _load_prompt("prompts/phase-3-registry/t07_rate_limits.txt"),
+    },
+    38: {
+        "name": "P3-T10 — MCP Deployment + IDE Integration Docs",
+        "phase": "phase-3-registry",
+        "prompt": _load_prompt("prompts/phase-3-registry/t10_mcp_docs.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────

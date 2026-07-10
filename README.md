@@ -2,7 +2,7 @@
 
 ## The Living Map of Your Engineering Ecosystem
 
-> **Status:** v0.1.6 🚀 — [OpenAPI Contract Guard](https://github.com/marketplace/actions/substrate-api-contract-guard) live on GitHub Marketplace. **Phase 2 (GitHub App) ✅ Complete. Phase 3 (Contract Registry + MCP Server) 🔄 in progress.** 1 Jules session active: P3-T07 (`3642836520893332081`). View at [jules.google.com](https://jules.google.com/).
+> **Status:** v0.1.6 🚀 — [OpenAPI Contract Guard](https://github.com/marketplace/actions/substrate-api-contract-guard) live on GitHub Marketplace. **Phase 2 (GitHub App) ✅ Complete. Phase 3 (Contract Registry + MCP Server) 🔄 in progress.** 2 Jules sessions active: P3-T07 (`3642836520893332081`), P3-T10 (`17750500161261192868`). View at [jules.google.com](https://jules.google.com/).
 
 Substrate is a CI/CD-integrated data contract and dependency intelligence platform that prevents downstream data failures before they reach production.
 
