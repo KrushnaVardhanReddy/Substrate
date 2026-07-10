@@ -127,31 +127,27 @@ Implement the `POST /api/v1/ai/analyze` Go handler that streams LLM tokens back 
 
 ---
 
-## P4-T03: Cross-Repo Auto-Fix PR Generator
+## P4-T03: Safe Schema Patch Generator (Provider-Side)
 
 **Owner:** Jules  
 **Effort:** ~1 day
 
 ### Overview
-The flagship Phase 4 feature. When a breaking change is detected in a provider PR, Substrate automatically opens a **draft PR in every consumer repository** with the generated fix.
+Instead of attempting complex consumer-side refactors, Substrate will generate the correct **provider-side schema fix** to avoid breaking changes. If a developer deletes `user_id`, the AI suggests adding `@deprecated` instead.
 
 ### Workflow
 ```
 1. Provider pushes PR (e.g., deletes `user_id` from Payments API)
 2. Phase 3: Substrate blocks the PR. Breaking change detected.
 3. Phase 4 (NEW): Substrate calls P4-T01 AI bridge for auto-fix.
-4. AI generates the consumer-side fix (e.g., update frontend to use `account_id`).
-5. Substrate opens a DRAFT PR in the consumer repo with the fix code.
-6. PR Comment on the provider PR is updated:
-   "I blocked your PR because it breaks `frontend-app`. I've already
-    opened a Draft Fix PR in the `frontend-app` repo: [link]. Once they
-    merge that, your PR will automatically turn green."
+4. AI generates the exact safe schema patch (e.g., restoring `user_id` as deprecated).
+5. Substrate outputs this code block in the PR comment for the developer to apply.
 ```
 
 ### API Changes
 - New Go handler: `POST /api/v1/ai/autofix`
 - Input: `{ provider_org, provider_repo, breaking_change_report }`
-- Output: `{ draft_pr_urls: ["https://github.com/org/frontend-app/pulls/42"] }`
+- Output: `{ explanation: "...", safe_schema_patch: "..." }`
 
 ### Files
 - `api/internal/handlers/ai_autofix.go` (CREATE)
@@ -168,7 +164,7 @@ The flagship Phase 4 feature. When a breaking change is detected in a provider P
 Upgrade the existing PR comment formatter (built in Phase 2) to include the Phase 4 AI analysis. The PR comment should now include:
 - The standard breaking change table (Phase 2).
 - A new **AI Impact Analysis** section with the plain-English explanation.
-- A **"Substrate AI has opened a Fix PR"** section with a direct link to the auto-fix draft PR (Phase 4-T03).
+- A **"Suggested Safe Remediation"** section with a copy-pasteable schema patch (P4-T03).
 
 ### PR Comment Template (Additions)
 ```markdown
@@ -176,13 +172,15 @@ Upgrade the existing PR comment formatter (built in Phase 2) to include the Phas
 ### 🤖 AI Impact Analysis
 > Removing `user_id` will break the `BillingService` consumer in 2 downstream repos.
 > **Root Cause:** `BillingService v2.3` uses `user_id` for invoice correlation.
-> **Substrate Recommendation:** Deprecate `user_id` and introduce `account_id` as an alias.
 
-### 🔧 Auto-Fix PRs
-| Consumer Repo | Fix PR | Status |
-|---|---|---|
-| `frontend-app` | [Draft Fix #42](https://github.com/org/frontend-app/pulls/42) | ⏳ Awaiting Merge |
-| `mobile-ios` | [Draft Fix #17](https://github.com/org/mobile-ios/pulls/17) | ⏳ Awaiting Merge |
+### 🔧 Suggested Safe Remediation
+To unblock this PR safely, apply the following schema change:
+```yaml
+# Restore the field but mark it deprecated
+properties:
+  user_id:
+    type: string
+    deprecated: true
 ```
 
 ---
@@ -291,7 +289,7 @@ var piiPatterns = map[string]string{
 |---|---|---|---|
 | **P4-T01** | AI Reasoning Bridge (MCP + LLM) | 1 day | 📐 Spec |
 | **P4-T02** | Streaming SSE Handler (Go) | 4 hrs | 📐 Spec |
-| **P4-T03** | Cross-Repo Auto-Fix PR Generator | 1 day | 📐 Spec |
+| **P4-T03** | Safe Schema Patch Generator | 1 day | 📐 Spec |
 | **P4-T04** | GitHub PR Comment Upgrade | 2 hrs | 📐 Spec |
 | **P4-T05** | Wire Real AI to Playground | 2 hrs | 📐 Spec |
 | **P4-T06** | Shift-Left VSCode Extension | 2 days | 📐 Spec |
