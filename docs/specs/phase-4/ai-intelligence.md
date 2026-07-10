@@ -290,13 +290,13 @@ var piiPatterns = map[string]string{
 | Task | Feature | Est. Effort | Status |
 |---|---|---|---|
 | **P4-T01** | AI Reasoning Bridge (MCP + LLM) | 1 day | 📐 Spec |
-| **P4-T02** | Streaming SSE Handler (Go) | 4 hrs | 📐 Spec |
-| **P4-T03** | Safe Schema Patch Generator | 1 day | 📐 Spec |
-| **P4-T04** | GitHub PR Comment Upgrade | 2 hrs | 📐 Spec |
-| **P4-T05** | Wire Real AI to Playground | 2 hrs | 📐 Spec |
-| **P4-T06** | Shift-Left VSCode Extension | 2 days | 📐 Spec |
-| **P4-T07** | Traffic-Aware Diffing | 1 day | 📐 Spec |
-| **P4-T08** | PII & Compliance Auditing | 1 day | 📐 Spec |
+| **P4-T02** | Streaming SSE Handler (Go) | 4 hrs | ✅ Done |
+| **P4-T03** | Safe Schema Patch Generator | 1 day | ✅ Done |
+| **P4-T04** | GitHub PR Comment Upgrade | 2 hrs | 🔄 Session `14528212627637189502` |
+| **P4-T05** | Wire Real AI to Playground | 2 hrs | ✅ Done |
+| **P4-T06** | Shift-Left VSCode Extension | 2 days | 💡 |
+| **P4-T07** | Traffic-Aware Diffing | 1 day | 💡 |
+| **P4-T08** | PII & Compliance Auditing | 1 day | 💡 |
 
 **Total Estimated Phase 4 Duration:** ~1–2 weeks (with Jules parallelization)
 
