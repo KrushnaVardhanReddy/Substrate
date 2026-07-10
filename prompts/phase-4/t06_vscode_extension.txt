@@ -1,0 +1,79 @@
+TASK: P4-T06 — Shift-Left IDE Extension (VSCode)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Create a VSCode extension that uses the local Substrate Engine (`substrate diff`) to catch breaking API changes in real-time as the developer types.
+This task involves scaffolding the extension, registering a DiagnosticCollection for squiggly lines, and a CodeActionProvider for AI autofixes.
+
+Spec (READ ONLY):
+  docs/specs/phase-4/ai-intelligence.md   (Section: P4-T06)
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+──────────────────────────────────────────────────────────────
+1. SCAFFOLD EXTENSION: vscode-extension/
+──────────────────────────────────────────────────────────────
+We need a standard VSCode extension scaffold inside a new `vscode-extension` directory.
+Create the following files:
+
+- `vscode-extension/package.json`: 
+  Name: `substrate-vscode`
+  Publisher: `substrate`
+  Engines: vscode `^1.80.0`
+  Activation Events: `onLanguage:yaml`, `onLanguage:json`, `onLanguage:graphql`, `onLanguage:sql`
+  Main: `./out/extension.js`
+  Scripts: `compile`: `tsc -p ./`, `watch`: `tsc -watch -p ./`
+  Dependencies: `vscode-languageclient` (if needed, but for MVP just use native vscode API)
+  DevDependencies: `@types/vscode`, `typescript`
+
+- `vscode-extension/tsconfig.json`:
+  Standard TypeScript config for VSCode extensions (target: es2022, module: commonjs, outDir: out).
+
+──────────────────────────────────────────────────────────────
+2. CREATE: vscode-extension/src/extension.ts
+──────────────────────────────────────────────────────────────
+Write the main extension entry point.
+- Export `activate(context: vscode.ExtensionContext)` and `deactivate()`.
+- Register a `vscode.DiagnosticCollection("substrate")`.
+- Subscribe to `vscode.workspace.onDidSaveTextDocument` (or onChange with debounce) to trigger the diff analysis.
+
+──────────────────────────────────────────────────────────────
+3. CREATE: vscode-extension/src/analyzer.ts
+──────────────────────────────────────────────────────────────
+Implement the function that analyzes the current file:
+- Execute `substrate diff <current-file> <previous-commit-file> --format json` via `child_process.exec`.
+- Note: For MVP, assume `substrate` CLI is available in the user's PATH.
+- Parse the JSON output (which contains breaking changes with `path` and `rule_id`).
+- Map the JSON output to `vscode.Diagnostic` objects. 
+  - Severity: `vscode.DiagnosticSeverity.Error` (for BREAKING)
+  - Range: Find the approximate line number of the breaking change by searching the text document for the field name extracted from the `path`.
+- Push diagnostics to the DiagnosticCollection.
+
+──────────────────────────────────────────────────────────────
+4. CREATE: vscode-extension/src/codeActions.ts
+──────────────────────────────────────────────────────────────
+Implement a `vscode.CodeActionProvider`:
+- Register it for the languages listed above.
+- Provide a Quick Fix (`vscode.CodeActionKind.QuickFix`) when the user hovers over a Substrate diagnostic.
+- For now, return a generic "AI Autofix: Add @deprecated (Mock)" code action that simply inserts a comment above the line to demonstrate the capability.
+
+──────────────────────────────────────────────────────────────
+5. VERIFY
+──────────────────────────────────────────────────────────────
+Run `cd vscode-extension && npm install && npm run compile`.
+Ensure it compiles successfully without TypeScript errors.
+
+═══════════════════════════════════════════════════════════════
+FILES TO CREATE
+═══════════════════════════════════════════════════════════════
+- vscode-extension/package.json
+- vscode-extension/tsconfig.json
+- vscode-extension/src/extension.ts
+- vscode-extension/src/analyzer.ts
+- vscode-extension/src/codeActions.ts
+
+Commit: "feat: P4-T06 scaffold VSCode shift-left extension"
+Target branch: feature/dev

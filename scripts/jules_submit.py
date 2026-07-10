@@ -304,6 +304,11 @@ TASKS = {
         "phase": "phase-4-ai",
         "prompt": _load_prompt("prompts/phase-4/t04_github_pr_comment_upgrade.txt"),
     },
+    46: {
+        "name": "P4-T06 — Shift-Left IDE Extension (VSCode)",
+        "phase": "phase-4-ai",
+        "prompt": _load_prompt("prompts/phase-4/t06_vscode_extension.txt"),
+    },
     47: {
         "name": "P4-T07 — Traffic-Aware Diffing (Zero False Positives)",
         "phase": "phase-4-ai",
