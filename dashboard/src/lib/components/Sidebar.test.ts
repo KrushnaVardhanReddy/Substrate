@@ -25,4 +25,10 @@ describe('Sidebar Component', () => {
 		expect(getByText('Repositories')).toBeInTheDocument();
 		expect(queryByText('org/repo-1')).not.toBeInTheDocument();
 	});
+
+	it('renders AI Playground link', () => {
+		const { getByText } = render(Sidebar, { props: { repos: [], org: 'myorg', pathname: '/org/myorg' } });
+
+		expect(getByText('✨ AI Playground')).toBeInTheDocument();
+	});
 });

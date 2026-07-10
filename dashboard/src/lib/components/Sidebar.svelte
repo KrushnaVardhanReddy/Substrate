@@ -14,6 +14,7 @@
 		{:else}
 			<div class="nav-item active">Dashboard</div>
 		{/if}
+		<a href="/playground" class="nav-item {pathname === '/playground' ? 'active' : ''}" style="text-decoration:none;">✨ AI Playground</a>
 		<div class="nav-item">API Keys</div>
 		<div class="nav-item">Settings</div>
 
