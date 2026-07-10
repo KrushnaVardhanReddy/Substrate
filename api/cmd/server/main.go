@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/KrushnaVardhanReddy/Substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/Substrate/api/internal/handlers"
 	"github.com/KrushnaVardhanReddy/Substrate/api/internal/server"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -24,6 +25,27 @@ func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8090"
+	}
+
+	registryApiToken := os.Getenv("REGISTRY_API_TOKEN")
+	if registryApiToken == "" {
+		log.Fatal("REGISTRY_API_TOKEN environment variable is required")
+	}
+
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		log.Fatal("JWT_SECRET environment variable is required")
+	}
+
+	authConfig := handlers.AuthConfig{
+		ClientID:     os.Getenv("GITHUB_CLIENT_ID"),
+		ClientSecret: os.Getenv("GITHUB_CLIENT_SECRET"),
+		JWTSecret:    jwtSecret,
+		DashboardURL: os.Getenv("DASHBOARD_URL"),
+	}
+
+	if authConfig.ClientID == "" || authConfig.ClientSecret == "" || authConfig.DashboardURL == "" {
+		log.Fatal("GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, and DASHBOARD_URL environment variables are required")
 	}
 
 	if err := db.RunMigrations(databaseURL); err != nil {
@@ -40,7 +62,7 @@ func main() {
 	defer pool.Close()
 
 	store := db.NewPGStore(pool)
-	router := server.NewRouter(store)
+	router := server.NewRouter(store, authConfig, registryApiToken, jwtSecret)
 
 	srv := &http.Server{
 		Addr:    ":" + port,
