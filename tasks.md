@@ -280,7 +280,7 @@
 | **P4-T04** | 🟡 P2 | **GitHub PR Comment Upgrade** — Add AI explanation + fix snippet to PRs | Jules | 🔄 Session `14528212627637189502` | `prompts/phase-4/t04_github_pr_comment_upgrade.txt` |
 | **P4-T05** | 🟢 P3 | **Wire Real AI to Playground** — Replace mock in P3-T16 with live SSE stream | Antigravity | ✅ Done |
 | **P4-T06** | 🔵 P4 | **Shift-Left VSCode Extension** — Inline breaking-change warnings in the editor | Jules | 💡 |
-| **P4-T07** | ⚪ P5 | **Traffic-Aware Diffing** — Prometheus/OTel integration to suppress unused-field warnings | Jules | 💡 |
+| **P4-T07** | ⚪ P5 | **Traffic-Aware Diffing** — Prometheus/OTel integration to suppress unused-field warnings | Jules | 🔄 Session `5076986930381268348` | `prompts/phase-4/t07_traffic_aware_diffing.txt` |
 | **P4-T08** | ⚪ P5 | **PII & Compliance Auditing** — Auto-tag `[HIPAA]`, `[PCI]`, `[PII]` fields on diff | Antigravity | 💡 |
 
 ### Phase 4b — Specialized ML (slow — needs 6-12 months of real user data)

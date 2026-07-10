@@ -1,0 +1,149 @@
+TASK: P4-T07 — Traffic-Aware Diffing (Zero False Positives)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Integrate a Traffic Provider interface into the core Substrate Go engine.
+When a breaking change is detected, the engine should check a metrics provider (like Prometheus) to see if the affected field or endpoint has had any traffic. 
+If it has 0 traffic in the configured lookback period, downgrade the change severity from `BREAKING` to `WARNING`.
+
+Spec (READ ONLY):
+  docs/specs/phase-4/ai-intelligence.md   (Section: P4-T07)
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+──────────────────────────────────────────────────────────────
+1. CREATE: engine/internal/traffic/provider.go
+──────────────────────────────────────────────────────────────
+Create the Traffic package and define the interface:
+
+package traffic
+
+import (
+    "fmt"
+    "net/http"
+    "io"
+    "encoding/json"
+    "net/url"
+    "time"
+)
+
+type Provider interface {
+    // GetFieldUsage returns the number of calls for a specific field/path.
+    GetFieldUsage(org, repo, fieldPath string, days int) (int64, error)
+}
+
+type NoOpProvider struct{}
+
+func (p *NoOpProvider) GetFieldUsage(org, repo, fieldPath string, days int) (int64, error) {
+    // Default fallback: if no provider is configured, assume the field is highly used
+    // to preserve backwards compatibility (return -1 or a large number).
+    return -1, nil
+}
+
+type PrometheusProvider struct {
+    Endpoint string
+}
+
+func (p *PrometheusProvider) GetFieldUsage(org, repo, fieldPath string, days int) (int64, error) {
+    if p.Endpoint == "" {
+        return -1, nil
+    }
+    
+    // Construct a mock Prometheus query: sum(rate(http_requests_total{org="...", repo="...", path="..."}[30d]))
+    // For this task, we will just make a simple HTTP GET to the prometheus /api/v1/query endpoint.
+    query := fmt.Sprintf("sum(increase(http_requests_total{org=\"%s\", repo=\"%s\", path=\"%s\"}[%dd]))", org, repo, fieldPath, days)
+    
+    reqURL := fmt.Sprintf("%s/api/v1/query?query=%s", p.Endpoint, url.QueryEscape(query))
+    client := &http.Client{Timeout: 5 * time.Second}
+    
+    resp, err := client.Get(reqURL)
+    if err != nil {
+        return -1, err
+    }
+    defer resp.Body.Close()
+    
+    if resp.StatusCode != http.StatusOK {
+        return -1, fmt.Errorf("prometheus returned %d", resp.StatusCode)
+    }
+    
+    // Parse Prometheus vector/matrix JSON response
+    var promResp struct {
+        Data struct {
+            Result []struct {
+                Value []interface{} `json:"value"`
+            } `json:"result"`
+        } `json:"data"`
+    }
+    
+    if err := json.NewDecoder(resp.Body).Decode(&promResp); err != nil {
+        return -1, err
+    }
+    
+    if len(promResp.Data.Result) == 0 || len(promResp.Data.Result[0].Value) < 2 {
+        // No data = 0 traffic
+        return 0, nil
+    }
+    
+    // Parse the value
+    valStr, ok := promResp.Data.Result[0].Value[1].(string)
+    if !ok {
+        return 0, nil
+    }
+    
+    var usage int64
+    fmt.Sscanf(valStr, "%d", &usage)
+    return usage, nil
+}
+
+──────────────────────────────────────────────────────────────
+2. CREATE: engine/internal/traffic/provider_test.go
+──────────────────────────────────────────────────────────────
+Write table-driven tests for the PrometheusProvider using `net/http/httptest`.
+- Test 1: Successful query returning 0 traffic.
+- Test 2: Successful query returning 150 traffic.
+- Test 3: HTTP error returns -1.
+- Test 4: NoOpProvider returns -1.
+
+──────────────────────────────────────────────────────────────
+3. MODIFY: engine/types/config.go
+──────────────────────────────────────────────────────────────
+Update `SubstrateConfig` to include the `Traffic` block:
+
+type TrafficConfig struct {
+    Provider           string `yaml:"provider" json:"provider"` // "prometheus", "otel"
+    Endpoint           string `yaml:"endpoint" json:"endpoint"`
+    LookbackDays       int    `yaml:"lookback_days" json:"lookback_days"`
+    DowngradeThreshold int64  `yaml:"downgrade_threshold" json:"downgrade_threshold"`
+}
+
+Add `Traffic TrafficConfig` to the main `SubstrateConfig` struct.
+
+──────────────────────────────────────────────────────────────
+4. MODIFY: engine/diff/evaluator.go
+──────────────────────────────────────────────────────────────
+(Assuming an Evaluator or similar struct iterates over rules).
+When a BREAKING change is added to the DiffReport, check the TrafficProvider.
+You will need to pass the TrafficProvider and the org/repo config into the diffing module.
+
+If `GetFieldUsage` returns `usage >= 0` and `usage <= DowngradeThreshold`:
+- Change `Severity` from "BREAKING" to "WARNING".
+- Append " (Downgraded due to low traffic: 0 requests in 30 days)" to the `Description`.
+
+──────────────────────────────────────────────────────────────
+5. VERIFY
+──────────────────────────────────────────────────────────────
+Run `cd engine && go test ./...` and ensure all tests pass.
+
+═══════════════════════════════════════════════════════════════
+FILES TO MODIFY
+═══════════════════════════════════════════════════════════════
+- engine/types/config.go
+- engine/diff/evaluator.go (or equivalent where diffs are built)
+- engine/internal/traffic/provider.go (CREATE)
+- engine/internal/traffic/provider_test.go (CREATE)
+
+Commit: "feat: P4-T07 integrate traffic-aware breaking change downgrades"
+Target branch: feature/dev
