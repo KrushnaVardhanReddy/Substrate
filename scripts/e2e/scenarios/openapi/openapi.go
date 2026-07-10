@@ -37,7 +37,7 @@ func RunSafe(ctx context.Context, client *github.Client, owner string) {
 	executeScenario(ctx, client, owner, "Safe Extension",
 		defaultSubstrateYaml(), defaultOpenAPIYaml(),
 		defaultSubstrateYaml(), addedEndpointYaml(),
-		"✅ Safe")
+		"All Clear")
 }
 
 func RunOverride(ctx context.Context, client *github.Client, owner string) {
