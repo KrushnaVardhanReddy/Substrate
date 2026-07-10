@@ -220,10 +220,10 @@
 | P3-T02 | 🔴 P1 | `substrate.yaml` consumer declaration parser | Jules | ✅ |
 | **P3-T02b** | 🔴 P1 | **Contract registry sync** — snapshot consumer specs on push to `main` | Jules | ✅ | `prompts/phase-3-registry/t02b_contract_sync.txt` |
 | **P3-T02c** | 🔴 P1 | **Cross-repo check on PR** — validate provider PR against all consumer snapshots | Jules | ✅ | `prompts/phase-3-registry/t02c_cross_repo_check.txt` |
-| P3-T06 | 🟡 P2 | GitHub OAuth + org management | Jules | 🔒 after P3-T01 |
+| **P3-T06** | 🟡 P2 | **GitHub OAuth + org management** | Jules | ✅ Merged `feature/dev` 2026-07-10 (`1fc0f16`) | `prompts/phase-3-registry/t06_auth_org.txt` |
 | **P3-T02d** | 🟡 P2 | **Cross-repo E2E fixture tests** — `testdata/cross-repo/` | Jules | ✅ | `prompts/phase-3-registry/t02d_cross_repo_e2e.txt` |
 | **P3-T03** | 🟢 P3 | **SvelteKit dashboard project setup + design system** | Jules | ✅ | `prompts/phase-3-registry/t03_dashboard.txt` |
-| P3-T04 | 🟢 P3 | Connected repos list + schema browser | Antigravity + Jules | 🔒 after P3-T03 |
+| **P3-T04** | 🟢 P3 | **Connected repos list + schema browser** | Jules | 🔄 **Jules session `11882998022726290629`** submitted 2026-07-10 | `prompts/phase-3-registry/t04_dashboard_repos.txt` |
 | P3-T05 | 🟢 P3 | Dependency graph visualization | Antigravity | 🔒 after P3-T04 |
 | **P3-T11** | 🟢 P3 | **Compatibility matrix dashboard** — provider × consumer version grid | Antigravity | 🔒 after P3-T05 |
 | **P3-T08** | 🔵 P4 | **MCP server spec** (`docs/specs/phase-3/mcp-server.md`) | Antigravity | ✅ |
@@ -232,7 +232,7 @@
 | P3-T10 | 🔵 P4 | **MCP deployment + IDE integration docs** | Antigravity | ⏳ Ready after P3-T09b ✅ |
 | **P3-T12** | 🔵 P4 | **Comprehensive Substrate Platform Docs** — Deep-dive install, config, CLI params, and architecture guides optimized for both human reading and MCP/AI ingestion | Antigravity | 🔒 after P3-T10 | `docs/specs/documentation-strategy.md` |
 | **P3-T13** | 🟢 P3 | **Execution Modes (Enterprise Rollout)** — Add `--mode=legacy\|strict` to CLI for shadow mode / dry-run deployments | Jules | ✅ Merged `feature/dev` 2026-07-09 | `prompts/phase-3-registry/t13_enterprise_modes.txt` |
-| **P3-T14** | 🟢 P3 | **Interactive Diff Viewer URL** — Worker adds a "View Dashboard" link to GitHub comments, routing to the Svelte dashboard | Jules | 🔄 **Jules session `18306599017133753703`** submitted 2026-07-10 | `prompts/phase-3-registry/t14_interactive_diff_url.txt` |
+| **P3-T14** | 🟢 P3 | **Interactive Diff Viewer URL** — Worker adds a "View Dashboard" link to GitHub comments, routing to the Svelte dashboard | Jules | ✅ Merged `feature/dev` 2026-07-10 (`7ab9f8a`) | `prompts/phase-3-registry/t14_interactive_diff_url.txt` |
 | P3-T07 | ⚪ P5 | Free tier limits + production deployment | Jules | 🔒 after P3-T06 |
 
 > **P3-T11 rationale (inspired by PactFlow's compatibility matrix):** PactFlow's most requested enterprise dashboard feature. For a platform team managing 20+ microservices, this is the central control panel: "which version of `users-api` is compatible with which version of `frontend` and `mobile-app`?" Every cell in the grid is a green tick or red cross. This is what makes Substrate indispensable for large orgs and is a core enterprise upsell feature.
