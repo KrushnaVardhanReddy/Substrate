@@ -384,6 +384,20 @@ See the full spec: `docs/specs/enterprise-vision.md`
 
 ---
 
+## 🧭 Phase 5: Automated Dependency Discovery (Enterprise)
+
+**Goal:** Eliminate all manual `substrate.yaml` consumer declarations by automatically building the full cross-repo dependency graph from static and runtime signals.
+
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|---|---|---|---|---|---|
+| **P5-T01** | 🔴 P1 | **Env Var & URL Registry** — Scan `.env.example`, k8s, docker-compose. Populate URL→Repo registry via GitHub Deployments. | Jules | ⏳ Todo | `docs/specs/phase-5/dependency-discovery.md` |
+| **P5-T02** | 🟡 P2 | **Package & Generator Scanners** — Parse `package.json`, `go.mod`, and `openapi-generator-config.yaml` for internal SDKs. | Jules | ⏳ Todo | `docs/specs/phase-5/dependency-discovery.md` |
+| **P5-T03** | 🟢 P3 | **Terraform & UI** — Analyze Terraform env injection/outputs. Build Confidence Scoring UI in the Svelte Dashboard. | Antigravity | ⏳ Todo | `docs/specs/phase-5/dependency-discovery.md` |
+| **P5-T04** | 🔵 P4 | **Event-Driven Discovery** — Map Kafka topics and AsyncAPI `$ref` cross-references for message queues. | Jules | ⏳ Todo | `docs/specs/phase-5/dependency-discovery.md` |
+| **P5-T05** | ⚪ P5 | **Runtime Confirmation** — Ingest OTel/Datadog traces and eBPF network logs to confirm static graph edges. | Antigravity | ⏳ Todo | `docs/specs/phase-5/dependency-discovery.md` |
+
+---
+
 ## How to Submit Jules Tasks
 
 ```bash
@@ -392,4 +406,3 @@ python3 scripts/jules_submit.py --list
 python3 scripts/jules_submit.py --task 1
 python3 scripts/jules_submit.py --task 1 --branch feat/diff-engine
 ```
-| **P5-T03** | 🟢 P3 | **Automated Live E2E Matrix Test Suite** — Go script to automate E2E tests via GitHub API | Jules | ✅ | `docs/specs/phase-5/automated-e2e.md` |
