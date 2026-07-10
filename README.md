@@ -976,9 +976,8 @@ Trying to be "everything everywhere all at once" is how startups die.
    Platform                                         Worker + Container wired.
         ↓
 4. Best Intelligence Platform          Phase 3  🔄  Registry ✅, Dashboard ✅,
-                                                    MCP Server ✅ (substrate-mcp,
-                                                    7 tools, JSON-RPC 2.0 over stdio)
-                                                    Next: P3-T10 IDE docs
+                                                    MCP Server ✅, AI Playground ✅
+                                                    Next: Playwright E2E & V1 Docs
         ↓
 5. V1.0 Release + Marketplace          Upcoming 💡  Tag v1.0, full platform docs
                                                     (P3-T12), GitHub Marketplace
