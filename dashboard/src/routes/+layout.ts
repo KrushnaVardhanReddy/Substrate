@@ -1,6 +1,8 @@
 import { env } from '$env/dynamic/public';
 import type { LayoutLoad } from './$types';
 
+export const ssr = false;
+
 export const load: LayoutLoad = async ({ fetch }) => {
 	const apiUrl = env.PUBLIC_API_URL;
 	const orgName = env.PUBLIC_ORG_NAME;

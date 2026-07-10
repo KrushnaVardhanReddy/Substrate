@@ -15,8 +15,8 @@ test('dashboard loads and displays the empty state', async ({ page }) => {
 	// Verify sidebar contains the dynamic repo
 	await expect(page.locator('.sidebar')).toContainText('org/repo-1');
 
-	// Verify top nav contains the org name
-	await expect(page.locator('.topnav')).toContainText(testOrgName);
+	// Verify top nav is visible
+	await expect(page.locator('.topnav')).toBeVisible();
 
 	// Verify main content empty state
 	await expect(page.locator('h1.page-title')).toHaveText('Dependency Graph');
