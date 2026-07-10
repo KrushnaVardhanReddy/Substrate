@@ -100,7 +100,7 @@ describe('Worker Handler', () => {
     const payload = JSON.stringify({
       action: 'opened',
       installation: { id: 1 },
-      repository: { owner: { login: 'owner' }, name: 'repo' },
+      repository: { owner: { login: 'owner' }, name: 'repo', full_name: 'owner/repo' },
       pull_request: { head: { sha: 'headsha' }, base: { ref: 'main' }, number: 1 }
     });
     const sig = await signWebhook(payload, MOCK_ENV.GITHUB_WEBHOOK_SECRET);
@@ -137,7 +137,7 @@ describe('Worker Handler', () => {
     const payload = JSON.stringify({
       action: 'opened',
       installation: { id: 1 },
-      repository: { owner: { login: 'owner' }, name: 'repo' },
+      repository: { owner: { login: 'owner' }, name: 'repo', full_name: 'owner/repo' },
       pull_request: { head: { sha: 'headsha' }, base: { ref: 'main' }, number: 1 }
     });
     const sig = await signWebhook(payload, MOCK_ENV.GITHUB_WEBHOOK_SECRET);
@@ -170,7 +170,7 @@ describe('Worker Handler', () => {
     const payload = JSON.stringify({
       action: 'opened',
       installation: { id: 1 },
-      repository: { owner: { login: 'owner' }, name: 'repo' },
+      repository: { owner: { login: 'owner' }, name: 'repo', full_name: 'owner/repo' },
       pull_request: { head: { sha: 'headsha' }, base: { ref: 'main' }, number: 1 }
     });
     const sig = await signWebhook(payload, MOCK_ENV.GITHUB_WEBHOOK_SECRET);
@@ -205,7 +205,7 @@ describe('Worker Handler', () => {
     const payload = JSON.stringify({
       action: 'opened',
       installation: { id: 1 },
-      repository: { owner: { login: 'owner' }, name: 'repo' },
+      repository: { owner: { login: 'owner' }, name: 'repo', full_name: 'owner/repo' },
       pull_request: { head: { sha: 'headsha' }, base: { ref: 'main' }, number: 1 }
     });
     const sig = await signWebhook(payload, MOCK_ENV.GITHUB_WEBHOOK_SECRET);
@@ -246,7 +246,7 @@ describe('Worker Handler', () => {
     const payload = JSON.stringify({
       action: 'opened',
       installation: { id: 1 },
-      repository: { owner: { login: 'owner' }, name: 'repo' },
+      repository: { owner: { login: 'owner' }, name: 'repo', full_name: 'owner/repo' },
       pull_request: { head: { sha: 'headsha' }, base: { ref: 'main' }, number: 1 }
     });
     const sig = await signWebhook(payload, MOCK_ENV.GITHUB_WEBHOOK_SECRET);
@@ -264,21 +264,42 @@ describe('Worker Handler', () => {
       .mockResolvedValueOnce('base content')
       .mockResolvedValueOnce('head content');
 
-    (globalThis.fetch as any).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        breaking_changes: [{ rule_id: 'rule1', severity: 'BREAKING', path: 'path1', description: 'msg1' },
-                   { rule_id: 'rule2', severity: 'BREAKING', path: 'path2', description: 'msg2' }],
-        warnings: [], safe_changes: [],
-        summary: { breaking_count: 2, warning_count: 0, info_count: 0 }
-      })
+    (globalThis.fetch as any).mockImplementation(async (url: string, init?: RequestInit) => {
+      if (url.endsWith('/diff')) {
+        return {
+          ok: true,
+          json: async () => ({
+            breaking_changes: [{ rule_id: 'rule1', severity: 'BREAKING', path: 'path1', description: 'msg1' },
+                       { rule_id: 'rule2', severity: 'BREAKING', path: 'path2', description: 'msg2' }],
+            warnings: [], safe_changes: [],
+            summary: { breaking_count: 2, warning_count: 0, info_count: 0 }
+          })
+        };
+      }
+      if (url.endsWith('/api/v1/ai/autofix')) {
+        return {
+          ok: true,
+          json: async () => ({
+            explanation: 'Mock AI explanation',
+            safe_patch: 'mock:\n  safe: patch',
+            patch_language: 'yaml',
+            mock_mode: true
+          })
+        };
+      }
+      return { ok: true, json: async () => ({}) };
     });
 
-    const response = await worker.fetch(request, MOCK_ENV as any);
+    const crossRepoRes = { total_consumers: 0, broken_consumers: 0, is_safe: true, results: [] };
+    (crossRepoCheck as any).mockResolvedValueOnce(crossRepoRes);
+
+    const envWithReg = { ...MOCK_ENV, REGISTRY_API_URL: 'http://reg.api', REGISTRY_API_TOKEN: 'token' };
+
+    const response = await worker.fetch(request, envWithReg as any);
     expect(response.status).toBe(200);
 
     expect(githubClient.postPRComment).toHaveBeenCalledWith(
-      'mock-token', 'owner', 'repo', 1, expect.stringContaining('Breaking Changes Detected')
+      'mock-token', 'owner', 'repo', 1, expect.stringContaining('Mock AI explanation')
     );
     expect(githubClient.setCommitStatus).toHaveBeenCalledWith(
       'mock-token', 'owner', 'repo', 'headsha', 'failure', expect.stringContaining('2 breaking change(s) detected')

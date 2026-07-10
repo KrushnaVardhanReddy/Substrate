@@ -1,4 +1,4 @@
-import { Env, DiffReport, SyncDependency, CrossRepoCheckRequest, CrossRepoCheckResponse } from './types.js';
+import { Env, DiffReport, SyncDependency, CrossRepoCheckRequest, CrossRepoCheckResponse, AIAutofixRequest, AIAutofixResponse } from './types.js';
 import { validateWebhookSignature, parsePREvent, parsePushEvent } from './webhook.js';
 import { generateInstallationToken, fetchFileContent, postPRComment, setCommitStatus } from './github-client.js';
 import { formatPRComment, formatMissingConfigComment, getCommitStatusState, getCommitStatusDescription, formatCrossRepoImpact } from './formatter.js';
@@ -265,8 +265,43 @@ export default {
 
       const crossRepoSection = formatCrossRepoImpact(crossRepoResponse);
 
+      // Step 9.75: AI Autofix
+      let aiExplanation: string | undefined;
+      let aiSafePatch: string | undefined;
+
+      if (diffReport.summary.breaking_count > 0 && env.REGISTRY_API_URL) {
+        try {
+          const autofixReq: AIAutofixRequest = {
+            provider_repo: event.fullName,
+            schema_type: config.schema_type || 'openapi',
+            current_schema: baseContent,
+            proposed_schema: headContent,
+            breaking_changes: diffReport.breaking_changes
+          };
+
+          const autofixRes = await fetch(`${env.REGISTRY_API_URL}/api/v1/ai/autofix`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${env.REGISTRY_API_TOKEN}`
+            },
+            body: JSON.stringify(autofixReq)
+          });
+
+          if (autofixRes.ok) {
+            const autofixData = await autofixRes.json() as AIAutofixResponse;
+            aiExplanation = autofixData.explanation;
+            aiSafePatch = autofixData.safe_patch;
+          } else {
+            console.error(`AI Autofix failed with status ${autofixRes.status}`);
+          }
+        } catch (e) {
+          console.error("AI Autofix request failed:", e);
+        }
+      }
+
       // Step 10: Post PR comment
-      let commentBody = formatPRComment(diffReport, config, env.DASHBOARD_URL, event.owner, event.repo, event.prNumber);
+      let commentBody = formatPRComment(diffReport, config, env.DASHBOARD_URL, event.owner, event.repo, event.prNumber, aiExplanation, aiSafePatch);
       if (crossRepoSection) {
         commentBody += "\n" + crossRepoSection;
       }
