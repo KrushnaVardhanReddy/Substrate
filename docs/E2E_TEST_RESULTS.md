@@ -28,5 +28,17 @@ This document serves as the official sign-off log for the Phase 5 End-to-End Cro
 * **Expected Result:** Substrate detects `ENDPOINT_DEPRECATED`. Flags it as a `🟡 WARNING` rather than an error. The GitHub check passes.
 * **Actual Result:** **PASS**.
 
+### Scenario 5: SQL Adapter Matrix Testing
+* **Action:** Ran the full suite of SQL automated tests (`make e2e-sql-safe`, `make e2e-sql-breaking`, `make e2e-sql-warning`, `make e2e-sql-override`).
+* **Bugs Encountered:**
+  1. Found that `COLUMN_REMOVED` was missing from `KnownRules` in `engine/internal/config/config.go`, which caused overrides to be rejected and fail as breaking changes.
+  2. Found that `endpoint-added` and `api-path-added` mappings were missing from `engine/internal/diff/openapi.go`, causing safe endpoint additions to default to Warnings and failing the `All Clear` assertion.
+* **Root Cause & Fix:** 
+  1. Populated `KnownRules` with all 27 SQL-specific rule IDs.
+  2. Mapped the missing OpenAPI rules to their correct `SAFE` spec values.
+  3. Aligned the `docs/E2E_TEST_PLAN.md` with the engine (`SQL_COLUMN_DROPPED` -> `COLUMN_REMOVED`).
+  4. Updated the E2E script to strictly assert the exact `Rule ID` in the GitHub PR bot comment to ensure spec-first compliance.
+* **Actual Result:** **PASS**. All 4 SQL test vectors passed successfully and accurately verified the underlying rule IDs.
+
 ## Conclusion
-The Phase 5 cross-repo impact tracking pipeline is fully operational. The Cloudflare Worker correctly marshals spec snapshots and configuration state to both the stateless Diff Engine and the stateful PostgreSQL Registry API, surfacing real-time dependency impact directly into developer workflows.
+The Phase 5 cross-repo impact tracking pipeline is fully operational for both OpenAPI and SQL schemas. The Cloudflare Worker correctly marshals spec snapshots and configuration state to both the stateless Diff Engine and the stateful PostgreSQL Registry API, surfacing real-time dependency impact directly into developer workflows.

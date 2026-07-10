@@ -30,31 +30,31 @@ func RunBreaking(ctx context.Context, client *github.Client, owner string) {
 	executeScenario(ctx, client, owner, "Breaking Change",
 		defaultSubstrateYaml(), defaultOpenAPIYaml(),
 		defaultSubstrateYaml(), removedEndpointYaml(),
-		"BREAKING")
+		"BREAKING", "ENDPOINT_REMOVED")
 }
 
 func RunSafe(ctx context.Context, client *github.Client, owner string) {
 	executeScenario(ctx, client, owner, "Safe Extension",
 		defaultSubstrateYaml(), defaultOpenAPIYaml(),
 		defaultSubstrateYaml(), addedEndpointYaml(),
-		"All Clear")
+		"All Clear", "")
 }
 
 func RunOverride(ctx context.Context, client *github.Client, owner string) {
 	executeScenario(ctx, client, owner, "Config Override",
 		defaultSubstrateYaml(), defaultOpenAPIYaml(),
 		overrideSubstrateYaml(), removedEndpointYaml(),
-		"All Clear")
+		"All Clear", "")
 }
 
 func RunWarning(ctx context.Context, client *github.Client, owner string) {
 	executeScenario(ctx, client, owner, "Warnings Only",
 		defaultSubstrateYaml(), defaultOpenAPIYaml(),
 		defaultSubstrateYaml(), deprecatedEndpointYaml(),
-		"🟡 WARNING")
+		"Warnings Only", "ENDPOINT_DEPRECATED")
 }
 
-func executeScenario(ctx context.Context, client *github.Client, owner, scenarioName, baseConfig, baseSchema, prConfig, prSchema, expectedStatus string) {
+func executeScenario(ctx context.Context, client *github.Client, owner, scenarioName, baseConfig, baseSchema, prConfig, prSchema, expectedStatus, expectedRule string) {
 	log.Printf("=== Running Scenario: %s ===", scenarioName)
 
 	log.Println("Seeding the main branch with baseline files...")
@@ -110,8 +110,10 @@ consumers:
 			if strings.Contains(comment.GetBody(), "Substrate") {
 				// Only match if the expected status is found
 				if strings.Contains(comment.GetBody(), expectedStatus) {
-					foundComment = comment
-					break
+					if expectedRule == "" || strings.Contains(comment.GetBody(), expectedRule) {
+						foundComment = comment
+						break
+					}
 				}
 			}
 		}
@@ -119,9 +121,17 @@ consumers:
 	}
 
 	if foundComment == nil {
-		log.Fatalf("❌ FAILED: Substrate bot did not post '%s' comment within 60 seconds.", expectedStatus)
+		if expectedRule != "" {
+			log.Fatalf("❌ FAILED: Substrate bot did not post '%s' comment with rule '%s' within 60 seconds.", expectedStatus, expectedRule)
+		} else {
+			log.Fatalf("❌ FAILED: Substrate bot did not post '%s' comment within 60 seconds.", expectedStatus)
+		}
 	} else {
-		log.Printf("✅ SUCCESS: Found expected status '%s'!", expectedStatus)
+		if expectedRule != "" {
+			log.Printf("✅ SUCCESS: Found expected status '%s' and asserted rule '%s'!", expectedStatus, expectedRule)
+		} else {
+			log.Printf("✅ SUCCESS: Found expected status '%s'!", expectedStatus)
+		}
 	}
 
 	log.Println("Cleaning up PR and branch...")

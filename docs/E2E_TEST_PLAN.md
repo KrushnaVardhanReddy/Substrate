@@ -231,7 +231,7 @@ With the infrastructure running and cross-repo check validated, test the full di
 | **GraphQL** | `schema.graphql` | Add a new `type Post` | Remove a field from `type User` | `GRAPHQL_FIELD_REMOVED` |
 | **Protobuf** | `user.proto` | Add a new optional field | Change a field's type from `int32` to `string` | `PROTO_FIELD_TYPE_CHANGED` |
 | **Avro** | `user.avsc` | Add a field with a default | Remove a required field | `AVRO_FIELD_REMOVED` |
-| **SQL (PG)** | `schema.sql` | `CREATE TABLE logs...` | `ALTER TABLE users DROP COLUMN id;` | `SQL_COLUMN_DROPPED` |
+| **SQL (PG)** | `schema.sql` | `CREATE TABLE logs...` | `ALTER TABLE users DROP COLUMN id;` | `COLUMN_REMOVED` |
 | **Terraform** | `main.tf` | Add an S3 bucket | Change the provider version / delete an output | `TF_OUTPUT_REMOVED` |
 | **AI/ML** | `model.yaml` | Add a new tag | Change the required input tensor shape | `AIML_INPUT_SHAPE_CHANGED` |
 | **Enterprise** | `Account.object` | Add a custom field | Change field type from `Text` to `Number` | `SFDC_FIELD_TYPE_CHANGED` |

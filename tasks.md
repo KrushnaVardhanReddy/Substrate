@@ -367,4 +367,4 @@ python3 scripts/jules_submit.py --list
 python3 scripts/jules_submit.py --task 1
 python3 scripts/jules_submit.py --task 1 --branch feat/diff-engine
 ```
-| **P5-T03** | 🟢 P3 | **Automated Live E2E Matrix Test Suite** — Go script to automate E2E tests via GitHub API | Jules | ⏳ | `docs/specs/phase-5/automated-e2e.md` |
+| **P5-T03** | 🟢 P3 | **Automated Live E2E Matrix Test Suite** — Go script to automate E2E tests via GitHub API | Jules | ✅ | `docs/specs/phase-5/automated-e2e.md` |
