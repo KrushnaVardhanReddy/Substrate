@@ -20,7 +20,9 @@ export function formatPRComment(
   dashboardUrl?: string,
   owner?: string,
   repo?: string,
-  prNumber?: number
+  prNumber?: number,
+  aiExplanation?: string,
+  aiSafePatch?: string
 ): string {
   const breakingCount = report.summary?.breaking_count || 0;
   const warningCount = report.summary?.warning_count || 0;
@@ -61,6 +63,13 @@ export function formatPRComment(
       comment += `<summary>${summaryStr} (click to expand)</summary>\n`;
       comment += `...\n`;
       comment += `</details>\n\n`;
+    }
+
+    if (aiExplanation) {
+      comment += `\n---\n### 🤖 AI Impact Analysis\n> ${aiExplanation}\n`;
+    }
+    if (aiSafePatch) {
+      comment += `\n### 🔧 Suggested Safe Remediation\nApply the following change to unblock this PR:\n\`\`\`yaml\n${aiSafePatch}\n\`\`\`\n`;
     }
 
     comment += `---\n`;
