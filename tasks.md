@@ -233,7 +233,7 @@
 | **P3-T12** | 🔵 P4 | **Comprehensive Substrate Platform Docs** — Deep-dive install, config, CLI params, and architecture guides optimized for both human reading and MCP/AI ingestion | Antigravity | 🔒 after P3-T10 | `docs/specs/documentation-strategy.md` |
 | **P3-T13** | 🟢 P3 | **Execution Modes (Enterprise Rollout)** — Add `--mode=legacy\|strict` to CLI for shadow mode / dry-run deployments | Jules | ✅ Merged `feature/dev` 2026-07-09 | `prompts/phase-3-registry/t13_enterprise_modes.txt` |
 | **P3-T14** | 🟢 P3 | **Interactive Diff Viewer URL** — Worker adds a "View Dashboard" link to GitHub comments, routing to the Svelte dashboard | Jules | ✅ Merged `feature/dev` 2026-07-10 (`7ab9f8a`) | `prompts/phase-3-registry/t14_interactive_diff_url.txt` |
-| P3-T07 | ⚪ P5 | Free tier limits + production deployment | Jules | 🔒 after P3-T06 |
+| **P3-T07** | ⚪ P5 | **Free tier limits + production deployment** | Jules | 🔄 **Jules session `3642836520893332081`** submitted 2026-07-10 | `prompts/phase-3-registry/t07_rate_limits.txt` |
 
 > **P3-T11 rationale (inspired by PactFlow's compatibility matrix):** PactFlow's most requested enterprise dashboard feature. For a platform team managing 20+ microservices, this is the central control panel: "which version of `users-api` is compatible with which version of `frontend` and `mobile-app`?" Every cell in the grid is a green tick or red cross. This is what makes Substrate indispensable for large orgs and is a core enterprise upsell feature.
 
