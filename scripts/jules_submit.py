@@ -314,6 +314,11 @@ TASKS = {
         "phase": "phase-4-ai",
         "prompt": _load_prompt("prompts/phase-4/t07_traffic_aware_diffing.txt"),
     },
+    48: {
+        "name": "P4-T08 — PII & Compliance Auditing",
+        "phase": "phase-4-ai",
+        "prompt": _load_prompt("prompts/phase-4/t08_compliance_auditing.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────

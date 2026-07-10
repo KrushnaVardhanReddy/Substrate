@@ -52,7 +52,14 @@ type DiffReport struct {
 	ComparedAt       string     `json:"compared_at"`
 	Mode             string     `json:"mode"`
 	Summary          Summary    `json:"summary"`
-	BreakingChanges  []Change   `json:"breaking_changes"`
-	Warnings         []Change   `json:"warnings"`
-	SafeChanges      []Change   `json:"safe_changes"`
+	BreakingChanges  []Change          `json:"breaking_changes"`
+	Warnings         []Change          `json:"warnings"`
+	SafeChanges      []Change          `json:"safe_changes"`
+	ComplianceAlerts []ComplianceAlert `json:"compliance_alerts,omitempty"`
+}
+
+type ComplianceAlert struct {
+	FieldPath     string `json:"field_path"`
+	ComplianceTag string `json:"compliance_tag"`
+	Reason        string `json:"reason"`
 }
