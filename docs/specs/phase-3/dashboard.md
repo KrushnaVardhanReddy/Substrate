@@ -218,3 +218,29 @@ To ensure the Phase 3 Enterprise Dashboard remains stable across releases, we re
    - Mock a successful matrix data response with `COMPATIBLE` and `INCOMPATIBLE` states.
    - Assert that the matrix grid renders correctly.
    - Assert that clicking an `INCOMPATIBLE` cell opens the side panel displaying the "Breaking Change Detected" alert.
+
+---
+
+## 10. P3-T16: AI Schema Validator Playground
+
+**Status:** 🔄 READY (Jules task)
+**Dependency:** P3-T03 ✅
+
+### Overview
+A split-pane, interactive playground allowing developers to test proposed schema changes against an AI agent equipped with Substrate's Diff Engine. This acts as both an enterprise utility and a powerful product demo.
+
+### Features & Workflow
+1. **Split-Pane Editor:**
+   - Use a code editor component (e.g., standard textareas styled beautifully, or a lightweight wrapper around Monaco/CodeMirror) for inputting "Current Schema" (Left) and "Proposed Schema" (Right).
+   - Format: Selectors for OpenAPI, GraphQL, or SQL.
+2. **Analysis Action:**
+   - An "Analyze with AI" primary button.
+   - Triggers a mock streaming AI response.
+3. **AI Response Panel (Bottom/Side):**
+   - **Contextual Explanation:** "Removing `user_id` breaks downstream consumer `Billing API v2`."
+   - **Auto-Fix Suggestion:** A code block showing the safely remediated schema (e.g., deprecating instead of deleting).
+   - **Apply Fix Button:** Overwrites the "Proposed Schema" pane with the safe schema.
+
+### Route & Navigation
+- Route: `dashboard/src/routes/playground/+page.svelte`
+- Add a "Playground" link to the main `Sidebar.svelte` (with an AI/Sparkles icon).
