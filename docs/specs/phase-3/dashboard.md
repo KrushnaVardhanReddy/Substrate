@@ -191,3 +191,30 @@ Inspired by PactFlow's compatibility matrix, this is the central enterprise cont
 ### Design
 - Use `app.css` and the design tokens (Dark mode, `#0f172a` bg, green/red status colors).
 - Ensure the table is horizontally scrollable for many consumers.
+
+---
+
+## 9. P3-T15: Dashboard E2E Testing (Playwright)
+
+**Status:** 🔄 READY (Jules task)
+**Dependency:** P3-T11 ✅
+
+### Overview
+To ensure the Phase 3 Enterprise Dashboard remains stable across releases, we require automated End-to-End (E2E) testing for the frontend UI. Playwright is the chosen framework to simulate user interactions within the SvelteKit dashboard.
+
+### Testing Strategy
+- **Isolation via Network Mocking:** The frontend tests must run independently of the Go backend. All API calls (e.g., `/api/v1/repos/*`, `/api/v1/graph/*`, `/api/v1/matrix/*`) must be intercepted and mocked using Playwright's `page.route()`.
+- **Setup:** Configure `playwright.config.ts` to spin up the SvelteKit dev server (`npm run dev`) before executing tests.
+
+### Required Scenarios (`dashboard/tests/e2e/`)
+1. **Navigation Flow (`navigation.spec.ts`)**:
+   - Verify that clicking sidebar items correctly routes to `/org/[org]/graph` and `/org/[org]/matrix`.
+   - Verify the active class is correctly applied to the navigation items.
+2. **Dependency Graph (`graph.spec.ts`)**:
+   - Mock a successful graph data response.
+   - Assert that node cards (e.g., `core/auth`) render on the screen.
+   - Assert that clicking a node opens the `<aside class="detail-panel">` and displays the correct metadata.
+3. **Compatibility Matrix (`matrix.spec.ts`)**:
+   - Mock a successful matrix data response with `COMPATIBLE` and `INCOMPATIBLE` states.
+   - Assert that the matrix grid renders correctly.
+   - Assert that clicking an `INCOMPATIBLE` cell opens the side panel displaying the "Breaking Change Detected" alert.
