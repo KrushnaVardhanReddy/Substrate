@@ -13,14 +13,14 @@ describe('Sidebar Component', () => {
 			{ id: '2', name: 'repo-2', full_name: 'org/repo-2' }
 		];
 
-		const { getByText } = render(Sidebar, { props: { repos } });
+		const { getByText } = render(Sidebar, { props: { repos, org: 'myorg', pathname: '/org/myorg' } });
 
 		expect(getByText('org/repo-1')).toBeInTheDocument();
 		expect(getByText('org/repo-2')).toBeInTheDocument();
 	});
 
 	it('renders empty list if no repos', () => {
-		const { getByText, queryByText } = render(Sidebar, { props: { repos: [] } });
+		const { getByText, queryByText } = render(Sidebar, { props: { repos: [], org: 'myorg', pathname: '/org/myorg' } });
 
 		expect(getByText('Repositories')).toBeInTheDocument();
 		expect(queryByText('org/repo-1')).not.toBeInTheDocument();

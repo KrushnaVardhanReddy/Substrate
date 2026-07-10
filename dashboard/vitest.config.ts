@@ -10,7 +10,8 @@ export default defineConfig({
 		setupFiles: ['./vitest-setup.ts'],
 		include: ['src/**/*.{test,spec}.{js,ts}'],
 		alias: {
-			'$env/dynamic/public': '/src/__mocks__/$env/dynamic/public.ts'
+			'$env/dynamic/public': '/src/__mocks__/$env/dynamic/public.ts',
+			'$app/stores': '/src/__mocks__/$app/stores.ts'
 		}
 	},
 	resolve: {

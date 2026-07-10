@@ -137,3 +137,28 @@ Add `DASHBOARD_URL?: string` to the `Env` interface (optional — existing deplo
 - Add test cases asserting the dashboard link appears when `DASHBOARD_URL` is set.
 - Add test cases asserting the comment renders correctly when `DASHBOARD_URL` is absent.
 
+---
+
+## 7. P3-T05: Dependency Graph Visualization
+
+**Status:** 🔄 IN PROGRESS (Antigravity task)
+**Dependency:** P3-T04 ✅
+
+### Overview
+Visualise the upstream/downstream contract dependencies for an organization. This allows developers to see what schemas exist and what downstream consumers depend on them.
+
+### Component Architecture
+- **Route:** `dashboard/src/routes/org/[org]/graph/+page.svelte`
+- **Load Function (`+page.ts`):** 
+  - Fetch graph data from `GET /api/v1/graph/[org]`.
+  - Transform the linear `{ provider, consumer, status }` edge list into a hierarchical nodes/edges structure suitable for rendering.
+- **Main Canvas (`<main class="main-canvas">`):**
+  - Render an SVG layer containing connection paths (bezier curves from upstream to downstream nodes).
+  - Render a Node layer using absolute positioning (or a CSS grid/flexbox based pseudo-hierarchy). For v1, simple 3-column layout (Upstream, Central, Downstream) can be used.
+- **Node Card (`.node-card`):**
+  - Displays Repository Name, Version/Commit, and Status (Safe/Breaking).
+  - Selectable (updates a bound `selectedNode` variable).
+- **Detail Panel (`<aside class="detail-panel">`):**
+  - Rendered conditionally when a node is selected.
+  - Displays the raw schema or metadata, and a list of direct consumers or providers.
+
