@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { env } from '$env/dynamic/public';
+
     let currentSchema = $state(`type User {
   id: ID!
   user_id: String!
@@ -13,26 +15,90 @@
     let isAnalyzing = $state(false);
     let analysisResult = $state<null | 'success'>(null);
 
-    const autoFixSchema = `type User {
-  id: ID!
-  user_id: String! @deprecated(reason: "Use id instead")
-  name: String
-  email: String
-}`;
+    let aiThinking = $state('');
+    let aiFindings = $state<{severity: string, message: string}[]>([]);
+    let aiFixCode = $state('');
+    let aiFixLanguage = $state('');
 
-    function analyzeWithAI() {
+    async function analyzeWithAI() {
         isAnalyzing = true;
         analysisResult = null;
+        aiThinking = '';
+        aiFindings = [];
+        aiFixCode = '';
+        aiFixLanguage = '';
 
-        // Simulate streaming / analyzing delay
-        setTimeout(() => {
-            isAnalyzing = false;
+        try {
+            const apiUrl = env.PUBLIC_API_URL || 'http://localhost:8080';
+            const res = await fetch(`${apiUrl}/api/v1/ai/analyze`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    org: 'playground',
+                    current_schema: currentSchema,
+                    proposed_schema: proposedSchema,
+                    schema_type: 'graphql'
+                })
+            });
+
+            if (!res.ok) {
+                console.error("Failed to analyze", await res.text());
+                isAnalyzing = false;
+                return;
+            }
+
+            const reader = res.body?.getReader();
+            const decoder = new TextDecoder();
+            if (!reader) return;
+
             analysisResult = 'success';
-        }, 1500);
+
+            let buffer = '';
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, { stream: true });
+                
+                let newlineIndex;
+                while ((newlineIndex = buffer.indexOf('\n')) >= 0) {
+                    const line = buffer.slice(0, newlineIndex).trim();
+                    buffer = buffer.slice(newlineIndex + 1);
+                    
+                    if (line.startsWith('data: ')) {
+                        const dataStr = line.slice(6);
+                        if (dataStr === '[DONE]') continue;
+                        try {
+                            const event = JSON.parse(dataStr);
+                            if (event.type === 'thinking') {
+                                aiThinking += event.content || '';
+                            } else if (event.type === 'finding') {
+                                aiFindings = [...aiFindings, { severity: event.severity, message: event.content }];
+                            } else if (event.type === 'fix') {
+                                aiFixCode += event.code || '';
+                                if (event.language) aiFixLanguage = event.language;
+                            } else if (event.type === 'done') {
+                                isAnalyzing = false;
+                            } else if (event.type === 'error') {
+                                console.error('AI Error:', event.content);
+                                isAnalyzing = false;
+                            }
+                        } catch (e) {
+                            // partial JSON parse error
+                        }
+                    }
+                }
+            }
+            isAnalyzing = false;
+        } catch (e) {
+            console.error("Stream error", e);
+            isAnalyzing = false;
+        }
     }
 
     function applyFix() {
-        proposedSchema = autoFixSchema;
+        if (aiFixCode) {
+            proposedSchema = aiFixCode;
+        }
     }
 </script>
 
@@ -65,21 +131,29 @@
 
         {#if analysisResult === 'success'}
             <div class="analysis-panel card">
-                <h3 class="card-title text-[var(--danger)]">🚨 Breaking Change Detected</h3>
-                <p class="mb-4 text-[var(--text-main)]">
-                    Contextual Impact: Removing <code>user_id</code> breaks downstream consumer <strong>Billing API v2</strong>.
-                </p>
+                <h3 class="card-title text-[var(--danger)]">🚨 Analysis Results</h3>
+                
+                {#if aiThinking}
+                    <div class="mb-4 text-[var(--text-muted)] italic text-sm">
+                        <span class="sparkle-spin mr-1">✨</span> {aiThinking}
+                    </div>
+                {/if}
 
+                {#each aiFindings as finding}
+                    <p class="mb-4 text-[var(--text-main)]">
+                        <strong>{finding.severity}:</strong> {finding.message}
+                    </p>
+                {/each}
+
+                {#if aiFixCode}
                 <div class="auto-fix-section">
                     <div class="flex justify-between items-center mb-2">
                         <h4 class="font-medium text-[var(--safe)]">Suggested Auto-Fix</h4>
                         <button class="btn-sm btn-safe" onclick={applyFix}>Apply Fix</button>
                     </div>
-                    <pre class="code-block"><code>{autoFixSchema}</code></pre>
-                    <p class="text-sm text-[var(--text-muted)] mt-2">
-                        Safely remediated by adding <code>@deprecated</code> instead of deleting the field.
-                    </p>
+                    <pre class="code-block"><code>{aiFixCode}</code></pre>
                 </div>
+                {/if}
             </div>
         {/if}
     </div>
@@ -143,6 +217,10 @@
         gap: 8px;
         font-size: 1rem;
         padding: 10px 20px;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
     }
 
     .analyze-btn:hover:not(:disabled) {
@@ -182,6 +260,7 @@
         font-family: monospace;
         color: #c9d1d9;
         border: 1px solid var(--border);
+        white-space: pre-wrap;
     }
 
     .btn-sm {
@@ -206,5 +285,8 @@
     .mb-4 { margin-bottom: 1rem; }
     .mb-2 { margin-bottom: 0.5rem; }
     .mt-2 { margin-top: 0.5rem; }
+    .mr-1 { margin-right: 0.25rem; }
     .justify-between { justify-content: space-between; }
+    .italic { font-style: italic; }
+    .text-sm { font-size: 0.875rem; }
 </style>
