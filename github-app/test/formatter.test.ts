@@ -104,6 +104,26 @@ describe('formatter', () => {
       const comment = formatPRComment(report, emptyConfig);
       expect(comment).toContain('| 🔴 BREAKING | `rule` | `path\\|pipe` |');
     });
+
+    it('includes AI remediation block when aiExplanation is provided', () => {
+      const report: DiffReport = {
+        breaking_changes: [
+          { rule_id: 'b-1', path: 'p-1', severity: 'BREAKING', description: '' }
+        ],
+        warnings: [],
+        safe_changes: [],
+        summary: { breaking_count: 1, warning_count: 0, info_count: 0 }
+      };
+      const aiExplanation = "This is a mock AI explanation.";
+      const aiSafePatch = "field:\n  deprecated: true";
+
+      const comment = formatPRComment(report, emptyConfig, undefined, undefined, undefined, undefined, aiExplanation, aiSafePatch);
+
+      expect(comment).toContain('### 🤖 AI Impact Analysis');
+      expect(comment).toContain(aiExplanation);
+      expect(comment).toContain('### 🔧 Suggested Safe Remediation');
+      expect(comment).toContain(aiSafePatch);
+    });
   });
 
   describe('formatMissingConfigComment', () => {
