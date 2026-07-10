@@ -7,9 +7,9 @@ import (
 	"os"
 	"strings"
 
+	"e2e/scenarios/graphql"
 	"e2e/scenarios/openapi"
 	"e2e/scenarios/sql"
-	// "e2e/scenarios/graphql"
 
 	"github.com/google/go-github/v62/github"
 )
@@ -37,6 +37,13 @@ func main() {
 	case "all":
 		openapi.RunAll(ctx, client, owner)
 		sql.RunAll(ctx, client, owner)
+		graphql.RunAll(ctx, client, owner)
+	case "openapi":
+		openapi.RunAll(ctx, client, owner)
+	case "sql":
+		sql.RunAll(ctx, client, owner)
+	case "graphql":
+		graphql.RunAll(ctx, client, owner)
 	case "openapi-breaking":
 		openapi.RunBreaking(ctx, client, owner)
 	case "openapi-safe":
@@ -53,6 +60,14 @@ func main() {
 		sql.RunOverride(ctx, client, owner)
 	case "sql-warning":
 		sql.RunWarning(ctx, client, owner)
+	case "graphql-breaking":
+		graphql.RunBreaking(ctx, client, owner)
+	case "graphql-safe":
+		graphql.RunSafe(ctx, client, owner)
+	case "graphql-override":
+		graphql.RunOverride(ctx, client, owner)
+	case "graphql-warning":
+		graphql.RunWarning(ctx, client, owner)
 	default:
 		log.Fatalf("Unknown scenario: %s.", *scenario)
 	}

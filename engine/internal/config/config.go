@@ -126,6 +126,23 @@ var KnownRules = map[string]bool{
 	"SQL_ENUM_TYPE_REMOVED":             true,
 	"SQL_ENUM_VALUE_REMOVED":            true,
 	"SQL_ENUM_VALUE_ADDED":              true,
+	// GraphQL Rules
+	"GQL_TYPE_REMOVED":                  true,
+	"GQL_FIELD_REMOVED":                 true,
+	"GQL_FIELD_TYPE_CHANGED":            true,
+	"GQL_UNION_MEMBER_REMOVED":          true,
+	"GQL_ENUM_VALUE_REMOVED":            true,
+	"GQL_INTERFACE_REMOVED":             true,
+	"GQL_ARGUMENT_REMOVED":              true,
+	"GQL_ARGUMENT_TYPE_CHANGED":         true,
+	"GQL_REQUIRED_ARGUMENT_ADDED":       true,
+	"GQL_INPUT_FIELD_ADDED_REQUIRED":    true,
+	"GQL_OPTIONAL_ARGUMENT_ADDED":       true,
+	"GQL_INPUT_FIELD_ADDED_OPTIONAL":    true,
+	"GQL_DIRECTIVE_REMOVED":             true,
+	"GQL_DIRECTIVE_LOCATION_REMOVED":    true,
+	"GQL_FIELD_DEPRECATED":              true,
+	"GQL_ENUM_VALUE_DEPRECATED":         true,
 }
 
 func LoadConfig(path string) (*SubstrateConfig, error) {

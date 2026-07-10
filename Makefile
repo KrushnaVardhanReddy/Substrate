@@ -11,6 +11,15 @@ check-token:
 e2e: check-token
 	cd scripts/e2e && go run main.go --scenario=all
 
+e2e-openapi: check-token
+	cd scripts/e2e && go run main.go --scenario=openapi
+
+e2e-sql: check-token
+	cd scripts/e2e && go run main.go --scenario=sql
+
+e2e-graphql: check-token
+	cd scripts/e2e && go run main.go --scenario=graphql
+
 e2e-breaking: check-token
 	cd scripts/e2e && go run main.go --scenario=openapi-breaking
 
@@ -34,3 +43,16 @@ e2e-sql-override: check-token
 
 e2e-sql-warning: check-token
 	cd scripts/e2e && go run main.go --scenario=sql-warning
+
+e2e-graphql-breaking: check-token
+	cd scripts/e2e && go run main.go --scenario=graphql-breaking
+
+e2e-graphql-safe: check-token
+	cd scripts/e2e && go run main.go --scenario=graphql-safe
+
+e2e-graphql-override: check-token
+	cd scripts/e2e && go run main.go --scenario=graphql-override
+
+e2e-graphql-warning: check-token
+	cd scripts/e2e && go run main.go --scenario=graphql-warning
+

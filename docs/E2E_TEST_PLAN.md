@@ -228,7 +228,7 @@ With the infrastructure running and cross-repo check validated, test the full di
 | Adapter | Test File | Safe Change (Merged) | Breaking Change PR (Blocked) | Expected Rule |
 | :--- | :--- | :--- | :--- | :--- |
 | **OpenAPI** | `openapi.yaml` | Add a new `/health` endpoint | Delete an existing `/users` endpoint | `ENDPOINT_REMOVED` |
-| **GraphQL** | `schema.graphql` | Add a new `type Post` | Remove a field from `type User` | `GRAPHQL_FIELD_REMOVED` |
+| **GraphQL** | `schema.graphql` | Add a new `type Post` | Remove a field from `type User` | `GQL_FIELD_REMOVED` |
 | **Protobuf** | `user.proto` | Add a new optional field | Change a field's type from `int32` to `string` | `PROTO_FIELD_TYPE_CHANGED` |
 | **Avro** | `user.avsc` | Add a field with a default | Remove a required field | `AVRO_FIELD_REMOVED` |
 | **SQL (PG)** | `schema.sql` | `CREATE TABLE logs...` | `ALTER TABLE users DROP COLUMN id;` | `COLUMN_REMOVED` |
