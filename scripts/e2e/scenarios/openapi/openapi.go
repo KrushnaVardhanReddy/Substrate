@@ -23,6 +23,7 @@ func RunAll(ctx context.Context, client *github.Client, owner string) {
 	RunSafe(ctx, client, owner)
 	RunOverride(ctx, client, owner)
 	RunWarning(ctx, client, owner)
+	RunAIAutofix(ctx, client, owner)
 	log.Println("🎉 All OpenAPI Scenarios Completed Successfully!")
 }
 
@@ -31,6 +32,14 @@ func RunBreaking(ctx context.Context, client *github.Client, owner string) {
 		defaultSubstrateYaml(), defaultOpenAPIYaml(),
 		defaultSubstrateYaml(), removedEndpointYaml(),
 		"BREAKING", "ENDPOINT_REMOVED")
+}
+
+func RunAIAutofix(ctx context.Context, client *github.Client, owner string) {
+	// P4-T04: Verify the GitHub App attaches the AI Impact Analysis and Safe Remediation to the PR
+	executeScenario(ctx, client, owner, "Phase 4 - AI Autofix Comment",
+		defaultSubstrateYaml(), defaultOpenAPIYaml(),
+		defaultSubstrateYaml(), removedEndpointYaml(),
+		"BREAKING", "Suggested Safe Remediation")
 }
 
 func RunSafe(ctx context.Context, client *github.Client, owner string) {
