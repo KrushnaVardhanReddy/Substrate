@@ -10,6 +10,7 @@
 		{#if org}
 			<a href="/org/{org}" class="nav-item {pathname === `/org/${org}` ? 'active' : ''}">Repositories</a>
 			<a href="/org/{org}/graph" class="nav-item {pathname === `/org/${org}/graph` ? 'active' : ''}">Dependency Graph</a>
+			<a href="/org/{org}/matrix" class="nav-item {pathname === `/org/${org}/matrix` ? 'active' : ''}">Compatibility Matrix</a>
 		{:else}
 			<div class="nav-item active">Dashboard</div>
 		{/if}

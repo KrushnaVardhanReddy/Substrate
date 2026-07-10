@@ -162,3 +162,32 @@ Visualise the upstream/downstream contract dependencies for an organization. Thi
   - Rendered conditionally when a node is selected.
   - Displays the raw schema or metadata, and a list of direct consumers or providers.
 
+---
+
+## 8. P3-T11: Compatibility Matrix Dashboard
+
+**Status:** 🔄 READY (Antigravity task)
+**Dependency:** P3-T05 ✅
+
+### Overview
+Inspired by PactFlow's compatibility matrix, this is the central enterprise control panel. It visualizes which version of a provider (e.g., `users-api`) is compatible with which version of its downstream consumers (e.g., `frontend`, `mobile-app`).
+
+### Component Architecture
+- **Route:** `dashboard/src/routes/org/[org]/matrix/+page.svelte`
+- **Load Function (`+page.ts`):**
+  - Fetch matrix data from the API (or mock it initially). Data structure will represent a grid of Provider Versions vs Consumer Versions, with cell states (`COMPATIBLE`, `INCOMPATIBLE`, `UNKNOWN`).
+- **Matrix UI (`.matrix-container`):**
+  - A dynamic data table/grid.
+  - **Y-Axis (Rows):** Provider versions (e.g., `users-api v1.2.0`).
+  - **X-Axis (Columns):** Consumer environments/versions (e.g., `frontend PROD`, `frontend DEV`).
+  - **Cells:** Render a visual indicator:
+    - ✅ Green Tick for `COMPATIBLE` (safe schema match).
+    - ❌ Red Cross for `INCOMPATIBLE` (breaking change detected).
+    - ➖ Gray Dash for `UNKNOWN` (not tested/irrelevant).
+- **Interactions:**
+  - Clicking a cell opens a modal or side panel detailing the specific check (the breaking change that occurred, or the timestamp of the successful verification).
+  - Filters to select which Provider Repo to view the matrix for.
+
+### Design
+- Use `app.css` and the design tokens (Dark mode, `#0f172a` bg, green/red status colors).
+- Ensure the table is horizontally scrollable for many consumers.

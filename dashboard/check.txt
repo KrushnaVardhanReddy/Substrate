@@ -1,0 +1,269 @@
+
+> dashboard@0.0.1 check
+> svelte-kit sync && svelte-check --tsconfig ./tsconfig.json
+
+Loading svelte-check in workspace: /home/krushna/Project/Substrate/dashboard
+Getting Svelte diagnostics...
+
+/home/krushna/Project/Substrate/dashboard/src/routes/org/[org]/graph/page.test.ts:16:17
+Error: Property 'org' does not exist on type 'void | (Omit<PageData, RequiredKeys<T>> & Partial<Pick<PageData, never>> & Record<string, any>)'.
+  Property 'org' does not exist on type 'void'. 
+
+		expect(result.org).toBe('myorg');
+		expect(result.graphData).toHaveLength(1);
+
+/home/krushna/Project/Substrate/dashboard/src/routes/org/[org]/graph/page.test.ts:17:17
+Error: Property 'graphData' does not exist on type 'void | (Omit<PageData, RequiredKeys<T>> & Partial<Pick<PageData, never>> & Record<string, any>)'.
+  Property 'graphData' does not exist on type 'void'. 
+		expect(result.org).toBe('myorg');
+		expect(result.graphData).toHaveLength(1);
+		expect(result.graphData[0].provider).toBe('A');
+
+/home/krushna/Project/Substrate/dashboard/src/routes/org/[org]/graph/page.test.ts:18:17
+Error: Property 'graphData' does not exist on type 'void | (Omit<PageData, RequiredKeys<T>> & Partial<Pick<PageData, never>> & Record<string, any>)'.
+  Property 'graphData' does not exist on type 'void'. 
+		expect(result.graphData).toHaveLength(1);
+		expect(result.graphData[0].provider).toBe('A');
+	});
+
+/home/krushna/Project/Substrate/dashboard/src/routes/org/[org]/graph/page.test.ts:29:17
+Error: Property 'org' does not exist on type 'void | (Omit<PageData, RequiredKeys<T>> & Partial<Pick<PageData, never>> & Record<string, any>)'.
+  Property 'org' does not exist on type 'void'. 
+
+		expect(result.org).toBe('myorg');
+		expect(result.graphData.length).toBeGreaterThan(0);
+
+/home/krushna/Project/Substrate/dashboard/src/routes/org/[org]/graph/page.test.ts:30:17
+Error: Property 'graphData' does not exist on type 'void | (Omit<PageData, RequiredKeys<T>> & Partial<Pick<PageData, never>> & Record<string, any>)'.
+  Property 'graphData' does not exist on type 'void'. 
+		expect(result.org).toBe('myorg');
+		expect(result.graphData.length).toBeGreaterThan(0);
+		expect(result.graphData[0].provider).toBe('core/auth');
+
+/home/krushna/Project/Substrate/dashboard/src/routes/org/[org]/graph/page.test.ts:31:17
+Error: Property 'graphData' does not exist on type 'void | (Omit<PageData, RequiredKeys<T>> & Partial<Pick<PageData, never>> & Record<string, any>)'.
+  Property 'graphData' does not exist on type 'void'. 
+		expect(result.graphData.length).toBeGreaterThan(0);
+		expect(result.graphData[0].provider).toBe('core/auth');
+	});
+
+/home/krushna/Project/Substrate/dashboard/src/routes/org/[org]/matrix/page.test.ts:16:17
+Error: Property 'org' does not exist on type 'void | (Omit<PageData, RequiredKeys<T>> & Partial<Pick<PageData, never>> & Record<string, any>)'.
+  Property 'org' does not exist on type 'void'. 
+
+		expect(result.org).toBe('myorg');
+		expect(result.matrixData.providers).toHaveLength(1);
+
+/home/krushna/Project/Substrate/dashboard/src/routes/org/[org]/matrix/page.test.ts:17:17
+Error: Property 'matrixData' does not exist on type 'void | (Omit<PageData, RequiredKeys<T>> & Partial<Pick<PageData, never>> & Record<string, any>)'.
+  Property 'matrixData' does not exist on type 'void'. 
+		expect(result.org).toBe('myorg');
+		expect(result.matrixData.providers).toHaveLength(1);
+	});
+
+/home/krushna/Project/Substrate/dashboard/src/routes/org/[org]/matrix/page.test.ts:28:17
+Error: Property 'org' does not exist on type 'void | (Omit<PageData, RequiredKeys<T>> & Partial<Pick<PageData, never>> & Record<string, any>)'.
+  Property 'org' does not exist on type 'void'. 
+
+		expect(result.org).toBe('myorg');
+		expect(result.matrixData.providers.length).toBeGreaterThan(0);
+
+/home/krushna/Project/Substrate/dashboard/src/routes/org/[org]/matrix/page.test.ts:29:17
+Error: Property 'matrixData' does not exist on type 'void | (Omit<PageData, RequiredKeys<T>> & Partial<Pick<PageData, never>> & Record<string, any>)'.
+  Property 'matrixData' does not exist on type 'void'. 
+		expect(result.org).toBe('myorg');
+		expect(result.matrixData.providers.length).toBeGreaterThan(0);
+	});
+
+/home/krushna/Project/Substrate/dashboard/src/routes/org/[org]/graph/+page.svelte:28:4
+Warn: Buttons and links should either contain text or have an `aria-label`, `aria-labelledby` or `title` attribute
+https://svelte.dev/e/a11y_consider_explicit_label (svelte)
+		<div class="graph-controls">
+			<button class="icon-btn">
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+			</button>
+			<button class="icon-btn">
+
+/home/krushna/Project/Substrate/dashboard/src/routes/org/[org]/graph/+page.svelte:31:4
+Warn: Buttons and links should either contain text or have an `aria-label`, `aria-labelledby` or `title` attribute
+https://svelte.dev/e/a11y_consider_explicit_label (svelte)
+			</button>
+			<button class="icon-btn">
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+			</button>
+		</div>
+
+/home/krushna/Project/Substrate/dashboard/src/routes/org/[org]/graph/+page.svelte:49:4
+Warn: Visible, non-interactive element `<div>` with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events (svelte)
+			<!-- Upstream Column -->
+			<div class="node-card" style="left: 20px; top: 110px; width: 200px;" onclick={() => selectNode({ name: 'core/auth', version: 'v1.0.5', status: 'SAFE' })}>
+				<div class="node-header">
+					<span class="node-title">core/auth</span>
+					<div class="status-badge safe">SAFE</div>
+				</div>
+				<div class="node-version">v1.0.5</div>
+			</div>
+
+/home/krushna/Project/Substrate/dashboard/src/routes/org/[org]/graph/+page.svelte:49:4
+Warn: `<div>` with a click handler must have an ARIA role
+https://svelte.dev/e/a11y_no_static_element_interactions (svelte)
+			<!-- Upstream Column -->
+			<div class="node-card" style="left: 20px; top: 110px; width: 200px;" onclick={() => selectNode({ name: 'core/auth', version: 'v1.0.5', status: 'SAFE' })}>
+				<div class="node-header">
+					<span class="node-title">core/auth</span>
+					<div class="status-badge safe">SAFE</div>
+				</div>
+				<div class="node-version">v1.0.5</div>
+			</div>
+
+/home/krushna/Project/Substrate/dashboard/src/routes/org/[org]/graph/+page.svelte:57:4
+Warn: Visible, non-interactive element `<div>` with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events (svelte)
+
+			<div class="node-card" style="left: 20px; top: 260px; width: 200px;" onclick={() => selectNode({ name: 'db/postgres-driver', version: 'v3.2.1', status: 'SAFE' })}>
+				<div class="node-header">
+					<span class="node-title">db/postgres-driver</span>
+					<div class="status-badge safe">SAFE</div>
+				</div>
+				<div class="node-version">v3.2.1</div>
+			</div>
+
+/home/krushna/Project/Substrate/dashboard/src/routes/org/[org]/graph/+page.svelte:57:4
+Warn: `<div>` with a click handler must have an ARIA role
+https://svelte.dev/e/a11y_no_static_element_interactions (svelte)
+
+			<div class="node-card" style="left: 20px; top: 260px; width: 200px;" onclick={() => selectNode({ name: 'db/postgres-driver', version: 'v3.2.1', status: 'SAFE' })}>
+				<div class="node-header">
+					<span class="node-title">db/postgres-driver</span>
+					<div class="status-badge safe">SAFE</div>
+				</div>
+				<div class="node-version">v3.2.1</div>
+			</div>
+
+/home/krushna/Project/Substrate/dashboard/src/routes/org/[org]/graph/+page.svelte:65:4
+Warn: Visible, non-interactive element `<div>` with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events (svelte)
+
+			<div class="node-card error-card" style="left: 20px; top: 410px; width: 200px;" onclick={() => selectNode({ name: 'utils/logger', version: 'v0.9.8', status: 'BREAKING' })}>
+				<div class="node-header">
+					<span class="node-title">utils/logger</span>
+					<div class="status-badge error">BREAKING</div>
+				</div>
+				<div class="node-version error-text">v0.9.8 (Deprecated)</div>
+			</div>
+
+/home/krushna/Project/Substrate/dashboard/src/routes/org/[org]/graph/+page.svelte:65:4
+Warn: `<div>` with a click handler must have an ARIA role
+https://svelte.dev/e/a11y_no_static_element_interactions (svelte)
+
+			<div class="node-card error-card" style="left: 20px; top: 410px; width: 200px;" onclick={() => selectNode({ name: 'utils/logger', version: 'v0.9.8', status: 'BREAKING' })}>
+				<div class="node-header">
+					<span class="node-title">utils/logger</span>
+					<div class="status-badge error">BREAKING</div>
+				</div>
+				<div class="node-version error-text">v0.9.8 (Deprecated)</div>
+			</div>
+
+/home/krushna/Project/Substrate/dashboard/src/routes/org/[org]/graph/+page.svelte:74:4
+Warn: Visible, non-interactive element `<div>` with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events (svelte)
+			<!-- Central Target Column -->
+			<div class="node-card selected-card" style="left: 480px; top: 260px; width: 240px; z-index: 20;" onclick={() => selectNode({ name: 'api/gateway-service', version: 'v4.1.0', status: 'SAFE', selected: true })}>
+				<div class="node-header">
+					<span class="node-title bold">api/gateway-service</span>
+					<div class="status-badge safe">SAFE</div>
+				</div>
+				<div class="node-version mb-sm">v4.1.0</div>
+				<div class="node-stats">
+					<span class="stat-badge">3 In</span>
+					<span class="stat-badge">2 Out</span>
+				</div>
+			</div>
+
+/home/krushna/Project/Substrate/dashboard/src/routes/org/[org]/graph/+page.svelte:74:4
+Warn: `<div>` with a click handler must have an ARIA role
+https://svelte.dev/e/a11y_no_static_element_interactions (svelte)
+			<!-- Central Target Column -->
+			<div class="node-card selected-card" style="left: 480px; top: 260px; width: 240px; z-index: 20;" onclick={() => selectNode({ name: 'api/gateway-service', version: 'v4.1.0', status: 'SAFE', selected: true })}>
+				<div class="node-header">
+					<span class="node-title bold">api/gateway-service</span>
+					<div class="status-badge safe">SAFE</div>
+				</div>
+				<div class="node-version mb-sm">v4.1.0</div>
+				<div class="node-stats">
+					<span class="stat-badge">3 In</span>
+					<span class="stat-badge">2 Out</span>
+				</div>
+			</div>
+
+/home/krushna/Project/Substrate/dashboard/src/routes/org/[org]/graph/+page.svelte:87:4
+Warn: Visible, non-interactive element `<div>` with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events (svelte)
+			<!-- Downstream Column -->
+			<div class="node-card" style="left: 980px; top: 160px; width: 200px;" onclick={() => selectNode({ name: 'frontend/dashboard', version: 'v2.2.0', status: 'SAFE' })}>
+				<div class="node-header">
+					<span class="node-title">frontend/dashboard</span>
+					<div class="status-badge safe">SAFE</div>
+				</div>
+				<div class="node-version">v2.2.0</div>
+			</div>
+
+/home/krushna/Project/Substrate/dashboard/src/routes/org/[org]/graph/+page.svelte:87:4
+Warn: `<div>` with a click handler must have an ARIA role
+https://svelte.dev/e/a11y_no_static_element_interactions (svelte)
+			<!-- Downstream Column -->
+			<div class="node-card" style="left: 980px; top: 160px; width: 200px;" onclick={() => selectNode({ name: 'frontend/dashboard', version: 'v2.2.0', status: 'SAFE' })}>
+				<div class="node-header">
+					<span class="node-title">frontend/dashboard</span>
+					<div class="status-badge safe">SAFE</div>
+				</div>
+				<div class="node-version">v2.2.0</div>
+			</div>
+
+/home/krushna/Project/Substrate/dashboard/src/routes/org/[org]/graph/+page.svelte:95:4
+Warn: Visible, non-interactive element `<div>` with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events (svelte)
+
+			<div class="node-card" style="left: 980px; top: 360px; width: 200px;" onclick={() => selectNode({ name: 'workers/indexer', version: 'v1.0.1', status: 'SAFE' })}>
+				<div class="node-header">
+					<span class="node-title">workers/indexer</span>
+					<div class="status-badge safe">SAFE</div>
+				</div>
+				<div class="node-version">v1.0.1</div>
+			</div>
+		</div>
+
+/home/krushna/Project/Substrate/dashboard/src/routes/org/[org]/graph/+page.svelte:95:4
+Warn: `<div>` with a click handler must have an ARIA role
+https://svelte.dev/e/a11y_no_static_element_interactions (svelte)
+
+			<div class="node-card" style="left: 980px; top: 360px; width: 200px;" onclick={() => selectNode({ name: 'workers/indexer', version: 'v1.0.1', status: 'SAFE' })}>
+				<div class="node-header">
+					<span class="node-title">workers/indexer</span>
+					<div class="status-badge safe">SAFE</div>
+				</div>
+				<div class="node-version">v1.0.1</div>
+			</div>
+		</div>
+
+/home/krushna/Project/Substrate/dashboard/src/routes/org/[org]/graph/+page.svelte:116:4
+Warn: Buttons and links should either contain text or have an `aria-label`, `aria-labelledby` or `title` attribute
+https://svelte.dev/e/a11y_consider_explicit_label (svelte)
+			</div>
+			<button class="close-btn" onclick={() => selectedNode = null}>
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+			</button>
+		</header>
+
+/home/krushna/Project/Substrate/dashboard/src/routes/org/[org]/matrix/+page.svelte:71:4
+Warn: Buttons and links should either contain text or have an `aria-label`, `aria-labelledby` or `title` attribute
+https://svelte.dev/e/a11y_consider_explicit_label (svelte)
+			<h3 class="detail-title">Check Details</h3>
+			<button class="close-btn" onclick={() => selectedCell = null}>
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+			</button>
+		</header>
+
+====================================
+svelte-check found 10 errors and 16 warnings in 4 files

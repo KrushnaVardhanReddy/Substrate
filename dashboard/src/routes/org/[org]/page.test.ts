@@ -13,18 +13,26 @@ describe('Org Page Load Function', () => {
 		vi.resetAllMocks();
 	});
 
-	it('returns fetched repos successfully', async () => {
-		const mockRepos = [{ name: 'repo1', full_name: 'test/repo1' }];
+	it('returns fetched repositories and returns them', async () => {
+		const mockRepos = [{ id: '1', name: 'repo-1', full_name: 'org/repo-1' }];
+
 		const mockFetch = vi.fn().mockResolvedValue({
 			ok: true,
-			json: vi.fn().mockResolvedValue(mockRepos)
+			json: async () => mockRepos
 		});
 
-		const result = await load({ fetch: mockFetch as any, params: { org: 'test' } } as any);
-
-		expect(mockFetch).toHaveBeenCalledWith('http://test-api/api/v1/repos/test', {
-			headers: { Authorization: 'Bearer test-token' }
+		// @ts-ignore
+		const result: any = await load({
+			fetch: mockFetch,
+			params: { org: 'myorg' }
 		});
+
+		expect(mockFetch).toHaveBeenCalledWith('http://test-api/api/v1/repos/myorg', {
+			headers: {
+				Authorization: 'Bearer test-token'
+			}
+		});
+
 		expect(result).toEqual({ repos: mockRepos });
 	});
 
@@ -34,7 +42,11 @@ describe('Org Page Load Function', () => {
 			statusText: 'Not Found'
 		});
 
-		const result = await load({ fetch: mockFetch as any, params: { org: 'test' } } as any);
+		// @ts-ignore
+		const result: any = await load({
+			fetch: mockFetch,
+			params: { org: 'myorg' }
+		});
 
 		expect(result).toEqual({ repos: [] });
 	});
@@ -42,7 +54,11 @@ describe('Org Page Load Function', () => {
 	it('returns empty array on network error', async () => {
 		const mockFetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
-		const result = await load({ fetch: mockFetch as any, params: { org: 'test' } } as any);
+		// @ts-ignore
+		const result: any = await load({
+			fetch: mockFetch,
+			params: { org: 'myorg' }
+		}) as any;
 
 		expect(result).toEqual({ repos: [] });
 	});

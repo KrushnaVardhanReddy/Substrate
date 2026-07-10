@@ -11,7 +11,7 @@ describe('Layout Load Function', () => {
 		});
 
 		// @ts-ignore - Partial LayoutLoadEvent mock
-		const result = await load({ fetch: mockFetch });
+		const result: any = await load({ fetch: mockFetch });
 
 		expect(mockFetch).toHaveBeenCalledWith('http://localhost:8090/api/v1/repos/myorg', {
 			headers: {
@@ -29,7 +29,7 @@ describe('Layout Load Function', () => {
 		});
 
 		// @ts-ignore
-		const result = await load({ fetch: mockFetch });
+		const result: any = await load({ fetch: mockFetch });
 
 		expect(result).toEqual({ repos: [] });
 	});
@@ -38,7 +38,7 @@ describe('Layout Load Function', () => {
 		const mockFetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
 		// @ts-ignore
-		const result = await load({ fetch: mockFetch });
+		const result: any = await load({ fetch: mockFetch });
 
 		expect(result).toEqual({ repos: [] });
 	});

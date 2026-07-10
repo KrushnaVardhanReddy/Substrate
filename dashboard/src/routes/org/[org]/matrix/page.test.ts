@@ -1,11 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import { load } from './+page';
 
-describe('Graph Page Load Function', () => {
-	it('returns fetched graph data on success', async () => {
+describe('Matrix Page Load Function', () => {
+	it('returns fetched matrix data on success', async () => {
 		const mockFetch = vi.fn().mockResolvedValue({
 			ok: true,
-			json: async () => [{ provider: 'A', consumer: 'B', status: 'SAFE' }]
+			json: async () => ({ providers: ['P'], consumers: ['C'], grid: [] })
 		});
 
 		const result: any = await load({
@@ -14,8 +14,7 @@ describe('Graph Page Load Function', () => {
 		} as any);
 
 		expect(result.org).toBe('myorg');
-		expect(result.graphData).toHaveLength(1);
-		expect(result.graphData[0].provider).toBe('A');
+		expect(result.matrixData.providers).toHaveLength(1);
 	});
 
 	it('returns fallback mock data on network error', async () => {
@@ -27,7 +26,6 @@ describe('Graph Page Load Function', () => {
 		} as any);
 
 		expect(result.org).toBe('myorg');
-		expect(result.graphData.length).toBeGreaterThan(0);
-		expect(result.graphData[0].provider).toBe('core/auth');
+		expect(result.matrixData.providers.length).toBeGreaterThan(0);
 	});
 });
