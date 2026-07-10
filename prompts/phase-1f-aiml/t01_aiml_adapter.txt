@@ -1,0 +1,339 @@
+TASK: P1f-T01+T02+T03 — AI/ML Model Contract Diff Adapter
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement the AI/ML model contract diff adapter for the Substrate engine.
+This adapter parses two `substrate.yaml` files containing an `ml_model` block
+and detects breaking changes to the model's input/output interface contract.
+
+This solves a unique problem: broken ML pipelines fail silently. A REST API
+throws a 500 when a field is missing. A broken ML pipeline quietly trains
+on wrong features for weeks. Substrate makes ML contracts visible and
+enforced in CI/CD, just like OpenAPI contracts.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-1/aiml-adapter.md
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT
+═══════════════════════════════════════════════════════════════
+The diff engine lives in engine/ (a Go module at engine/go.mod).
+
+Key existing files (READ ONLY unless specified):
+  engine/internal/diff/graphql.go       — adapter pattern to follow exactly
+  engine/internal/diff/terraform.go     — simple adapter reference
+  engine/internal/report/               — DiffReport, Change, Severity types (READ ONLY)
+  engine/cmd/substrate/main.go          — CLI dispatch switch (MODIFY — add "ai-model" case)
+  engine/cmd/substrate/serve.go         — HTTP serve mode switch (MODIFY — add "ai-model" case)
+
+CRITICAL: Both `gopkg.in/yaml.v3` and `github.com/santhosh-tekuri/jsonschema/v6` are
+ALREADY in engine/go.mod. Do NOT add any new dependencies.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. FILE: engine/internal/diff/aiml.go  (CREATE NEW)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Package: package diff
+
+Required imports:
+  - gopkg.in/yaml.v3
+  - github.com/KrushnaVardhanReddy/substrate/engine/internal/report
+  - fmt, os, time, strings, strconv
+
+EXACT STRUCT DEFINITIONS (copy verbatim — do not rename fields):
+
+  type AIMLContract struct {
+      Service string   `yaml:"service"`
+      MLModel *MLModel `yaml:"ml_model"`
+  }
+
+  type MLModel struct {
+      Name      string       `yaml:"name"`
+      Version   string       `yaml:"version"`
+      Framework string       `yaml:"framework"`
+      Task      string       `yaml:"task"`
+      Inputs    []ModelField `yaml:"inputs"`
+      Outputs   []ModelField `yaml:"outputs"`
+      Serving   *Serving     `yaml:"serving,omitempty"`
+  }
+
+  type ModelField struct {
+      Name     string    `yaml:"name"`
+      Type     string    `yaml:"type"`
+      Required bool      `yaml:"required"`
+      Range    []float64 `yaml:"range,omitempty"`
+      Enum     []string  `yaml:"enum,omitempty"`
+  }
+
+  type Serving struct {
+      Endpoint     string `yaml:"endpoint"`
+      Method       string `yaml:"method"`
+      InputFormat  string `yaml:"input_format"`
+      OutputFormat string `yaml:"output_format"`
+  }
+
+PRIMARY FUNCTION:
+
+  func CompareAIML(basePath, headPath string) (*report.DiffReport, error)
+
+  Implementation flow:
+
+  Step 1 — Parse files
+    - os.ReadFile both paths
+    - yaml.Unmarshal each into AIMLContract struct
+    - If either file has a nil MLModel block → return error:
+        "no ml_model block found in <path>"
+
+  Step 2 — Diff Metadata
+    a. Task changed:
+       if base.Task != head.Task → BREAKING: AIML_TASK_CHANGED
+       path: "ml_model.task", before: base.Task, after: head.Task
+
+    b. Framework changed:
+       if base.Framework != head.Framework → WARNING: AIML_FRAMEWORK_CHANGED
+       path: "ml_model.framework", before: base.Framework, after: head.Framework
+
+    c. Version major bump:
+       Parse major version from SemVer string (e.g., "2.1.0" → major=2).
+       If head major > base major → WARNING: AIML_VERSION_MAJOR_BUMP
+       path: "ml_model.version", before: base.Version, after: head.Version
+
+  Step 3 — Diff Inputs
+    Build a map of base inputs by name. For each base input:
+    a. If NOT in head → BREAKING: AIML_INPUT_REMOVED
+       path: "ml_model.inputs.<name>"
+    b. If type changed → BREAKING: AIML_INPUT_TYPE_CHANGED
+       path: "ml_model.inputs.<name>.type"
+    c. If enum value removed (value in base.Enum not in head.Enum) →
+       BREAKING: AIML_INPUT_ENUM_VALUE_REMOVED
+       path: "ml_model.inputs.<name>.enum"
+
+    For each head input NOT in base:
+    d. If required: true → BREAKING: AIML_INPUT_REQUIRED_ADDED
+       path: "ml_model.inputs.<name>"
+    e. If required: false or omitted → SAFE: AIML_INPUT_OPTIONAL_ADDED
+       path: "ml_model.inputs.<name>"
+
+    For enum values added to existing input fields:
+    f. → SAFE: AIML_INPUT_ENUM_VALUE_ADDED
+       path: "ml_model.inputs.<name>.enum"
+
+  Step 4 — Diff Outputs
+    Build a map of base outputs by name. For each base output:
+    a. If NOT in head → BREAKING: AIML_OUTPUT_REMOVED
+       path: "ml_model.outputs.<name>"
+    b. If type changed → BREAKING: AIML_OUTPUT_TYPE_CHANGED
+       path: "ml_model.outputs.<name>.type"
+    c. If enum value removed → BREAKING: AIML_OUTPUT_ENUM_VALUE_REMOVED
+       path: "ml_model.outputs.<name>.enum"
+    d. If range narrowed (both have range, head[0] > base[0] OR head[1] < base[1]):
+       → WARNING: AIML_OUTPUT_RANGE_NARROWED
+       path: "ml_model.outputs.<name>.range"
+
+    For each head output NOT in base:
+    e. → SAFE: AIML_OUTPUT_ADDED
+       path: "ml_model.outputs.<name>"
+
+  Step 5 — Diff Serving (only if BOTH base and head have a Serving block)
+    a. If endpoint changed → BREAKING: AIML_SERVING_ENDPOINT_CHANGED
+    b. If method changed → BREAKING: AIML_SERVING_METHOD_CHANGED
+    c. If input_format changed → BREAKING: AIML_SERVING_FORMAT_CHANGED
+       Description: "Input format changed from '<base>' to '<head>'"
+    d. If output_format changed → BREAKING: AIML_SERVING_FORMAT_CHANGED
+       Description: "Output format changed from '<base>' to '<head>'"
+
+  Step 6 — Build DiffReport
+    Set SchemaType: "ai-model"
+    Set ComparedAt: time.Now().UTC().Format(time.RFC3339)
+    Populate BreakingChanges, Warnings, SafeChanges from the above steps.
+    Set Summary counts accordingly.
+    Set OverallSeverity based on counts:
+      - breaking_count > 0 → report.SeverityBreaking
+      - warning_count > 0 → report.SeverityWarning
+      - safe_count > 0 → report.SeveritySafe
+      - else → report.SeverityNoChanges
+
+HELPER FUNCTIONS (define in same file):
+  - parseAIMLContract(path string) (*AIMLContract, error) — reads file + unmarshals
+  - parseMajorVersion(version string) int — extracts major from "X.Y.Z", returns 0 on parse error
+  - containsString(slice []string, s string) bool — helper for enum diffing
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. FILE: engine/internal/diff/aiml_test.go  (CREATE NEW)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Package: package diff_test
+Use table-driven tests. Write YAML strings directly in the test (no fixture files needed).
+Use os.WriteFile to temp files and defer os.Remove.
+
+MANDATORY TEST CASES (all 14 must be present):
+
+  1.  "no changes"
+      base == head → 0 BREAKING, 0 WARNING
+
+  2.  "input removed"
+      base has `tenure_months: float`, head removes it →
+      1 BREAKING, rule: AIML_INPUT_REMOVED
+
+  3.  "input type changed"
+      base `monthly_charges: float`, head `monthly_charges: string` →
+      1 BREAKING, rule: AIML_INPUT_TYPE_CHANGED
+
+  4.  "required input added"
+      head adds `new_feature: float, required: true` →
+      1 BREAKING, rule: AIML_INPUT_REQUIRED_ADDED
+
+  5.  "optional input added"
+      head adds `extra_flag: bool, required: false` →
+      0 BREAKING, 1 SAFE, rule: AIML_INPUT_OPTIONAL_ADDED
+
+  6.  "input enum value removed"
+      base enum: [Month-to-month, One year, Two year],
+      head enum: [Month-to-month, One year] →
+      1 BREAKING, rule: AIML_INPUT_ENUM_VALUE_REMOVED
+
+  7.  "output removed"
+      base has `churn_probability: float`, head removes it →
+      1 BREAKING, rule: AIML_OUTPUT_REMOVED
+
+  8.  "output type changed"
+      base `churn_label: string`, head `churn_label: int` →
+      1 BREAKING, rule: AIML_OUTPUT_TYPE_CHANGED
+
+  9.  "output range narrowed"
+      base range: [0.0, 1.0], head range: [0.1, 0.9] →
+      0 BREAKING, 1 WARNING, rule: AIML_OUTPUT_RANGE_NARROWED
+
+  10. "output enum value removed"
+      base enum: [Yes, No], head enum: [Yes] →
+      1 BREAKING, rule: AIML_OUTPUT_ENUM_VALUE_REMOVED
+
+  11. "task changed"
+      base task: classification, head task: regression →
+      1 BREAKING, rule: AIML_TASK_CHANGED
+
+  12. "framework changed"
+      base framework: pytorch, head framework: tensorflow →
+      0 BREAKING, 1 WARNING, rule: AIML_FRAMEWORK_CHANGED
+
+  13. "version major bump"
+      base version: 1.5.0, head version: 2.0.0 →
+      0 BREAKING, 1 WARNING, rule: AIML_VERSION_MAJOR_BUMP
+
+  14. "missing ml_model block"
+      head file is a valid YAML but has no ml_model block →
+      function returns an error, no panic
+
+  BONUS (if time allows):
+  15. "serving endpoint changed" → 1 BREAKING, rule: AIML_SERVING_ENDPOINT_CHANGED
+  16. "serving format changed" → 1 BREAKING, rule: AIML_SERVING_FORMAT_CHANGED
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. MODIFY: engine/cmd/substrate/main.go
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Find the `switch finalSchemaType` block.
+Add AFTER the "terraform-plan" case:
+
+  case "ai-model":
+      rep, err = diff.CompareAIML(basePath, revisionPath)
+      if err != nil {
+          fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+          os.Exit(3)
+      }
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. MODIFY: engine/cmd/substrate/serve.go
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+a. Update the schema_type validation guard (the long `if req.SchemaType != ...` condition)
+   to also accept "ai-model".
+
+b. In the `switch req.SchemaType` block, add:
+  case "ai-model":
+      rep, err = diff.CompareAIML(baseFile.Name(), headFile.Name())
+      if err == nil {
+          rep = applyConfig(rep, configPath)
+      }
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5. ADD: engine/cmd/substrate/testdata/aiml/ (CREATE NEW directory with fixtures)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create two fixture files for the E2E CLI test:
+
+  engine/cmd/substrate/testdata/aiml/base.yaml:
+  ```yaml
+  service: churn-predictor
+  ml_model:
+    name: churn-predictor
+    version: 1.5.0
+    framework: pytorch
+    task: classification
+    inputs:
+      - name: tenure_months
+        type: float
+        required: true
+      - name: monthly_charges
+        type: float
+        required: true
+    outputs:
+      - name: churn_probability
+        type: float
+        range: [0.0, 1.0]
+  ```
+
+  engine/cmd/substrate/testdata/aiml/head_breaking.yaml:
+  (Same as base but removes tenure_months input)
+  ```yaml
+  service: churn-predictor
+  ml_model:
+    name: churn-predictor
+    version: 1.5.0
+    framework: pytorch
+    task: classification
+    inputs:
+      - name: monthly_charges
+        type: float
+        required: true
+    outputs:
+      - name: churn_probability
+        type: float
+        range: [0.0, 1.0]
+  ```
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- engine/internal/diff/aiml.go
+- engine/internal/diff/aiml_test.go
+- engine/cmd/substrate/testdata/aiml/base.yaml
+- engine/cmd/substrate/testdata/aiml/head_breaking.yaml
+
+FILES TO MODIFY:
+- engine/cmd/substrate/main.go   (add "ai-model" switch case)
+- engine/cmd/substrate/serve.go  (add "ai-model" switch case + validation guard)
+
+FILES TO NOT TOUCH (READ-ONLY):
+- engine/go.mod                        (no new dependencies needed)
+- engine/internal/diff/graphql.go      (complete — do not modify)
+- engine/internal/diff/terraform.go    (complete — do not modify)
+- engine/internal/diff/openapi.go      (complete — do not modify)
+- engine/internal/report/              (DiffReport types — do not modify)
+- github-app/                          (TypeScript — do not touch)
+- api/                                 (Registry API — do not touch)
+- docs/specs/                          (ALL spec files are read-only)
+
+Commit: "jules: P1f-T01+T02+T03 add AI/ML model contract diff adapter"
+Target branch: feature/p1f-t01-aiml-adapter

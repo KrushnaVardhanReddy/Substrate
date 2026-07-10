@@ -1,0 +1,58 @@
+TASK: P4-T08 — PII & Compliance Auditing
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Substrate needs to scan schema diffs for fields that match known PII, financial, or health data patterns and auto-tag them with compliance labels.
+
+Spec (READ ONLY):
+  docs/specs/phase-4/ai-intelligence.md   (Section: P4-T08)
+
+Note: `engine/internal/compliance/auditor.go` and `engine/internal/report/report.go` have already been initially scaffolded. Your job is to complete the integration.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+──────────────────────────────────────────────────────────────
+1. INTEGRATE AUDITOR INTO DIFF ENGINES
+──────────────────────────────────────────────────────────────
+Currently, `compliance.Audit(rep)` is NOT being called.
+You must inject `compliance.Audit(rep)` into the following files right before they return the final `rep, nil`:
+- `engine/internal/diff/openapi.go` (`CompareOpenAPI`)
+- `engine/internal/diff/graphql.go` (`CompareGraphQL`)
+- `engine/internal/diff/asyncapi.go` (`CompareAsyncAPI`)
+- `engine/internal/diff/avro.go` (`CompareAvro`)
+- `engine/internal/diff/proto.go` (`CompareProto`)
+- `engine/internal/diff/terraform.go` (`CompareTerraformPlan`)
+- `engine/internal/diff/aiml.go` (`CompareAIML`)
+
+Make sure to import `"github.com/KrushnaVardhanReddy/substrate/engine/internal/compliance"`.
+
+──────────────────────────────────────────────────────────────
+2. WRITE TESTS FOR COMPLIANCE AUDITOR
+──────────────────────────────────────────────────────────────
+Create `engine/internal/compliance/auditor_test.go`.
+Write unit tests for `Audit()` ensuring that if a `Change` object has a `Path` containing words like `ssn`, `password`, `email`, etc., it successfully appends the `ComplianceAlert` to the `DiffReport`.
+Also, test the mock webhook functionality (you may need to bypass the actual HTTP post in tests or mock it).
+
+──────────────────────────────────────────────────────────────
+3. VERIFY
+──────────────────────────────────────────────────────────────
+Run `cd engine && go test ./...`
+Ensure everything compiles and the compliance tests pass.
+
+═══════════════════════════════════════════════════════════════
+FILES TO MODIFY / CREATE
+═══════════════════════════════════════════════════════════════
+- engine/internal/diff/openapi.go
+- engine/internal/diff/graphql.go
+- engine/internal/diff/asyncapi.go
+- engine/internal/diff/avro.go
+- engine/internal/diff/proto.go
+- engine/internal/diff/terraform.go
+- engine/internal/diff/aiml.go
+- engine/internal/compliance/auditor_test.go (CREATE)
+
+Commit: "feat: P4-T08 integrate PII compliance auditing into diff engines"
+Target branch: feature/dev

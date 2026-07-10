@@ -1,0 +1,302 @@
+TASK: P3-T01 — Go API Server Scaffold + PostgreSQL Schema
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Create a new Go API server in the `api/` directory that forms the backbone of
+Substrate's Phase 3 Cross-Repo Contract Registry. This server stores consumer
+schema snapshots and exposes endpoints for syncing and cross-repo compatibility checks.
+
+This task is the FOUNDATION. All other Phase 3 tasks depend on it.
+
+Spec: docs/specs/phase-3/contract-registry.md (READ ONLY — implement from it, never edit it)
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT
+═══════════════════════════════════════════════════════════════
+The Substrate repo currently has:
+  engine/         — Go diff engine (core library + CLI binary) — DO NOT TOUCH
+  github-app/     — TypeScript Cloudflare Worker — DO NOT TOUCH
+  docs/specs/     — READ ONLY spec files
+
+You will create a brand new top-level directory: api/
+
+The api/ server is a SEPARATE Go module from engine/. It is a standalone HTTP
+service with its own go.mod, not a package inside engine/.
+
+═══════════════════════════════════════════════════════════════
+TECH STACK (MUST follow exactly)
+═══════════════════════════════════════════════════════════════
+- Language: Go 1.22+
+- HTTP: stdlib net/http ONLY — no Gin, Echo, Chi, or any router framework
+- Database driver: github.com/jackc/pgx/v5 (pgx native interface, NOT database/sql)
+- Migrations: github.com/golang-migrate/migrate/v4 with pgx/v5 driver
+- Config: os.Getenv() only — no Viper, no config libraries
+- Tests: stdlib testing + net/http/httptest — no testify dependency
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FILE: api/go.mod
+   Module name: github.com/KrushnaVardhanReddy/Substrate/api
+   Go version: 1.22
+   Required dependencies:
+     github.com/jackc/pgx/v5 v5.6.0
+     github.com/golang-migrate/migrate/v4 v4.17.1
+
+2. FILE: api/cmd/server/main.go
+   Entry point. Reads DATABASE_URL and PORT from env.
+   Defaults: PORT=8090 (8080 is taken by the diff engine, 8787 by wrangler)
+   Wires up the router and calls migrate.Up() on startup.
+   Graceful shutdown on SIGINT/SIGTERM (10 second timeout).
+
+   Startup log format:
+     [substrate-api] migrations applied successfully
+     [substrate-api] server listening on :8090
+
+3. FILE: api/internal/db/migrate.go
+   Runs golang-migrate migrations from the api/migrations/ directory.
+   Function signature:
+     func RunMigrations(databaseURL string) error
+
+4. FILE: api/migrations/0001_initial.up.sql
+   Exact DDL from the spec (copy verbatim from docs/specs/phase-3/contract-registry.md):
+
+   CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+   CREATE TABLE organizations (
+     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+     github_installation_id BIGINT UNIQUE NOT NULL,
+     github_org_name TEXT NOT NULL,
+     created_at TIMESTAMPTZ DEFAULT NOW()
+   );
+
+   CREATE TABLE repositories (
+     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+     org_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+     github_repo_id BIGINT UNIQUE NOT NULL,
+     name TEXT NOT NULL,
+     full_name TEXT NOT NULL,
+     created_at TIMESTAMPTZ DEFAULT NOW()
+   );
+
+   CREATE TABLE contracts (
+     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+     repo_id UUID REFERENCES repositories(id) ON DELETE CASCADE,
+     schema_type TEXT NOT NULL,
+     spec_path TEXT NOT NULL,
+     branch TEXT NOT NULL DEFAULT 'main',
+     latest_commit_sha TEXT,
+     raw_content TEXT NOT NULL,
+     synced_at TIMESTAMPTZ DEFAULT NOW(),
+     UNIQUE(repo_id, spec_path, branch)
+   );
+
+   CREATE TABLE dependencies (
+     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+     consumer_repo_id UUID REFERENCES repositories(id) ON DELETE CASCADE,
+     provider_contract_id UUID REFERENCES contracts(id) ON DELETE CASCADE,
+     status TEXT NOT NULL DEFAULT 'active',
+     last_checked_at TIMESTAMPTZ,
+     UNIQUE(consumer_repo_id, provider_contract_id)
+   );
+
+5. FILE: api/migrations/0001_initial.down.sql
+   Reverse of the above (DROP TABLE in reverse order of creation).
+
+6. FILE: api/internal/db/queries.go
+   Pure data access layer — no HTTP logic here.
+   Uses pgx/v5 pool (*pgxpool.Pool).
+   Implement these functions exactly:
+
+   // UpsertOrg finds or creates an organization by github_installation_id.
+   func UpsertOrg(ctx context.Context, pool *pgxpool.Pool, installationID int64, orgName string) (uuid.UUID, error)
+
+   // UpsertRepo finds or creates a repository by github_repo_id.
+   func UpsertRepo(ctx context.Context, pool *pgxpool.Pool, orgID uuid.UUID, githubRepoID int64, name, fullName string) (uuid.UUID, error)
+
+   // UpsertContract stores (or updates) a schema snapshot for a repo/path/branch.
+   func UpsertContract(ctx context.Context, pool *pgxpool.Pool, repoID uuid.UUID, schemaType, specPath, branch, commitSHA, rawContent string) (uuid.UUID, error)
+
+   // UpsertDependency links a consumer repo to a provider contract.
+   func UpsertDependency(ctx context.Context, pool *pgxpool.Pool, consumerRepoID, providerContractID uuid.UUID) error
+
+   // GetContractsByProviderFullName returns all contracts stored for a provider repo (by full_name e.g. "myorg/backend-api").
+   func GetContractsByProviderFullName(ctx context.Context, pool *pgxpool.Pool, providerFullName string) ([]Contract, error)
+
+   // GetConsumersByProviderContract returns all consumer repos for a given provider contract ID.
+   func GetConsumersByProviderContract(ctx context.Context, pool *pgxpool.Pool, providerContractID uuid.UUID) ([]ConsumerDependency, error)
+
+   // ListReposByOrg returns all repos for a given org name.
+   func ListReposByOrg(ctx context.Context, pool *pgxpool.Pool, orgName string) ([]Repository, error)
+
+   // GetDependencyGraph returns all dependency edges for an org (for graph visualization).
+   func GetDependencyGraph(ctx context.Context, pool *pgxpool.Pool, orgName string) ([]DependencyEdge, error)
+
+   Model structs to define in the same file:
+   - Contract { ID, RepoID, SchemaType, SpecPath, Branch, LatestCommitSHA, RawContent, SyncedAt }
+   - Repository { ID, OrgID, GithubRepoID, Name, FullName, CreatedAt }
+   - ConsumerDependency { ConsumerRepoID, ConsumerFullName, ContractRawContent }
+   - DependencyEdge { ConsumerFullName, ProviderFullName, Status }
+
+   Use github.com/google/uuid for UUID types.
+
+7. FILE: api/internal/handlers/health.go
+   GET /health endpoint.
+   Returns: HTTP 200, Content-Type: application/json, body: {"status":"ok"}
+
+8. FILE: api/internal/handlers/sync.go
+   POST /api/v1/sync endpoint.
+   Auth: check for internal service token in Authorization header:
+     Authorization: Bearer <INTERNAL_SERVICE_TOKEN env var>
+     If missing or wrong → 401 {"error":"unauthorized"}
+
+   Request body (JSON):
+   {
+     "installation_id": 123456,
+     "org": "myorg",
+     "consumer_repo": "myorg/frontend",
+     "consumer_github_repo_id": 789,
+     "commit_sha": "abc1234",
+     "dependencies": [
+       {
+         "provider_repo": "myorg/backend-api",
+         "provider_github_repo_id": 456,
+         "schema_type": "openapi",
+         "spec_path": "api/openapi.yaml",
+         "branch": "main",
+         "raw_content": "openapi: 3.0.0 ..."
+       }
+     ]
+   }
+
+   Logic:
+   1. UpsertOrg using installation_id + org
+   2. UpsertRepo for the consumer repo
+   3. For each dependency:
+      a. UpsertRepo for the provider repo (using provider_github_repo_id)
+      b. UpsertContract for the provider's schema snapshot
+      c. UpsertDependency linking consumer → provider contract
+   4. Return: HTTP 200, {"synced": <number of dependencies processed>}
+   On any DB error: HTTP 500, {"error": "internal error"}
+
+9. FILE: api/internal/handlers/cross_repo_check.go
+   POST /api/v1/cross-repo-check endpoint.
+   Auth: same internal token check as sync.go.
+
+   Request body (JSON):
+   {
+     "installation_id": 123456,
+     "org": "myorg",
+     "provider_repo": "myorg/backend-api",
+     "head_schema_content": "openapi: 3.0.0 ...",
+     "schema_type": "openapi"
+   }
+
+   Logic:
+   1. Find all contracts matching provider_repo full_name
+   2. For each contract, find all consumer dependencies
+   3. For each consumer: run the diff engine by calling the engine's DiffSchemas function
+      IMPORTANT: The cross_repo_check handler MUST call the diff engine via HTTP
+      POST to DIFF_ENGINE_URL/diff (env var, default: http://localhost:8080).
+      Do NOT import the engine/ package directly — the API server is a separate module.
+      The /diff endpoint accepts: { base_schema, head_schema, schema_type }
+   4. Aggregate results into ConsumerCompatibilityMatrix
+   5. Return the exact JSON response format from the spec
+
+   Response body (JSON) — follow the spec exactly:
+   {
+     "total_consumers": 2,
+     "broken_consumers": 1,
+     "is_safe": false,
+     "results": [
+       {
+         "consumer_repo": "myorg/frontend",
+         "status": "breaking",
+         "diff_report": { ... }
+       }
+     ]
+   }
+
+10. FILE: api/internal/handlers/graph.go
+    GET /api/v1/graph/{org} endpoint.
+    No auth required (read-only, public data within org).
+    Returns dependency edges as JSON array:
+    [
+      { "consumer": "myorg/frontend", "provider": "myorg/backend-api", "status": "active" }
+    ]
+
+11. FILE: api/internal/handlers/repos.go
+    GET /api/v1/repos/{org} endpoint.
+    No auth required.
+    Returns list of all repos registered for the org.
+
+12. FILE: api/internal/server/router.go
+    Registers all routes using stdlib http.ServeMux.
+    Attaches handlers. Injects the pool into handlers via closure or struct receiver.
+
+═══════════════════════════════════════════════════════════════
+TESTS (MANDATORY — minimum 80% coverage on new code)
+═══════════════════════════════════════════════════════════════
+
+FILE: api/internal/handlers/health_test.go
+  - GET /health → 200, body contains "ok"
+
+FILE: api/internal/handlers/sync_test.go
+  - Missing auth token → 401
+  - Invalid JSON body → 400
+  - Valid request with mock DB (use an interface for the DB layer) → 200, synced count correct
+
+FILE: api/internal/handlers/cross_repo_check_test.go
+  - Missing auth token → 401
+  - Valid request, mock returns 0 consumers → 200, is_safe: true, total_consumers: 0
+  - Valid request, mock returns 1 broken consumer → 200, is_safe: false, broken_consumers: 1
+
+NOTE: Do NOT write tests that require a real PostgreSQL connection.
+Use interfaces to abstract the DB layer so handlers can be tested with in-memory mocks.
+Define a Store interface in api/internal/db/store.go with the same method signatures
+as the functions in queries.go.
+
+═══════════════════════════════════════════════════════════════
+ENVIRONMENT VARIABLES
+═══════════════════════════════════════════════════════════════
+DATABASE_URL=postgres://user:pass@localhost:5432/substrate  (required)
+PORT=8090                                                    (default: 8090)
+INTERNAL_SERVICE_TOKEN=<secret>                             (required, used by Worker)
+DIFF_ENGINE_URL=http://localhost:8080                        (default: http://localhost:8080)
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE (new top-level directory):
+- api/go.mod
+- api/go.sum                                  (generated by go mod tidy)
+- api/cmd/server/main.go
+- api/internal/db/migrate.go
+- api/internal/db/queries.go
+- api/internal/db/store.go                    (Store interface for testability)
+- api/internal/handlers/health.go
+- api/internal/handlers/health_test.go
+- api/internal/handlers/sync.go
+- api/internal/handlers/sync_test.go
+- api/internal/handlers/cross_repo_check.go
+- api/internal/handlers/cross_repo_check_test.go
+- api/internal/handlers/graph.go
+- api/internal/handlers/repos.go
+- api/internal/server/router.go
+- api/migrations/0001_initial.up.sql
+- api/migrations/0001_initial.down.sql
+
+FILES TO NOT TOUCH (READ-ONLY):
+- engine/             (the diff engine — separate Go module, do not touch)
+- github-app/         (TypeScript Worker — do not touch)
+- docs/specs/         (ALL spec files are read-only)
+- README.md
+- action.yml
+- Dockerfile
+- .github/workflows/
+
+Commit: "jules: P3-T01 scaffold Go API server and PostgreSQL schema for contract registry"
+Target branch: feature/p3-t01-api-server-scaffold

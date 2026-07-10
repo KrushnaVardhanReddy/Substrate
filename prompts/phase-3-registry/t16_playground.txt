@@ -1,0 +1,24 @@
+TASK: P3-T16 - AI Schema Validator Playground (UI)
+
+You are tasked with building a highly interactive "AI Schema Validator Playground" in the SvelteKit dashboard. This bridges Phase 3 (Registry) and Phase 4 (AI Intelligence).
+
+BACKGROUND:
+We need a demo-able web interface where a developer can paste their "Current Schema" and a "Proposed Schema". The UI should simulate sending this to an AI equipped with Substrate MCP tools, streaming back an analysis and an auto-remediated fix.
+
+REQUIREMENTS:
+1. Create a new route: `dashboard/src/routes/playground/+page.svelte`.
+2. Add a new navigation link in `dashboard/src/lib/components/Sidebar.svelte` called "AI Playground" (with a sparkler/magic wand icon).
+3. Build a split-pane layout for the Playground:
+   - Left side: Two code editors stacked or side-by-side (Current Schema vs. Proposed Schema). Use styled `<textarea>` elements for now if Monaco isn't readily available, but make them look like code editors with a monospace font.
+   - Action: A prominent "Analyze with Substrate AI" button.
+4. Implement a mock "streaming" AI response:
+   - When the button is clicked, show a loading state ("AI is analyzing cross-repo impact...").
+   - Reveal an Analysis Panel:
+     - **Contextual Impact**: Show a message like "🚨 Breaking Change Detected: Removing `user_id` breaks downstream consumer `Billing API v2`."
+     - **Auto-Fix**: Show a simulated code block with a safely remediated schema (e.g., adding `@deprecated` instead of deleting the field).
+     - **Apply Fix**: A button that copies the Auto-Fix code over to the "Proposed Schema" textarea.
+5. Adhere to the existing `app.css` design system (dark theme, glassmorphism, accent colors).
+
+FILES TO MODIFY/CREATE:
+- `dashboard/src/routes/playground/+page.svelte` (CREATE)
+- `dashboard/src/lib/components/Sidebar.svelte` (MODIFY)

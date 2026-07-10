@@ -1,6 +1,6 @@
 # Substrate — Task Tracker
 
-> Last updated: 2026-07-07 (repo private, distribution model changed to Docker Hub public image, P1-MVP blog post deferred post-Phase 2)
+> Last updated: 2026-07-10 (Phase 2 complete ✅ — Phase 3 Contract Registry in progress. **P3-T09 MCP Server merged ✅.** P3-T09b + P3-T14 submitted to Jules 2026-07-10. 2 active Jules sessions running.)
 > Tracking all development phases, tasks, and their current status.
 
 ---
@@ -28,9 +28,9 @@
 | Jules/Stitch automation scripts | Antigravity | ✅ | `scripts/jules_submit.py`, `scripts/stitch_submit.py` |
 | Delegation workflow doc | Antigravity | ✅ | `docs/stitch_jules_workflow.md` |
 | Environment setup | Antigravity | ✅ | `.env.local`, `.env.example`, `.gitignore` |
-| Diff engine architecture plan | Antigravity | ✅ | `docs/specs/diff-engine-plan.md` |
-| **DiffReport JSON schema spec** | Antigravity | ✅ | `docs/specs/diff-report-schema.md` |
-| **Breaking change rules spec** | Antigravity | ✅ | `docs/specs/breaking-change-rules.md` |
+| Diff engine architecture plan | Antigravity | ✅ | `docs/specs/phase-1/diff-engine-plan.md` |
+| **DiffReport JSON schema spec** | Antigravity | ✅ | `docs/specs/phase-1/diff-report-schema.md` |
+| **Breaking change rules spec** | Antigravity | ✅ | `docs/specs/phase-1/breaking-change-rules.md` |
 
 ---
 
@@ -107,67 +107,70 @@
 
 | Task ID | Name | Owner | Status |
 |---|---|---|---|
-| P1c-T01 | GraphQL SDL parser using `vektah/gqlparser` (MIT) | Jules | 🔒 |
-| P1c-T02 | GraphQL breaking change rules spec (~15–20 rules) | Antigravity | 🔒 |
-| P1c-T03 | GraphQL rule engine + tests | Jules | 🔒 |
+| P1c-T01 | GraphQL SDL Diff Adapter (`graphql`) | Jules | ✅ | `prompts/phase-1c-graphql/t01_parser.txt` |
 
-### Phase 1d — Protobuf & gRPC 🔒 BLOCKED on Phase 2 🏆
+### Phase 1d — Protobuf & gRPC ✅ COMPLETE
 
-> **Library decision:** **`bufbuild/buf`** (Apache 2.0, written in Go). `buf breaking` is the `oasdiff` of Protobuf — 100+ wire-compatibility rules, field number checks, service/method detection. Drop into `go.mod`, write a `buf` checker adapter (identical pattern to `oasdiff` P1-T06). Parser + rules both covered. This is the easiest Wave 2 phase.
+> **Library decision:** **`bufbuild/buf`** (Apache 2.0, written in Go). `buf breaking` is the `oasdiff` of Protobuf — 100+ wire-compatibility rules, field number checks, service/method detection. Invoked via `exec.Command` (binary, not Go lib import). Adapter pattern identical to P1-T06 oasdiff. **Spec approved. Jules submitted 2026-07-08.**
+> **Spec:** `docs/specs/phase-1/protobuf-checker-adapter.md` ✅ APPROVED
 
-| Task ID | Name | Owner | Status |
-|---|---|---|---|
-| P1d-T01 | `buf` checker adapter spec (maps `buf breaking` output → `DiffReport`) | Antigravity | 🔒 |
-| P1d-T02 | `buf` checker adapter implementation + tests | Jules | 🔒 |
+| Task ID | Name | Owner | Status | Jules Prompt |
+|---|---|---|---|---|
+| P1d-T01 | `buf` checker adapter spec + implementation + tests | Jules | ✅ | `prompts/phase-1d-protobuf/t01_buf_adapter.txt` |
 
-### Phase 1e — AsyncAPI & Apache Avro 🔒 BLOCKED on Phase 2
+### Phase 1e — AsyncAPI & Apache Avro ✅ COMPLETE
 
 > **Library decision (AsyncAPI):** `asyncapi/parser-go` (Apache 2.0) for parsing. Custom diff rules (channel removed, operation changed, message schema breaking).
 > **Library decision (Avro):** Do **not** build a custom Avro compatibility checker. Call the Confluent/Apicurio Schema Registry **compatibility check API** — offloads complex Avro evolution rules (union promotion, defaults, field ordering) to a battle-tested engine. Substrate wraps the JSON response into `DiffReport`.
+> **Spec:** `docs/specs/phase-1/asyncapi-avro-adapter.md` ✅ APPROVED
 
 | Task ID | Name | Owner | Status |
 |---|---|---|---|
-| P1e-T01 | AsyncAPI parser using `asyncapi/parser-go` | Jules | 🔒 |
-| P1e-T02 | Avro adapter using Schema Registry compatibility API | Jules | 🔒 |
-| P1e-T03 | AsyncAPI + Avro breaking change rules spec | Antigravity | 🔒 |
-| P1e-T04 | Rule engine + tests | Jules | 🔒 |
+| P1e-T01 | AsyncAPI parser using `asyncapi/parser-go` | Jules | ✅ |
+| P1e-T02 | Avro adapter using Schema Registry compatibility API | Jules | ✅ |
+| P1e-T03 | AsyncAPI + Avro breaking change rules spec | Antigravity | ✅ |
+| P1e-T04 | Rule engine + tests | Jules | 🔒 after T01+T02 |
 
-### Phase 1f — AI/ML Model Contracts ⭐ 🔒 BLOCKED on Phase 2
+### Phase 1f — AI/ML Model Contracts ⭐ ✅ COMPLETE
 
-> **Library decision:** No new dependencies needed. `gopkg.in/yaml.v3` (model contracts) and `santhosh-tekuri/jsonschema` (dataset schema contracts) are **already in `go.mod`**. Substrate owns the `substrate.yaml` model contract spec — we define the format, the diff is field-by-field rule comparison. Drop 3 parser tasks from the original plan.
+> **Library decision:** No new dependencies needed. `gopkg.in/yaml.v3` and `github.com/santhosh-tekuri/jsonschema/v6` are **already in `go.mod`**. Substrate owns the `substrate.yaml` ml_model contract spec.
+> **Spec:** `docs/specs/phase-1/aiml-adapter.md` ✅ APPROVED
 
-| Task ID | Name | Owner | Status |
-|---|---|---|---|
-| P1f-T01 | `substrate.yaml` ML model contract spec (inputs, outputs, version constraints) | Antigravity | 🔒 |
-| P1f-T02 | ML contract diff engine using `yaml.v3` + `jsonschema` (no new deps) | Jules | 🔒 |
-| P1f-T03 | AI/ML rule engine + tests | Jules | 🔒 |
+| Task ID | Name | Owner | Status | Jules Prompt |
+|---|---|---|---|---|
+| P1f-T01 | AI/ML model contract diff adapter implementation | Jules | ✅ | `prompts/phase-1f-aiml/t01_aiml_adapter.txt` |
 
-### Phase 1g — Enterprise Metadata (Salesforce & SOAP) 🔒 BLOCKED on Phase 2
 
-> **Library decision (WSDL/SOAP):** Use Go stdlib `encoding/xml` to parse WSDL/XSD into a struct tree. Rule set is small (operation removed, message type changed, required element added) — fully buildable on stdlib. No external dependency.
-> **Library decision (Salesforce):** Salesforce metadata files are XML snapshots (`*.object-meta.xml`, `*.field-meta.xml`). Parse with Go stdlib `encoding/xml`. Users retrieve snapshots via the Salesforce CLI (`sf project retrieve start`) as a **separate user step** — Substrate only receives and diffs two XML snapshot directories. No subprocess. **Single-binary promise maintained.**
-> **Note:** This is the highest-effort Wave 2 phase — ships last. Both parsers use stdlib only.
+### Phase 1g — Enterprise Metadata (Salesforce & SOAP) ✅ COMPLETE
 
-| Task ID | Name | Owner | Status |
-|---|---|---|---|
-| P1g-T01 | SOAP/WSDL parser using Go stdlib `encoding/xml` | Jules | 🔒 |
-| P1g-T02 | Salesforce metadata XML snapshot parser using Go stdlib `encoding/xml` | Jules | 🔒 |
-| P1g-T03 | Enterprise breaking change rules spec | Antigravity | 🔒 |
-| P1g-T04 | Enterprise rule engine + tests | Jules | 🔒 |
+> **Library decision:** Use Go stdlib `encoding/xml` to parse both WSDL/XSD and Salesforce XML metadata. Both are purely XML diffing operations based on specific tags (`<CustomObject>`, `<definitions>`). **Single-binary promise maintained.**
+> **Spec:** `docs/specs/phase-1/enterprise-adapter.md` ✅ APPROVED
+
+| Task ID | Name | Owner | Status | Jules Prompt |
+|---|---|---|---|---|
+| **P1g-T01** | **Enterprise metadata diff adapter (Salesforce, SOAP)** | Jules | ✅ | `prompts/phase-1g-enterprise/t01_enterprise_adapter.txt` |
+
+### Phase 1h — Infrastructure as Code (Terraform) ✅ COMPLETE
+
+> **Library decision (Terraform):** Use Go stdlib `encoding/json` to parse `terraform show -json tfplan` output. No HCL parsing. 
+> **Spec:** `docs/specs/phase-1/iac-adapter.md` ✅ APPROVED
+
+| Task ID | Name | Owner | Status | Jules Prompt |
+|---|---|---|---|---|
+| P1h-T01 | Terraform Plan JSON adapter (`terraform-plan`) | Jules | ✅ | `prompts/phase-1h-iac/t01_terraform_adapter.txt` |
 
 ---
 
-> **Wave 2 execution order (after Phase 2):** Follow effort order, not numerical order. Start with the easiest win to build momentum:
-> `1d (Protobuf/buf — 2 tasks, near-zero custom code)` → `1c (GraphQL — custom rules on solved parser)` → `1f (AI/ML — no new deps)` → `1e (AsyncAPI/Avro — two formats, higher complexity)` → `1g (Enterprise — highest effort, ships last)`
-> Order within this list may shift based on real user demand signals after Phase 2 launches.
+> **Wave 2 execution order (Phase 2 complete ✅ — Wave 2 unblocked):** Follow effort order, not numerical order:
+> `1d ✅ (Protobuf)` → `1e ✅ (AsyncAPI/Avro)` → `1h ✅ (Terraform)` → `1c ✅ (GraphQL)` → `1f ✅ (AI/ML)` → `1g ✅ (Enterprise)`
 
 ---
 
-## Phase 2 — GitHub App 🔄 IN PROGRESS
+## Phase 2 — GitHub App ✅ COMPLETE
 
 > **Dependency:** Phase 1 diff engine binary complete ✅
 > **Spec Gate:** `docs/specs/github-app.md` ✅ APPROVED
-> **Jules sessions submitted:** 2026-07-08 — 3 parallel tasks running on `feature/dev`. Review PRs tomorrow.
+> **Status:** All implementation tasks successfully deployed and validated end-to-end.
 
 | Task ID | Name | Owner | Status | Jules Prompt |
 |---|---|---|---|---|
@@ -176,19 +179,16 @@
 | P2-T03 | PR comment formatter (standalone TypeScript module) | Jules | ✅ | `prompts/phase-2-github-app/t03_pr_comment_formatter.txt` |
 | **P2-T02b** | **Wire Worker → Container → GitHub APIs** — real diff results posted to PRs | Jules | ✅ | `prompts/phase-2-github-app/t02b_wire_worker_container.txt` |
 | P2-T04 | Required status check (merge blocker) | Jules | ✅ | `prompts/phase-2-github-app/t04_required_status_check.txt` |
-| P2-T05 | Deployment (Cloudflare Workers + Container) | Jules | ⏳ (Session: `3605207814737534566`) | `prompts/phase-2-github-app/t05_deployment.txt` |
+| P2-T05 | Deployment (Cloudflare Workers + Container) | Jules | ✅ | `prompts/phase-2-github-app/t05_deployment.txt` |
 | **P2-T06** | **`substrate check-deploy`** — registry query: safe to deploy to production? | Antigravity | 🔒 *deferred: needs Phase 3 registry* | — |
 | **P2-T07** | **Webhook re-verification** — consumer spec drift → auto re-check provider | Jules | 🔒 *deferred: needs Phase 3 registry* | — |
 | **P2-T08** | **Blog post + HackerNews launch** — official Substrate GitHub App launch | Antigravity | 💡 *after Phase 2 ships* | — |
 
-> **T01, T02a, T03 are parallel** — zero cross-dependencies. All 3 submitted simultaneously.
-> **Review checklist for tomorrow:** `tsc --noEmit` (TS) or `go build ./...` (Go) must pass. All tests green. No files outside the FILES LIST touched.
-
 ---
 
-## Phase 3 — Dashboard, API & MCP Server 💡 PLANNED
+## Phase 3 — Dashboard, API & MCP Server ✅ COMPLETED
 
-> **Dependency:** Phase 2 GitHub App working end-to-end
+> **Dependency:** Phase 2 GitHub App working end-to-end ✅
 
 ### The Core Phase 3 Feature: Cross-Repo Contract Registry
 
@@ -210,22 +210,32 @@
 >
 > **How we can test this today (before Phase 3 infra):** Simulate multiple repos as subfolders in `engine/cmd/substrate/testdata/cross-repo/`. E2E tests run Substrate against `(provider_new_spec, consumer_stored_spec)` and assert cross-boundary breaks are detected. No real cross-repo infra needed for the engine tests.
 
-| Task ID | Name | Owner | Status |
-|---|---|---|---|
-| P3-T01 | PostgreSQL schema + Go API server | Jules | 💡 |
-| P3-T02 | `substrate.yaml` multi-contract parser + dependency registration | Jules | 💡 |
-| **P3-T02b** | **Contract registry** — store + sync consumer spec snapshots from registered repos | Jules | 💡 |
-| **P3-T02c** | **Cross-repo compatibility check** — on provider PR, validate change against all consumer snapshots | Antigravity | 💡 |
-| **P3-T02d** | **Cross-repo E2E fixture tests** — `testdata/cross-repo/` simulating multi-repo scenario | Jules | 💡 |
-| P3-T03 | SvelteKit project setup + design system | Antigravity | 💡 |
-| P3-T04 | Connected repos list + schema browser | Antigravity + Jules | 💡 |
-| P3-T05 | Dependency graph visualization | Antigravity | 💡 |
-| P3-T06 | GitHub OAuth + org management | Jules | 💡 |
-| P3-T07 | Free tier limits + production deployment | Jules | 💡 |
-| **P3-T08** | **MCP server spec** (`docs/specs/mcp-server.md`) | Antigravity | 💡 |
-| **P3-T09** | **MCP server implementation** (Go, exposes graph + schema tools) | Jules | 💡 |
-| **P3-T10** | **MCP server deployment + IDE integration docs** | Antigravity | 💡 |
-| **P3-T11** | **Compatibility matrix dashboard** — provider version × consumer version grid showing green/red compatibility status for all registered cross-repo contracts | Antigravity | 💡 |
+> **Spec:** `docs/specs/phase-3/contract-registry.md`  
+> **Execution order:** P3-T01 → P3-T02 → P3-T02b → **P3-T02c+P3-T02d (parallel)** → Dashboard → MCP
+> **Jules sessions:** P3-T01 ✅ | P3-T02 ✅ | P3-T02b ✅ | P3-T02c ⏳ ready to spec
+
+| Task ID | Priority | Name | Owner | Status |
+|---|---|---|---|---|
+| P3-T01 | 🔴 P1 | PostgreSQL schema + Go API server | Jules | ✅ |
+| P3-T02 | 🔴 P1 | `substrate.yaml` consumer declaration parser | Jules | ✅ |
+| **P3-T02b** | 🔴 P1 | **Contract registry sync** — snapshot consumer specs on push to `main` | Jules | ✅ | `prompts/phase-3-registry/t02b_contract_sync.txt` |
+| **P3-T02c** | 🔴 P1 | **Cross-repo check on PR** — validate provider PR against all consumer snapshots | Jules | ✅ | `prompts/phase-3-registry/t02c_cross_repo_check.txt` |
+| **P3-T06** | 🟡 P2 | **GitHub OAuth + org management** | Jules | ✅ Merged `feature/dev` 2026-07-10 (`1fc0f16`) | `prompts/phase-3-registry/t06_auth_org.txt` |
+| **P3-T02d** | 🟡 P2 | **Cross-repo E2E fixture tests** — `testdata/cross-repo/` | Jules | ✅ | `prompts/phase-3-registry/t02d_cross_repo_e2e.txt` |
+| **P3-T03** | 🟢 P3 | **SvelteKit dashboard project setup + design system** | Jules | ✅ | `prompts/phase-3-registry/t03_dashboard.txt` |
+| **P3-T04** | 🟢 P3 | **Connected repos list + schema browser** | Jules | ✅ Merged `feature/dev` 2026-07-10 (`c2fa3ce`) | `prompts/phase-3-registry/t04_dashboard_repos.txt` |
+| **P3-T05** | 🟢 P3 | **Dependency graph visualization** | Antigravity | ✅ | `docs/specs/phase-3/dashboard.md` |
+| **P3-T11** | 🟢 P3 | **Compatibility matrix dashboard** — provider × consumer version grid | Antigravity | ✅ | `docs/specs/phase-3/dashboard.md` |
+| **P3-T15** | 🟡 P2 | **Dashboard E2E Tests (Playwright)** — test nav, graph, and matrix with API mocks | Jules/Antigravity | ✅ Merged `feature/dev` 2026-07-10 | `prompts/phase-3-registry/t15_dashboard_e2e.txt` |
+| **P3-T16** | 🟢 P3 | **AI Schema Validator Playground (UI)** — Interactive split-pane diff & AI auto-remediation | Jules | ✅ Merged `feature/dev` 2026-07-10 | `prompts/phase-3-registry/t16_playground.txt` |
+| **P3-T08** | 🔵 P4 | **MCP server spec** (`docs/specs/phase-3/mcp-server.md`) | Antigravity | ✅ |
+| **P3-T09** | 🔵 P4 | **MCP server implementation** (Go, JSON-RPC 2.0) | Jules | ✅ Merged `feature/dev` 2026-07-09 | `prompts/phase-3-registry/t09_mcp_implementation.txt` |
+| **P3-T09b** | 🔵 P4 | **Wire MCP to live Registry API** — `get_schema_file` (new endpoint), `analyze_repository` (local fs walk), `get_substrate_docs` (embedded docs). `get_breaking_change_history` deferred to Phase 4 (needs new DB table). | Jules | ✅ Merged `feature/dev` 2026-07-10 (`7b3c15e`) | `prompts/phase-3-registry/t09b_wire_mcp_registry.txt` |
+| **P3-T10** | 🔵 P4 | **MCP deployment + IDE integration docs** | Jules | ✅ Merged `feature/dev` 2026-07-10 | `prompts/phase-3-registry/t10_mcp_docs.txt` |
+| **P3-T12** | 🔵 P4 | **Comprehensive Substrate Platform Docs** — Deep-dive install, config, CLI params, and architecture guides optimized for both human reading and MCP/AI ingestion | Antigravity | ✅ | `docs/specs/documentation-strategy.md` |
+| **P3-T13** | 🟢 P3 | **Execution Modes (Enterprise Rollout)** — Add `--mode=legacy\|strict` to CLI for shadow mode / dry-run deployments | Jules | ✅ Merged `feature/dev` 2026-07-09 | `prompts/phase-3-registry/t13_enterprise_modes.txt` |
+| **P3-T14** | 🟢 P3 | **Interactive Diff Viewer URL** — Worker adds a "View Dashboard" link to GitHub comments, routing to the Svelte dashboard | Jules | ✅ Merged `feature/dev` 2026-07-10 (`7ab9f8a`) | `prompts/phase-3-registry/t14_interactive_diff_url.txt` |
+| **P3-T07** | ⚪ P5 | **Free tier limits + production deployment** | Jules | ✅ Merged `feature/dev` 2026-07-10 | `prompts/phase-3-registry/t07_rate_limits.txt` |
 
 > **P3-T11 rationale (inspired by PactFlow's compatibility matrix):** PactFlow's most requested enterprise dashboard feature. For a platform team managing 20+ microservices, this is the central control panel: "which version of `users-api` is compatible with which version of `frontend` and `mobile-app`?" Every cell in the grid is a green tick or red cross. This is what makes Substrate indispensable for large orgs and is a core enterprise upsell feature.
 
@@ -251,10 +261,27 @@
 
 | Task ID | Name | AI Approach | Owner | Status |
 |---|---|---|---|---|
-| **P4a-T01** | **AI Impact Analyst** — "What changed in the payments API last month that could affect checkout?" | MCP tools → Claude/GPT reasons over schema graph | Antigravity | 💡 |
-| **P4a-T02** | **Auto-Migration Generator** — breaking change detected → AI generates migration code diff for each affected consumer | MCP tools → foundation model generates code | Jules | 💡 |
-| **P4a-T03** | **Smart Deprecation Planner** — repeatedly acknowledged break → AI suggests 30-day deprecation plan + consumer notifications | MCP tools → foundation model reasons over acknowledgment history | Antigravity | 💡 |
-| **P4a-T04** | **AI-powered PR review assistant** — "This PR touches 5 schemas. Full cross-repo impact + suggested reviewers" | MCP tools → foundation model, triggered on PR open | Antigravity | 💡 |
+| **P4a-T01** | **AI Impact Analyst** — "What changed in the payments API last month that could affect checkout?" | MCP tools → Claude/GPT reasons over schema graph | Antigravity | ✅ Solved by P3-T09 (MCP Server) |
+| **P4a-T02** | **Zero-Touch Auto-Discovery PR** — On installation, GitHub App scans legacy repos and automatically opens PR adding `substrate.yaml` | MCP/LLM scans repo and generates config | Jules | 💡 |
+| **P4a-T03** | **AI API Architect (Spec-First)** — `substrate design` CLI command generates best-practice OpenAPI from text | LLM generates perfect schema | Antigravity | 💡 |
+| **P4a-T04** | **Auto-Migration Generator** — breaking change detected → AI generates migration code diff for each affected consumer | MCP tools → foundation model generates code | Jules | 💡 |
+| **P4a-T05** | **Smart Deprecation Planner** — repeatedly acknowledged break → AI suggests 30-day deprecation plan | MCP tools → foundation model reasons over history | Antigravity | 💡 |
+| **P4a-T06** | **AI-powered PR review assistant** — "This PR touches 5 schemas. Full cross-repo impact + suggested reviewers" | MCP tools → foundation model, triggered on PR open | Antigravity | 💡 |
+
+### Phase 4 Implementation Tasks 🏗️ (Ready to execute after P3-T15/P3-T16)
+
+> Concrete engineering tasks. Full spec: `docs/specs/phase-4/ai-intelligence.md`
+
+| Task ID | Priority | Description | Owner | Status |
+|---|---|---|---|---|
+| **P4-T01** | 🔴 P1 | **AI Reasoning Bridge** — Wire LLM (Gemini/Claude) to MCP tools via Go API | Antigravity | ✅ Done |
+| **P4-T02** | 🔴 P1 | **Streaming SSE Handler** — `POST /api/v1/ai/analyze` with real-time token streaming | Jules | ✅ Done | `prompts/phase-4/t02_streaming_sse_ai_handler.txt` |
+| **P4-T03** | 🟡 P2 | **Safe Schema Patch Generator** — AI suggests exact YAML/SQL provider fix | Jules | ✅ Done | `prompts/phase-4/t03_safe_schema_patch_generator.txt` |
+| **P4-T04** | 🟡 P2 | **GitHub PR Comment Upgrade** — Add AI explanation + fix snippet to PRs | Jules | ✅ Done | `prompts/phase-4/t04_github_pr_comment_upgrade.txt` |
+| **P4-T05** | 🟢 P3 | **Wire Real AI to Playground** — Replace mock in P3-T16 with live SSE stream | Antigravity | ✅ Done |
+| **P4-T06** | 🔵 P4 | **Shift-Left VSCode Extension** — Inline breaking-change warnings in the editor | Jules | ✅ Done | `prompts/phase-4/t06_vscode_extension.txt` |
+| **P4-T07** | ⚪ P5 | **Traffic-Aware Diffing** — Prometheus/OTel integration to suppress unused-field warnings | Jules | ✅ Done | `prompts/phase-4/t07_traffic_aware_diffing.txt` |
+| **P4-T08** | ⚪ P5 | **PII & Compliance Auditing** — Auto-tag `[HIPAA]`, `[PCI]`, `[PII]` fields on diff | Jules | ✅ Done | `prompts/phase-4/t08_compliance_auditing.txt` |
 
 ### Phase 4b — Specialized ML (slow — needs 6-12 months of real user data)
 
@@ -273,6 +300,37 @@
 ## Backlog / Future Phases 💡
 
 These are not yet scheduled but are on the product roadmap:
+
+**Phase 7 — Expanded Data Ecosystem** 🗄️
+*   **Expanded SQL Dialects:** Add parsers for MySQL/MariaDB, SQL Server (T-SQL), Oracle, and SQLite. (Leverages the existing generic SQL rules engine).
+*   **NoSQL Schema Diffing (MongoDB / DynamoDB):** Since NoSQL is "schema-less" at the DB layer, Substrate will parse application-level ODMs (Mongoose schemas, Prisma, Python Pydantic models) or generic JSON Schema exports to detect when a document structure changes and breaks downstream consumers.
+
+**Phase 5 — Enterprise Automation & Governance** 🏢
+See the full spec: `docs/specs/enterprise-vision.md`
+- [ ] **Cross-Repo Auto-Fix PR Generator** — Substrate opens fix PRs in consumer repos automatically (Deferred from Phase 4)
+- [ ] **Dynamic Dependency Discovery** — Full spec: `docs/specs/phase-5/dependency-discovery.md`
+  - **Tier 1a — Env Var Scanner:** `.env.example`, `docker-compose.yml`, K8s manifests, GitHub Actions `env:` blocks, `fly.toml`, `Dockerfile ENV` → extract `*_API_URL` / `*_ENDPOINT` patterns, resolve against URL→Repo registry
+  - **Tier 1b — Package Manifest Scanner:** `package.json` (`@myorg/*`), `go.mod` (internal modules), `requirements.txt`, `pom.xml` → SDK import = contract dependency
+  - **Tier 1c — OpenAPI Generator Config Scanner:** `openapitools.json`, `.openapi-generator-config.yaml`, `Makefile` generator targets → `inputSpec` URL is a direct, deterministic schema reference
+  - **Tier 1d — Docker Compose / K8s / Helm:** `depends_on` blocks + env var values with K8s DNS patterns (`*.svc.cluster.local`)
+  - **Tier 2a — Terraform Extended:** env var injections from resource references + `output` URL scraping
+  - **Tier 2b — Message Queue / Event-Driven:** AsyncAPI `$ref` cross-repo URLs + Kafka topic consumer/producer mapping
+  - **Tier 3 — Runtime Confirmation:** OTel/Datadog trace ingestion + eBPF/Service Mesh (enterprise)
+  - **URL→Repo Registry:** GitHub Deployments API auto-population + `substrate.yaml deployed_urls` declaration + Terraform output scraping
+  - **Confidence Scoring:** Multi-signal scoring system (0–100 pts) — High (80+), Medium (50–79), Low (<50) — shown in dashboard dependency graph
+- [ ] Custom Rules Engine (CEL / OPA Rego)
+- [ ] Traffic-Aware Diffing (Datadog/OTel integration for `WARNING (Unused)`)
+- [ ] ITSM Integration (Jira & ServiceNow Auto-Ticketing)
+- [ ] Auto-SDK PR Generation
+- [ ] Local Time-Travel Mock Servers
+- [ ] Runtime Drift Detection (eBPF / Envoy)
+- [ ] Security & PII Auditing
+- [ ] Compatibility Gates (SonarQube-style quality gates)
+- [ ] Shift-Left IDE Plugins (SonarLint equivalent via MCP)
+- [ ] Cross-Repo Auto-Fix PRs (Snyk-style auto-remediation)
+- [ ] Cross-Repo Data Flow Taint Analysis (Checkmarx style)
+- [ ] Compliance Mapping (SOC2, HIPAA, GDPR tags)
+- [ ] **LLM Direct Spec Inference (For LEGACY Projects):** If no spec exists, use an LLM (Approach 1) to read raw routing code (`routes.ts`) and dynamically generate the OpenAPI spec in the background without user intervention.
 
 **Override & Skip Config** ⚠️ Must ship before Phase 2 GitHub App
 - [x] Write `docs/specs/override-config.md` spec (P1-T00)
@@ -293,11 +351,14 @@ These are not yet scheduled but are on the product roadmap:
 - [ ] Confirm no subprocess / Node.js dependency — single-binary promise must hold for all formats
 
 **MCP Server** ⭐ Phase 3 — Turns Substrate into an IDE-native knowledge layer
-- [ ] Write `docs/specs/mcp-server.md` spec (P3-T08)
-- [ ] Implement Go MCP server with tools: `get_schema`, `check_impact`, `list_consumers`, `get_change_history`, `validate_change`
-- [ ] Deploy MCP server endpoint
+- [x] Write `docs/specs/mcp-server.md` spec (P3-T08) ✅
+- [x] Implement Go MCP server with 7 tools: `get_dependency_graph`, `check_compatibility`, `get_breaking_change_history`, `get_substrate_docs`, `analyze_repository`, `execute_cli_command`, `get_schema_file` ✅ (P3-T09 merged 2026-07-09)
+- [x] **Test `check_compatibility`:** Verified live integration with the Diff Engine via local execution.
+- [ ] **Wire Mock Endpoints to Postgres:** Currently, tools like `get_dependency_graph` and `get_breaking_change_history` return mock data. They need to be wired to the live PostgreSQL Registry API and validated later.
+- [ ] Deploy MCP server endpoint (P3-T10 — ⏳ next)
 - [ ] Write IDE integration guide (Antigravity, Cursor, Claude, Copilot)
 - [ ] Expose MCP server as self-hostable for Enterprise tier
+- [ ] **AI Pre-flight Validation Workflow:** Expand MCP tools to allow the AI to automatically create, validate configurations/schemas locally (using the local Diff Engine CLI), and auto-remediate breaking changes *before* committing code.
 
 **Legal / Pre-launch Checklist** ⚖️
 - [x] Add `NOTICES` file at repo root with Apache 2.0 attribution for oasdiff
@@ -305,6 +366,9 @@ These are not yet scheduled but are on the product roadmap:
 - [ ] Review all Go module dependencies in `go.mod` for license compatibility before v1.0 release
 
 
+**Developer Experience (DX) & Tooling**
+- [ ] Surface exact Engine error logs (e.g. invalid schema_type, parsing errors) inside GitHub PR comments for faster debugging.
+- [ ] Implement a local CLI command (`substrate validate` or `substrate diff`) to allow developers to test schema compatibility and configurations locally before committing.
 
 **Integrations**
 - [ ] Slack integration for PR notifications
@@ -317,6 +381,20 @@ These are not yet scheduled but are on the product roadmap:
 - [ ] SSO / SAML (Okta)
 - [ ] Custom rules engine
 - [ ] Compliance reporting & audit logs (SOC2)
+
+---
+
+## 🧭 Phase 5: Automated Dependency Discovery (Enterprise)
+
+**Goal:** Eliminate all manual `substrate.yaml` consumer declarations by automatically building the full cross-repo dependency graph from static and runtime signals.
+
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|---|---|---|---|---|---|
+| **P5-T01** | 🔴 P1 | **Env Var & URL Registry** — Scan `.env.example`, k8s, docker-compose. Populate URL→Repo registry via GitHub Deployments. | Jules | ⏳ Todo | `docs/specs/phase-5/dependency-discovery.md` |
+| **P5-T02** | 🟡 P2 | **Package & Generator Scanners** — Parse `package.json`, `go.mod`, and `openapi-generator-config.yaml` for internal SDKs. | Jules | ⏳ Todo | `docs/specs/phase-5/dependency-discovery.md` |
+| **P5-T03** | 🟢 P3 | **Terraform & UI** — Analyze Terraform env injection/outputs. Build Confidence Scoring UI in the Svelte Dashboard. | Antigravity | ⏳ Todo | `docs/specs/phase-5/dependency-discovery.md` |
+| **P5-T04** | 🔵 P4 | **Event-Driven Discovery** — Map Kafka topics and AsyncAPI `$ref` cross-references for message queues. | Jules | ⏳ Todo | `docs/specs/phase-5/dependency-discovery.md` |
+| **P5-T05** | ⚪ P5 | **Runtime Confirmation** — Ingest OTel/Datadog traces and eBPF network logs to confirm static graph edges. | Antigravity | ⏳ Todo | `docs/specs/phase-5/dependency-discovery.md` |
 
 ---
 

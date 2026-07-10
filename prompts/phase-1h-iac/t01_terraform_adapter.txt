@@ -1,0 +1,166 @@
+TASK: P1h-T01 — Terraform Plan JSON adapter
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Add Infrastructure-as-Code (Terraform) breaking-change detection to the Substrate diff engine.
+Instead of parsing raw HCL, this adapter parses the JSON output of `terraform plan` 
+(`terraform show -json tfplan`). It detects destructive actions on stateful resources,
+removed outputs, and changes to IAM policies.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-1/iac-adapter.md
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT
+═══════════════════════════════════════════════════════════════
+The diff engine lives in engine/ (a Go module at engine/go.mod).
+
+Key existing files (READ ONLY unless specified):
+  engine/internal/diff/openapi.go          — adapter pattern to follow
+  engine/internal/config/config.go         — SubstrateConfig struct
+  engine/internal/report/                  — DiffReport, Change, Severity types (READ ONLY)
+  engine/cmd/substrate/main.go             — CLI dispatch (MODIFY — add terraform-plan case)
+  engine/cmd/substrate/serve.go            — HTTP serve mode (MODIFY — add terraform-plan case)
+
+NO new Go module dependencies needed. Uses only Go stdlib `encoding/json`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FILE: engine/internal/diff/terraform.go  (CREATE NEW)
+
+   Package: package diff
+
+   ONLY use Go stdlib: encoding/json, fmt, io, os, time, strings
+   NO external dependencies.
+
+   Internal structs (minimal required to parse the plan JSON):
+   type TFResourceChange struct {
+       Address string `json:"address"`
+       Type    string `json:"type"`
+       Name    string `json:"name"`
+       Change  struct {
+           Actions []string `json:"actions"`
+       } `json:"change"`
+   }
+
+   type TFOutputChange struct {
+       Actions []string `json:"actions"`
+   }
+
+   type TFPlan struct {
+       ResourceChanges []TFResourceChange        `json:"resource_changes"`
+       OutputChanges   map[string]TFOutputChange `json:"output_changes"`
+   }
+
+   Implement this function:
+
+   func CompareTerraformPlan(planJSONPath string) (*report.DiffReport, error)
+
+   FULL implementation flow:
+
+   Step 1: Read planJSONPath content (raw bytes — it is JSON)
+     → On read error: return error
+
+   Step 2: Unmarshal into TFPlan struct
+     → On unmarshal error: return error
+
+   Step 3: Evaluate Resource Changes
+     Iterate through plan.ResourceChanges.
+     Look at the `Actions` array.
+     - If Actions contains "delete" and does NOT contain "create":
+       Check if it is a stateful resource. 
+       Stateful types to flag: aws_dynamodb_table, aws_s3_bucket, aws_db_instance, aws_rds_cluster, google_storage_bucket.
+       If it is stateful, emit 1 BREAKING change:
+         RuleID: "TF_RESOURCE_DESTROYED"
+         Path: resource.Address
+         Severity: BREAKING
+         Description: fmt.Sprintf("Stateful resource %s is marked for destruction", resource.Address)
+         Recommendation: "Ensure data is backed up or state is migrated before applying."
+
+     - If Actions contains "update" and Type is "aws_iam_policy" or "aws_iam_role_policy":
+       Emit 1 WARNING change:
+         RuleID: "TF_IAM_PERMISSION_REMOVED"
+         Path: resource.Address
+         Severity: WARNING
+         Description: fmt.Sprintf("IAM policy %s is being modified. Verify no critical permissions are removed.", resource.Address)
+
+   Step 4: Evaluate Output Changes
+     Iterate through plan.OutputChanges map.
+     - If Actions contains "delete":
+       Emit 1 BREAKING change:
+         RuleID: "TF_OUTPUT_REMOVED"
+         Path: outputName
+         Severity: BREAKING
+         Description: fmt.Sprintf("Terraform output '%s' was removed", outputName)
+
+   DiffReport construction:
+   Always set SchemaType: "terraform-plan" and ComparedAt: time.Now().UTC().Format(time.RFC3339).
+
+2. FILE: engine/internal/diff/terraform_test.go  (CREATE NEW)
+
+   Package: package diff_test
+
+   Use table-driven tests. Create temporary files with mock JSON content.
+
+   4 mandatory test cases:
+
+   1. "no destructive changes"
+      Body: {"resource_changes": [{"address": "aws_s3_bucket.my_bucket", "type": "aws_s3_bucket", "change": {"actions": ["update"]}}]}
+      Expected: 0 BREAKING, 0 WARNING
+
+   2. "stateful resource destroyed"
+      Body: {"resource_changes": [{"address": "aws_dynamodb_table.users", "type": "aws_dynamodb_table", "change": {"actions": ["delete"]}}]}
+      Expected: 1 BREAKING with RuleID "TF_RESOURCE_DESTROYED"
+
+   3. "output removed"
+      Body: {"output_changes": {"api_url": {"actions": ["delete"]}}}
+      Expected: 1 BREAKING with RuleID "TF_OUTPUT_REMOVED"
+
+   4. "iam policy modified"
+      Body: {"resource_changes": [{"address": "aws_iam_policy.app", "type": "aws_iam_policy", "change": {"actions": ["update"]}}]}
+      Expected: 0 BREAKING, 1 WARNING with RuleID "TF_IAM_PERMISSION_REMOVED"
+
+3. MODIFY: engine/cmd/substrate/main.go
+   Find the schema_type dispatch block.
+   Add:
+     case "terraform-plan":
+         // Note: For Terraform, baseSchema is ignored. We pass headSchema which should be the tfplan.json.
+         diffReport, err = diff.CompareTerraformPlan(headSchema)
+         if err != nil {
+             // handle same as other schema type errors
+         }
+
+4. MODIFY: engine/cmd/substrate/serve.go
+   Add "terraform-plan" to the schema_type dispatch in the /diff endpoint.
+   Also update the validation guard to accept "terraform-plan" as a valid schema_type.
+   Since `base_schema` is required by the API historically, users might pass dummy data. 
+   Write the head content to a temp file and call `diff.CompareTerraformPlan(headFile.Name())`.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- engine/internal/diff/terraform.go
+- engine/internal/diff/terraform_test.go
+
+FILES TO MODIFY:
+- engine/cmd/substrate/main.go          (add "terraform-plan" case)
+- engine/cmd/substrate/serve.go         (add "terraform-plan" case + validation guard)
+
+FILES TO NOT TOUCH (READ-ONLY):
+- engine/internal/diff/openapi.go       (complete — do not modify)
+- engine/internal/diff/proto.go         (complete — do not modify)
+- engine/internal/diff/avro.go          (complete — do not modify)
+- engine/internal/diff/asyncapi.go      (complete — do not modify)
+- engine/internal/report/               (DiffReport types — do not modify)
+- engine/go.mod                         (no new deps needed — stdlib only)
+- github-app/                           (TypeScript — do not touch)
+- api/                                  (Registry API — do not touch)
+- docs/specs/                           (ALL spec files are read-only)
+
+Commit: "jules: P1h-T01 add Terraform Plan JSON adapter"
+Target branch: feature/p1h-t01-terraform-adapter

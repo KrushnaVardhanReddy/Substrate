@@ -1,0 +1,192 @@
+TASK: P3-T14 — Interactive Diff Viewer URL in GitHub PR Comments
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Every PR comment posted by the Substrate GitHub Worker currently ends with a
+generic "Powered by Substrate" footer. This task adds a clickable
+"View in Dashboard →" deep-link to the footer so engineers can navigate
+directly from a GitHub PR to the Substrate Dashboard for the full diff report.
+
+The dashboard link MUST be optional — if the `DASHBOARD_URL` env variable is
+not configured in the Worker, the PR comment must render exactly as it does
+today with no regression.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-3/dashboard.md   (Section 6: P3-T14)
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT
+═══════════════════════════════════════════════════════════════
+The GitHub App is a Cloudflare Worker written in TypeScript, located in github-app/.
+
+Key files (READ ONLY unless specified):
+  github-app/src/types.ts          — Env interface + DiffReport types (MODIFY)
+  github-app/src/formatter.ts      — PR comment builder (MODIFY)
+  github-app/src/index.ts          — Main Worker fetch handler (MODIFY)
+  github-app/src/webhook.ts        — Webhook parser (READ ONLY)
+  github-app/src/github-client.ts  — GitHub API calls (READ ONLY)
+  github-app/test/index.test.ts    — Integration tests (MODIFY — add cases)
+
+The formatter currently has 3 comment branches:
+  1. breakingCount > 0  → "## 🔴 Substrate — Breaking Changes Detected"
+  2. warningCount > 0   → "## 🟡 Substrate — Warnings Only"
+  3. else               → "## ✅ Substrate — All Clear"
+
+Every branch ends with the same footer string:
+  `*Powered by [Substrate](https://github.com/KrushnaVardhanReddy/Substrate)*`
+
+The `formatPRComment(report, config)` function currently takes 2 parameters.
+The `Env` interface does NOT yet have `DASHBOARD_URL`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+──────────────────────────────────────────────────────────────
+1. MODIFY: github-app/src/types.ts
+──────────────────────────────────────────────────────────────
+
+In the `Env` interface, add ONE optional field after `REGISTRY_API_TOKEN`:
+
+  DASHBOARD_URL?: string;
+
+This field is optional. Existing deployments that do not set it must work
+without any change in behavior.
+
+──────────────────────────────────────────────────────────────
+2. MODIFY: github-app/src/formatter.ts
+──────────────────────────────────────────────────────────────
+
+Step A: Add a private helper function `formatFooter` at the TOP of the file
+(before `formatPRComment`):
+
+  function formatFooter(dashboardUrl?: string, owner?: string, repo?: string, prNumber?: number): string {
+    const poweredBy = `*Powered by [Substrate](https://github.com/KrushnaVardhanReddy/Substrate)*`;
+    if (dashboardUrl && owner && repo && prNumber) {
+      const link = `${dashboardUrl}/diff?owner=${owner}&repo=${repo}&pr=${prNumber}`;
+      return `[View in Dashboard →](${link})\n${poweredBy}`;
+    }
+    return poweredBy;
+  }
+
+Step B: Update the `formatPRComment` function signature to accept 3 optional
+additional parameters after the existing `config` parameter:
+
+  export function formatPRComment(
+    report: DiffReport,
+    config: SubstrateConfig,
+    dashboardUrl?: string,
+    owner?: string,
+    repo?: string,
+    prNumber?: number
+  ): string
+
+Step C: In all 3 branches of `formatPRComment`, replace every occurrence of:
+  `*Powered by [Substrate](https://github.com/KrushnaVardhanReddy/Substrate)*`
+
+With a call to the helper:
+  `${formatFooter(dashboardUrl, owner, repo, prNumber)}`
+
+There are exactly 3 occurrences — one in each branch (breaking, warning, all-clear).
+Replace ALL 3. Do not leave any hardcoded powered-by strings.
+
+Step D: `formatMissingConfigComment` already has its own hardcoded powered-by
+footer with a setup guide link. Do NOT change it — it is correct as-is and
+does not receive dashboard context.
+
+──────────────────────────────────────────────────────────────
+3. MODIFY: github-app/src/index.ts
+──────────────────────────────────────────────────────────────
+
+Find the call to `formatPRComment(report, config)` in the PR event handling
+flow. Update it to pass the optional dashboard context:
+
+  const comment = formatPRComment(
+    report,
+    config,
+    env.DASHBOARD_URL,
+    event.owner,
+    event.repo,
+    event.prNumber
+  );
+
+Note: `event.prNumber` is already available in the `PREvent` object (field name
+is `prNumber` based on the existing webhook.ts parser).
+
+Do not change any other logic in index.ts. This is a single call-site change.
+
+──────────────────────────────────────────────────────────────
+4. MODIFY: github-app/test/index.test.ts
+──────────────────────────────────────────────────────────────
+
+This file has existing Vitest tests. Add 2 new test cases:
+
+Test 1: "PR comment includes dashboard link when DASHBOARD_URL is set"
+  - Set up the mock env with `DASHBOARD_URL: "https://substrate.example.com"`.
+  - Trigger a simulated PR open webhook for a repo with a breaking change.
+  - Assert the posted PR comment body contains:
+    `View in Dashboard →`
+    and the URL: `https://substrate.example.com/diff?owner=`
+
+Test 2: "PR comment renders correctly when DASHBOARD_URL is not set"
+  - Set up the mock env WITHOUT `DASHBOARD_URL` (or set it to undefined).
+  - Trigger a simulated PR open webhook.
+  - Assert the posted PR comment body contains:
+    `Powered by [Substrate]`
+  - Assert it does NOT contain: `View in Dashboard`
+
+Follow the existing test patterns in the file for how to mock env, set up
+webhook payloads, and assert on posted comment bodies.
+
+──────────────────────────────────────────────────────────────
+5. VERIFY: TypeScript type-check passes
+──────────────────────────────────────────────────────────────
+
+After all changes, run:
+  cd github-app && npm run typecheck
+  cd github-app && npm test
+
+Both must pass with zero errors and all tests green.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO MODIFY:
+- github-app/src/types.ts          (add DASHBOARD_URL?: string to Env)
+- github-app/src/formatter.ts      (add formatFooter helper, update formatPRComment)
+- github-app/src/index.ts          (pass dashboard context to formatPRComment)
+- github-app/test/index.test.ts    (add 2 test cases)
+
+FILES TO NOT TOUCH (READ-ONLY):
+- github-app/src/webhook.ts        (complete — do not modify)
+- github-app/src/github-client.ts  (complete — do not modify)
+- github-app/src/registry-client.ts (complete — do not modify)
+- engine/                          (Go engine — do not touch)
+- api/                             (Go API server — do not touch)
+- dashboard/                       (SvelteKit — do not touch)
+- docs/specs/                      (ALL spec files — READ-ONLY)
+- github-app/wrangler.toml         (Worker config — do not touch)
+- github-app/package.json          (no new dependencies needed)
+
+═══════════════════════════════════════════════════════════════
+CRITICAL CONSTRAINTS
+═══════════════════════════════════════════════════════════════
+
+1. DASHBOARD_URL is OPTIONAL. If it is absent (undefined or empty string),
+   the PR comment must be IDENTICAL to the current output. Zero regression.
+
+2. Do NOT change the `formatMissingConfigComment()` function at all.
+
+3. Do NOT add any new npm dependencies.
+
+4. The formatter tests must test the `formatFooter` behavior via the full
+   `formatPRComment` function — do NOT test `formatFooter` in isolation
+   (it is a private helper, not exported).
+
+5. Use the existing test patterns in index.test.ts. Do not introduce new
+   test frameworks or testing utilities.
+
+Commit: "jules: P3-T14 add dashboard deep-link to PR comment footer"
+Target branch: feature/dev

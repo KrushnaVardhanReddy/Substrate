@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/config"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/diff"
@@ -15,13 +16,16 @@ import (
 )
 
 type DiffRequest struct {
-	BaseSchema string `json:"base_schema"`
-	HeadSchema string `json:"head_schema"`
-	Config     string `json:"config"`
-	SchemaType string `json:"schema_type"`
+	BaseSchema      string `json:"base_schema"`
+	HeadSchema      string `json:"head_schema"`
+	Config          string `json:"config"`
+	SchemaType      string `json:"schema_type"`
+	AvroRegistryURL string `json:"avro_registry_url,omitempty"`
+	ProviderOrg     string `json:"provider_org,omitempty"`
+	ProviderRepo    string `json:"provider_repo,omitempty"`
 }
 
-func applyConfig(rep *report.DiffReport, configPath string) *report.DiffReport {
+func applyConfig(rep *report.DiffReport, configPath, org, repo string) *report.DiffReport {
 	if configPath == "" {
 		return rep
 	}
@@ -30,40 +34,19 @@ func applyConfig(rep *report.DiffReport, configPath string) *report.DiffReport {
 		return rep
 	}
 
-	var activeBreaking []report.Change
-	for _, bc := range rep.BreakingChanges {
-		if cfg.IsOverrideActive(bc.RuleID, bc.Path) {
-			continue
-		}
-		activeBreaking = append(activeBreaking, bc)
-	}
-
-	rep.BreakingChanges = activeBreaking
-	rep.Summary.BreakingCount = len(rep.BreakingChanges)
-
-	if rep.Summary.BreakingCount > 0 {
-		rep.Summary.OverallSeverity = report.SeverityBreaking
-	} else if rep.Summary.WarningCount > 0 {
-		rep.Summary.OverallSeverity = report.SeverityWarning
-	} else if rep.Summary.TotalChanges > 0 {
-		rep.Summary.OverallSeverity = report.SeveritySafe
-	} else {
-		rep.Summary.OverallSeverity = report.SeverityNoChanges
-	}
-
-	return rep
+	return diff.ApplyConfigAndTraffic(rep, cfg, org, repo)
 }
 
-func runOpenAPIDiff(basePath, headPath, configPath string) (*report.DiffReport, error) {
+func runOpenAPIDiff(basePath, headPath, configPath, org, repo string) (*report.DiffReport, error) {
 	rep, err := diff.CompareOpenAPI(basePath, headPath, true)
 	if err != nil {
 		return nil, err
 	}
-	rep = applyConfig(rep, configPath)
+	rep = applyConfig(rep, configPath, org, repo)
 	return rep, nil
 }
 
-func runSQLDiff(basePath, headPath, configPath string) (*report.DiffReport, error) {
+func runSQLDiff(basePath, headPath, configPath, org, repo string) (*report.DiffReport, error) {
 	base, err := sqlpkg.ParseSchema(basePath)
 	if err != nil {
 		return nil, err
@@ -73,7 +56,7 @@ func runSQLDiff(basePath, headPath, configPath string) (*report.DiffReport, erro
 		return nil, err
 	}
 	rep := sqlpkg.DiffSchemas(base, head)
-	rep = applyConfig(rep, configPath)
+	rep = applyConfig(rep, configPath, org, repo)
 	return rep, nil
 }
 
@@ -120,61 +103,137 @@ func setupMux() *http.ServeMux {
 			return
 		}
 
-		if req.SchemaType != "openapi" && req.SchemaType != "sql" {
+		if req.SchemaType != "graphql" && req.SchemaType != "openapi" && req.SchemaType != "sql" && req.SchemaType != "protobuf" && req.SchemaType != "proto" && req.SchemaType != "asyncapi" && req.SchemaType != "avro" && req.SchemaType != "terraform-plan" && req.SchemaType != "ai-model" {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(fmt.Sprintf(`{"error": "unsupported schema_type: %s"}`, req.SchemaType)))
 			return
 		}
 
-		baseFile, err := os.CreateTemp("", "base-*")
+		ext := ""
+		switch req.SchemaType {
+		case "graphql":
+			ext = ".graphql"
+		case "openapi":
+			ext = ".yaml"
+		case "sql":
+			ext = ".sql"
+		case "protobuf", "proto":
+			ext = ".proto"
+		case "avro":
+			ext = ".avsc"
+		}
+
+		tempDir, err := os.MkdirTemp("", "substrate-diff-*")
 		if err != nil {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(`{"error": "internal diff error"}`))
 			return
 		}
-		defer os.Remove(baseFile.Name())
-		baseFile.WriteString(req.BaseSchema)
-		baseFile.Close()
+		defer os.RemoveAll(tempDir)
 
-		headFile, err := os.CreateTemp("", "head-*")
-		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{"error": "internal diff error"}`))
-			return
-		}
-		defer os.Remove(headFile.Name())
-		headFile.WriteString(req.HeadSchema)
-		headFile.Close()
+		var baseTarget, headTarget string
 
-		var configPath string
-		if req.Config != "" {
-			configFile, err := os.CreateTemp("", "config-*")
+		if req.SchemaType == "protobuf" || req.SchemaType == "proto" {
+			baseDir := filepath.Join(tempDir, "base")
+			headDir := filepath.Join(tempDir, "head")
+			os.Mkdir(baseDir, 0755)
+			os.Mkdir(headDir, 0755)
+
+			baseFilePath := filepath.Join(baseDir, "schema.proto")
+			os.WriteFile(baseFilePath, []byte(req.BaseSchema), 0644)
+
+			headFilePath := filepath.Join(headDir, "schema.proto")
+			os.WriteFile(headFilePath, []byte(req.HeadSchema), 0644)
+
+			baseTarget = baseDir
+			headTarget = headDir
+		} else {
+			baseFile, err := os.CreateTemp(tempDir, "base-*"+ext)
 			if err != nil {
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte(`{"error": "internal diff error"}`))
 				return
 			}
-			defer os.Remove(configFile.Name())
+			baseFile.WriteString(req.BaseSchema)
+			baseFile.Close()
+			baseTarget = baseFile.Name()
+
+			headFile, err := os.CreateTemp(tempDir, "head-*"+ext)
+			if err != nil {
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(`{"error": "internal diff error"}`))
+				return
+			}
+			headFile.WriteString(req.HeadSchema)
+			headFile.Close()
+			headTarget = headFile.Name()
+		}
+
+		var configPath string
+		if req.Config != "" {
+			configFile, err := os.CreateTemp(tempDir, "config-*")
+			if err != nil {
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(`{"error": "internal diff error"}`))
+				return
+			}
 			configFile.WriteString(req.Config)
 			configFile.Close()
 			configPath = configFile.Name()
 		}
 
 		var rep *report.DiffReport
-		if req.SchemaType == "sql" {
-			rep, err = runSQLDiff(baseFile.Name(), headFile.Name(), configPath)
-		} else {
-			rep, err = runOpenAPIDiff(baseFile.Name(), headFile.Name(), configPath)
+		switch req.SchemaType {
+		case "graphql":
+			rep, err = diff.CompareGraphQL(baseTarget, headTarget)
+			if err == nil {
+				rep = applyConfig(rep, configPath, req.ProviderOrg, req.ProviderRepo)
+			}
+		case "sql":
+			rep, err = runSQLDiff(baseTarget, headTarget, configPath, req.ProviderOrg, req.ProviderRepo)
+		case "terraform-plan":
+			rep, err = diff.CompareTerraformPlan(headTarget)
+			if err == nil {
+				rep = applyConfig(rep, configPath, req.ProviderOrg, req.ProviderRepo)
+			}
+		case "ai-model":
+			rep, err = diff.CompareAIML(baseTarget, headTarget)
+			if err == nil {
+				rep = applyConfig(rep, configPath, req.ProviderOrg, req.ProviderRepo)
+			}
+		case "asyncapi":
+			rep, err = diff.CompareAsyncAPI(baseTarget, headTarget)
+			if err == nil {
+				rep = applyConfig(rep, configPath, req.ProviderOrg, req.ProviderRepo)
+			}
+		case "protobuf", "proto":
+			rep, err = diff.CompareProto(baseTarget, headTarget)
+			if err == nil {
+				rep = applyConfig(rep, configPath, req.ProviderOrg, req.ProviderRepo)
+			}
+		case "avro":
+			var cfg *config.SubstrateConfig
+			if configPath != "" {
+				cfg, _ = config.LoadConfig(configPath)
+			}
+			rep, err = diff.CompareAvro(baseTarget, headTarget, cfg)
+			if err == nil {
+				rep = applyConfig(rep, configPath, req.ProviderOrg, req.ProviderRepo)
+			}
+		default:
+			rep, err = runOpenAPIDiff(baseTarget, headTarget, configPath, req.ProviderOrg, req.ProviderRepo)
 		}
 
 		if err != nil {
+			log.Printf("internal diff error: %v", err)
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{"error": "internal diff error"}`))
+			w.Write([]byte(fmt.Sprintf(`{"error": "internal diff error: %v"}`, err)))
 			return
 		}
 

@@ -1,0 +1,134 @@
+TASK: P1c-T01 — GraphQL Schema Diff Adapter
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Add GraphQL breaking-change detection to the Substrate diff engine by
+implementing an adapter that uses the `github.com/vektah/gqlparser/v2` AST parser.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-1/graphql-adapter.md
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT
+═══════════════════════════════════════════════════════════════
+The diff engine lives in engine/ (a Go module at engine/go.mod).
+
+Key existing files (READ ONLY unless specified):
+  engine/internal/diff/openapi.go          — adapter pattern to follow
+  engine/internal/report/                  — DiffReport, Change, Severity types (READ ONLY)
+  engine/cmd/substrate/main.go             — CLI dispatch (MODIFY — add graphql case)
+  engine/cmd/substrate/serve.go            — HTTP serve mode (MODIFY — add graphql case)
+
+You will need to add `github.com/vektah/gqlparser/v2` to `engine/go.mod`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FILE: engine/internal/diff/graphql.go  (CREATE NEW)
+
+   Package: package diff
+
+   Required imports:
+     - github.com/vektah/gqlparser/v2/ast
+     - github.com/vektah/gqlparser/v2/parser
+
+   Implement this primary function:
+
+   func CompareGraphQL(basePath, headPath string) (*report.DiffReport, error)
+
+   FULL implementation flow:
+
+   Step 1: Read files and parse schemas
+     - Use `os.ReadFile` to get the string contents.
+     - Parse the strings using `parser.ParseSchema(&ast.Source{Input: content})`.
+     - Return an error if the parsing fails (invalid GraphQL).
+
+   Step 2: Diff Types (Objects, Inputs, Interfaces, Unions, Enums, Scalars)
+     - Iterate through `baseSchema.Types`.
+     - If the type does not exist in `headSchema.Types`, emit `GQL_TYPE_REMOVED` (BREAKING).
+     - If the type exists, diff the fields/members based on the type kind:
+       - For Enums: Diff EnumValues. Emit `GQL_ENUM_VALUE_REMOVED` (BREAKING) if a value is missing. Emit `GQL_ENUM_VALUE_DEPRECATED` (WARNING) if `@deprecated` is added.
+       - For Unions: Emit `GQL_UNION_MEMBER_REMOVED` (BREAKING) if a member is missing.
+       - For Objects/Interfaces/Inputs: Diff Fields (Step 3).
+       - For Objects: Diff Implemented Interfaces. Emit `GQL_INTERFACE_REMOVED` (BREAKING) if an implemented interface is missing in head.
+
+   Step 3: Diff Fields & Arguments
+     - Compare fields inside `baseType` and `headType`.
+     - If a base field is missing in head, emit `GQL_FIELD_REMOVED` (BREAKING).
+     - If the field exists in head, compare the return Type (`field.Type.String()`).
+       - If type strings do not match, check if it's a nullable-to-non-nullable safe change (e.g., base="String", head="String!"). If it is not that specific safe transition, emit `GQL_FIELD_TYPE_CHANGED` (BREAKING).
+     - Compare field arguments. If base argument is missing, emit `GQL_ARGUMENT_REMOVED` (BREAKING). If argument type changed, emit `GQL_ARGUMENT_TYPE_CHANGED` (BREAKING).
+     - Check for new required arguments in head fields (arguments in head that are not in base, and are NonNull with no DefaultValue). Emit `GQL_REQUIRED_ARGUMENT_ADDED` (BREAKING). If nullable or has default, emit `GQL_OPTIONAL_ARGUMENT_ADDED` (SAFE).
+     - If the field is in an Input Object, check for new required fields (same logic as arguments). Emit `GQL_INPUT_FIELD_ADDED_REQUIRED` (BREAKING) or `GQL_INPUT_FIELD_ADDED_OPTIONAL` (SAFE).
+     - Check if field is deprecated in head but not base: emit `GQL_FIELD_DEPRECATED` (WARNING).
+
+   Step 4: Diff Directives
+     - Iterate through `baseSchema.Directives`.
+     - If missing in head, emit `GQL_DIRECTIVE_REMOVED` (BREAKING).
+     - If valid locations are removed in head, emit `GQL_DIRECTIVE_LOCATION_REMOVED` (BREAKING).
+
+   DiffReport construction:
+   Always set SchemaType: "graphql" and ComparedAt: time.Now().UTC().Format(time.RFC3339).
+
+2. FILE: engine/internal/diff/graphql_test.go  (CREATE NEW)
+
+   Package: package diff_test
+
+   Use table-driven tests. Create temporary files with mock GraphQL SDL strings.
+
+   Mandatory test cases:
+   1. "no changes" -> 0 BREAKING, 0 WARNING
+   2. "type removed" -> base has `type User { id: ID! }`, head is empty. -> 1 BREAKING (`GQL_TYPE_REMOVED`)
+   3. "field removed" -> head is missing `name` field from `User`. -> 1 BREAKING (`GQL_FIELD_REMOVED`)
+   4. "field type changed" -> base `age: Int`, head `age: String`. -> 1 BREAKING (`GQL_FIELD_TYPE_CHANGED`)
+   5. "field type safe non-null change" -> base `age: Int`, head `age: Int!`. -> 0 BREAKING
+   6. "required argument added" -> base `users: [User!]!`, head `users(limit: Int!): [User!]!`. -> 1 BREAKING (`GQL_REQUIRED_ARGUMENT_ADDED`)
+   7. "enum value removed" -> base `enum Role { ADMIN, USER }`, head `enum Role { ADMIN }`. -> 1 BREAKING (`GQL_ENUM_VALUE_REMOVED`)
+   8. "field deprecated" -> head adds `@deprecated(reason: "old")`. -> 0 BREAKING, 1 WARNING (`GQL_FIELD_DEPRECATED`)
+   9. "invalid schema parsing" -> pass malformed GraphQL string. -> function returns an error, no panic.
+
+3. MODIFY: engine/cmd/substrate/main.go
+   Find the `switch finalSchemaType` block.
+   Add:
+     case "graphql":
+         rep, err = diff.CompareGraphQL(basePath, revisionPath)
+         if err != nil {
+             fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+             os.Exit(3)
+         }
+
+4. MODIFY: engine/cmd/substrate/serve.go
+   Add "graphql" to the `switch req.SchemaType` in the `/diff` endpoint.
+   Also update the validation guard (the `if` checking req.SchemaType) to accept "graphql".
+
+5. MODIFY: engine/go.mod
+   Add `github.com/vektah/gqlparser/v2` and run `go mod tidy`.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- engine/internal/diff/graphql.go
+- engine/internal/diff/graphql_test.go
+
+FILES TO MODIFY:
+- engine/go.mod                         (add github.com/vektah/gqlparser/v2)
+- engine/cmd/substrate/main.go          (add "graphql" case)
+- engine/cmd/substrate/serve.go         (add "graphql" case + validation guard)
+
+FILES TO NOT TOUCH (READ-ONLY):
+- engine/internal/diff/openapi.go       (complete — do not modify)
+- engine/internal/diff/proto.go         (complete — do not modify)
+- engine/internal/diff/avro.go          (complete — do not modify)
+- engine/internal/diff/asyncapi.go      (complete — do not modify)
+- engine/internal/diff/terraform.go     (complete — do not modify)
+- engine/internal/report/               (DiffReport types — do not modify)
+- github-app/                           (TypeScript — do not touch)
+- api/                                  (Registry API — do not touch)
+- docs/specs/                           (ALL spec files are read-only)
+
+Commit: "jules: P1c-T01 add GraphQL schema diff adapter"
+Target branch: feature/p1c-t01-graphql-adapter

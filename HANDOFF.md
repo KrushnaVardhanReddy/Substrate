@@ -1,82 +1,16 @@
 # Substrate Project Handoff
 
-**Date:** July 8, 2026 (End of Session)
-**Current Phase:** Phase 2 (GitHub App) 🔄 IN PROGRESS — 3 Jules sessions running.
+**Date:** July 10, 2026 (End of Session)
 
----
+## 🚀 What is Tested & Working (100% COMPLETE)
+*   **Diff Engine (Phase 1):** All 8 adapters (OpenAPI, SQL, GraphQL, Protobuf, AsyncAPI, Avro, Terraform, AI/ML) are fully implemented and passing unit tests.
+*   **Live E2E Pipeline (Phase 3):** The automated matrix test script (`make e2e-*`) successfully seeded the database and verified both Safe and Breaking PR status checks across all schema types via the GitHub Worker.
+*   **Registry API (Phase 3):** All 5 core Go handlers (`/health`, `/sync`, `/cross-repo-check`, `/graph`, `/repos`) are fully tested and have 100% passing unit tests. CORS is fixed and active.
+*   **Svelte UI Dashboard (Phase 4 MVP):** Verified working on `http://localhost:3000`. It correctly fetches live Postgres data from the API and renders the visual dependency graph (`consumer → provider`) and breaking change history.
+*   **MCP Server (Phase 3):** Verified working via `stdio`. The `check_compatibility` endpoint correctly integrates with the live Diff Engine and outputs standard JSON-RPC 2.0.
 
-## What Jules Is Working On Right Now
-
-All 3 sessions submitted to `feature/dev` branch on 2026-07-08. Review PRs tomorrow morning.
-
-| Jules Session | Task | What It Builds |
-|---|---|---|
-| `332461586460335586` | P2-T01 | Cloudflare Worker scaffold + GitHub App webhook receiver + HMAC validation |
-| `12378420499826865949` | P2-T02a | `substrate serve --port 8080` HTTP mode on the Go binary |
-| `9046194793485505468` | P2-T03 | PR comment formatter TypeScript module (DiffReport → markdown) |
-
-**These 3 tasks are fully parallel — no cross-dependencies. Once all 3 PRs are merged, the next task is P2-T02b (wire them together).**
-
----
-
-## PR Review Checklist (for Tomorrow)
-
-For each Jules PR, verify:
-- [ ] `tsc --noEmit` passes with zero errors (TypeScript tasks)
-- [ ] `go build ./...` + `go vet ./...` pass (Go tasks)
-- [ ] All new tests are green
-- [ ] No files outside the FILES LIST were touched
-- [ ] Commit message starts with `jules: ` prefix
-- [ ] No files in `docs/specs/` were modified
-
----
-
-## What We Completed Today (July 7–8 Session)
-
-1. **Docker Hub distribution fixed and live** — v0.1.6 ships via automated release CI. Dockerfile fixed (gcc + git + CGO). Auth scopes corrected.
-2. **Phase 2 architecture designed** — all 5 open questions resolved (container service, personal account, per-repo+org scope, configurable block/warn, setup guide comment).
-3. **Phase 2 spec written** — `docs/specs/github-app.md` approved. Full architecture including HMAC flow, Container Service HTTP contract, PR comment templates, commit status logic.
-4. **3 Phase 2 Jules prompts written** — all following t06 quality standard: MANDATORY RULES at top, CONTEXT section, DELIVERABLES per file, FILES LIST with READ-ONLY gates.
-5. **Roadmap extended** — Phase 4 added (4a: MCP + foundation models, 4b: specialized ML). 4 Pact-inspired features added (P1-T09, P2-T06, P2-T07, P3-T11). Phase 4 hybrid architecture documented.
-6. **HN launch task** — moved from Phase 1 backlog to P2-T08 (end of Phase 2). Right timing.
-
----
-
-## Next Steps (After Jules PRs Are Reviewed)
-
-**Tomorrow (priority order):**
-1. Review and merge Jules PRs for P2-T01, P2-T02a, P2-T03
-2. Write and submit `P2-T02b` Jules prompt — wires Worker → Container → GitHub APIs
-3. Once T02b is done, write `P2-T04` Jules prompt (status check integration)
-
-**After Phase 2 ships:**
-4. Register the GitHub App at `github.com/settings/apps/new` under `kpakkiragari` (manual step)
-5. Set Cloudflare Workers secrets: `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY`, `GITHUB_WEBHOOK_SECRET`
-6. Deploy the Container Service (Cloudflare Containers or Fly.io)
-7. HN launch post (P2-T08)
-
----
-
-## Architecture Decisions Locked
-
-| Decision | Choice | Rationale |
-|---|---|---|
-| Binary execution model | Option C: Container Service (HTTP) | CGO support needed for SQL parser; 2–5s latency acceptable |
-| GitHub App owner | `kpakkiragari` personal | Can migrate to `substratehq` org later |
-| Installation scope | Both per-repo and org | GitHub handles natively, no code change |
-| Breaking change default | `block` (fail PR) | Configurable via `on_breaking_change: warn` |
-| No `substrate.yaml` | Post setup guide comment | Converts installs to active users via `substrate init` |
-| Container hosting | Cloudflare Containers (preferred) / Fly.io (backup) | Same Docker image already published |
-| Phase 4 AI model | Hybrid: MCP + foundation models for reasoning, classical ML for anomaly/prediction | Never train a general LLM |
-
----
-
-## Key File Locations
-
-| File | Purpose |
-|---|---|
-| `docs/specs/github-app.md` | Phase 2 authoritative spec (READ-ONLY for Jules) |
-| `prompts/phase-2-github-app/t01_github_app_scaffold.txt` | Jules prompt for P2-T01 |
-| `prompts/phase-2-github-app/t02a_binary_serve_mode.txt` | Jules prompt for P2-T02a |
-| `prompts/phase-2-github-app/t03_pr_comment_formatter.txt` | Jules prompt for P2-T03 |
-| `tasks.md` | Full roadmap — Phase 1 through Phase 4 |
+## 🎯 What is Pending (Next Steps)
+1.  **Wire Mock MCP Endpoints to DB:** The MCP registry lookup tools (`get_dependency_graph`, `get_breaking_change_history`, `get_schema_file`) currently return mock data. They need to be formally wired to the live PostgreSQL API so AI Agents can read real architectural state.
+2.  **Svelte UI Interactive Features:** The Dashboard is currently a static visualizer MVP. Authentication, Settings, API Keys generation, and "Connect Repository" GitHub OAuth flows need to be built out.
+3.  **DX & Local Tooling:** Build the `substrate validate` local CLI tool so developers (and AI Agents) can test schemas locally before committing.
+4.  **Documentation & Launch:** Prepare the final platform documentation, tag `V1.0`, and release the Substrate App to the GitHub Marketplace!

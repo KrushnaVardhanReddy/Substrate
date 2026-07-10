@@ -1,0 +1,285 @@
+TASK: P4-T03 — Safe Schema Patch Generator (Provider-Side Auto-Fix)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Add a new `POST /api/v1/ai/autofix` endpoint to the Go API server
+that receives a breaking change report and returns:
+  1. A plain-English explanation of the impact.
+  2. The exact safe schema patch the provider developer should apply
+     (e.g., add @deprecated instead of deleting a field).
+
+This endpoint is NOT streamed (unlike /ai/analyze). It returns a
+single JSON response after calling the LLM synchronously. The LLM
+provider uses the same three env vars as P4-T02:
+  SUBSTRATE_AI_BASE_URL, SUBSTRATE_AI_API_KEY, SUBSTRATE_AI_MODEL
+
+If SUBSTRATE_AI_BASE_URL is not set, return a deterministic mock
+JSON response so CI and local dev without LM Studio still pass.
+
+When this endpoint is triggered by a breaking change on a provider PR,
+the GitHub Worker (github-app/) will call it and embed the returned
+explanation + patch into the PR comment.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-4/ai-intelligence.md   (Section: P4-T03, P4-T04)
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT
+═══════════════════════════════════════════════════════════════
+
+Go Module root: github.com/KrushnaVardhanReddy/Substrate
+Go API server:  api/
+
+Key existing files (READ ONLY unless marked MODIFY/CREATE):
+
+  api/internal/server/router.go              — NewRouter() (MODIFY)
+  api/internal/handlers/ai_analyze.go        — P4-T02 SSE handler (READ ONLY — just created)
+  api/internal/handlers/cross_repo_check.go  — Handler pattern reference (READ ONLY)
+  api/internal/handlers/health.go            — Simple handler reference (READ ONLY)
+
+NOTE: P4-T02 (ai_analyze.go) will already exist on the branch. Read
+it to understand the AIConfig, loadAIConfig(), and the pattern for
+calling the OpenAI-compatible API. Reuse loadAIConfig() — do not
+duplicate it.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+──────────────────────────────────────────────────────────────
+1. CREATE: api/internal/handlers/ai_autofix.go
+──────────────────────────────────────────────────────────────
+
+Package: handlers
+
+Define the request/response structs:
+
+  type BreakingChange struct {
+      RuleID      string `json:"rule_id"`
+      Path        string `json:"path"`
+      Description string `json:"description"`
+      Severity    string `json:"severity"`
+  }
+
+  type AIAutofixRequest struct {
+      ProviderRepo          string           `json:"provider_repo"`
+      SchemaType            string           `json:"schema_type"`   // "openapi" | "sql" | "graphql"
+      CurrentSchema         string           `json:"current_schema"`
+      ProposedSchema        string           `json:"proposed_schema"`
+      BreakingChanges       []BreakingChange `json:"breaking_changes"`
+  }
+
+  type AIAutofixResponse struct {
+      Explanation   string `json:"explanation"`    // 2-3 sentence plain-English summary
+      SafePatch     string `json:"safe_patch"`     // The exact corrected schema snippet
+      PatchLanguage string `json:"patch_language"` // "yaml" | "sql" | "graphql"
+      MockMode      bool   `json:"mock_mode"`      // true if SUBSTRATE_AI_BASE_URL is not set
+  }
+
+Implement the handler:
+
+  func AIAutofixHandler() http.HandlerFunc
+
+The handler logic:
+
+  Step 1: Only accept POST. Return 405 for other methods.
+
+  Step 2: Parse JSON body into AIAutofixRequest. Return 400 on error.
+
+  Step 3: Load AIConfig via loadAIConfig() (defined in ai_analyze.go,
+    same package). If BaseURL is empty, return mockAutofixResponse().
+
+  Step 4: Build the LLM system prompt (defined as a const):
+
+    const autofixSystemPrompt = `You are Substrate AI, an API schema safety expert.
+You will be given a provider's current and proposed schema, plus a list of breaking changes detected.
+Your job is to:
+1. Write a 2-3 sentence plain-English explanation of the impact on downstream consumers.
+2. Generate the minimal safe schema patch the provider should apply instead.
+   - For deleted fields: restore them with a @deprecated marker.
+   - For removed endpoints: add a deprecation notice instead of removing.
+   - For type changes: keep the old field and add a new one.
+3. Return ONLY valid JSON matching this schema:
+   {"explanation": "...", "safe_patch": "...", "patch_language": "yaml|sql|graphql"}
+Do not include markdown fences or extra text outside the JSON.`
+
+  Step 5: Build the user message:
+    "Schema type: {schema_type}\nRepository: {provider_repo}\n\nCurrent schema:\n{current_schema}\n\nProposed schema:\n{proposed_schema}\n\nDetected breaking changes:\n{json_list_of_breaking_changes}"
+
+  Step 6: Call the OpenAI-compatible chat completions endpoint
+    (NON-streaming this time — "stream": false):
+    POST {BaseURL}/chat/completions
+    Header: Authorization: Bearer {APIKey}
+    Body: {
+      "model": "{Model}",
+      "stream": false,
+      "response_format": {"type": "json_object"},
+      "messages": [
+        {"role": "system", "content": autofixSystemPrompt},
+        {"role": "user",   "content": userMessage}
+      ]
+    }
+
+  Step 7: Parse the LLM response. The response is:
+    {"choices": [{"message": {"content": "{\"explanation\":\"...\",\"safe_patch\":\"...\",\"patch_language\":\"yaml\"}"}}]}
+    Extract `choices[0].message.content`, parse the inner JSON into
+    AIAutofixResponse (without MockMode field, which defaults to false).
+
+  Step 8: Set MockMode = false and write 200 JSON response.
+
+  Step 9: On any error (network, JSON parse of LLM response), return
+    500 with JSON: {"error": "AI autofix failed: <message>"}
+
+Implement mockAutofixResponse:
+
+  func mockAutofixResponse(w http.ResponseWriter) {
+      w.Header().Set("Content-Type", "application/json")
+      json.NewEncoder(w).Encode(AIAutofixResponse{
+          Explanation:   "Mock mode: Removing 'user_id' from the response schema will break downstream consumers that read this field. Set SUBSTRATE_AI_BASE_URL to enable real AI analysis.",
+          SafePatch:     "# Restore the field with a deprecation marker:\nuser_id:\n  type: string\n  deprecated: true\n  description: \"Deprecated — use account_id instead.\"",
+          PatchLanguage: "yaml",
+          MockMode:      true,
+      })
+  }
+
+──────────────────────────────────────────────────────────────
+2. CREATE: api/internal/handlers/ai_autofix_test.go
+──────────────────────────────────────────────────────────────
+
+Package: handlers
+
+Write two tests using net/http/httptest:
+
+Test 1: "returns mock autofix response when SUBSTRATE_AI_BASE_URL is not set"
+  - Unset SUBSTRATE_AI_BASE_URL.
+  - POST a valid AIAutofixRequest JSON body.
+  - Assert:
+      - Response status 200
+      - Response Content-Type is "application/json"
+      - Response body JSON has "mock_mode": true
+      - Response body JSON has non-empty "explanation"
+      - Response body JSON has non-empty "safe_patch"
+
+Test 2: "returns 400 on invalid JSON body"
+  - POST body: `not valid json`
+  - Assert: Response status 400
+
+──────────────────────────────────────────────────────────────
+3. MODIFY: api/internal/server/router.go
+──────────────────────────────────────────────────────────────
+
+Add the autofix route directly after the /ai/analyze route:
+
+  // AI routes (public — no auth required, BYOK model)
+  mux.HandleFunc("POST /api/v1/ai/analyze", handlers.AIAnalyzeHandler())
+  mux.HandleFunc("POST /api/v1/ai/autofix", handlers.AIAutofixHandler())
+
+──────────────────────────────────────────────────────────────
+4. MODIFY: github-app/src/formatter.ts
+──────────────────────────────────────────────────────────────
+
+Add an optional AI remediation section to the PR comment footer.
+The GitHub Worker will call /api/v1/ai/autofix and pass the result
+to the formatter.
+
+Step A: Update the `formatPRComment` function signature to accept
+two new optional parameters after the existing `prNumber` parameter:
+
+  export function formatPRComment(
+    report: DiffReport,
+    config: SubstrateConfig,
+    dashboardUrl?: string,
+    owner?: string,
+    repo?: string,
+    prNumber?: number,
+    aiExplanation?: string,    // NEW — plain-English AI explanation
+    aiSafePatch?: string       // NEW — the corrected schema snippet
+  ): string
+
+Step B: In the BREAKING changes branch only (where breakingCount > 0),
+add the AI remediation block BEFORE the footer:
+
+  // If AI data is available, add the remediation section
+  if (aiExplanation) {
+    comment += `\n---\n### 🤖 AI Impact Analysis\n> ${aiExplanation}\n`;
+  }
+  if (aiSafePatch) {
+    comment += `\n### 🔧 Suggested Safe Remediation\nApply the following change to unblock this PR:\n\`\`\`yaml\n${aiSafePatch}\n\`\`\`\n`;
+  }
+
+Do NOT add AI blocks to the WARNING or ALL_CLEAR branches.
+Do NOT change formatMissingConfigComment().
+
+Step C: In the BREAKING branch formatter test, add one new test case:
+
+Test: "includes AI remediation block when aiExplanation is provided"
+  - Call formatPRComment with a breaking report + aiExplanation +
+    aiSafePatch strings.
+  - Assert the output contains "AI Impact Analysis"
+  - Assert the output contains the aiExplanation text
+  - Assert the output contains "Suggested Safe Remediation"
+  - Assert the output contains the aiSafePatch text
+
+──────────────────────────────────────────────────────────────
+5. VERIFY: All tests pass
+──────────────────────────────────────────────────────────────
+
+After all changes, run:
+  cd api && go build ./...
+  cd api && go test ./...
+  cd github-app && npm run typecheck
+  cd github-app && npm test
+
+All must pass with zero errors and all tests green.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- api/internal/handlers/ai_autofix.go       (new JSON AI autofix handler)
+- api/internal/handlers/ai_autofix_test.go  (unit tests)
+
+FILES TO MODIFY:
+- api/internal/server/router.go             (register /ai/autofix route)
+- github-app/src/formatter.ts               (add AI block to PR comment)
+- github-app/test/index.test.ts             (add 1 new test case)
+
+FILES TO NOT TOUCH (READ-ONLY):
+- api/internal/handlers/ai_analyze.go       (P4-T02 — read for patterns, don't modify)
+- api/internal/handlers/middleware.go
+- api/internal/handlers/cross_repo_check.go
+- api/internal/db/                          (database layer — do not touch)
+- engine/                                   (Go diff engine — do not touch)
+- dashboard/                                (SvelteKit — do not touch)
+- docs/specs/                               (ALL spec files — READ-ONLY)
+- github-app/wrangler.toml
+- github-app/package.json                   (no new dependencies needed)
+
+═══════════════════════════════════════════════════════════════
+CRITICAL CONSTRAINTS
+═══════════════════════════════════════════════════════════════
+
+1. NO NEW DEPENDENCIES anywhere. Standard library only for Go.
+   No new npm packages for github-app.
+
+2. MOCK FALLBACK IS MANDATORY. If SUBSTRATE_AI_BASE_URL is empty,
+   mockAutofixResponse() must be called. Never return 500 in mock mode.
+
+3. The LLM call for autofix uses "stream": false and
+   "response_format": {"type": "json_object"} to get structured output.
+   This is DIFFERENT from ai_analyze.go which uses "stream": true.
+
+4. loadAIConfig() is already defined in ai_analyze.go (same package).
+   Call it — do NOT redefine it in ai_autofix.go.
+
+5. The new formatter parameters (aiExplanation, aiSafePatch) are OPTIONAL.
+   If they are undefined/empty, the PR comment must be IDENTICAL to the
+   current output. Zero regression on existing tests.
+
+6. Only the BREAKING changes branch of formatPRComment gets the AI block.
+   Do not touch the warning or all-clear branches.
+
+Commit: "feat: P4-T03 add AI safe schema patch generator and PR comment upgrade"
+Target branch: feature/dev

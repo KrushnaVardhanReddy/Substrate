@@ -1,0 +1,90 @@
+package db
+
+import (
+	"context"
+
+	"github.com/google/uuid"
+)
+
+type MockStore struct {
+	UpsertOrgFunc                      func(ctx context.Context, installationID int64, orgName string) (uuid.UUID, error)
+	UpsertRepoFunc                     func(ctx context.Context, orgID uuid.UUID, githubRepoID int64, name, fullName string) (uuid.UUID, error)
+	UpsertContractFunc                 func(ctx context.Context, repoID uuid.UUID, schemaType, specPath, branch, commitSHA, rawContent string) (uuid.UUID, error)
+	UpsertDependencyFunc               func(ctx context.Context, consumerRepoID, providerContractID uuid.UUID) error
+	GetContractsByProviderFullNameFunc func(ctx context.Context, providerFullName string) ([]Contract, error)
+	GetConsumersByProviderContractFunc func(ctx context.Context, providerContractID uuid.UUID) ([]ConsumerDependency, error)
+	ListReposByOrgFunc                 func(ctx context.Context, orgName string) ([]Repository, error)
+	GetDependencyGraphFunc             func(ctx context.Context, orgName string) ([]DependencyEdge, error)
+	CountReposByOrgFunc                func(ctx context.Context, orgName string) (int, error)
+	CountDownstreamDependenciesFunc    func(ctx context.Context, providerFullName string) (int, error)
+}
+
+func (m *MockStore) UpsertOrg(ctx context.Context, installationID int64, orgName string) (uuid.UUID, error) {
+	if m.UpsertOrgFunc != nil {
+		return m.UpsertOrgFunc(ctx, installationID, orgName)
+	}
+	return uuid.New(), nil
+}
+
+func (m *MockStore) UpsertRepo(ctx context.Context, orgID uuid.UUID, githubRepoID int64, name, fullName string) (uuid.UUID, error) {
+	if m.UpsertRepoFunc != nil {
+		return m.UpsertRepoFunc(ctx, orgID, githubRepoID, name, fullName)
+	}
+	return uuid.New(), nil
+}
+
+func (m *MockStore) UpsertContract(ctx context.Context, repoID uuid.UUID, schemaType, specPath, branch, commitSHA, rawContent string) (uuid.UUID, error) {
+	if m.UpsertContractFunc != nil {
+		return m.UpsertContractFunc(ctx, repoID, schemaType, specPath, branch, commitSHA, rawContent)
+	}
+	return uuid.New(), nil
+}
+
+func (m *MockStore) UpsertDependency(ctx context.Context, consumerRepoID, providerContractID uuid.UUID) error {
+	if m.UpsertDependencyFunc != nil {
+		return m.UpsertDependencyFunc(ctx, consumerRepoID, providerContractID)
+	}
+	return nil
+}
+
+func (m *MockStore) GetContractsByProviderFullName(ctx context.Context, providerFullName string) ([]Contract, error) {
+	if m.GetContractsByProviderFullNameFunc != nil {
+		return m.GetContractsByProviderFullNameFunc(ctx, providerFullName)
+	}
+	return nil, nil
+}
+
+func (m *MockStore) CountReposByOrg(ctx context.Context, orgName string) (int, error) {
+	if m.CountReposByOrgFunc != nil {
+		return m.CountReposByOrgFunc(ctx, orgName)
+	}
+	return 0, nil
+}
+
+func (m *MockStore) CountDownstreamDependencies(ctx context.Context, providerFullName string) (int, error) {
+	if m.CountDownstreamDependenciesFunc != nil {
+		return m.CountDownstreamDependenciesFunc(ctx, providerFullName)
+	}
+	return 0, nil
+}
+
+func (m *MockStore) GetConsumersByProviderContract(ctx context.Context, providerContractID uuid.UUID) ([]ConsumerDependency, error) {
+	if m.GetConsumersByProviderContractFunc != nil {
+		return m.GetConsumersByProviderContractFunc(ctx, providerContractID)
+	}
+	return nil, nil
+}
+
+func (m *MockStore) ListReposByOrg(ctx context.Context, orgName string) ([]Repository, error) {
+	if m.ListReposByOrgFunc != nil {
+		return m.ListReposByOrgFunc(ctx, orgName)
+	}
+	return nil, nil
+}
+
+func (m *MockStore) GetDependencyGraph(ctx context.Context, orgName string) ([]DependencyEdge, error) {
+	if m.GetDependencyGraphFunc != nil {
+		return m.GetDependencyGraphFunc(ctx, orgName)
+	}
+	return nil, nil
+}

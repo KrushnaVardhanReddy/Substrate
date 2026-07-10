@@ -1,0 +1,460 @@
+TASK: P3-T09b — Wire MCP Server to live Registry API
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+The `substrate-mcp` binary already exists (merged via P3-T09) but 3 of its 7 tools
+return hardcoded mock responses. This task replaces those mocks with real implementations:
+
+  1. `get_schema_file`     — Add a new Registry API endpoint, wire MCP to call it.
+  2. `analyze_repository`  — Replace mock with a real local filesystem scan.
+  3. `get_substrate_docs`  — Replace mock with a real embedded documentation string.
+
+NOTE: `get_breaking_change_history` remains a mock. It is INTENTIONALLY deferred to Phase 4
+because it requires a new `breaking_change_events` DB table (a schema migration).
+DO NOT attempt to implement it. DO NOT add a new DB table.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-3/mcp-server.md
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT
+═══════════════════════════════════════════════════════════════
+
+The repo has two Go modules:
+  engine/   → go.mod: github.com/KrushnaVardhanReddy/substrate/engine
+  api/      → go.mod: github.com/KrushnaVardhanReddy/Substrate/api
+
+The MCP binary lives in the engine module:
+  engine/cmd/substrate-mcp/main.go     — The MCP server (MODIFY)
+
+The Registry API lives in the api module:
+  api/internal/db/queries.go           — All SQL queries (READ ONLY — reuse, do not add)
+  api/internal/db/store.go             — Store interface (READ ONLY)
+  api/internal/handlers/              — HTTP handlers (ADD schema.go here)
+  api/internal/server/router.go        — Route registration (MODIFY — add 1 route)
+  api/cmd/server/main.go               — Entry point (READ ONLY — do not touch)
+
+Key existing SQL function (already in api/internal/db/queries.go — use it as-is):
+  func GetContractsByProviderFullName(ctx, pool, providerFullName string) ([]Contract, error)
+  → Joins contracts + repositories tables.
+  → providerFullName is the "owner/repo" string, e.g. "myorg/backend-api"
+  → Returns []Contract, each has: ID, RepoID, SchemaType, SpecPath, Branch, LatestCommitSHA, RawContent, SyncedAt
+
+Existing Registry API endpoints (already working — do not touch):
+  GET  /health
+  POST /api/v1/sync
+  POST /api/v1/cross-repo-check
+  GET  /api/v1/graph/{org}
+  GET  /api/v1/repos/{org}
+
+MCP tool already wired and working (DO NOT change):
+  Tool 1: get_dependency_graph   → calls GET /api/v1/graph/{org} ✅
+  Tool 2: check_compatibility    → calls local diff engine Go packages ✅
+  Tool 6: execute_cli_command    → exec.Command("substrate", args...) ✅
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+──────────────────────────────────────────────────────────────
+1. FILE: api/internal/handlers/schema.go  (CREATE NEW)
+──────────────────────────────────────────────────────────────
+
+Package: package handlers
+
+Imports: only standard library + internal packages:
+  "encoding/json"
+  "net/http"
+  "strings"
+  "github.com/KrushnaVardhanReddy/Substrate/api/internal/db"
+
+Implement ONE handler:
+
+  func SchemaHandler(store db.Store) http.HandlerFunc
+
+Route pattern it will be registered at: GET /api/v1/schema/{owner}/{repo}
+
+FULL implementation flow:
+
+Step 1: Extract path values
+  owner := r.PathValue("owner")
+  repo  := r.PathValue("repo")
+  If either is empty → http.Error(w, "owner and repo are required", 400) and return.
+
+Step 2: Build full_name string
+  fullName := owner + "/" + repo
+
+Step 3: Call the existing store method (via interface)
+  contracts, err := store.GetContractsByProviderFullName(r.Context(), fullName)
+  If err != nil → http.Error(w, `{"error":"internal error"}`, 500) and return.
+
+Step 4: If no contracts found
+  Return HTTP 404 with body: {"error": "no schema found for repo"}
+
+Step 5: Use the FIRST contract (index 0) — most repos have one spec file
+  Build a response struct:
+    type schemaResponse struct {
+      Schema     string `json:"schema"`
+      SchemaType string `json:"schema_type"`
+      SpecPath   string `json:"spec_path"`
+      CommitSHA  string `json:"commit_sha"`
+      SyncedAt   string `json:"synced_at"`
+    }
+  Populate from contracts[0]:
+    Schema:     c.RawContent
+    SchemaType: c.SchemaType
+    SpecPath:   c.SpecPath
+    CommitSHA:  c.LatestCommitSHA
+    SyncedAt:   c.SyncedAt.Format(time.RFC3339)
+
+Step 6: Write JSON response
+  w.Header().Set("Content-Type", "application/json")
+  w.WriteHeader(200)
+  json.NewEncoder(w).Encode(response)
+
+──────────────────────────────────────────────────────────────
+2. MODIFY: api/internal/server/router.go
+──────────────────────────────────────────────────────────────
+
+Add exactly ONE line in the NewRouter function, after the existing routes:
+
+  mux.HandleFunc("GET /api/v1/schema/{owner}/{repo}", handlers.SchemaHandler(store))
+
+Do not change any existing routes. Do not change the corsMiddleware.
+
+──────────────────────────────────────────────────────────────
+3. MODIFY: engine/cmd/substrate-mcp/main.go
+──────────────────────────────────────────────────────────────
+
+This file has 7 registered tools. You will replace the handlers for tools 4, 5, and 7.
+Tools 1, 2, 3, 6 are ALREADY CORRECT — do NOT touch them.
+
+NOTE on imports: The file currently imports "os", "os/exec", "fmt", "encoding/json",
+and the internal diff/report/sql packages. You will need to ADD:
+  "io"
+  "net/http"
+  "path/filepath"
+  "strings"
+  "time"
+
+Add them to the import block. Do not remove any existing imports.
+
+─────────────────────────────────────
+TOOL 7: get_schema_file  (line ~283 in the file)
+─────────────────────────────────────
+Current handler returns a hardcoded mock string. Replace with:
+
+  Handler: func(params json.RawMessage) (any, error) {
+      var args struct {
+          Repo string `json:"repo"`
+      }
+      if err := json.Unmarshal(params, &args); err != nil {
+          return nil, err
+      }
+      if args.Repo == "" {
+          return nil, fmt.Errorf("repo is required (e.g. 'myorg/backend-api')")
+      }
+
+      apiURL := os.Getenv("REGISTRY_API_URL")
+      if apiURL == "" {
+          apiURL = "http://localhost:8090"
+      }
+
+      // Repo is "owner/repo" — split for the URL path
+      parts := strings.SplitN(args.Repo, "/", 2)
+      if len(parts) != 2 {
+          return nil, fmt.Errorf("repo must be in 'owner/repo' format, got: %s", args.Repo)
+      }
+
+      url := fmt.Sprintf("%s/api/v1/schema/%s/%s", apiURL, parts[0], parts[1])
+      resp, err := http.Get(url)
+      if err != nil {
+          return nil, fmt.Errorf("failed to fetch schema from registry: %w", err)
+      }
+      defer resp.Body.Close()
+
+      body, err := io.ReadAll(resp.Body)
+      if err != nil {
+          return nil, err
+      }
+
+      if resp.StatusCode == http.StatusNotFound {
+          return nil, fmt.Errorf("no schema found for repo '%s' in the registry. Has it been synced?", args.Repo)
+      }
+      if resp.StatusCode != http.StatusOK {
+          return nil, fmt.Errorf("registry API returned status %d for repo '%s'", resp.StatusCode, args.Repo)
+      }
+
+      return string(body), nil
+  },
+
+─────────────────────────────────────
+TOOL 5: analyze_repository  (line ~217 in the file)
+─────────────────────────────────────
+Current handler returns `[{"file": "openapi.yaml", "type": "openapi"}]`. Replace with:
+
+  Handler: func(params json.RawMessage) (any, error) {
+      var args struct {
+          Directory string `json:"directory"`
+      }
+      if err := json.Unmarshal(params, &args); err != nil {
+          return nil, err
+      }
+      dir := args.Directory
+      if dir == "" {
+          dir = "."
+      }
+
+      // File patterns to detect, mapped to schema_type
+      patterns := []struct {
+          glob       string
+          schemaType string
+      }{
+          {"openapi.yaml", "openapi"},
+          {"openapi.yml", "openapi"},
+          {"swagger.yaml", "openapi"},
+          {"swagger.yml", "openapi"},
+          {"*.proto", "protobuf"},
+          {"*.graphql", "graphql"},
+          {"*.gql", "graphql"},
+          {"asyncapi.yaml", "asyncapi"},
+          {"asyncapi.yml", "asyncapi"},
+          {"schema.sql", "sql"},
+          {"*.avsc", "avro"},
+      }
+
+      type detected struct {
+          File       string `json:"file"`
+          SchemaType string `json:"schema_type"`
+      }
+      var results []detected
+
+      seen := map[string]bool{}
+
+      err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+          if err != nil {
+              return nil // skip unreadable dirs
+          }
+          // Skip hidden dirs like .git, node_modules, vendor
+          if info.IsDir() {
+              base := info.Name()
+              if strings.HasPrefix(base, ".") || base == "node_modules" || base == "vendor" {
+                  return filepath.SkipDir
+              }
+              return nil
+          }
+
+          base := filepath.Base(path)
+          for _, p := range patterns {
+              matched, _ := filepath.Match(p.glob, base)
+              if matched && !seen[path] {
+                  seen[path] = true
+                  results = append(results, detected{File: path, SchemaType: p.schemaType})
+                  break
+              }
+          }
+          return nil
+      })
+      if err != nil {
+          return nil, fmt.Errorf("failed to walk directory: %w", err)
+      }
+
+      if len(results) == 0 {
+          return `[]`, nil
+      }
+
+      b, err := json.Marshal(results)
+      if err != nil {
+          return nil, err
+      }
+      return string(b), nil
+  },
+
+─────────────────────────────────────
+TOOL 4: get_substrate_docs  (line ~204 in the file)
+─────────────────────────────────────
+Current handler returns `# Substrate Configuration Guide\n\n...mock docs...`. Replace with:
+
+  Handler: func(params json.RawMessage) (any, error) {
+      return substrateDocsContent(), nil
+  },
+
+Add this function at the bottom of the file (before the final closing brace or after main()):
+
+  func substrateDocsContent() string {
+      return `# Substrate Configuration Guide
+
+  Substrate is a CI/CD-integrated data contract and dependency intelligence platform.
+  It protects API boundaries across microservices using schema diff analysis.
+
+  ## substrate.yaml — Full Reference
+
+  Place a ` + "`substrate.yaml`" + ` file in the root of any repository to enable Substrate.
+
+  ### Provider Configuration (a repo that owns an API)
+  ` + "```yaml" + `
+  service: my-backend-api         # Human-readable service name
+  schema_type: openapi            # Supported: openapi, sql, graphql, protobuf, asyncapi, avro, terraform-plan, ai-model
+  spec_path: openapi.yaml         # Path to the schema file, relative to repo root
+  on_breaking_change: block       # 'block' (default) = fail PR | 'warn' = comment only
+  ` + "```" + `
+
+  ### Consumer Configuration (a repo that depends on another team's API)
+  ` + "```yaml" + `
+  service: my-frontend
+
+  consumers:
+    - name: "users-api"
+      provider_repo: myorg/backend-api    # The GitHub repo that owns the contract
+      schema_type: openapi
+      provider_spec_path: openapi.yaml    # Path to the spec IN the provider repo
+      provider_branch: main               # Branch to track (default: main)
+  ` + "```" + `
+
+  ### Breaking Change Overrides
+  ` + "```yaml" + `
+  overrides:
+    - rule_id: ENDPOINT_REMOVED
+      path: "GET /users/{id}"
+      reason: "Intentional deprecation — clients have been migrated"
+      approved_by: "platform-team@example.com"
+      expires: "2025-12-31"
+  ` + "```" + `
+
+  ## Supported Schema Types
+
+  | schema_type     | Description                          | Diff Tool Used      |
+  |-----------------|--------------------------------------|---------------------|
+  | openapi         | OpenAPI 3.x / Swagger 2.x REST APIs  | oasdiff (Go lib)    |
+  | sql             | PostgreSQL DDL snapshots             | Custom parser       |
+  | graphql         | GraphQL SDL schemas                  | Custom parser       |
+  | protobuf        | Protocol Buffers .proto files        | buf CLI             |
+  | asyncapi        | AsyncAPI event-driven APIs           | Custom parser       |
+  | avro            | Apache Avro schemas                  | Schema Registry API |
+  | terraform-plan  | Terraform plan JSON output           | Custom parser       |
+  | ai-model        | AI/ML model contracts (YAML)         | Custom parser       |
+
+  ## Key Breaking Change Rules (OpenAPI)
+
+  | Rule ID                  | Severity | Description                             |
+  |--------------------------|----------|-----------------------------------------|
+  | ENDPOINT_REMOVED         | BREAKING | A route was deleted                     |
+  | REQUEST_PARAM_REMOVED    | BREAKING | A required query/path param removed     |
+  | RESPONSE_FIELD_REMOVED   | BREAKING | A response field was deleted            |
+  | REQUEST_FIELD_TYPE_CHANGED | BREAKING | A field type changed                  |
+  | ENDPOINT_DEPRECATED      | WARNING  | An endpoint was marked deprecated       |
+  | FIELD_DEPRECATED         | WARNING  | A response field was marked deprecated  |
+
+  ## Installation
+
+  GitHub App: https://github.com/apps/substrate-contract-guard
+
+  CLI (local diff):
+  ` + "```bash" + `
+  substrate diff --base openapi-old.yaml --head openapi-new.yaml --schema-type openapi
+  ` + "```" + `
+
+  MCP Server (for Cursor / Claude Desktop):
+  ` + "```json" + `
+  {
+    "mcpServers": {
+      "substrate": {
+        "command": "substrate-mcp",
+        "env": {
+          "REGISTRY_API_URL": "https://substrate.internal.mycompany.com"
+        }
+      }
+    }
+  }
+  ` + "```"
+  }
+
+──────────────────────────────────────────────────────────────
+4. FILE: api/internal/handlers/schema_test.go  (CREATE NEW)
+──────────────────────────────────────────────────────────────
+
+Package: package handlers_test
+
+Use the existing MockStore pattern from other test files in the same package
+(see api/internal/handlers/other_test.go or sync_test.go for the MockStore struct).
+
+Implement 3 test cases using httptest.NewRecorder():
+
+Test 1: "happy path — returns schema for known repo"
+  Setup: MockStore.GetContractsByProviderFullName returns 1 Contract with:
+    SchemaType: "openapi", SpecPath: "openapi.yaml", RawContent: "openapi: '3.0.0'", LatestCommitSHA: "abc123"
+  Request: GET /api/v1/schema/myorg/backend-api
+  Assert: status 200, body contains "openapi.yaml" and "openapi: '3.0.0'"
+
+Test 2: "repo not found — returns 404"
+  Setup: MockStore.GetContractsByProviderFullName returns empty []Contract, nil error
+  Request: GET /api/v1/schema/myorg/unknown-repo
+  Assert: status 404
+
+Test 3: "missing repo path param — returns 400"
+  Request: GET /api/v1/schema/  (missing owner and repo)
+  Note: Test the handler directly with an empty PathValue, not via the mux.
+  Assert: status 400
+
+──────────────────────────────────────────────────────────────
+5. VERIFY: go build passes for both modules
+──────────────────────────────────────────────────────────────
+
+After all changes, run these commands and confirm zero errors:
+  cd api && go build ./... && go vet ./...
+  cd engine && go build ./... && go vet ./...
+
+Run tests:
+  cd api && go test ./...
+  cd engine && go test ./...
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- api/internal/handlers/schema.go          (new SchemaHandler)
+- api/internal/handlers/schema_test.go     (3 test cases)
+
+FILES TO MODIFY:
+- api/internal/server/router.go            (add 1 route: GET /api/v1/schema/{owner}/{repo})
+- engine/cmd/substrate-mcp/main.go         (replace handlers for tools 4, 5, 7)
+
+FILES TO NOT TOUCH (READ-ONLY):
+- api/internal/db/queries.go               (SQL already correct — reuse only)
+- api/internal/db/store.go                 (Store interface — do not modify)
+- api/internal/db/mock_store.go            (MockStore — do not modify, import it in tests)
+- api/internal/handlers/sync.go            (complete — do not touch)
+- api/internal/handlers/graph.go           (complete — do not touch)
+- api/internal/handlers/cross_repo_check.go (complete — do not touch)
+- engine/internal/mcp/server.go            (JSON-RPC server core — do not touch)
+- engine/internal/diff/                    (all adapters — do not touch)
+- docs/specs/                              (ALL spec files are READ-ONLY)
+- engine/go.mod                            (no new deps — stdlib only)
+- api/go.mod                               (no new deps — stdlib only)
+- github-app/                              (TypeScript — do not touch)
+- dashboard/                               (SvelteKit — do not touch)
+
+═══════════════════════════════════════════════════════════════
+CRITICAL CONSTRAINTS
+═══════════════════════════════════════════════════════════════
+
+1. NO new database tables. NO schema migrations. The `breaking_change_events` table
+   does NOT exist and must NOT be created. The `get_breaking_change_history` tool
+   must remain as-is (returning the mock string).
+
+2. NO new Go module dependencies in either go.mod file. Only stdlib packages.
+
+3. The MockStore in api/internal/db/mock_store.go already has a
+   GetContractsByProviderFullName method stub. Use it in your tests — do NOT create
+   a separate mock struct.
+
+4. The `get_dependency_graph` tool in main.go was already updated to call
+   the real Registry API. DO NOT undo or change that wiring.
+
+5. In analyze_repository, the `time` import may not be needed — only add imports
+   you actually use.
+
+Commit: "jules: P3-T09b wire MCP server to live Registry API"
+Target branch: feature/dev

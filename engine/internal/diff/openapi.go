@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/compliance"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/oasdiff/oasdiff/checker"
@@ -65,6 +66,7 @@ func CompareOpenAPI(basePath, revisionPath string, flattenAllOf bool) (*report.D
 	}
 
 	if diffObj.Empty() {
+		compliance.Audit(rep)
 		return rep, nil
 	}
 
@@ -126,6 +128,7 @@ func CompareOpenAPI(basePath, revisionPath string, flattenAllOf bool) (*report.D
 		rep.Summary.OverallSeverity = report.SeverityNoChanges
 	}
 
+	compliance.Audit(rep)
 	return rep, nil
 }
 
@@ -142,6 +145,12 @@ func mapOasdiffRule(oasdiffID string) (string, report.ChangeSeverity) {
 		return "ENDPOINT_REMOVED", report.ChangeSeverityBreaking
 	case "api-removed-without-deprecation", "api-removed":
 		return "METHOD_REMOVED", report.ChangeSeverityBreaking
+	case "api-path-added", "endpoint-added":
+		return "ENDPOINT_ADDED", report.ChangeSeveritySafe
+	case "api-added":
+		return "METHOD_ADDED", report.ChangeSeveritySafe
+	case "api-deprecated", "endpoint-deprecated", "api-deprecated-without-sunset":
+		return "ENDPOINT_DEPRECATED", report.ChangeSeverityWarning
 	case "request-parameter-enum-value-removed", "request-property-enum-value-removed", "response-property-enum-value-removed":
 		return "ENUM_VALUE_REMOVED", report.ChangeSeverityBreaking
 	case "request-parameter-enum-value-added", "request-property-enum-value-added", "response-property-enum-value-added":

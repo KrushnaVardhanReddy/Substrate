@@ -82,7 +82,6 @@ func ParseSchemaFromBytes(src []byte) (*SQLSchema, error) {
 	return schema, nil
 }
 
-
 func parseCreateStmt(stmt *pg_query.CreateStmt) *Table {
 	rel := stmt.GetRelation()
 	if rel == nil || rel.GetRelname() == "" {
@@ -343,7 +342,7 @@ func formatExpr(node *pg_query.Node) string {
 }
 
 func deparseExpr(node *pg_query.Node) (string, error) {
-    return formatExpr(node), nil
+	return formatExpr(node), nil
 }
 
 func formatStmt(node *pg_query.Node) string {
@@ -364,11 +363,10 @@ func formatStmt(node *pg_query.Node) string {
 	return ""
 }
 func deparseStmt(node *pg_query.Node) (string, error) {
-    return formatStmt(node), nil
+	return formatStmt(node), nil
 }
 
 // Dummy to replace previous declarations
-
 
 func handleAlterTableStmt(schema *SQLSchema, stmt *pg_query.AlterTableStmt) {
 	rel := stmt.GetRelation()

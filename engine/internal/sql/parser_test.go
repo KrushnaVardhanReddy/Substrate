@@ -108,9 +108,15 @@ func TestParseSchema(t *testing.T) {
 					}
 				}
 
-				if !hasPK { t.Errorf("expected primary key constraint") }
-				if !hasFK { t.Errorf("expected foreign key constraint") }
-				if !hasUnique { t.Errorf("expected unique constraint") }
+				if !hasPK {
+					t.Errorf("expected primary key constraint")
+				}
+				if !hasFK {
+					t.Errorf("expected foreign key constraint")
+				}
+				if !hasUnique {
+					t.Errorf("expected unique constraint")
+				}
 
 				if len(usersTable.Indexes) != 1 {
 					t.Errorf("expected 1 index, got %d", len(usersTable.Indexes))

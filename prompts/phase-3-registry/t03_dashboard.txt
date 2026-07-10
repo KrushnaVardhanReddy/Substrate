@@ -1,0 +1,94 @@
+TASK: P3-T03 — SvelteKit Dashboard & Design System
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Initialize the SvelteKit frontend for the Substrate platform and 
+implement the core dashboard layout. You will take the raw HTML/CSS
+from the design mockup and port it into idiomatic SvelteKit components,
+wiring it up to the existing Go Registry API.
+
+Spec: docs/specs/phase-3/dashboard.md
+
+═══════════════════════════════════════════════════════════════
+CONTEXT & PREREQUISITES
+═══════════════════════════════════════════════════════════════
+The project does not have a `dashboard/` directory yet. You must create it.
+We use vanilla CSS (no Tailwind).
+
+The raw HTML/CSS mockup to port is located at:
+`temp_mockups/dashboard_layout.html`
+
+The API Server (built in P3-T01) runs locally at `http://localhost:8090`.
+You must make an HTTP call to `/api/v1/repos/:org` to populate the sidebar.
+You will use a hardcoded org name "myorg" and a hardcoded token "test-token"
+for this initial phase.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. SvelteKit Initialization
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Initialize a SvelteKit project inside the `dashboard/` folder:
+- Use TypeScript
+- Use Svelte 5 (or Svelte 4, whatever the scaffolding default is)
+- Create `dashboard/package.json`
+- Configure `dashboard/vite.config.ts` to run on port 3000.
+
+Add a simple `dashboard/.env` (and `.env.example`) file:
+PUBLIC_API_URL=http://localhost:8090
+PUBLIC_ORG_NAME=myorg
+PUBLIC_API_TOKEN=test-token
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. Layout & Design System (`src/routes/+layout.svelte`)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Open `temp_mockups/dashboard_layout.html`.
+Extract the CSS inside `<style>` and place it in `src/app.css` (import it in layout).
+Extract the Sidebar and Top Nav into dedicated Svelte components:
+- `src/lib/components/Sidebar.svelte`
+- `src/lib/components/TopNav.svelte`
+
+The `+layout.svelte` should orchestrate the main app shell (Sidebar left, TopNav + Slot right).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. API Wiring (`src/routes/+layout.ts` or `.server.ts`)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+The sidebar needs a list of repositories.
+In your layout load function, make a `fetch` call to:
+`GET {PUBLIC_API_URL}/api/v1/repos/{PUBLIC_ORG_NAME}`
+Headers: `Authorization: Bearer {PUBLIC_API_TOKEN}`
+
+Pass the returned array of repos (`{ id, name, full_name }`) down to the Sidebar component.
+Render the actual repos dynamically in the sidebar instead of the hardcoded HTML list.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. The Main Page (`src/routes/+page.svelte`)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Port the main content area (the "Dependency Graph" empty state card) from the HTML mockup into `src/routes/+page.svelte`.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- dashboard/package.json
+- dashboard/vite.config.ts
+- dashboard/src/app.css
+- dashboard/src/routes/+layout.svelte
+- dashboard/src/routes/+layout.ts
+- dashboard/src/routes/+page.svelte
+- dashboard/src/lib/components/Sidebar.svelte
+- dashboard/src/lib/components/TopNav.svelte
+
+FILES TO NOT TOUCH (READ-ONLY):
+- engine/
+- github-app/
+- api/
+- temp_mockups/dashboard_layout.html
+- docs/specs/
+
+Commit: "jules: P3-T03 initialize SvelteKit dashboard and wire API"
+Target branch: feature/p3-t03-dashboard

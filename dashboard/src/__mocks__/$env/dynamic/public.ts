@@ -1,0 +1,5 @@
+export const env = {
+	PUBLIC_API_URL: 'http://localhost:8090',
+	PUBLIC_ORG_NAME: 'myorg',
+	PUBLIC_API_TOKEN: 'test-token'
+};

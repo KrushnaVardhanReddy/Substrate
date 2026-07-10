@@ -2,7 +2,7 @@
 
 ## The Living Map of Your Engineering Ecosystem
 
-> **Status:** v0.1.6 🚀 — [OpenAPI Contract Guard](https://github.com/marketplace/actions/substrate-api-contract-guard) live on GitHub Marketplace. **Phase 2 (GitHub App) 🔄 in progress.**
+> **Status:** v1.0.0 🚀 — [OpenAPI Contract Guard](https://github.com/marketplace/actions/substrate-api-contract-guard) live on GitHub Marketplace. **Phase 3 (Contract Registry + MCP Server + Dashboard) ✅ Complete. Phase 4 (AI Intelligence Layer) ✅ Complete.**
 
 Substrate is a CI/CD-integrated data contract and dependency intelligence platform that prevents downstream data failures before they reach production.
 
@@ -104,6 +104,12 @@ The CI check will pass and show `✅ Acknowledged (override active until 2026-12
 | `1` | WARNING-level changes detected | ✅ Pass (with warning) |
 | `2` | BREAKING changes detected | ❌ Fail — blocks merge |
 | `3` | Spec is invalid (parse error) | ❌ Fail |
+
+---
+
+## 📚 Comprehensive Documentation
+
+For a deep dive into configuration options (like integrating Prometheus for zero-traffic breaking change downgrades), setting up the AI Autofix features, and integrating the VSCode extension, please refer to the official [Substrate User Guide (docs/USER_GUIDE.md)](docs/USER_GUIDE.md).
 
 ---
 
@@ -279,6 +285,27 @@ Affected consumers:
 Recommendation:
 Create migration before removing field
 ```
+
+## 2. Handling ORMs and Live Databases (Spec-First)
+
+Substrate requires a text-based schema definition (e.g., `schema.sql`) to analyze databases. If your team uses an ORM (like Prisma or Hibernate) and does not maintain a static `.sql` file in the repository, you can generate it on-the-fly in your CI/CD pipeline before running Substrate:
+
+```yaml
+- name: Spin up test database & apply ORM migrations
+  run: |
+    docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=pass postgres:15
+    npm run prisma:migrate
+    pg_dump --schema-only postgres://postgres:pass@localhost:5432/db > schema.sql
+
+- name: Check SQL Breaking Changes
+  uses: KrushnaVardhanReddy/Substrate@v0.1.0
+  with:
+    base_schema: schema.sql # Dump from main branch
+    head_schema: schema.sql # Dump from PR branch
+    schema_type: sql
+```
+
+This enforces our **Spec-First** philosophy without requiring direct connections to your staging or production databases.
 
 ---
 
@@ -669,6 +696,16 @@ Repositories involved:
 
 # Architecture & Go-to-Market Strategy
 
+## Deploying the GitHub App yourself
+
+The Substrate architecture consists of two deployed components:
+1. **Container Service** (Go Diff Engine)
+2. **Cloudflare Worker** (Webhook Receiver)
+
+You can deploy the container using `fly deploy` (requires the Fly CLI and an account). This uses the `fly.toml` and `Dockerfile.serve` to spin up the engine.
+
+The Cloudflare Worker is deployed automatically via GitHub Actions (see `.github/workflows/deploy-worker.yml`), provided you set `CF_API_TOKEN` and `CF_ACCOUNT_ID` in your GitHub repository secrets.
+
 ## Distribution Model — Private Repo + Docker Hub Public Image
 
 Substrate keeps all source code, specs, and business logic in a **private repository**. The GitHub Action is distributed via a **public Docker Hub image** — users get a working, versioned binary with no source code exposed.
@@ -718,15 +755,16 @@ Phase 1 ships incrementally as schema format support is added to the same diff e
 
 **Wave 2 — Extended Contract Formats (resumes after Phase 2):**
 
-> These are deferred until Phase 2 (GitHub App + distribution) is live. Once Phase 2 is live, real user demand — not guesswork — will drive which format ships next. **Execution order within Wave 2 follows effort (easiest first):** 1d → 1c → 1f → 1e → 1g.
+> These are deferred until Phase 2 (GitHub App + distribution) is live. Once Phase 2 is live, real user demand — not guesswork — will drive which format ships next. **Execution order within Wave 2 follows effort (easiest first):** 1d → 1e → 1h → 1c → 1f → 1g.
 
 | Format | Effort | Status | Library Strategy |
 |---|---|---|---|
-| **1d — Protobuf & gRPC** | 🟢 Lowest | 🔒 *post-Phase 2* | **`bufbuild/buf`** (Apache 2.0) — the `oasdiff` of Protobuf 🏆 same adapter pattern |
-| **1c — GraphQL SDL** | 🟡 Medium | 🔒 *post-Phase 2* | `vektah/gqlparser` (MIT) for parsing; custom rules (~15–20); pure Go, no subprocess |
-| **1f — AI/ML Model Contracts** | 🟡 Medium | 🔒 *post-Phase 2* | `yaml.v3` + `jsonschema` — both **already in `go.mod`**, no new deps |
-| **1e — AsyncAPI & Apache Avro** | 🟠 High | 🔒 *post-Phase 2* | `asyncapi/parser-go` (Apache 2.0) + Confluent Schema Registry API for Avro compat |
-| **1g — Enterprise Metadata** | 🔴 Highest | 🔒 *post-Phase 2* | Go stdlib `encoding/xml` for both WSDL and Salesforce metadata XML snapshots — pure single-binary |
+| **1d — Protobuf & gRPC** | 🟢 Lowest | ✅ *shipped* | **`bufbuild/buf`** (Apache 2.0) — the `oasdiff` of Protobuf 🏆 same adapter pattern |
+| **1e — AsyncAPI & Apache Avro** | 🟢 Lowest | ✅ *shipped* | `asyncapi/parser-go` (Apache 2.0) + Confluent Schema Registry API for Avro compat |
+| **1h — Infrastructure as Code (Terraform)** | 🟢 Lowest | ✅ *shipped* | Go stdlib `encoding/json` parsing of `terraform plan` output. |
+| **1c — GraphQL SDL** | 🟡 Medium | ✅ *shipped* | `vektah/gqlparser` (MIT) for parsing; custom rules (~15–20); pure Go, no subprocess |
+| **1f — AI/ML Model Contracts** | 🟡 Medium | ✅ *shipped* | `yaml.v3` + `jsonschema` — both **already in `go.mod`**, no new deps |
+| **1g — Enterprise Metadata** | 🔴 Highest | ✅ *shipped* | Go stdlib `encoding/xml` for both WSDL and Salesforce metadata XML snapshots — pure single-binary |
 
 Core features in all sub-phases:
 
@@ -785,10 +823,16 @@ Goal: Move from CLI-only to a fully automated CI/CD bot.
 
 Features:
 * **1-click GitHub App installation:** Automated PR comments and merge blocking.
-* **Automated Dependency Discovery:** Eliminate manual YAML configuration by automatically mapping the dependency graph through:
-  * **Distributed Tracing:** Native ingestion of OpenTelemetry, Datadog APM, or New Relic traces.
-  * **Network Layer (eBPF & Service Mesh):** Direct integration with Istio, Linkerd, or eBPF network logs to map service-to-service communication.
-  * **Static Code Analysis:** AST scanning in CI to detect SDK imports and API calls.
+* **Automated Dependency Discovery:** Eliminate manual `substrate.yaml` configuration by automatically building the full dependency graph from signals already present in your codebase. Multi-signal, confidence-scored. Full spec: `docs/specs/phase-5/dependency-discovery.md`.
+  * **Environment Variable Scanning ⭐:** Scans `.env.example`, `docker-compose.yml`, K8s manifests, GitHub Actions `env:` blocks, `fly.toml`, and `Dockerfile` for `*_API_URL` / `*_ENDPOINT` patterns. Resolves URL values against a URL→Repo registry (auto-populated via GitHub Deployments API). **Zero infrastructure required.**
+  * **Package Manifest Analysis:** Detects internal SDK imports (`@myorg/users-sdk` in `package.json`, internal modules in `go.mod`) as direct schema contract dependencies. The SDK import IS the dependency.
+  * **OpenAPI Generator Config:** Scans `openapitools.json` and `.openapi-generator-config.yaml` for `inputSpec` URLs — the most deterministic signal possible (100% explicit reference to the provider's schema).
+  * **Docker Compose / Kubernetes / Helm:** Extracts `depends_on` blocks and environment variable URL values; resolves Kubernetes DNS patterns (`users-service.default.svc.cluster.local`) against the service registry.
+  * **Infrastructure as Code (Terraform):** Parses `terraform_remote_state` data sources and environment variable injections from resource references (e.g. AWS ECS task definitions wiring services together).
+  * **Message Queue / Event-Driven:** AsyncAPI `$ref` cross-repo URLs and Kafka consumer group → topic → producer mappings for event-driven architectures.
+  * **Distributed Tracing (Runtime Confirmation):** OTel, Datadog APM, New Relic — confirms statically-discovered dependencies with live traffic evidence.
+  * **Network Layer (Enterprise):** eBPF and Istio/Envoy service mesh logs for kernel-level dependency mapping in Kubernetes environments.
+  * **Confidence Scoring:** All signals are combined into a 0–100 confidence score per dependency edge. High (80+), Medium (50–79), Low (<50) — shown as solid/dashed/hidden edges in the dependency graph.
 * **Service Ownership:** Map every discovered node to a team and an alert channel.
 
 ---
@@ -865,6 +909,30 @@ Contract protection for every data boundary in engineering — APIs, databases, 
 
 ---
 
+## 🛠️ Local Development Architecture (The 5 Terminals)
+
+Substrate is built as a highly decoupled, microservice-like architecture to allow maximum flexibility (CLI-mode vs Cloud-mode vs IDE-mode).
+
+To run Substrate locally, you need 5 terminals running simultaneously:
+
+1. **Database** (`make postgres`)
+   - Runs a local PostgreSQL 15 container to store the cross-repo graph.
+2. **Registry API** (`cd api && go run ./cmd/server`)
+   - The stateful brain. Connects to Postgres, maps dependencies, and exposes the graph to the Dashboard and MCP.
+3. **Diff Engine** (`cd engine && go run ./cmd/substrate serve`)
+   - The stateless worker. It only takes two schemas, compares them, and returns the breaking changes. Exposed over port 8080.
+4. **GitHub Worker** (`cd github-app && npm run dev`)
+   - The Cloudflare Worker that listens to GitHub Webhooks, fetches the PR files, and orchestrates the Registry API and Diff Engine.
+5. **Svelte Dashboard** (`cd dashboard && npm run dev`)
+   - The visualizer UI to see the live graph and audit history.
+
+**Why multiple Golang binaries?**
+- `engine/cmd/substrate`: A stateless CLI tool that can be run in Github Actions or as a microservice (`serve`).
+- `api/cmd/server`: A stateful API that requires Postgres. Separated from the engine so the engine can be used purely locally/offline.
+- `engine/cmd/substrate-mcp`: A specialized wrapper for AI IDEs (Cursor, Claude) that provides tools via JSON-RPC over stdio. It operates statelessly locally, but makes HTTP requests to the centralized `api/cmd/server` to fetch the global cross-repo dependency graph.
+
+---
+
 # Business Model & Monetization
 
 Substrate scales in value as an organization's complexity grows. The proposed model is a Product-Led Growth (PLG) approach featuring three tiers:
@@ -906,20 +974,22 @@ Trying to be "everything everywhere all at once" is how startups die.
 ```
 1. Best API Contract Platform          Phase 1a ✅  shipped v0.1.0
         ↓
-2. Best SQL Contract Platform          Phase 1b 🔄  in progress
+2. All 8 Schema Adapters               Phase 1b–1g ✅  SQL, GraphQL, Protobuf,
+                                                        AsyncAPI, Avro, Terraform,
+                                                        AI/ML, Enterprise (Salesforce)
         ↓
-3. Best Contract + Distribution        Phase 2  ⏳  GitHub App, 1-click install,
-   Platform                                         PR comments, user accounts
+3. Best Contract + Distribution        Phase 2  ✅  GitHub App live. Cloudflare
+   Platform                                         Worker + Container wired.
         ↓
-4. Best Intelligence Platform          Phase 3  💡  Dashboard, dependency graph,
-                                                    MCP server, audit trails
+4. Best Intelligence Platform          Phase 3  ✅  Registry ✅, Dashboard ✅,
+                                                    MCP Server ✅, AI Playground ✅
         ↓
-5. Expand Contract Formats             Phase 1c–1g  GraphQL → Protobuf → AsyncAPI
-   (demand-driven)                     💡           → AI/ML → Enterprise
-                                                    (ordered by user demand)
+5. V1.0 Release + Marketplace          v1.0  ✅  Docs complete. Platform ready.
         ↓
-6. Best AI Engineering Platform        Phase 4  💡  AI assistant, migration
-                                                    recommendations, agent handoffs
+6. Best AI Engineering Platform        Phase 4  🔄  AI Reasoning Bridge →
+                                                     Streaming SSE → Schema
+                                                     Patch Generator (Jules
+                                                     sessions active)
 ```
 
 **Why Phase 2 before Phase 1c–1g?**

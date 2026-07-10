@@ -1,0 +1,225 @@
+TASK: P1e-T02 — Apache Avro Schema Registry Compatibility Adapter
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Add Apache Avro breaking-change detection to the Substrate diff engine by
+delegating compatibility checks to the Confluent/Apicurio Schema Registry REST
+API. This is NOT a custom Avro parser — Substrate wraps the registry response
+into a DiffReport. No subprocess, no new CLI tool, pure net/http.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-1/asyncapi-avro-adapter.md  (Part B: Apache Avro sections)
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT
+═══════════════════════════════════════════════════════════════
+The diff engine lives in engine/ (a Go module at engine/go.mod).
+
+Key existing files (READ ONLY unless specified):
+  engine/internal/diff/openapi.go          — adapter pattern to follow
+  engine/internal/config/config.go         — SubstrateConfig struct (MODIFY — add AvroConfig)
+  engine/internal/config/config_test.go    — config tests (MODIFY — add avro config test)
+  engine/internal/report/                  — DiffReport, Change, Severity types (READ ONLY)
+  engine/cmd/substrate/main.go             — CLI dispatch (MODIFY — add avro case)
+  engine/cmd/substrate/serve.go            — HTTP serve mode (MODIFY — add avro case)
+
+NO new Go module dependencies needed. Uses only Go stdlib net/http.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. MODIFY: engine/internal/config/config.go
+
+   Add these new structs BEFORE the SubstrateConfig struct:
+
+   type AvroConfig struct {
+       SchemaRegistryURL string `yaml:"schema_registry_url"`
+       Subject           string `yaml:"subject,omitempty"`   // optional
+       Username          string `yaml:"username,omitempty"`  // optional Basic Auth
+       Password          string `yaml:"password,omitempty"`  // optional Basic Auth
+   }
+
+   Extend SubstrateConfig with:
+       Avro *AvroConfig `yaml:"avro,omitempty"`
+
+   Do NOT change any other existing fields or methods.
+
+2. MODIFY: engine/internal/config/config_test.go
+
+   Add 2 new test cases to the existing test suite:
+
+   Test case A: "avro config parsed"
+     Input YAML:
+       service: payments
+       schema_type: avro
+       spec_path: schemas/payment.avsc
+       avro:
+         schema_registry_url: https://registry.example.com
+         subject: payments-value
+         username: user
+         password: pass
+     Assert:
+       cfg.Avro != nil
+       cfg.Avro.SchemaRegistryURL == "https://registry.example.com"
+       cfg.Avro.Subject == "payments-value"
+       cfg.Avro.Username == "user"
+
+   Test case B: "avro config omitted"
+     Input YAML: (standard substrate.yaml with no avro block)
+       service: my-api
+       schema_type: openapi
+       spec_path: openapi.yaml
+     Assert:
+       cfg.Avro == nil
+
+3. FILE: engine/internal/diff/avro.go  (CREATE NEW)
+
+   Package: package diff
+
+   ONLY use Go stdlib: net/http, encoding/json, fmt, io, time, strings
+   NO external dependencies.
+
+   Internal struct:
+   type schemaRegistryCompatResponse struct {
+       IsCompatible bool     `json:"is_compatible"`
+       Messages     []string `json:"messages"`
+   }
+
+   Implement this function:
+
+   func CompareAvro(baseFile, headFile string, cfg *config.SubstrateConfig) (*report.DiffReport, error)
+
+   FULL implementation flow:
+
+   Step 1: Check cfg.Avro == nil OR cfg.Avro.SchemaRegistryURL == ""
+     → Return DiffReport with 1 WARNING change:
+       RuleID: "AVRO_NO_REGISTRY_CONFIGURED"
+       Severity: WARNING
+       Description: "Avro compatibility checking requires schema_registry_url in substrate.yaml under the avro: block"
+       Recommendation: "Add avro:\\n  schema_registry_url: https://your-registry.com\\n  subject: your-topic-value"
+
+   Step 2: Read headFile content (raw bytes — .avsc is JSON)
+     → On read error: return error
+
+   Step 3: Determine subject name
+     → Use cfg.Avro.Subject if non-empty
+     → Else derive: cfg.Service + "-value"
+     → If cfg.Service is also empty: use "unknown-value"
+
+   Step 4: Build Schema Registry API request
+     URL: cfg.Avro.SchemaRegistryURL + "/compatibility/subjects/" + subject + "/versions/latest"
+     Method: POST
+     Headers:
+       Content-Type: application/vnd.schemaregistry.v1+json
+       Accept: application/vnd.schemaregistry.v1+json
+     Body: {"schema": "<JSON-escaped content of headFile>"}
+     Timeout: 10 * time.Second
+
+     If cfg.Avro.Username != "":
+       req.SetBasicAuth(cfg.Avro.Username, cfg.Avro.Password)
+
+   Step 5: Execute HTTP request
+     On network error (timeout, connection refused, etc.):
+       Return DiffReport with 1 WARNING:
+         RuleID: "AVRO_REGISTRY_UNAVAILABLE"
+         Description: "Could not reach Schema Registry: " + err.Error()
+         Recommendation: "Check that schema_registry_url is correct and the registry is reachable from CI."
+
+   Step 6: Read + parse response body
+     On non-2xx status (e.g. 404, 500):
+       Return DiffReport with 1 WARNING:
+         RuleID: "AVRO_REGISTRY_UNAVAILABLE"
+         Description: "Schema Registry returned HTTP " + statusCode
+
+   Step 7: Check is_compatible
+     → true: Return DiffReport with 0 changes (SchemaType: "avro", all slices empty)
+     → false: Return DiffReport with 1 BREAKING change:
+         RuleID: "AVRO_INCOMPATIBLE"
+         Severity: BREAKING
+         Path: subject
+         Description: strings.Join(response.Messages, "; ")
+           (or "Schema Registry reported incompatibility" if messages is empty)
+         Recommendation: "Review Avro schema evolution rules. Adding a field without a default value is backward-incompatible."
+
+   DiffReport construction:
+   Always set SchemaType: "avro" and ComparedAt: time.Now().UTC().Format(time.RFC3339).
+
+4. FILE: engine/internal/diff/avro_test.go  (CREATE NEW)
+
+   Package: package diff_test
+
+   Use httptest.NewServer() to mock the Schema Registry. NO real network calls.
+
+   5 mandatory test cases:
+
+   1. "no registry URL configured"
+      cfg.Avro == nil (or cfg = &config.SubstrateConfig{})
+      Expected: 0 BREAKING, 1 WARNING with RuleID "AVRO_NO_REGISTRY_CONFIGURED"
+
+   2. "registry returns compatible"
+      Mock server: 200, body: {"is_compatible": true}
+      Expected: 0 BREAKING, 0 WARNING, SchemaType == "avro"
+
+   3. "registry returns incompatible"
+      Mock server: 200, body: {"is_compatible": false, "messages": ["removed field 'id'"]}
+      Expected: 1 BREAKING with RuleID "AVRO_INCOMPATIBLE", description contains "removed field"
+
+   4. "registry returns HTTP 500"
+      Mock server: 500, body: {"error": "internal server error"}
+      Expected: 0 BREAKING, 1 WARNING with RuleID "AVRO_REGISTRY_UNAVAILABLE"
+
+   5. "registry connection refused"
+      Use a URL that is guaranteed to fail (e.g. http://127.0.0.1:1 — port 1 is always closed)
+      Expected: 0 BREAKING, 1 WARNING with RuleID "AVRO_REGISTRY_UNAVAILABLE"
+
+   Test helper: create a minimal .avsc file in t.TempDir() for headFile input.
+   Sample content: {"type": "record", "name": "Payment", "fields": [{"name": "id", "type": "string"}]}
+
+5. MODIFY: engine/cmd/substrate/main.go
+   Find the schema_type dispatch block.
+   Add:
+     case "avro":
+         diffReport, err = diff.CompareAvro(baseSchema, headSchema, cfg)
+         if err != nil {
+             // handle same as other schema type errors
+         }
+   Note: cfg is the loaded SubstrateConfig — it should already be loaded earlier in main.
+   If cfg is not available in the dispatch scope, load it: cfg, _ = config.LoadConfig(configPath)
+
+6. MODIFY: engine/cmd/substrate/serve.go
+   Add avro to the schema_type dispatch in the /diff endpoint.
+   Also update the validation guard to accept "avro" as a valid schema_type.
+   The serve mode cannot use avro.schema_registry_url from substrate.yaml directly —
+   accept it from the JSON request body as an additional optional field:
+     "avro_registry_url": "https://..."
+   Build a minimal SubstrateConfig with AvroConfig populated from this field before calling CompareAvro.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- engine/internal/diff/avro.go
+- engine/internal/diff/avro_test.go
+
+FILES TO MODIFY:
+- engine/internal/config/config.go      (add AvroConfig struct + Avro field)
+- engine/internal/config/config_test.go (add 2 avro test cases)
+- engine/cmd/substrate/main.go          (add "avro" case — minimal change)
+- engine/cmd/substrate/serve.go         (add "avro" case + validation guard + avro_registry_url field)
+
+FILES TO NOT TOUCH (READ-ONLY):
+- engine/internal/diff/openapi.go       (complete — do not modify)
+- engine/internal/diff/proto.go         (complete — do not modify)
+- engine/internal/diff/asyncapi.go      (P1e-T01 — do not modify)
+- engine/internal/diff/testdata/        (existing fixtures — do not touch)
+- engine/internal/report/               (DiffReport types — do not modify)
+- engine/go.mod                         (no new deps needed — stdlib only)
+- github-app/                           (TypeScript — do not touch)
+- api/                                  (Registry API — do not touch)
+- docs/specs/                           (ALL spec files are read-only)
+
+Commit: "jules: P1e-T02 add Apache Avro Schema Registry compatibility adapter"
+Target branch: feature/p1e-t02-avro-adapter

@@ -1,0 +1,290 @@
+TASK: P4-T02 — Streaming SSE AI Analyze Handler
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Add a new `POST /api/v1/ai/analyze` endpoint to the Go API server
+(`api/`) that:
+  1. Accepts a schema pair (current + proposed) and schema type.
+  2. Builds a compact diff summary by calling the Substrate Go diff
+     engine internally (no network call needed — it is a library).
+  3. Sends the diff summary to an OpenAI-compatible LLM for plain-
+     English explanation and a safe remediation patch suggestion.
+  4. Streams the LLM response tokens back to the client in real-time
+     using Server-Sent Events (SSE / text/event-stream).
+
+The LLM provider is configured entirely via env vars so local dev
+uses LM Studio (free, offline) and production uses Gemini Flash.
+If `SUBSTRATE_AI_BASE_URL` is not set, the handler MUST return a
+deterministic mock SSE response instead of an error so CI tests and
+local dev without LM Studio still pass.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-4/ai-intelligence.md   (Section: P4-T01, P4-T02)
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT
+═══════════════════════════════════════════════════════════════
+
+Go Module root: github.com/KrushnaVardhanReddy/Substrate
+Go API server:  api/
+Go diff engine: engine/ (read-only library, already imported by handlers)
+
+Key existing files (READ ONLY unless marked MODIFY/CREATE):
+
+  api/internal/server/router.go          — NewRouter() wires all routes (MODIFY)
+  api/internal/handlers/health.go        — Simple handler pattern reference
+  api/internal/handlers/cross_repo_check.go — Complex handler with JSON body parsing
+  api/internal/handlers/middleware.go    — Auth middleware (READ ONLY)
+  api/internal/db/store.go               — DB store interface (READ ONLY)
+
+The router `NewRouter()` currently accepts:
+  store db.Store, authConfig handlers.AuthConfig,
+  registryApiToken, jwtSecret string
+
+Do NOT change the router signature — the new AI route is unprotected
+(no auth token required, rate limiting is already handled by the
+`TierLimitsMiddleware` added to the mux).
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+──────────────────────────────────────────────────────────────
+1. CREATE: api/internal/handlers/ai_analyze.go
+──────────────────────────────────────────────────────────────
+
+Package: handlers
+
+Define these structs:
+
+  type AIAnalyzeRequest struct {
+      Org            string `json:"org"`
+      CurrentSchema  string `json:"current_schema"`
+      ProposedSchema string `json:"proposed_schema"`
+      SchemaType     string `json:"schema_type"`  // "openapi" | "graphql" | "sql"
+  }
+
+  type SSEEvent struct {
+      Type     string `json:"type"`     // "thinking" | "finding" | "fix" | "done" | "error"
+      Content  string `json:"content,omitempty"`
+      Severity string `json:"severity,omitempty"` // "BREAKING" | "WARNING" | "SAFE"
+      Language string `json:"language,omitempty"` // "yaml" | "sql" | "graphql"
+      Code     string `json:"code,omitempty"`
+  }
+
+Define a helper to write a single SSE event to a flushing ResponseWriter:
+
+  func writeSSE(w http.ResponseWriter, f http.Flusher, event SSEEvent) error {
+      data, _ := json.Marshal(event)
+      _, err := fmt.Fprintf(w, "data: %s\n\n", data)
+      f.Flush()
+      return err
+  }
+
+Define the main LLM client config reader:
+
+  type AIConfig struct {
+      BaseURL string  // SUBSTRATE_AI_BASE_URL env var
+      APIKey  string  // SUBSTRATE_AI_API_KEY env var
+      Model   string  // SUBSTRATE_AI_MODEL env var
+  }
+
+  func loadAIConfig() AIConfig {
+      return AIConfig{
+          BaseURL: os.Getenv("SUBSTRATE_AI_BASE_URL"),
+          APIKey:  os.Getenv("SUBSTRATE_AI_API_KEY"),
+          Model:   os.Getenv("SUBSTRATE_AI_MODEL"),
+      }
+  }
+
+Implement the handler constructor:
+
+  func AIAnalyzeHandler() http.HandlerFunc
+
+The handler logic:
+
+  Step 1: Set SSE headers BEFORE writing anything:
+    w.Header().Set("Content-Type", "text/event-stream")
+    w.Header().Set("Cache-Control", "no-cache")
+    w.Header().Set("Connection", "keep-alive")
+    w.Header().Set("Access-Control-Allow-Origin", "*")
+    w.WriteHeader(http.StatusOK)
+
+  Step 2: Assert http.Flusher. If the ResponseWriter does not support
+    flushing, write an HTTP 500 and return immediately.
+
+  Step 3: Parse the JSON request body into AIAnalyzeRequest. On error,
+    stream an SSE event: {type: "error", content: "invalid request body"}.
+    Then stream {type: "done"} and return.
+
+  Step 4: Read AIConfig from env. If BaseURL is empty, call
+    mockSSEResponse(w, flusher) and return (no LLM call).
+
+  Step 5: Build the LLM system prompt (defined as a const string):
+
+    const systemPrompt = `You are Substrate AI, an expert in API schema governance and contract safety.
+You will be given a diff between two schema versions. Your job is to:
+1. Explain in 2-3 plain-English sentences what changed and why it matters.
+2. Identify the severity: BREAKING, WARNING, or SAFE.
+3. Suggest the minimal safe remediation. For breaking changes, prefer deprecation over deletion.
+4. Provide the exact corrected schema snippet as a fenced code block.
+
+Be concise. Ground all claims in the diff provided. Do not hallucinate fields not present in the input.`
+
+  Step 6: Build the user message:
+    "Schema type: {schema_type}\n\nCurrent schema:\n{current_schema}\n\nProposed schema:\n{proposed_schema}"
+
+  Step 7: Call the OpenAI-compatible chat completions endpoint:
+    POST {BaseURL}/chat/completions
+    Header: Authorization: Bearer {APIKey}
+    Header: Content-Type: application/json
+    Body: {
+      "model": "{Model}",
+      "stream": true,
+      "messages": [
+        {"role": "system", "content": systemPrompt},
+        {"role": "user",   "content": userMessage}
+      ]
+    }
+
+  Step 8: Stream the response. The LLM returns newline-delimited SSE
+    events in the format: `data: {"choices":[{"delta":{"content":"..."}}]}`
+    Each line starting with "data: " is a token chunk. Read them with
+    bufio.Scanner line by line. For each line:
+      - Skip if empty or equals "data: [DONE]"
+      - Parse the JSON. If it contains a non-empty content delta, stream
+        an SSE event: {type: "thinking", content: "<token>"}
+
+  Step 9: After the LLM stream ends, stream: {type: "done"}
+
+Implement mockSSEResponse:
+
+  func mockSSEResponse(w http.ResponseWriter, f http.Flusher) {
+      writeSSE(w, f, SSEEvent{Type: "thinking", Content: "Substrate AI (mock mode) — set SUBSTRATE_AI_BASE_URL to enable real AI."})
+      writeSSE(w, f, SSEEvent{Type: "finding", Severity: "BREAKING", Content: "Removing a field from a response schema will break consumers that depend on it."})
+      writeSSE(w, f, SSEEvent{Type: "fix", Language: "yaml", Code: "# Mark the field as deprecated instead of removing it:\nuser_id:\n  type: string\n  deprecated: true"})
+      writeSSE(w, f, SSEEvent{Type: "done"})
+  }
+
+──────────────────────────────────────────────────────────────
+2. CREATE: api/internal/handlers/ai_analyze_test.go
+──────────────────────────────────────────────────────────────
+
+Package: handlers
+
+Write two table-driven tests using the standard Go `net/http/httptest`
+package (no external test frameworks):
+
+Test 1: "returns mock SSE when SUBSTRATE_AI_BASE_URL is not set"
+  - Do NOT set SUBSTRATE_AI_BASE_URL in the test environment.
+  - POST to AIAnalyzeHandler() with a valid JSON body:
+      {"org":"test","current_schema":"type A{}","proposed_schema":"type B{}","schema_type":"graphql"}
+  - Assert:
+      - Response Content-Type contains "text/event-stream"
+      - Response body contains `"type":"thinking"`
+      - Response body contains `"type":"done"`
+      - Response body contains `"type":"finding"`
+
+Test 2: "returns 400 on invalid JSON body"
+  - POST to AIAnalyzeHandler() with body: `not valid json`
+  - Since SSE headers are set before parsing, the response is still
+    200 status but the body should contain an SSE error event.
+  - Assert response body contains `"type":"error"`
+
+Follow the existing handler test patterns in the file
+api/internal/handlers/health_test.go for how to set up httptest.
+
+──────────────────────────────────────────────────────────────
+3. MODIFY: api/internal/server/router.go
+──────────────────────────────────────────────────────────────
+
+In NewRouter(), add the new AI route AFTER the matrix route and BEFORE
+the closing `return corsMiddleware(mux)` line:
+
+  // AI routes (public — no auth required, LLM is BYOK)
+  mux.HandleFunc("POST /api/v1/ai/analyze", handlers.AIAnalyzeHandler())
+
+Do NOT add it behind any middleware. The route is intentionally public.
+The BYOK model means the user's API key cost is their own.
+
+──────────────────────────────────────────────────────────────
+4. CREATE: api/.env.example (ADD LINES — do not overwrite entire file)
+──────────────────────────────────────────────────────────────
+
+Append the following block to the BOTTOM of .env.example if it exists,
+or create the file with these contents if it does not:
+
+  # ── Phase 4: AI Provider ──────────────────────────────────────────────────
+  # LOCAL DEV (LM Studio — free, offline, no API key needed)
+  SUBSTRATE_AI_BASE_URL=http://localhost:1234/v1
+  SUBSTRATE_AI_API_KEY=lm-studio
+  SUBSTRATE_AI_MODEL=qwen2.5-coder-7b-instruct
+
+  # PRODUCTION (Google Gemini Flash)
+  # SUBSTRATE_AI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/
+  # SUBSTRATE_AI_API_KEY=your-gemini-api-key
+  # SUBSTRATE_AI_MODEL=gemini-2.0-flash
+
+──────────────────────────────────────────────────────────────
+5. VERIFY: All Go tests pass
+──────────────────────────────────────────────────────────────
+
+After all changes, run:
+  cd api && go build ./...
+  cd api && go test ./...
+
+Both must pass with zero errors and all tests green.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- api/internal/handlers/ai_analyze.go      (new SSE AI handler)
+- api/internal/handlers/ai_analyze_test.go (unit tests)
+
+FILES TO MODIFY:
+- api/internal/server/router.go            (register the new route)
+- api/.env.example                         (append AI env var docs)
+
+FILES TO NOT TOUCH (READ-ONLY):
+- api/internal/handlers/middleware.go      (auth — do not change)
+- api/internal/handlers/cross_repo_check.go
+- api/internal/handlers/repos.go
+- api/internal/handlers/graph.go
+- api/internal/handlers/auth.go
+- api/internal/db/                         (database layer — do not touch)
+- engine/                                  (Go diff engine — read-only)
+- dashboard/                               (SvelteKit — do not touch)
+- github-app/                              (Cloudflare Worker — do not touch)
+- docs/specs/                              (ALL spec files — READ-ONLY)
+
+═══════════════════════════════════════════════════════════════
+CRITICAL CONSTRAINTS
+═══════════════════════════════════════════════════════════════
+
+1. NO NEW GO DEPENDENCIES. Use only the Go standard library:
+   net/http, bufio, bytes, encoding/json, fmt, os, strings, io.
+   The openai-go SDK is NOT used — we make a raw HTTP call to the
+   OpenAI-compatible endpoint ourselves using net/http.
+
+2. MOCK FALLBACK IS MANDATORY. If SUBSTRATE_AI_BASE_URL is empty,
+   mockSSEResponse() MUST be called. The handler must never return
+   an error or a non-SSE response — always stream, even in mock mode.
+
+3. SSE HEADERS must be set BEFORE any body is written. This is
+   non-negotiable — any middleware that writes headers after the fact
+   will break the SSE stream.
+
+4. DO NOT change the NewRouter() function signature. The new route
+   is added inside the existing function body only.
+
+5. The route is unauthenticated by design (BYOK model). Do not wrap
+   it in serviceTokenMW or authMW.
+
+6. LLM streaming uses chunked transfer encoding automatically when
+   http.Flusher.Flush() is called. Do not set Content-Length.
+
+Commit: "feat(api): P4-T02 add streaming SSE AI analyze endpoint"
+Target branch: feature/dev

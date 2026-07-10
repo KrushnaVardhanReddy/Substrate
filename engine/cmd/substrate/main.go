@@ -12,14 +12,15 @@ import (
 	initcmd "github.com/KrushnaVardhanReddy/substrate/engine/internal/init"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 	sqlpkg "github.com/KrushnaVardhanReddy/substrate/engine/internal/sql"
-	"path/filepath"
 	"github.com/spf13/cobra"
+	"path/filepath"
 )
 
 var flattenAllOf bool
 var configPath string
 var format string
 var schemaType string
+var modeFlag string
 
 func main() {
 	var rootCmd = &cobra.Command{
@@ -61,7 +62,8 @@ func main() {
 
 			var rep *report.DiffReport
 
-			if finalSchemaType == "sql" {
+			switch finalSchemaType {
+			case "sql":
 				base, err := sqlpkg.ParseSchema(basePath)
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
@@ -73,7 +75,43 @@ func main() {
 					os.Exit(3)
 				}
 				rep = sqlpkg.DiffSchemas(base, head)
-			} else {
+			case "graphql":
+				rep, err = diff.CompareGraphQL(basePath, revisionPath)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+					os.Exit(3)
+				}
+			case "asyncapi":
+				rep, err = diff.CompareAsyncAPI(basePath, revisionPath)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+					os.Exit(3)
+				}
+			case "protobuf", "proto":
+				rep, err = diff.CompareProto(basePath, revisionPath)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+					os.Exit(3)
+				}
+			case "terraform-plan":
+				rep, err = diff.CompareTerraformPlan(revisionPath)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+					os.Exit(3)
+				}
+			case "ai-model":
+				rep, err = diff.CompareAIML(basePath, revisionPath)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+					os.Exit(3)
+				}
+			case "avro":
+				rep, err = diff.CompareAvro(basePath, revisionPath, cfg)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+					os.Exit(3)
+				}
+			default:
 				rep, err = diff.CompareOpenAPI(basePath, revisionPath, flattenAllOf)
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
@@ -82,27 +120,21 @@ func main() {
 			}
 
 			if cfg != nil {
-				var activeBreaking []report.Change
-				for _, bc := range rep.BreakingChanges {
-					if cfg.IsOverrideActive(bc.RuleID, bc.Path) {
-						continue
-					}
-					activeBreaking = append(activeBreaking, bc)
-				}
-
-				rep.BreakingChanges = activeBreaking
-				rep.Summary.BreakingCount = len(rep.BreakingChanges)
-
-				if rep.Summary.BreakingCount > 0 {
-					rep.Summary.OverallSeverity = report.SeverityBreaking
-				} else if rep.Summary.WarningCount > 0 {
-					rep.Summary.OverallSeverity = report.SeverityWarning
-				} else if rep.Summary.TotalChanges > 0 {
-					rep.Summary.OverallSeverity = report.SeveritySafe
-				} else {
-					rep.Summary.OverallSeverity = report.SeverityNoChanges
-				}
+				rep = diff.ApplyConfigAndTraffic(rep, cfg, "", "")
 			}
+
+			finalMode := "strict"
+			if modeFlag != "" {
+				if modeFlag == "strict" || modeFlag == "legacy" {
+					finalMode = modeFlag
+				} else {
+					fmt.Fprintf(os.Stderr, "Error: invalid mode '%s'. Must be 'strict' or 'legacy'\n", modeFlag)
+					os.Exit(3)
+				}
+			} else if cfg != nil && (cfg.Mode == "strict" || cfg.Mode == "legacy") {
+				finalMode = cfg.Mode
+			}
+			rep.Mode = finalMode
 
 			if format == "json" {
 				output, err := json.MarshalIndent(rep, "", "  ")
@@ -112,6 +144,9 @@ func main() {
 				}
 				fmt.Println(string(output))
 			} else if format == "text" {
+				if finalMode == "legacy" && len(rep.BreakingChanges) > 0 {
+					fmt.Println("⚠️ LEGACY MODE: Breaking changes detected, but merge is not blocked.")
+				}
 				fmt.Println("Substrate Diff Report")
 				fmt.Println("─────────────────────")
 				fmt.Printf("Schema Type:  %s\n", rep.SchemaType)
@@ -203,12 +238,16 @@ func main() {
 				os.Exit(3)
 			}
 
-			if rep.Summary.BreakingCount > 0 {
-				os.Exit(2)
-			} else if rep.Summary.WarningCount > 0 {
-				os.Exit(1)
+			if finalMode == "legacy" {
+				os.Exit(0)
+			} else {
+				if rep.Summary.BreakingCount > 0 {
+					os.Exit(2)
+				} else if rep.Summary.WarningCount > 0 {
+					os.Exit(1)
+				}
+				os.Exit(0)
 			}
-			os.Exit(0)
 		},
 	}
 
@@ -216,6 +255,7 @@ func main() {
 	diffCmd.Flags().StringVar(&configPath, "config", "./substrate.yaml", "Path to override config file")
 	diffCmd.Flags().StringVar(&format, "format", "json", "Output format")
 	diffCmd.Flags().StringVar(&schemaType, "schema-type", "", "Force schema type")
+	diffCmd.Flags().StringVar(&modeFlag, "mode", "", "Execution mode: strict or legacy")
 
 	var validateCmd = &cobra.Command{
 		Use:   "validate [spec-file]",

@@ -290,7 +290,12 @@ def main():
                 sys.exit(1)
 
             content_text = res["result"]["content"][0]["text"]
-            data = json.loads(content_text)
+            try:
+                data = json.loads(content_text)
+            except json.JSONDecodeError:
+                print("❌ Received non-JSON response from server:")
+                print(content_text)
+                sys.exit(1)
 
             print("\n✅ Generation Complete!")
             download_url = None

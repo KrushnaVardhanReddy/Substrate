@@ -1,15 +1,22 @@
-import { Env, DiffReport } from './types.js';
-import { validateWebhookSignature, parsePREvent } from './webhook.js';
+import { Env, DiffReport, SyncDependency, CrossRepoCheckRequest, CrossRepoCheckResponse, AIAutofixRequest, AIAutofixResponse } from './types.js';
+import { validateWebhookSignature, parsePREvent, parsePushEvent } from './webhook.js';
 import { generateInstallationToken, fetchFileContent, postPRComment, setCommitStatus } from './github-client.js';
-import { formatPRComment, formatMissingConfigComment, getCommitStatusState, getCommitStatusDescription } from './formatter.js';
+import { formatPRComment, formatMissingConfigComment, getCommitStatusState, getCommitStatusDescription, formatCrossRepoImpact } from './formatter.js';
+import { parseConsumersFromYaml, syncToRegistry, crossRepoCheck } from './registry-client.js';
+
 
 // YAML parser mock/regex for the stub phase
 function parseYaml(yaml: string): any {
   const result: any = {};
   const baseMatch = yaml.match(/base_schema:\s*(.+)/);
-  if (baseMatch) result.base_schema = baseMatch[1].trim();
   const headMatch = yaml.match(/head_schema:\s*(.+)/);
+  const specMatch = yaml.match(/spec_path:\s*(.+)/);
+  
+  if (baseMatch) result.base_schema = baseMatch[1].trim();
+  else if (specMatch) result.base_schema = specMatch[1].trim();
+  
   if (headMatch) result.head_schema = headMatch[1].trim();
+  else if (specMatch) result.head_schema = specMatch[1].trim();
   const onBreakingMatch = yaml.match(/on_breaking_change:\s*(.+)/);
   if (onBreakingMatch) result.on_breaking_change = onBreakingMatch[1].trim();
   const schemaTypeMatch = yaml.match(/schema_type:\s*(.+)/);
@@ -57,6 +64,99 @@ export default {
     const isValid = await validateWebhookSignature(signature, body, env.GITHUB_WEBHOOK_SECRET);
     if (!isValid) {
       return new Response('Unauthorized', { status: 401 });
+    }
+
+    const eventType = request.headers.get('X-GitHub-Event');
+    if (eventType === 'push') {
+      const pushEvent = parsePushEvent(request.headers, body);
+      if (!pushEvent) {
+        return new Response('Ignored', { status: 200 });
+      }
+
+      try {
+        const token = await generateInstallationToken(
+          env.GITHUB_APP_ID,
+          env.GITHUB_APP_PRIVATE_KEY,
+          pushEvent.installationId
+        );
+
+        const configContent = await fetchFileContent(
+          token,
+          pushEvent.owner,
+          pushEvent.repo,
+          'substrate.yaml',
+          pushEvent.after
+        );
+
+        if (!configContent) {
+          return new Response('Ignored', { status: 200 });
+        }
+
+        const consumerEntries = await parseConsumersFromYaml(configContent);
+        if (consumerEntries.length === 0) {
+          return new Response('Ignored', { status: 200 });
+        }
+
+        const syncDependencies: SyncDependency[] = [];
+
+        await Promise.all(consumerEntries.map(async (entry) => {
+          try {
+            // Fetch provider_github_repo_id using GitHub API
+            const repoResponse = await fetch(`https://api.github.com/repos/${entry.provider_repo}`, {
+              headers: {
+                'Accept': 'application/vnd.github.v3+json',
+                'Authorization': `Bearer ${token}`,
+                'User-Agent': 'Substrate-GitHub-App'
+              }
+            });
+
+            if (!repoResponse.ok) {
+              console.error(`Failed to fetch repo ${entry.provider_repo}`);
+              return;
+            }
+
+            const repoData = await repoResponse.json() as any;
+            const providerOwner = repoData.owner.login;
+            const providerRepoName = repoData.name;
+            const providerGithubRepoId = repoData.id;
+
+            const providerSpecContent = await fetchFileContent(
+              token,
+              providerOwner,
+              providerRepoName,
+              entry.provider_spec_path,
+              entry.provider_branch
+            );
+
+            if (providerSpecContent) {
+              syncDependencies.push({
+                provider_repo: entry.provider_repo,
+                provider_github_repo_id: providerGithubRepoId,
+                schema_type: entry.schema_type,
+                spec_path: entry.provider_spec_path,
+                branch: entry.provider_branch,
+                raw_content: providerSpecContent
+              });
+            }
+          } catch (err) {
+            console.error(`Error processing consumer entry ${entry.name}`, err);
+          }
+        }));
+
+        const syncResult = await syncToRegistry(env.REGISTRY_API_URL, env.REGISTRY_API_TOKEN, {
+          installation_id: pushEvent.installationId,
+          org: pushEvent.owner,
+          consumer_repo: pushEvent.fullName,
+          consumer_github_repo_id: pushEvent.githubRepoId,
+          commit_sha: pushEvent.after,
+          dependencies: syncDependencies
+        });
+
+        return new Response(JSON.stringify(syncResult), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      } catch (e: any) {
+        console.error(e);
+        return new Response('Error Processing Push', { status: 200 });
+      }
     }
 
     // Step 3: Parse PR event
@@ -140,17 +240,76 @@ export default {
           schemaType
         );
       } catch (e: any) {
+        console.error("Engine Call Failed:", e);
         await setCommitStatus(token, event.owner, event.repo, event.headSha, 'failure', 'Substrate engine error — retry later');
         return new Response('Engine Error', { status: 200 });
       }
 
+      // Step 9.5: Cross Repo Check
+      let crossRepoResponse: CrossRepoCheckResponse | undefined;
+      const schemaType = config.schema_type || 'openapi';
+
+      if (env.REGISTRY_API_URL) {
+        const payload: CrossRepoCheckRequest = {
+          installation_id: event.installationId,
+          org: event.owner,
+          provider_repo: event.fullName,
+          head_schema_content: headContent,
+          schema_type: schemaType,
+          config_content: configContent
+        };
+        crossRepoResponse = await crossRepoCheck(env.REGISTRY_API_URL, env.REGISTRY_API_TOKEN, payload);
+      } else {
+        crossRepoResponse = { total_consumers: 0, broken_consumers: 0, is_safe: true, results: [] };
+      }
+
+      const crossRepoSection = formatCrossRepoImpact(crossRepoResponse);
+
+      // Step 9.75: AI Autofix
+      let aiExplanation: string | undefined;
+      let aiSafePatch: string | undefined;
+
+      if (diffReport.summary.breaking_count > 0 && env.REGISTRY_API_URL) {
+        try {
+          const autofixReq: AIAutofixRequest = {
+            provider_repo: event.fullName,
+            schema_type: config.schema_type || 'openapi',
+            current_schema: baseContent,
+            proposed_schema: headContent,
+            breaking_changes: diffReport.breaking_changes
+          };
+
+          const autofixRes = await fetch(`${env.REGISTRY_API_URL}/api/v1/ai/autofix`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${env.REGISTRY_API_TOKEN}`
+            },
+            body: JSON.stringify(autofixReq)
+          });
+
+          if (autofixRes.ok) {
+            const autofixData = await autofixRes.json() as AIAutofixResponse;
+            aiExplanation = autofixData.explanation;
+            aiSafePatch = autofixData.safe_patch;
+          } else {
+            console.error(`AI Autofix failed with status ${autofixRes.status}`);
+          }
+        } catch (e) {
+          console.error("AI Autofix request failed:", e);
+        }
+      }
+
       // Step 10: Post PR comment
-      const commentBody = formatPRComment(diffReport, config);
+      let commentBody = formatPRComment(diffReport, config, env.DASHBOARD_URL, event.owner, event.repo, event.prNumber, aiExplanation, aiSafePatch);
+      if (crossRepoSection) {
+        commentBody += "\n" + crossRepoSection;
+      }
       await postPRComment(token, event.owner, event.repo, event.prNumber, commentBody);
 
       // Step 11: Set final commit status
-      const statusState = getCommitStatusState(diffReport, config);
-      const statusDescription = getCommitStatusDescription(diffReport);
+      const statusState = getCommitStatusState(diffReport, config, crossRepoResponse);
+      const statusDescription = getCommitStatusDescription(diffReport, crossRepoResponse);
       await setCommitStatus(
         token,
         event.owner,

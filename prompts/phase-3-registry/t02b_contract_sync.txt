@@ -1,0 +1,223 @@
+TASK: P3-T02b — Contract Registry Sync (push-to-main webhook handler)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Add push-to-main handling to the Cloudflare Worker so that whenever a consumer
+repo pushes to its main branch, Substrate automatically snapshots all declared
+provider schemas into the contract registry.
+
+This is the "heartbeat" of Phase 3. Without it, the registry is empty and
+cross-repo checks cannot run.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-3/contract-registry.md  (P3-T02b section, lines ~133–155)
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — WHAT EXISTS
+═══════════════════════════════════════════════════════════════
+The Cloudflare Worker lives in github-app/src/index.ts.
+
+Key existing files (READ ONLY unless specified):
+  github-app/src/index.ts          — main fetch handler (MODIFY — add push handler)
+  github-app/src/webhook.ts        — parsePREvent() (READ ONLY, add parsePushEvent())
+  github-app/src/github-client.ts  — fetchFileContent(), generateInstallationToken()
+                                     (READ ONLY — reuse these functions)
+  github-app/src/types.ts          — Env, DiffReport types (MODIFY — add new types)
+  engine/internal/config/config.go — ConsumerDependency struct for reference
+
+The Worker already handles pull_request events. You are adding push event handling
+in parallel — NOT replacing or modifying the existing PR flow.
+
+New environment variable needed (add to types.ts Env interface):
+  REGISTRY_API_URL  — base URL of the Go Registry API (e.g. https://api.substrate.dev)
+  REGISTRY_API_TOKEN — internal service token (matches INTERNAL_SERVICE_TOKEN in the api/ server)
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. MODIFY: github-app/src/types.ts
+   Add to the Env interface:
+     REGISTRY_API_URL: string;
+     REGISTRY_API_TOKEN: string;
+
+   Add new TypeScript interfaces:
+
+   interface ConsumerEntry {
+     name: string;
+     provider_repo: string;       // e.g. "myorg/backend-api"
+     schema_type: string;         // openapi | graphql | sql | protobuf
+     provider_spec_path: string;  // path to spec in provider repo
+     provider_branch: string;     // default "main"
+   }
+
+   interface SubstrateConsumerConfig {
+     consumers?: ConsumerEntry[];
+   }
+
+   interface SyncDependency {
+     provider_repo: string;
+     provider_github_repo_id: number;
+     schema_type: string;
+     spec_path: string;
+     branch: string;
+     raw_content: string;
+   }
+
+   interface SyncRequest {
+     installation_id: number;
+     org: string;
+     consumer_repo: string;          // full_name e.g. "myorg/frontend"
+     consumer_github_repo_id: number;
+     commit_sha: string;
+     dependencies: SyncDependency[];
+   }
+
+   interface PushEvent {
+     ref: string;             // "refs/heads/main"
+     after: string;           // commit SHA
+     installationId: number;
+     owner: string;           // org/user
+     repo: string;            // repo name
+     fullName: string;        // "owner/repo"
+     githubRepoId: number;
+     installationOrgId: number;
+   }
+
+2. MODIFY: github-app/src/webhook.ts
+   Add a new exported function:
+
+   export function parsePushEvent(headers: Headers, body: string): PushEvent | null
+
+   Logic:
+   - Check X-GitHub-Event header === "push"
+   - Parse body as JSON
+   - ONLY handle pushes to the default branch (ref === "refs/heads/main")
+   - Return null if event is a tag push, branch push (non-main), or delete push
+   - Extract: ref, after (commit sha), installation.id, repository.owner.login,
+              repository.name, repository.full_name, repository.id
+   - Return null if payload.deleted === true (branch deletion)
+
+3. ADD: github-app/src/registry-client.ts  (CREATE NEW)
+   All Registry API communication lives here.
+
+   export async function parseConsumersFromYaml(yamlContent: string): Promise<ConsumerEntry[]>
+   — Minimal YAML parser that extracts only the `consumers:` block.
+   — Pattern: look for `consumers:` key, then parse each `- name:` entry.
+   — The existing parseYaml() in index.ts is a regex-based stub. Follow the same
+     pattern — do NOT add a full YAML library dependency.
+   — Fields to extract per entry: name, provider_repo, schema_type,
+     provider_spec_path, provider_branch (default "main" if missing).
+   — Return empty array [] if no consumers block found.
+
+   export async function syncToRegistry(
+     registryUrl: string,
+     token: string,
+     payload: SyncRequest
+   ): Promise<{ synced: number }>
+   — POST to `${registryUrl}/api/v1/sync`
+   — Set headers: Authorization: Bearer <token>, Content-Type: application/json
+   — Throw on non-2xx response.
+
+4. MODIFY: github-app/src/index.ts
+   In the main fetch handler, BEFORE the existing pull_request logic, add push
+   event handling. The existing PR handling code must NOT change.
+
+   New flow to add (after validating webhook signature, before parsePREvent):
+
+   Step A: Check X-GitHub-Event header
+   Step B: If event === "push":
+     1. parsePushEvent(request.headers, body) → if null, return 200 Ignored
+     2. generateInstallationToken(env.GITHUB_APP_ID, env.GITHUB_APP_PRIVATE_KEY,
+                                   pushEvent.installationId)
+     3. fetchFileContent(token, owner, repo, "substrate.yaml", pushEvent.after)
+        → if null/missing, return 200 Ignored (no substrate.yaml = not a Substrate repo)
+     4. parseConsumersFromYaml(configContent) → entries[]
+        → if empty, return 200 Ignored (no consumers declared)
+     5. For each consumer entry in parallel (Promise.all):
+        a. Fetch provider_github_repo_id using GitHub API:
+           GET https://api.github.com/repos/{provider_repo}
+           Extract .id field
+        b. fetchFileContent(token, provider_owner, provider_repo_name,
+                             entry.provider_spec_path,
+                             entry.provider_branch || "main")
+        c. Build SyncDependency object
+     6. syncToRegistry(env.REGISTRY_API_URL, env.REGISTRY_API_TOKEN, {
+          installation_id: pushEvent.installationId,
+          org: pushEvent.owner,
+          consumer_repo: pushEvent.fullName,
+          consumer_github_repo_id: pushEvent.githubRepoId,
+          commit_sha: pushEvent.after,
+          dependencies: syncDependencies
+        })
+     7. Return 200 OK with JSON: { synced: N }
+
+   Step C: If event !== "push", fall through to the existing PR event handler.
+
+   IMPORTANT: Wrap the entire push handler in try/catch. On any error:
+   - console.error the error
+   - Return 200 (never let webhook errors surface to GitHub as 5xx)
+
+═══════════════════════════════════════════════════════════════
+TESTS (MANDATORY)
+═══════════════════════════════════════════════════════════════
+
+FILE: github-app/src/registry-client.test.ts  (CREATE NEW)
+Use Vitest. No real HTTP calls — mock fetch globally.
+
+Test cases for parseConsumersFromYaml():
+  1. "empty yaml" → returns []
+  2. "yaml with no consumers key" → returns []
+  3. "single consumer entry" → returns array with 1 ConsumerEntry, all fields populated
+  4. "consumer with no provider_branch" → DefaultedBranch resolves to "main"
+  5. "two consumers" → returns array with 2 entries
+
+Test cases for syncToRegistry():
+  1. "success 200" → resolves with { synced: 2 }
+  2. "non-2xx response" → throws an Error
+
+FILE: github-app/src/webhook.test.ts  (MODIFY — add cases for parsePushEvent)
+
+Test cases to ADD:
+  1. "push to main" → returns PushEvent with correct fields
+  2. "push to feature branch" → returns null
+  3. "tag push" → returns null
+  4. "delete push (deleted: true)" → returns null
+  5. "non-push event" → returns null
+
+FILE: github-app/src/index.test.ts  (MODIFY — add push handler integration tests)
+
+Test cases to ADD (mock all external calls):
+  1. "push to main with consumers → calls syncToRegistry, returns 200"
+  2. "push to main, no substrate.yaml → returns 200 Ignored"
+  3. "push to main, no consumers block → returns 200 Ignored"
+  4. "push to non-main branch → returns 200 Ignored"
+  5. "existing PR tests must still pass" — do not break existing test coverage
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- github-app/src/registry-client.ts
+- github-app/src/registry-client.test.ts
+
+FILES TO MODIFY:
+- github-app/src/types.ts         (add Env fields + new interfaces)
+- github-app/src/webhook.ts       (add parsePushEvent function)
+- github-app/src/index.ts         (add push handler before PR handler)
+- github-app/src/webhook.test.ts  (add parsePushEvent test cases)
+- github-app/src/index.test.ts    (add push handler integration tests)
+
+FILES TO NOT TOUCH (READ-ONLY):
+- github-app/src/formatter.ts          (PR comment formatting — no changes)
+- github-app/src/github-client.ts      (GitHub API client — no changes)
+- engine/                              (Go diff engine — separate module)
+- api/                                 (Go registry API — separate module)
+- docs/specs/                          (ALL spec files are read-only)
+- action.yml
+- .github/workflows/
+
+Commit: "jules: P3-T02b add contract registry sync on push-to-main"
+Target branch: feature/p3-t02b-contract-sync

@@ -1,0 +1,43 @@
+TASK: P3-T15 - Dashboard E2E Testing (Playwright)
+
+You are tasked with implementing End-to-End (E2E) tests for the Substrate Dashboard using Playwright. 
+This is the final stabilization step for Phase 3 before we move to Phase 4.
+
+BACKGROUND:
+We have built a SvelteKit dashboard in the `dashboard/` directory. It includes three main routes:
+1. `dashboard/src/routes/org/[org]/+page.svelte` (Repositories list)
+2. `dashboard/src/routes/org/[org]/graph/+page.svelte` (Dependency Graph visualization)
+3. `dashboard/src/routes/org/[org]/matrix/+page.svelte` (Compatibility Matrix)
+
+REQUIREMENTS:
+1. Initialize Playwright inside the `dashboard/` directory. (Use `@playwright/test`).
+2. Create `playwright.config.ts` to spin up the SvelteKit dev server (`npm run dev`) before testing. Use port 5173.
+3. Write test scenarios in `dashboard/tests/e2e/`.
+4. **CRITICAL**: Use Playwright's `page.route()` to mock the `/api/v1/*` backend endpoints. Do NOT rely on the real Go API server running. 
+
+TEST SCENARIOS TO IMPLEMENT:
+A. `navigation.spec.ts`:
+- Navigate to `/org/testorg`.
+- Click the "Dependency Graph" link in the sidebar and assert the URL changes to `/org/testorg/graph`.
+- Click the "Compatibility Matrix" link and assert the URL changes to `/org/testorg/matrix`.
+
+B. `graph.spec.ts`:
+- Route `/api/v1/graph/testorg` to return a mock graph JSON (e.g., `[{ provider: 'core/auth', consumer: 'frontend/dashboard', status: 'SAFE' }]`).
+- Navigate to `/org/testorg/graph`.
+- Assert the node card for "core/auth" is visible.
+- Click the node card and assert the `<aside class="detail-panel">` becomes visible and displays "core/auth".
+
+C. `matrix.spec.ts`:
+- Route `/api/v1/matrix/testorg` to return a mock matrix JSON with `COMPATIBLE` and `INCOMPATIBLE` results.
+- Navigate to `/org/testorg/matrix`.
+- Assert the `.matrix-table` renders.
+- Click a cell with an `.danger-icon` (Incompatible) and assert the `.cell-detail-panel` opens showing the "Breaking Change Detected" alert.
+
+Please create the configuration, add the tests, ensure `package.json` has the appropriate scripts, and verify the tests run successfully via `npm run test:e2e` inside the `dashboard` folder.
+
+FILES LIST:
+- `dashboard/package.json`
+- `dashboard/playwright.config.ts`
+- `dashboard/tests/e2e/navigation.spec.ts`
+- `dashboard/tests/e2e/graph.spec.ts`
+- `dashboard/tests/e2e/matrix.spec.ts`

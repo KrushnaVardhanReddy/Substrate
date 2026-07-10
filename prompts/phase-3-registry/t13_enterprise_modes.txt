@@ -1,0 +1,77 @@
+TASK: P3-T13 — Enterprise Execution Modes
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Introduce `--mode=strict|legacy` execution modes to Substrate so enterprise 
+teams can adopt the tool in a "shadow/dry-run" state without breaking 
+their CI pipelines immediately on day one.
+
+Spec: docs/specs/phase-3/enterprise-execution-modes.md
+
+═══════════════════════════════════════════════════════════════
+CONTEXT & PREREQUISITES
+═══════════════════════════════════════════════════════════════
+Currently, the `substrate` Go binary exits with status code `2` if it detects
+any unacknowledged breaking changes. 
+We need to allow setting a mode (`legacy`) where the engine runs exactly as 
+normal (reporting breaking changes) but always exits with `0` (Success).
+
+The mode can be set via `substrate.yaml` or overridden via a CLI flag.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Configuration (`engine/internal/config/config.go`)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Add `Mode` string to the `Config` struct (`yaml:"mode"`).
+In the configuration loading logic, ensure that if `Mode` is empty or invalid, 
+it defaults to `"strict"`.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. Report Updates (`engine/internal/report/report.go`)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Add `Mode string \`json:"mode"\`` to the `DiffReport` struct.
+This ensures the JSON output (consumed by the GitHub App) knows what mode 
+the diff was executed in.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. CLI Flag and Exit Logic (`engine/cmd/substrate/main.go`)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Add a string flag `--mode`.
+- The CLI flag must override the configuration parsed from `substrate.yaml`.
+- When printing text output to stdout (if `len(report.BreakingChanges) > 0`):
+  - If `mode == "legacy"`, print a prominent warning: 
+    `⚠️ LEGACY MODE: Breaking changes detected, but merge is not blocked.`
+- Ensure the process exits with `0` if `mode == "legacy"`, even if there are 
+  breaking changes. It must only exit with `2` if `mode == "strict"`.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. Testing (`engine/cmd/substrate/main_test.go`)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Add tests covering the CLI behavior:
+- A test case ensuring that `--mode=legacy` combined with a breaking change 
+  results in an exit code of `0`.
+- A test case ensuring `--mode=strict` combined with a breaking change 
+  results in an exit code of `2`.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO MODIFY:
+- engine/internal/config/config.go
+- engine/internal/report/report.go
+- engine/cmd/substrate/main.go
+- engine/cmd/substrate/main_test.go
+
+FILES TO NOT TOUCH (READ-ONLY):
+- dashboard/
+- github-app/
+- api/
+- docs/specs/
+
+Commit: "jules: P3-T13 add strict/legacy execution modes"
+Target branch: feature/dev

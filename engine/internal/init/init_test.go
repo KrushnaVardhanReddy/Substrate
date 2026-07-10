@@ -32,7 +32,7 @@ func TestInit(t *testing.T) {
 				"  .github/workflows/substrate.yml",
 			},
 			expectedYAML: map[string]string{
-				"substrate.yaml":                    "spec_path: openapi.yaml",
+				"substrate.yaml":                  "spec_path: openapi.yaml",
 				".github/workflows/substrate.yml": "base_schema: openapi.yaml",
 			},
 		},
@@ -47,7 +47,7 @@ func TestInit(t *testing.T) {
 				"✅ Substrate initialized!",
 			},
 			expectedYAML: map[string]string{
-				"substrate.yaml":                    "spec_path: api/openapi.yaml",
+				"substrate.yaml":                  "spec_path: api/openapi.yaml",
 				".github/workflows/substrate.yml": "base_schema: api/openapi.yaml",
 			},
 		},
@@ -65,7 +65,7 @@ func TestInit(t *testing.T) {
 				"✅ Substrate initialized!",
 			},
 			expectedYAML: map[string]string{
-				"substrate.yaml":                    "spec_path: openapi.yaml",
+				"substrate.yaml":                  "spec_path: openapi.yaml",
 				".github/workflows/substrate.yml": "base_schema: openapi.yaml",
 			},
 		},
@@ -86,7 +86,7 @@ func TestInit(t *testing.T) {
 				"⚠️  .github/workflows/substrate.yml already exists. Use --force to overwrite.",
 			},
 			expectedYAML: map[string]string{
-				"substrate.yaml":                    "existing",
+				"substrate.yaml":                  "existing",
 				".github/workflows/substrate.yml": "existing",
 			},
 		},
@@ -106,7 +106,7 @@ func TestInit(t *testing.T) {
 				"✅ Substrate initialized!",
 			},
 			expectedYAML: map[string]string{
-				"substrate.yaml":                    "spec_path: openapi.yaml",
+				"substrate.yaml":                  "spec_path: openapi.yaml",
 				".github/workflows/substrate.yml": "base_schema: openapi.yaml",
 			},
 		},

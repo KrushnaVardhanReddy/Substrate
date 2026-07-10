@@ -1,0 +1,261 @@
+TASK: P1e-T01 — AsyncAPI 2.x/3.x Breaking Change Adapter
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Add AsyncAPI breaking-change detection to the Substrate diff engine using the
+`asyncapi/parser-go` library. Follows the identical adapter pattern as the
+oasdiff checker adapter (engine/internal/diff/openapi.go) and the buf adapter
+(engine/internal/diff/proto.go).
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-1/asyncapi-avro-adapter.md  (Part A: AsyncAPI sections)
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT
+═══════════════════════════════════════════════════════════════
+The diff engine lives in engine/ (a Go module at engine/go.mod).
+
+Key existing files (READ ONLY — study these patterns):
+  engine/internal/diff/openapi.go       — oasdiff adapter (study the pattern)
+  engine/internal/diff/proto.go         — buf adapter (study the exec.Command pattern)
+  engine/internal/diff/openapi_test.go  — table-driven test pattern to follow
+  engine/internal/diff/testdata/        — existing fixtures (DO NOT MODIFY)
+  engine/internal/report/               — DiffReport, Change, Severity types
+  engine/cmd/substrate/main.go          — CLI dispatch (ADD asyncapi case here)
+  engine/cmd/substrate/serve.go         — HTTP serve mode (ADD asyncapi case here)
+
+You will CREATE new files only. The only existing files to MODIFY are:
+  engine/go.mod (add asyncapi/parser-go dependency)
+  engine/cmd/substrate/main.go (add "asyncapi" dispatch case)
+  engine/cmd/substrate/serve.go (add "asyncapi" dispatch case + validation guard)
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FILE: engine/internal/diff/asyncapi.go  (CREATE NEW)
+
+   Package: package diff
+
+   Required import: github.com/asyncapi/parser-go (add to engine/go.mod)
+
+   Internal IR structs (unexported — only used within this file):
+
+   type asyncAPIChannel struct {
+     Address    string
+     Subscribe  *asyncAPIOperation // AsyncAPI 2.x
+     Publish    *asyncAPIOperation // AsyncAPI 2.x
+     Send       *asyncAPIOperation // AsyncAPI 3.x
+     Receive    *asyncAPIOperation // AsyncAPI 3.x
+     Deprecated bool
+   }
+
+   type asyncAPIOperation struct {
+     Message *asyncAPIMessage
+   }
+
+   type asyncAPIMessage struct {
+     ContentType string
+     Payload     map[string]any
+   }
+
+   type asyncAPIServer struct {
+     URL      string
+     Protocol string
+   }
+
+   type asyncAPISpec struct {
+     Version  string
+     Channels map[string]asyncAPIChannel
+     Servers  map[string]asyncAPIServer
+   }
+
+   Implement these functions:
+
+   a. CompareAsyncAPI(baseFile, headFile string) (*report.DiffReport, error)
+      — Main entry point. Parse both files, extract IR, diff, build DiffReport.
+      — SchemaType in DiffReport: "asyncapi"
+      — Full spec in docs/specs/phase-1/asyncapi-avro-adapter.md
+
+   b. parseAsyncAPISpec(filePath string) (*asyncAPISpec, error)
+      — Read file, parse with asyncapi/parser-go, extract into asyncAPISpec IR.
+      — Support both AsyncAPI 2.x (subscribe/publish) and 3.x (send/receive).
+
+   c. diffAsyncAPIChannels(base, head map[string]asyncAPIChannel) []report.Change
+      — Compare channels: detect removed, address changed, deprecated.
+      — For each channel that exists in both: call diffAsyncAPIOperations.
+
+   d. diffAsyncAPIOperations(channelKey string, base, head asyncAPIChannel) []report.Change
+      — Detect operation removed; for matching ops, call diffAsyncAPIMessages.
+
+   e. diffAsyncAPIMessages(channelKey string, base, head *asyncAPIMessage) []report.Change
+      — Detect content type changed.
+      — Call diffJSONSchemaPayload for payload field-level diff.
+
+   f. diffJSONSchemaPayload(channelKey string, base, head map[string]any) []report.Change
+      — Diff the JSON Schema payload object.
+      — Detect: field removed, field type changed, required added, required removed,
+        enum value removed, enum value added, field added (optional = safe).
+
+   g. diffAsyncAPIServers(base, head map[string]asyncAPIServer) []report.Change
+      — Detect server removed, URL changed (WARNING), protocol changed.
+
+   RULE IDs to use (exact strings — from spec):
+     ASYNCAPI_CHANNEL_REMOVED, ASYNCAPI_CHANNEL_ADDRESS_CHANGED,
+     ASYNCAPI_OPERATION_REMOVED, ASYNCAPI_MESSAGE_PAYLOAD_FIELD_REMOVED,
+     ASYNCAPI_MESSAGE_PAYLOAD_FIELD_TYPE_CHANGED, ASYNCAPI_MESSAGE_PAYLOAD_REQUIRED_ADDED,
+     ASYNCAPI_MESSAGE_PAYLOAD_REQUIRED_REMOVED, ASYNCAPI_MESSAGE_PAYLOAD_FIELD_RENAMED,
+     ASYNCAPI_MESSAGE_CONTENT_TYPE_CHANGED, ASYNCAPI_SERVER_REMOVED,
+     ASYNCAPI_SERVER_PROTOCOL_CHANGED, ASYNCAPI_SERVER_URL_CHANGED,
+     ASYNCAPI_CHANNEL_DEPRECATED, ASYNCAPI_MESSAGE_PAYLOAD_ENUM_VALUE_REMOVED,
+     ASYNCAPI_MESSAGE_PAYLOAD_ENUM_VALUE_ADDED, ASYNCAPI_MESSAGE_PAYLOAD_FIELD_ADDED_OPTIONAL,
+     ASYNCAPI_CHANNEL_ADDED, ASYNCAPI_OPERATION_ADDED
+
+2. FILE: engine/internal/diff/asyncapi_test.go  (CREATE NEW)
+
+   Package: package diff_test
+
+   12 mandatory table-driven test cases (from spec):
+   1.  No changes — identical specs → 0 BREAKING, 0 WARNING
+   2.  Channel removed → 1 BREAKING: ASYNCAPI_CHANNEL_REMOVED
+   3.  Channel address changed → 1 BREAKING: ASYNCAPI_CHANNEL_ADDRESS_CHANGED
+   4.  Message payload field removed → 1 BREAKING: ASYNCAPI_MESSAGE_PAYLOAD_FIELD_REMOVED
+   5.  Message payload field type changed → 1 BREAKING: ASYNCAPI_MESSAGE_PAYLOAD_FIELD_TYPE_CHANGED
+   6.  Required field added to payload → 1 BREAKING: ASYNCAPI_MESSAGE_PAYLOAD_REQUIRED_ADDED
+   7.  Enum value removed from payload → 1 BREAKING: ASYNCAPI_MESSAGE_PAYLOAD_ENUM_VALUE_REMOVED
+   8.  New channel added → 0 BREAKING (safe)
+   9.  New optional field added to payload → 0 BREAKING (safe): ASYNCAPI_MESSAGE_PAYLOAD_FIELD_ADDED_OPTIONAL
+   10. Server removed → 1 BREAKING: ASYNCAPI_SERVER_REMOVED
+   11. Server protocol changed → 1 BREAKING: ASYNCAPI_SERVER_PROTOCOL_CHANGED
+   12. Channel deprecated → 0 BREAKING, 1 WARNING: ASYNCAPI_CHANNEL_DEPRECATED
+
+   Helper: func asyncAPITestdataPath(subdir string) string
+   Returns: engine/internal/diff/testdata/asyncapi/<subdir>/asyncapi.yaml
+
+3. DIRECTORY: engine/internal/diff/testdata/asyncapi/  (CREATE NEW)
+
+   Use AsyncAPI 2.6.0 format. Channel: user/signedup. Payload: {id: string, email: string}
+
+   Create these fixture pairs:
+
+   a. base_no_change/asyncapi.yaml + head_no_change/asyncapi.yaml  (identical)
+      channels:
+        user/signedup:
+          subscribe:
+            message:
+              payload:
+                type: object
+                required: [id, email]
+                properties:
+                  id: { type: string }
+                  email: { type: string }
+
+   b. base_channel_removed/asyncapi.yaml  — has user/signedup channel
+      head_channel_removed/asyncapi.yaml  — user/signedup channel removed (empty channels: {})
+
+   c. base_channel_address_changed/ + head_channel_address_changed/
+      base: address: user/signedup
+      head: address: user/registered  (address field changed)
+      Note: Use AsyncAPI 2.6 bindings or x-address extension for address field
+      if AsyncAPI 2.x doesn't have a top-level address — use channel key as address.
+
+   d. base_field_removed/ + head_field_removed/
+      head: payload missing "email" field
+
+   e. base_field_type_changed/ + head_field_type_changed/
+      head: id field type changed from string to integer
+
+   f. base_required_added/ + head_required_added/
+      head: payload adds "phone" to required array (field exists but was optional)
+      head payload: required: [id, email, phone], properties adds phone: {type: string}
+
+   g. base_enum_removed/ + head_enum_removed/
+      base: status field with enum: [active, inactive, pending]
+      head: status field with enum: [active, inactive]  (pending removed)
+
+   h. base_channel_added/ + head_channel_added/
+      head: adds new channel order/created in addition to user/signedup
+
+   i. base_field_added/ + head_field_added/
+      head: adds optional "phone" field (not in required array)
+
+   j. base_server_removed/ + head_server_removed/
+      base and head both have user/signedup channel
+      base: servers: { production: { url: kafka://broker:9092, protocol: kafka } }
+      head: servers: {}  (server removed)
+
+   k. base_server_protocol/ + head_server_protocol/
+      base: servers: { production: { url: kafka://broker:9092, protocol: kafka } }
+      head: servers: { production: { url: mqtt://broker:1883, protocol: mqtt } }
+
+   l. base_deprecated/ + head_deprecated/
+      base: user/signedup channel without deprecated flag
+      head: user/signedup channel with x-deprecated: true (or deprecated: true if supported)
+
+4. MODIFY: engine/go.mod
+   Add: github.com/asyncapi/parser-go (use latest version — run go get to resolve)
+   Run: go mod tidy after adding
+
+5. MODIFY: engine/cmd/substrate/main.go
+   Find the schema_type dispatch block (where "openapi", "sql", "protobuf" are handled).
+   Add:
+     case "asyncapi":
+         diffReport, err = diff.CompareAsyncAPI(baseSchema, headSchema)
+         if err != nil {
+             // handle same as other schema type errors
+         }
+
+6. MODIFY: engine/cmd/substrate/serve.go
+   Add the same asyncapi case in the /diff handler dispatch.
+   Also update the schema_type validation guard to accept "asyncapi".
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- engine/internal/diff/asyncapi.go
+- engine/internal/diff/asyncapi_test.go
+- engine/internal/diff/testdata/asyncapi/base_no_change/asyncapi.yaml
+- engine/internal/diff/testdata/asyncapi/head_no_change/asyncapi.yaml
+- engine/internal/diff/testdata/asyncapi/base_channel_removed/asyncapi.yaml
+- engine/internal/diff/testdata/asyncapi/head_channel_removed/asyncapi.yaml
+- engine/internal/diff/testdata/asyncapi/base_channel_address_changed/asyncapi.yaml
+- engine/internal/diff/testdata/asyncapi/head_channel_address_changed/asyncapi.yaml
+- engine/internal/diff/testdata/asyncapi/base_field_removed/asyncapi.yaml
+- engine/internal/diff/testdata/asyncapi/head_field_removed/asyncapi.yaml
+- engine/internal/diff/testdata/asyncapi/base_field_type_changed/asyncapi.yaml
+- engine/internal/diff/testdata/asyncapi/head_field_type_changed/asyncapi.yaml
+- engine/internal/diff/testdata/asyncapi/base_required_added/asyncapi.yaml
+- engine/internal/diff/testdata/asyncapi/head_required_added/asyncapi.yaml
+- engine/internal/diff/testdata/asyncapi/base_enum_removed/asyncapi.yaml
+- engine/internal/diff/testdata/asyncapi/head_enum_removed/asyncapi.yaml
+- engine/internal/diff/testdata/asyncapi/base_channel_added/asyncapi.yaml
+- engine/internal/diff/testdata/asyncapi/head_channel_added/asyncapi.yaml
+- engine/internal/diff/testdata/asyncapi/base_field_added/asyncapi.yaml
+- engine/internal/diff/testdata/asyncapi/head_field_added/asyncapi.yaml
+- engine/internal/diff/testdata/asyncapi/base_server_removed/asyncapi.yaml
+- engine/internal/diff/testdata/asyncapi/head_server_removed/asyncapi.yaml
+- engine/internal/diff/testdata/asyncapi/base_server_protocol/asyncapi.yaml
+- engine/internal/diff/testdata/asyncapi/head_server_protocol/asyncapi.yaml
+- engine/internal/diff/testdata/asyncapi/base_deprecated/asyncapi.yaml
+- engine/internal/diff/testdata/asyncapi/head_deprecated/asyncapi.yaml
+
+FILES TO MODIFY:
+- engine/go.mod          (add asyncapi/parser-go dependency)
+- engine/cmd/substrate/main.go   (add "asyncapi" case — minimal change)
+- engine/cmd/substrate/serve.go  (add "asyncapi" case + validation guard update)
+
+FILES TO NOT TOUCH (READ-ONLY):
+- engine/internal/diff/openapi.go      (complete — do not modify)
+- engine/internal/diff/proto.go        (complete — do not modify)
+- engine/internal/diff/testdata/       (existing fixtures — do not touch)
+- engine/internal/report/              (DiffReport types — do not modify)
+- engine/internal/sql/                 (SQL engine — do not touch)
+- github-app/                          (TypeScript — do not touch)
+- api/                                 (Registry API — do not touch)
+- docs/specs/                          (ALL spec files are read-only)
+
+Commit: "jules: P1e-T01 add AsyncAPI 2.x/3.x breaking change adapter"
+Target branch: feature/p1e-t01-asyncapi-adapter

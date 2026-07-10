@@ -1,0 +1,168 @@
+TASK: P3-T02 — substrate.yaml Consumer Declaration Parser
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Extend the existing substrate.yaml config parser in the Go engine to support
+a new `consumers` block that declares which provider repositories this repo
+depends on. This enables the "zero-config for providers" design — only consumers
+need to declare dependencies, backend repos need no changes.
+
+Spec: docs/specs/phase-3/contract-registry.md (READ ONLY)
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — WHAT EXISTS
+═══════════════════════════════════════════════════════════════
+The existing config parsing lives in:
+  engine/internal/config/config.go  (or similar path — find it in the repo)
+
+The existing SubstrateConfig struct supports:
+  service, schema_type, spec_path (base_schema, head_schema), on_breaking_change, overrides
+
+The existing struct is used by:
+  engine/cmd/substrate/main.go  (CLI)
+  engine/cmd/substrate/serve.go  (HTTP serve mode, /diff endpoint)
+
+You are EXTENDING the config struct. You must not break any existing functionality.
+All existing tests must continue to pass after this change.
+
+═══════════════════════════════════════════════════════════════
+NEW substrate.yaml FORMAT TO SUPPORT
+═══════════════════════════════════════════════════════════════
+
+```yaml
+service: frontend
+schema_type: openapi
+spec_path: openapi.yaml
+
+# NEW — declare which provider repos this service consumes
+consumers:
+  - name: "users-api"
+    provider_repo: "myorg/backend-api"       # GitHub full_name format
+    schema_type: openapi                      # openapi | graphql | sql | protobuf
+    provider_spec_path: "api/openapi.yaml"   # path to spec in provider repo
+    provider_branch: "main"                  # branch to sync from (default: main)
+  - name: "payments-api"
+    provider_repo: "myorg/payments-service"
+    schema_type: openapi
+    provider_spec_path: "openapi.yaml"
+    provider_branch: "main"
+```
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. MODIFY: engine/internal/config/config.go (or wherever SubstrateConfig is defined)
+
+   Add these new structs to the config package:
+
+   type ConsumerDependency struct {
+     Name             string `yaml:"name"`
+     ProviderRepo     string `yaml:"provider_repo"`      // e.g. "myorg/backend-api"
+     SchemaType       string `yaml:"schema_type"`        // openapi | graphql | sql | protobuf
+     ProviderSpecPath string `yaml:"provider_spec_path"` // path in provider repo
+     ProviderBranch   string `yaml:"provider_branch"`    // default "main"
+   }
+
+   Extend SubstrateConfig with:
+   type SubstrateConfig struct {
+     // ... all existing fields unchanged ...
+     Consumers []ConsumerDependency `yaml:"consumers"` // NEW
+   }
+
+   Add a method:
+   // HasConsumers returns true if the config declares any consumer dependencies.
+   func (c *SubstrateConfig) HasConsumers() bool {
+     return len(c.Consumers) > 0
+   }
+
+   // DefaultConsumerBranch returns "main" if ProviderBranch is empty.
+   // Call this when using a ConsumerDependency to ensure branch is never empty.
+   func (d *ConsumerDependency) DefaultedBranch() string {
+     if d.ProviderBranch == "" {
+       return "main"
+     }
+     return d.ProviderBranch
+   }
+
+2. FIND the existing config loading function (likely ParseConfig or LoadConfig).
+   DO NOT change its signature. The consumers block is parsed automatically by
+   yaml.Unmarshal — no manual parsing needed. Just confirm the struct tags match
+   the YAML keys above.
+
+═══════════════════════════════════════════════════════════════
+TESTS (MANDATORY)
+═══════════════════════════════════════════════════════════════
+
+MODIFY or CREATE: engine/internal/config/config_test.go (add new test cases)
+
+Add table-driven test cases for the updated parser:
+
+Test case 1: "no consumers block" — existing substrate.yaml without consumers key
+  Input:
+    service: my-api
+    schema_type: openapi
+    spec_path: openapi.yaml
+  Assert: config.Consumers is nil or empty slice, HasConsumers() returns false
+
+Test case 2: "single consumer" — substrate.yaml with one consumer
+  Input:
+    service: frontend
+    consumers:
+      - name: users-api
+        provider_repo: myorg/backend-api
+        schema_type: openapi
+        provider_spec_path: api/openapi.yaml
+        provider_branch: main
+  Assert:
+    len(config.Consumers) == 1
+    config.Consumers[0].Name == "users-api"
+    config.Consumers[0].ProviderRepo == "myorg/backend-api"
+    config.Consumers[0].DefaultedBranch() == "main"
+    HasConsumers() returns true
+
+Test case 3: "consumer with missing branch defaults to main"
+  Input: consumer with no provider_branch field
+  Assert: DefaultedBranch() returns "main"
+
+Test case 4: "multiple consumers"
+  Input: two consumers in the consumers slice
+  Assert: len(config.Consumers) == 2, both parsed correctly
+
+Test case 5: "existing substrate.yaml fields still parse correctly" — regression test
+  Ensure that all existing fields (service, schema_type, on_breaking_change, overrides)
+  parse identically to before this change. Do NOT skip or modify existing test cases.
+
+═══════════════════════════════════════════════════════════════
+TESTDATA (if needed)
+═══════════════════════════════════════════════════════════════
+If the config tests use file-based fixtures, add:
+  engine/cmd/substrate/testdata/substrate_with_consumers.yaml  — substrate.yaml with consumers block
+  engine/cmd/substrate/testdata/substrate_no_consumers.yaml    — existing format (may already exist as substrate_valid.yaml)
+
+Do NOT modify existing testdata files. Only add new ones.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO MODIFY:
+- engine/internal/config/config.go       (add ConsumerDependency struct + Consumers field to SubstrateConfig)
+- engine/internal/config/config_test.go  (add 5 new test cases for consumers parsing)
+
+FILES TO ADD (only if testdata is file-based):
+- engine/cmd/substrate/testdata/substrate_with_consumers.yaml
+
+FILES TO NOT TOUCH (READ-ONLY):
+- engine/cmd/substrate/main.go    (CLI — no changes needed)
+- engine/cmd/substrate/serve.go   (serve mode — no changes needed)
+- github-app/                     (TypeScript — do not touch)
+- api/                            (API server — do not touch)
+- docs/specs/                     (ALL spec files are read-only)
+- README.md
+- action.yml
+- .github/workflows/
+
+Commit: "jules: P3-T02 extend substrate.yaml parser with consumers dependency block"
+Target branch: feature/p3-t02-substrate-yaml-consumers

@@ -1,0 +1,52 @@
+TASK: P3-T10 — MCP Deployment + IDE Integration Docs
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Write the official integration documentation showing developers how to connect their 
+AI code editors to the Substrate MCP (Model Context Protocol) server. The documentation 
+must clearly explain the implementation architecture, how to provide the REGISTRY_API_TOKEN, 
+and configuration blocks for the most popular tools.
+
+═══════════════════════════════════════════════════════════════
+SPECIFICATION: DOCUMENTATION
+═══════════════════════════════════════════════════════════════
+
+Please create a new markdown file: `docs/specs/phase-3/mcp-deployment.md`
+
+The document should contain the following sections:
+
+1. **Overview**
+   - Explain what the Substrate MCP server does (allows LLMs to query the Substrate contract registry to understand cross-repo dependencies and schemas).
+   - Mention the two operating modes: `stdio` (local IDE integration) and `sse` (hosted Server-Sent Events).
+   - List the available tools (`get_schema_file`, `analyze_repository`, `get_substrate_docs`).
+
+2. **Authentication**
+   - Explain that all MCP tools must communicate with the upstream Registry API server.
+   - To do this, the MCP server requires the `REGISTRY_API_TOKEN` environment variable.
+
+3. **IDE Integration Guides**
+   Provide exact JSON configuration blocks for:
+   
+   **A. Cursor IDE**
+   - File: `.cursor/mcp.json`
+   - Command: `substrate-mcp` (assuming installed via `go install` or available in PATH).
+   - Args: `["--registry-url", "http://localhost:8090", "--token", "${REGISTRY_API_TOKEN}"]`
+   
+   **B. Claude Desktop**
+   - File: `~/Library/Application Support/Claude/claude_desktop_config.json` (Mac)
+   - Configuration format should define `mcpServers.substrate`.
+
+4. **Example Prompts**
+   Provide a few example prompts users can ask their AI when the MCP server is connected:
+   - "What are the downstream consumers of the checkout-service schema?"
+   - "Fetch the schema for org/repo and tell me if dropping the 'email' field breaks any consumers."
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO MODIFY/CREATE:
+- docs/specs/phase-3/mcp-deployment.md (new)
+
+Commit: "docs: add P3-T10 mcp deployment and IDE integration docs"
+Target branch: feature/dev

@@ -1,0 +1,383 @@
+TASK: P3-T02c — Cross-Repo Compatibility Check on PR
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+When a provider repo opens a PR, the Cloudflare Worker must automatically
+check whether the proposed schema change breaks any registered downstream
+consumers. If it does, a cross-repo impact section is appended to the PR
+comment AND the status check is marked as FAILING.
+
+This is the most critical Phase 3 feature — the "killer" Cross-Repo Intelligence
+capability that closes the gap between single-repo diff detection and full
+engineering organization protection.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-3/contract-registry.md  (P3-T02c section, lines ~287–350)
+
+═══════════════════════════════════════════════════════════════
+BACKGROUND — WHAT ALREADY EXISTS (READ ONLY — do not modify unless specified)
+═══════════════════════════════════════════════════════════════
+
+The following were completed in previous tasks:
+
+P3-T01: The Go Registry API server exists in api/ with these working endpoints:
+  - POST /api/v1/sync          — consumer syncs provider snapshots on push to main
+  - POST /api/v1/cross-repo-check — accepts provider head schema, queries all
+                                    registered consumers, runs diffs against their
+                                    stored snapshots, returns a ConsumerCompatibilityMatrix
+  - GET  /api/v1/graph/:org   — dependency graph
+  - GET  /health              — health check
+  Auth: All non-health endpoints require "Authorization: Bearer <REGISTRY_API_TOKEN>"
+
+The /api/v1/cross-repo-check request and response shapes are FIXED (do not change them):
+
+  Request (POST body JSON):
+  {
+    "installation_id": 123456,
+    "org": "myorg",
+    "provider_repo": "myorg/backend-api",    // full_name
+    "head_schema_content": "openapi: 3.0.0 ...",
+    "schema_type": "openapi"
+  }
+
+  Response (JSON):
+  {
+    "total_consumers": 2,
+    "broken_consumers": 1,
+    "is_safe": false,
+    "results": [
+      {
+        "consumer_repo": "myorg/frontend",
+        "status": "breaking",
+        "diff_report": {
+          "breaking": [
+            { "rule": "ENDPOINT_MODIFIED", "path": "GET /users/{id}", "message": "field email removed" }
+          ],
+          "warning": [],
+          "info": [],
+          "summary": { "breaking_count": 1, "warning_count": 0, "info_count": 0 }
+        }
+      },
+      {
+        "consumer_repo": "myorg/mobile-app",
+        "status": "safe",
+        "diff_report": { "breaking": [], "warning": [], "info": [], "summary": { "breaking_count": 0, "warning_count": 0, "info_count": 0 } }
+      }
+    ]
+  }
+
+P3-T02b: The Worker handles push-to-main events in github-app/src/index.ts.
+  It calls POST /api/v1/sync to store consumer snapshots.
+  New env vars already added to types.ts Env interface:
+    REGISTRY_API_URL: string    (e.g. "https://api.substrate.dev")
+    REGISTRY_API_TOKEN: string  (Bearer token for Registry API auth)
+
+  File: github-app/src/registry-client.ts already exists and contains:
+    - parseConsumersFromYaml(yamlContent: string): Promise<ConsumerEntry[]>
+    - syncToRegistry(url, token, payload): Promise<{ synced: number }>
+
+  Existing formatter: github-app/src/formatter.ts already formats the
+    single-repo diff report into a Markdown PR comment. It has a function:
+      formatDiffReport(report: DiffReport): string
+    You will ADD a new export to this file.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. ADD: github-app/src/registry-client.ts (MODIFY — add new function)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add a new exported function to registry-client.ts (do NOT remove or alter
+the existing parseConsumersFromYaml and syncToRegistry functions):
+
+  // New TypeScript types to add in types.ts (see Deliverable 2):
+  //   CrossRepoCheckRequest, CrossRepoCheckResponse, ConsumerResult
+
+  export async function crossRepoCheck(
+    registryUrl: string,
+    token: string,
+    payload: CrossRepoCheckRequest
+  ): Promise<CrossRepoCheckResponse>
+
+  Implementation:
+  - POST to `${registryUrl}/api/v1/cross-repo-check`
+  - Headers: Authorization: Bearer <token>, Content-Type: application/json
+  - Body: JSON.stringify(payload)
+  - If response is not 2xx, log the error and return a safe default:
+      { total_consumers: 0, broken_consumers: 0, is_safe: true, results: [] }
+    IMPORTANT: Never throw on non-2xx from cross-repo-check. A registry error
+    must NOT block a PR that has no single-repo breaking changes. Log the error
+    but return the safe default.
+  - If response has no results (e.g. provider is not registered in the registry),
+    return: { total_consumers: 0, broken_consumers: 0, is_safe: true, results: [] }
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. MODIFY: github-app/src/types.ts
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add the following TypeScript interfaces (do NOT remove any existing types):
+
+  interface CrossRepoBreakingChange {
+    rule: string;     // e.g. "ENDPOINT_MODIFIED"
+    path: string;     // e.g. "GET /users/{id}"
+    message: string;  // human-readable description
+  }
+
+  interface CrossRepoDiffSummary {
+    breaking_count: number;
+    warning_count: number;
+    info_count: number;
+  }
+
+  interface CrossRepoDiffReport {
+    breaking: CrossRepoBreakingChange[];
+    warning: CrossRepoBreakingChange[];
+    info: CrossRepoBreakingChange[];
+    summary: CrossRepoDiffSummary;
+  }
+
+  interface ConsumerResult {
+    consumer_repo: string;    // full_name e.g. "myorg/frontend"
+    status: 'breaking' | 'safe' | 'warning' | 'unknown';
+    diff_report: CrossRepoDiffReport;
+  }
+
+  interface CrossRepoCheckRequest {
+    installation_id: number;
+    org: string;
+    provider_repo: string;          // full_name e.g. "myorg/backend-api"
+    head_schema_content: string;    // raw schema content from PR head
+    schema_type: string;            // openapi | graphql | sql | protobuf
+  }
+
+  interface CrossRepoCheckResponse {
+    total_consumers: number;
+    broken_consumers: number;
+    is_safe: boolean;
+    results: ConsumerResult[];
+  }
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. ADD: github-app/src/formatter.ts (MODIFY — add new exported functions)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+EXISTING functions in formatter.ts (READ ONLY — do NOT modify their signatures):
+  - formatPRComment(report: DiffReport, config: SubstrateConfig): string
+  - formatMissingConfigComment(): string
+
+EXISTING functions to UPDATE (signatures change to accept cross-repo result):
+
+  // Currently:
+  // export function getCommitStatusState(report: DiffReport, config: SubstrateConfig): 'success' | 'failure'
+  // UPDATE to:
+  export function getCommitStatusState(
+    report: DiffReport,
+    config: SubstrateConfig,
+    crossRepo?: CrossRepoCheckResponse   // optional — defaults to safe if omitted
+  ): 'success' | 'failure'
+  Logic: return 'failure' if report has breaking_count > 0 (and on_breaking_change !== 'warn')
+         OR if crossRepo is provided and crossRepo.is_safe === false.
+         Otherwise return 'success'.
+
+  // Currently:
+  // export function getCommitStatusDescription(report: DiffReport): string
+  // UPDATE to:
+  export function getCommitStatusDescription(
+    report: DiffReport,
+    crossRepo?: CrossRepoCheckResponse
+  ): string
+  Logic:
+    - If report.breaking_count > 0 AND crossRepo?.is_safe === false:
+        return `${breakingCount} breaking change(s) detected — ${crossRepo.broken_consumers} consumer(s) affected`
+    - If report.breaking_count > 0 only:
+        return `${breakingCount} breaking change(s) detected`  (existing behaviour)
+    - If crossRepo?.is_safe === false only (no single-repo breaking changes):
+        return `${crossRepo.broken_consumers} downstream consumer(s) affected by this change`
+    - Otherwise:
+        return 'All clear — no breaking changes'  (existing behaviour)
+
+NEW function to ADD:
+
+  Implementation rules:
+  - If response.total_consumers === 0, return an empty string "".
+    (No consumers registered — do not add the section to the PR comment at all.)
+  - Otherwise, generate this exact Markdown format:
+
+  ---
+
+  ## 🌐 Cross-Repo Impact
+
+  This change affects **{total_consumers} registered consumer(s)**:
+
+  | Consumer | Status | Breaking Changes |
+  |---|---|---|
+  | `myorg/frontend` | ❌ BREAKING | `GET /users/{id}` — field email removed |
+  | `myorg/mobile-app` | ✅ Safe | No breaking changes detected |
+
+  > ⚠️ **Action required:** Coordinate with the `myorg/frontend` team before merging.
+  > The `substrate/breaking-changes` check is now **FAILING**.
+
+  Formatting rules for the table rows:
+  - For status === "breaking": use "❌ BREAKING"
+  - For status === "safe": use "✅ Safe"
+  - For status === "warning": use "⚠️ Warning"
+  - For status === "unknown": use "❓ Unknown"
+  - For the "Breaking Changes" cell: if breaking_count === 0, use "No breaking changes detected".
+    If breaking_count > 0, show ONLY the FIRST breaking change formatted as:
+      `{path}` — {message}
+    If there are multiple breaking changes, append " (+N more)" at the end.
+  - The action required callout at the bottom ONLY appears if broken_consumers > 0.
+    List the broken consumer repos (joined by ", ") in the callout text.
+  - If all consumers are safe (broken_consumers === 0), replace the callout with:
+      > ✅ All registered consumers are compatible with this change.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. MODIFY: github-app/src/index.ts — Wire cross-repo check into PR handler
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Find the existing pull_request event handler (opened or synchronize events).
+After the single-repo diff has been computed and BEFORE posting the GitHub PR
+comment, add the cross-repo check:
+
+FULL updated PR handler flow (steps that are NEW are marked with [NEW]):
+
+  1. Parse PR event (existing)
+  2. Fetch base and head schema files from GitHub (existing)
+  3. Fetch substrate.yaml for schema_type, spec_path, config (existing)
+  4. Call POST /diff on the diff engine (existing) → single-repo DiffReport
+  5. [NEW] If REGISTRY_API_URL is set in env:
+       Build CrossRepoCheckRequest:
+         {
+           installation_id: prEvent.installationId,
+           org: prEvent.owner,
+           provider_repo: prEvent.fullName,     // "myorg/backend-api"
+           head_schema_content: <raw content of head schema file>,
+           schema_type: <schema_type from substrate.yaml or detected>
+         }
+       Call crossRepoCheck(env.REGISTRY_API_URL, env.REGISTRY_API_TOKEN, request)
+       → CrossRepoCheckResponse
+     If REGISTRY_API_URL is NOT set, skip cross-repo check entirely:
+       → use { total_consumers: 0, broken_consumers: 0, is_safe: true, results: [] }
+  6. [NEW] Format cross-repo section:
+       crossRepoSection = formatCrossRepoImpact(crossRepoResponse)
+  7. Build PR comment body:
+       comment = formatPRComment(singleRepoDiffReport, config) + "\n" + crossRepoSection
+       (if crossRepoSection is empty string, just use formatPRComment result)
+  8. Post PR comment (existing)
+  9. [NEW] Determine overall status check result using updated formatter functions:
+       - Call updated getCommitStatusState(singleRepoDiffReport, config, crossRepoResponse)
+       - Call updated getCommitStatusDescription(singleRepoDiffReport, crossRepoResponse)
+       See Deliverable 3b for the updated signatures.
+  10. Post GitHub status check (existing)
+
+IMPORTANT: The REGISTRY_API_URL env var check (step 5) is the feature flag.
+If the env var is missing/empty, cross-repo logic is completely skipped.
+This ensures backward compatibility — existing GitHub Action users are unaffected.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5. CREATE: github-app/src/registry-client.test.ts (MODIFY — add new test cases)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add test cases for crossRepoCheck() to the existing registry-client.test.ts.
+Do NOT remove any existing test cases for parseConsumersFromYaml or syncToRegistry.
+
+New test cases:
+  1. "success — returns full ConsumerCompatibilityMatrix" →
+     mock fetch returns 200 with 2 results (1 breaking, 1 safe) →
+     assert function returns the parsed CrossRepoCheckResponse correctly
+  2. "non-2xx response — returns safe default, does not throw" →
+     mock fetch returns 500 →
+     assert function returns { total_consumers: 0, ..., is_safe: true, results: [] }
+     and does NOT throw
+  3. "no consumers registered — returns safe default" →
+     mock fetch returns 200 with { total_consumers: 0, broken_consumers: 0,
+     is_safe: true, results: [] } → assert function returns exactly that
+
+  
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+6. MODIFY: github-app/test/formatter.test.ts — Add new test cases
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+NOTE: Test files are in github-app/test/ (not github-app/src/).
+Do NOT remove any existing test cases for formatPRComment, formatMissingConfigComment,
+getCommitStatusState, or getCommitStatusDescription.
+
+New test cases for formatCrossRepoImpact():
+  1. "no consumers registered" → total_consumers: 0 → returns ""
+  2. "one breaking consumer" → contains "❌ BREAKING", consumer repo name, breaking change
+  3. "one safe consumer" → contains "✅ Safe", "All registered consumers are compatible"
+  4. "mixed: one breaking, one safe" → contains both statuses, "Action required" callout
+  5. "multiple breaking changes on one consumer" → shows first change + "(+N more)"
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+7. MODIFY: github-app/src/index.test.ts — Add PR handler integration tests
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add integration tests for the updated PR handler. Mock all external calls
+(diff engine, GitHub API, registry API).
+Do NOT break any existing PR handler test cases.
+
+New test cases:
+  1. "PR with breaking change + 1 broken consumer → status check FAILS, comment includes cross-repo section"
+  2. "PR with breaking change + registry not configured (no REGISTRY_API_URL) → cross-repo check skipped, existing single-repo behavior unchanged"
+  3. "PR with no single-repo breaking changes + 1 broken consumer → status check FAILS (cross-repo is the blocker)"
+  4. "PR with no breaking changes + all consumers safe → status check PASSES, no cross-repo callout in comment"
+  5. "Registry API returns 500 → cross-repo silently skipped, PR handler does not throw"
+
+═══════════════════════════════════════════════════════════════
+CRITICAL IMPLEMENTATION RULES
+═══════════════════════════════════════════════════════════════
+
+1. NEVER block a PR based solely on a cross-repo registry error. If the Registry
+   API is down or returns 5xx, log the error and treat the result as is_safe: true.
+   The diff engine result (single-repo) is always the authoritative gate.
+
+2. If REGISTRY_API_URL is not set in env, skip all cross-repo logic entirely.
+   This is the feature flag for backward compatibility.
+
+3. The head_schema_content sent to /api/v1/cross-repo-check must be the RAW file
+   content of the schema at the PR's HEAD commit (not base). This is the exact
+   content the Registry will diff against each consumer's stored snapshot.
+
+4. The PR comment must always show the single-repo diff section first, then the
+   cross-repo section below a horizontal rule separator. Never merge them.
+
+5. The GitHub status check MUST fail if EITHER:
+   a. Single-repo diff has breaking changes (existing behaviour), OR
+   b. cross-repo-check returns is_safe: false (new behaviour)
+   The status check description should clearly state which triggered the failure.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO MODIFY:
+- github-app/src/types.ts             (add CrossRepoCheckRequest/Response/ConsumerResult types)
+- github-app/src/registry-client.ts  (add crossRepoCheck function)
+- github-app/src/formatter.ts        (add formatCrossRepoImpact function)
+- github-app/src/index.ts            (wire cross-repo check into PR handler flow)
+- github-app/test/registry-client.test.ts  (add crossRepoCheck test cases)
+- github-app/test/formatter.test.ts        (add formatCrossRepoImpact + updated status fn tests)
+- github-app/test/index.test.ts            (add PR handler integration tests)
+
+FILES TO NOT TOUCH (READ-ONLY):
+- github-app/src/github-client.ts   (GitHub API client — complete)
+- github-app/src/webhook.ts         (push/PR event parsers — complete)
+- github-app/test/webhook.test.ts   (existing push test cases must still pass)
+- github-app/test/github-client.test.ts  (must still pass)
+- api/                              (Go Registry API — all handlers are complete)
+- engine/                           (Go diff engine — do not touch)
+- docs/specs/                       (ALL spec files are read-only)
+- action.yml
+- .github/workflows/
+
+Commit: "jules: P3-T02c wire cross-repo compatibility check into PR handler"
+Target branch: feature/p3-t02c-cross-repo-check

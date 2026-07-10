@@ -46,12 +46,20 @@ type Change struct {
 	Recommendation *string        `json:"recommendation"`
 }
 
+type ComplianceAlert struct {
+	Path           string `json:"path"`
+	ComplianceType string `json:"compliance_type"`
+	Message        string `json:"message"`
+}
+
 type DiffReport struct {
-	SubstrateVersion string     `json:"substrate_version"`
-	SchemaType       SchemaType `json:"schema_type"`
-	ComparedAt       string     `json:"compared_at"`
-	Summary          Summary    `json:"summary"`
-	BreakingChanges  []Change   `json:"breaking_changes"`
-	Warnings         []Change   `json:"warnings"`
-	SafeChanges      []Change   `json:"safe_changes"`
+	SubstrateVersion string            `json:"substrate_version"`
+	SchemaType       SchemaType        `json:"schema_type"`
+	ComparedAt       string            `json:"compared_at"`
+	Mode             string            `json:"mode"`
+	Summary          Summary           `json:"summary"`
+	BreakingChanges  []Change          `json:"breaking_changes"`
+	Warnings         []Change          `json:"warnings"`
+	SafeChanges      []Change          `json:"safe_changes"`
+	ComplianceAlerts []ComplianceAlert `json:"compliance_alerts,omitempty"`
 }
