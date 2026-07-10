@@ -15,6 +15,8 @@ type MockStore struct {
 	GetConsumersByProviderContractFunc func(ctx context.Context, providerContractID uuid.UUID) ([]ConsumerDependency, error)
 	ListReposByOrgFunc                 func(ctx context.Context, orgName string) ([]Repository, error)
 	GetDependencyGraphFunc             func(ctx context.Context, orgName string) ([]DependencyEdge, error)
+	CountReposByOrgFunc                func(ctx context.Context, orgName string) (int, error)
+	CountDownstreamDependenciesFunc    func(ctx context.Context, providerFullName string) (int, error)
 }
 
 func (m *MockStore) UpsertOrg(ctx context.Context, installationID int64, orgName string) (uuid.UUID, error) {
@@ -50,6 +52,20 @@ func (m *MockStore) GetContractsByProviderFullName(ctx context.Context, provider
 		return m.GetContractsByProviderFullNameFunc(ctx, providerFullName)
 	}
 	return nil, nil
+}
+
+func (m *MockStore) CountReposByOrg(ctx context.Context, orgName string) (int, error) {
+	if m.CountReposByOrgFunc != nil {
+		return m.CountReposByOrgFunc(ctx, orgName)
+	}
+	return 0, nil
+}
+
+func (m *MockStore) CountDownstreamDependencies(ctx context.Context, providerFullName string) (int, error) {
+	if m.CountDownstreamDependenciesFunc != nil {
+		return m.CountDownstreamDependenciesFunc(ctx, providerFullName)
+	}
+	return 0, nil
 }
 
 func (m *MockStore) GetConsumersByProviderContract(ctx context.Context, providerContractID uuid.UUID) ([]ConsumerDependency, error) {
