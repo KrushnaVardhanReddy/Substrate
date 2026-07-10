@@ -31,6 +31,7 @@ export interface Env {
   CONTAINER_SERVICE_URL: string;
   REGISTRY_API_URL: string;
   REGISTRY_API_TOKEN: string;
+  DASHBOARD_URL?: string;
 }
 
 export interface ConsumerEntry {
