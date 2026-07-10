@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/compliance"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/parser"
@@ -144,6 +145,7 @@ func CompareGraphQL(basePath, headPath string) (*report.DiffReport, error) {
 		rep.Summary.OverallSeverity = report.SeverityNoChanges
 	}
 
+	compliance.Audit(rep)
 	return rep, nil
 }
 

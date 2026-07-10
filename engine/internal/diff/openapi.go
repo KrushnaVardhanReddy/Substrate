@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/compliance"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/oasdiff/oasdiff/checker"
@@ -65,6 +66,7 @@ func CompareOpenAPI(basePath, revisionPath string, flattenAllOf bool) (*report.D
 	}
 
 	if diffObj.Empty() {
+		compliance.Audit(rep)
 		return rep, nil
 	}
 
@@ -126,6 +128,7 @@ func CompareOpenAPI(basePath, revisionPath string, flattenAllOf bool) (*report.D
 		rep.Summary.OverallSeverity = report.SeverityNoChanges
 	}
 
+	compliance.Audit(rep)
 	return rep, nil
 }
 
