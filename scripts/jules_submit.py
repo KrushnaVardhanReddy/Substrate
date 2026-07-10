@@ -287,6 +287,18 @@ TASKS = {
         "phase": "phase-3-registry",
         "prompt": _load_prompt("prompts/phase-3-registry/t10_mcp_docs.txt"),
     },
+
+    # ── Phase 4: AI Intelligence Layer ───────────────────────────────────────────
+    40: {
+        "name": "P4-T02 — Streaming SSE AI Analyze Handler (Go API)",
+        "phase": "phase-4-ai",
+        "prompt": _load_prompt("prompts/phase-4/t02_streaming_sse_ai_handler.txt"),
+    },
+    41: {
+        "name": "P4-T03 — Safe Schema Patch Generator + PR Comment Upgrade",
+        "phase": "phase-4-ai",
+        "prompt": _load_prompt("prompts/phase-4/t03_safe_schema_patch_generator.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
