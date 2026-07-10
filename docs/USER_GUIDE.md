@@ -55,6 +55,17 @@ overrides:
     expires: 2026-12-31
 ```
 
+### Acknowledging Intentional Breaking Changes
+Sometimes a breaking change is fully intended (e.g., you've coordinated with all consumer teams and they have successfully migrated off the old endpoint). 
+
+To prevent Substrate from eternally blocking your CI pipeline, you can **acknowledge** the break using the `overrides` block in your `substrate.yaml` file:
+
+1. Copy the `rule_id` and the `path` exactly as they appear in the Substrate PR comment (e.g., `rule_id: ENDPOINT_REMOVED`).
+2. Add an explanation in the `reason` field (e.g., linking to a Jira ticket or RFC).
+3. Set an `expires` date. This ensures the override doesn't stay in the codebase forever.
+
+When you commit this `substrate.yaml` update, the Substrate engine will read the override, downgrade the `❌ BREAKING` error to a `✅ Acknowledged` status, and **allow your pipeline to pass**.
+
 ---
 
 ## 3. CLI Reference
