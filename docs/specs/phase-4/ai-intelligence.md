@@ -116,8 +116,10 @@ Implement the `POST /api/v1/ai/analyze` Go handler that streams LLM tokens back 
 
 ### Implementation Notes
 - Use `http.Flusher` interface in Go for streaming.
-- Integrate with Google Gemini API (using `GEMINI_API_KEY` env var).
-- Fall back to a deterministic mock response if `GEMINI_API_KEY` is not set (for local development without API keys).
+- Read provider config from three env vars: `SUBSTRATE_AI_BASE_URL`, `SUBSTRATE_AI_API_KEY`, `SUBSTRATE_AI_MODEL`.
+- **Local dev default:** LM Studio at `http://localhost:1234/v1` with `qwen2.5-coder-7b-instruct` — free, offline, no API key.
+- **Production default:** Google Gemini Flash via `https://generativelanguage.googleapis.com/v1beta/openai/` with `GEMINI_API_KEY`.
+- Fall back to a deterministic mock response if `SUBSTRATE_AI_BASE_URL` is not set (for CI pipelines with no LLM).
 - Add the route to `api/internal/server/router.go`.
 
 ### Files
@@ -303,26 +305,25 @@ var piiPatterns = map[string]string{
 ## Env Variables Added in Phase 4
 
 ```bash
-# ── AI Provider (OpenAI-compatible — pick one) ────────────────────────────────
-# Default local dev: LM Studio + Qwen2.5-Coder (free, offline, no key needed)
+# ── LOCAL DEV: LM Studio + Qwen2.5-Coder (free, offline, no API key needed) ──
 SUBSTRATE_AI_BASE_URL=http://localhost:1234/v1
-SUBSTRATE_AI_API_KEY=lm-studio
+SUBSTRATE_AI_API_KEY=lm-studio          # ignored by LM Studio, just needs a value
 SUBSTRATE_AI_MODEL=qwen2.5-coder-7b-instruct
 
-# Alternative: Ollama (also local, CLI-first)
-# SUBSTRATE_AI_BASE_URL=http://localhost:11434/v1
-# SUBSTRATE_AI_API_KEY=ollama
-# SUBSTRATE_AI_MODEL=qwen2.5-coder:7b
+# ── PRODUCTION: Google Gemini Flash ───────────────────────────────────────────
+# SUBSTRATE_AI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/
+# SUBSTRATE_AI_API_KEY=your-gemini-api-key   # from console.cloud.google.com
+# SUBSTRATE_AI_MODEL=gemini-2.0-flash
 
-# Production: OpenRouter (cloud, pay-per-token, model-agnostic)
+# ── ALTERNATIVE PROD: OpenRouter (multi-model, pay-per-token) ─────────────────
 # SUBSTRATE_AI_BASE_URL=https://openrouter.ai/api/v1
 # SUBSTRATE_AI_API_KEY=sk-or-your-key
 # SUBSTRATE_AI_MODEL=qwen/qwen-2.5-coder-32b-instruct
 
-# Traffic Integration (optional)
+# ── Traffic Integration (optional, Phase 4-T07) ───────────────────────────────
 SUBSTRATE_PROMETHEUS_ENDPOINT=http://prometheus.internal:9090
 
-# PII Alerting (optional)
+# ── PII Alerting (optional, Phase 4-T08) ──────────────────────────────────────
 SUBSTRATE_SLACK_WEBHOOK=https://hooks.slack.com/...
 SUBSTRATE_SECURITY_CHANNEL=#security-alerts
 ```
