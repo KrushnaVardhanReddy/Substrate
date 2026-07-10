@@ -225,7 +225,7 @@
 | **P3-T03** | 🟢 P3 | **SvelteKit dashboard project setup + design system** | Jules | ✅ | `prompts/phase-3-registry/t03_dashboard.txt` |
 | **P3-T04** | 🟢 P3 | **Connected repos list + schema browser** | Jules | ✅ Merged `feature/dev` 2026-07-10 (`c2fa3ce`) | `prompts/phase-3-registry/t04_dashboard_repos.txt` |
 | **P3-T05** | 🟢 P3 | **Dependency graph visualization** | Antigravity | ✅ | `docs/specs/phase-3/dashboard.md` |
-| **P3-T11** | 🟢 P3 | **Compatibility matrix dashboard** — provider × consumer version grid | Antigravity | 🔒 after P3-T05 |
+| **P3-T11** | 🟢 P3 | **Compatibility matrix dashboard** — provider × consumer version grid | Antigravity | ✅ | `docs/specs/phase-3/dashboard.md` |
 | **P3-T08** | 🔵 P4 | **MCP server spec** (`docs/specs/phase-3/mcp-server.md`) | Antigravity | ✅ |
 | **P3-T09** | 🔵 P4 | **MCP server implementation** (Go, JSON-RPC 2.0) | Jules | ✅ Merged `feature/dev` 2026-07-09 | `prompts/phase-3-registry/t09_mcp_implementation.txt` |
 | **P3-T09b** | 🔵 P4 | **Wire MCP to live Registry API** — `get_schema_file` (new endpoint), `analyze_repository` (local fs walk), `get_substrate_docs` (embedded docs). `get_breaking_change_history` deferred to Phase 4 (needs new DB table). | Jules | ✅ Merged `feature/dev` 2026-07-10 (`7b3c15e`) | `prompts/phase-3-registry/t09b_wire_mcp_registry.txt` |
