@@ -275,8 +275,8 @@
 | Task ID | Priority | Description | Owner | Status |
 |---|---|---|---|---|
 | **P4-T01** | 🔴 P1 | **AI Reasoning Bridge** — Wire LLM (Gemini/Claude) to MCP tools via Go API | Antigravity | 📐 Spec |
-| **P4-T02** | 🔴 P1 | **Streaming SSE Handler** — `POST /api/v1/ai/analyze` with real-time token streaming | Jules | 📐 Spec |
-| **P4-T03** | 🟡 P2 | **Safe Schema Patch Generator** — AI suggests exact YAML/SQL provider fix | Jules | 📐 Spec |
+| **P4-T02** | 🔴 P1 | **Streaming SSE Handler** — `POST /api/v1/ai/analyze` with real-time token streaming | Jules | 🔄 Session `4032432536007936779` | `prompts/phase-4/t02_streaming_sse_ai_handler.txt` |
+| **P4-T03** | 🟡 P2 | **Safe Schema Patch Generator** — AI suggests exact YAML/SQL provider fix | Jules | 🔄 Session `4342843936538026332` | `prompts/phase-4/t03_safe_schema_patch_generator.txt` |
 | **P4-T04** | 🟡 P2 | **GitHub PR Comment Upgrade** — Add AI explanation + fix snippet to PRs | Jules | 📐 Spec |
 | **P4-T05** | 🟢 P3 | **Wire Real AI to Playground** — Replace mock in P3-T16 with live SSE stream | Antigravity | 🔒 after P4-T02 |
 | **P4-T06** | 🔵 P4 | **Shift-Left VSCode Extension** — Inline breaking-change warnings in the editor | Jules | 💡 |

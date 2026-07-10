@@ -2,7 +2,7 @@
 
 ## The Living Map of Your Engineering Ecosystem
 
-> **Status:** v0.1.6 🚀 — [OpenAPI Contract Guard](https://github.com/marketplace/actions/substrate-api-contract-guard) live on GitHub Marketplace. **Phase 2 (GitHub App) ✅ Complete. Phase 3 (Contract Registry + MCP Server) 🔄 in progress.** 2 Jules sessions active: P3-T07 (`3642836520893332081`), P3-T10 (`17750500161261192868`). View at [jules.google.com](https://jules.google.com/).
+> **Status:** v1.0.0 🚀 — [OpenAPI Contract Guard](https://github.com/marketplace/actions/substrate-api-contract-guard) live on GitHub Marketplace. **Phase 3 (Contract Registry + MCP Server + Dashboard) ✅ Complete. Phase 4 (AI Intelligence Layer) 🔄 IN PROGRESS.** 2 Jules sessions active: P4-T02 (`4032432536007936779`), P4-T03 (`4342843936538026332`). View at [jules.google.com](https://jules.google.com/).
 
 Substrate is a CI/CD-integrated data contract and dependency intelligence platform that prevents downstream data failures before they reach production.
 
@@ -975,15 +975,15 @@ Trying to be "everything everywhere all at once" is how startups die.
 3. Best Contract + Distribution        Phase 2  ✅  GitHub App live. Cloudflare
    Platform                                         Worker + Container wired.
         ↓
-4. Best Intelligence Platform          Phase 3  🔄  Registry ✅, Dashboard ✅,
+4. Best Intelligence Platform          Phase 3  ✅  Registry ✅, Dashboard ✅,
                                                     MCP Server ✅, AI Playground ✅
-                                                    Next: Playwright E2E & V1 Docs
         ↓
-5. V1.0 Release + Marketplace          Upcoming 💡  Tag v1.0, full platform docs
-                                                    (P3-T12), GitHub Marketplace
+5. V1.0 Release + Marketplace          v1.0  ✅  Docs complete. Platform ready.
         ↓
-6. Best AI Engineering Platform        Phase 4  💡  AI assistant, migration
-                                                    recommendations, agent handoffs
+6. Best AI Engineering Platform        Phase 4  🔄  AI Reasoning Bridge →
+                                                     Streaming SSE → Schema
+                                                     Patch Generator (Jules
+                                                     sessions active)
 ```
 
 **Why Phase 2 before Phase 1c–1g?**
