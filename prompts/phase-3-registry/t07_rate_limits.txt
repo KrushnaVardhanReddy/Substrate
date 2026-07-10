@@ -1,0 +1,57 @@
+TASK: P3-T07 — Free Tier Limits + Production Deployment
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement rate-limiting and tier-enforcement middleware for the Registry API 
+to protect the Go server in production. Add a standard Fly.io configuration 
+for deploying the API server independently from the GitHub worker.
+
+═══════════════════════════════════════════════════════════════
+SPECIFICATION: RATE LIMITS & ENFORCEMENT
+═══════════════════════════════════════════════════════════════
+
+──────────────────────────────────────────────────────────────
+1. Free Tier Limits Middleware (`api/internal/server/limits.go`)
+──────────────────────────────────────────────────────────────
+- Create a new middleware function `TierLimitsMiddleware(store db.Store)`.
+- Enforce the following rules for any POST/PUT requests (modifying data):
+  - Maximum 3 connected repositories per organization.
+  - Maximum 5 downstream dependencies per provider.
+- If limits are exceeded, return `402 Payment Required` with a JSON payload:
+  `{"error": "Free tier limit reached. Please upgrade to Pro."}`
+- Use the existing `store` methods (e.g., `GetContractsByProviderFullName` or simple counts) 
+  to evaluate the limits. Since `store` might need new count methods, you may need to add 
+  `CountReposByOrg(ctx, org string)` to `api/internal/db/store.go` and `pg_store.go`.
+
+──────────────────────────────────────────────────────────────
+2. Fly.io Deployment Config (`api/fly.toml`)
+──────────────────────────────────────────────────────────────
+- Create a standard `fly.toml` for the Go API server inside the `api/` directory.
+- `app = "substrate-api"`
+- `primary_region = "iad"`
+- Build block: point to `Dockerfile.api` (which you will create).
+- HTTP port 8090.
+
+──────────────────────────────────────────────────────────────
+3. Dockerfile for API (`api/Dockerfile.api`)
+──────────────────────────────────────────────────────────────
+- Create `api/Dockerfile.api`.
+- Use a multi-stage build: `golang:1.22` for builder, `alpine` or `debian:buster-slim` for runtime.
+- Build the `cmd/server/main.go` binary.
+- Expose port 8090.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO MODIFY/CREATE:
+- api/internal/server/limits.go (new)
+- api/internal/server/limits_test.go (new)
+- api/internal/server/router.go (apply limits middleware to POST routes)
+- api/internal/db/store.go (add count methods)
+- api/internal/db/pg_store.go (implement count methods)
+- api/fly.toml (new)
+- api/Dockerfile.api (new)
+
+Commit: "jules: P3-T07 rate limits middleware and fly deployment"
+Target branch: feature/dev
