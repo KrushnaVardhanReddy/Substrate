@@ -9,6 +9,7 @@ import (
 
 	"e2e/scenarios/graphql"
 	"e2e/scenarios/openapi"
+	"e2e/scenarios/protobuf"
 	"e2e/scenarios/sql"
 
 	"github.com/google/go-github/v62/github"
@@ -44,6 +45,8 @@ func main() {
 		sql.RunAll(ctx, client, owner)
 	case "graphql":
 		graphql.RunAll(ctx, client, owner)
+	case "protobuf":
+		protobuf.RunAll(ctx, client, owner)
 	case "openapi-breaking":
 		openapi.RunBreaking(ctx, client, owner)
 	case "openapi-safe":
@@ -68,6 +71,14 @@ func main() {
 		graphql.RunOverride(ctx, client, owner)
 	case "graphql-warning":
 		graphql.RunWarning(ctx, client, owner)
+	case "protobuf-breaking":
+		protobuf.RunBreaking(ctx, client, owner)
+	case "protobuf-safe":
+		protobuf.RunSafe(ctx, client, owner)
+	case "protobuf-override":
+		protobuf.RunOverride(ctx, client, owner)
+	case "protobuf-warning":
+		protobuf.RunWarning(ctx, client, owner)
 	default:
 		log.Fatalf("Unknown scenario: %s.", *scenario)
 	}

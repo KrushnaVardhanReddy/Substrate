@@ -23,6 +23,10 @@ type bufViolation struct {
 }
 
 func writeBufYAMLIfMissing(dir string) error {
+	info, err := os.Stat(dir)
+	if err == nil && !info.IsDir() {
+		return nil // It's a single file, no buf.yaml needed
+	}
 	bufYAMLPath := filepath.Join(dir, "buf.yaml")
 	if _, err := os.Stat(bufYAMLPath); os.IsNotExist(err) {
 		return os.WriteFile(bufYAMLPath, []byte("version: v2\n"), 0644)
@@ -114,8 +118,16 @@ func recommendationFor(bufType string) string {
 
 // CompareProto compares two directories of .proto files and returns a DiffReport.
 func CompareProto(baseDir, headDir string) (*report.DiffReport, error) {
-	if _, err := exec.LookPath("buf"); err != nil {
-		return nil, fmt.Errorf("buf is not installed or not on PATH — install with: go install github.com/bufbuild/buf/cmd/buf@latest")
+	bufPath, err := exec.LookPath("buf")
+	if err != nil {
+		// Fallback to ~/go/bin/buf in case it's not in PATH
+		homeDir, _ := os.UserHomeDir()
+		fallbackPath := filepath.Join(homeDir, "go", "bin", "buf")
+		if _, statErr := os.Stat(fallbackPath); statErr == nil {
+			bufPath = fallbackPath
+		} else {
+			return nil, fmt.Errorf("buf is not installed or not on PATH — install with: go install github.com/bufbuild/buf/cmd/buf@latest")
+		}
 	}
 
 	if err := writeBufYAMLIfMissing(baseDir); err != nil {
@@ -125,7 +137,7 @@ func CompareProto(baseDir, headDir string) (*report.DiffReport, error) {
 		return nil, fmt.Errorf("failed to write buf.yaml to headDir: %w", err)
 	}
 
-	cmd := exec.Command("buf", "breaking", headDir, "--against", baseDir, "--error-format", "json")
+	cmd := exec.Command(bufPath, "breaking", headDir, "--against", baseDir, "--error-format", "json")
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
@@ -157,11 +169,17 @@ func CompareProto(baseDir, headDir string) (*report.DiffReport, error) {
 		}
 
 		rec := recommendationFor(violation.Type)
+		
+		relPath := violation.Path
+		if r, err := filepath.Rel(headDir, violation.Path); err == nil {
+			relPath = r
+		}
+
 		change := report.Change{
-			ID:             fmt.Sprintf("proto_%s_%s_%d", strings.ToLower(violation.Type), slugify(violation.Path), violation.StartLine),
+			ID:             fmt.Sprintf("proto_%s_%s_%d", strings.ToLower(violation.Type), slugify(relPath), violation.StartLine),
 			RuleID:         mapBufType(violation.Type),
 			Severity:       mapBufSeverity(violation.Type),
-			Path:           fmt.Sprintf("%s:%d", violation.Path, violation.StartLine),
+			Path:           fmt.Sprintf("%s:%d", relPath, violation.StartLine),
 			Description:    violation.Message,
 			Recommendation: &rec,
 		}

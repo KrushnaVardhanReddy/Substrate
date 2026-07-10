@@ -1,4 +1,4 @@
-package graphql
+package protobuf
 
 import (
 	"context"
@@ -15,7 +15,7 @@ const providerRepoName = "substrate-test-provider"
 const consumerRepoName = "substrate-test-consumer"
 
 func RunAll(ctx context.Context, client *github.Client, owner string) {
-	log.Println("Starting GraphQL Automated Test Suite...")
+	log.Println("Starting Protobuf Automated Test Suite...")
 	RunBreaking(ctx, client, owner)
 	RunSafe(ctx, client, owner)
 	RunOverride(ctx, client, owner)
@@ -23,30 +23,30 @@ func RunAll(ctx context.Context, client *github.Client, owner string) {
 }
 
 func RunSafe(ctx context.Context, client *github.Client, owner string) {
-	executeScenario(ctx, client, owner, "GraphQL Safe Extension",
-		defaultSubstrateYaml(), defaultGraphQL(),
-		defaultSubstrateYaml(), addedFieldGraphQL(),
+	executeScenario(ctx, client, owner, "Protobuf Safe Extension",
+		defaultSubstrateYaml(), defaultProto(),
+		defaultSubstrateYaml(), addedFieldProto(),
 		"All Clear", "")
 }
 
 func RunBreaking(ctx context.Context, client *github.Client, owner string) {
-	executeScenario(ctx, client, owner, "GraphQL Breaking Change",
-		defaultSubstrateYaml(), defaultGraphQL(),
-		defaultSubstrateYaml(), removedFieldGraphQL(),
-		"BREAKING", "GQL_FIELD_REMOVED")
+	executeScenario(ctx, client, owner, "Protobuf Breaking Change",
+		defaultSubstrateYaml(), defaultProto(),
+		defaultSubstrateYaml(), changedFieldTypeProto(),
+		"BREAKING", "PROTO_FIELD_TYPE_CHANGED")
 }
 
 func RunWarning(ctx context.Context, client *github.Client, owner string) {
-	executeScenario(ctx, client, owner, "GraphQL Warnings Only",
-		defaultSubstrateYaml(), defaultGraphQL(),
-		defaultSubstrateYaml(), deprecatedFieldGraphQL(),
-		"Warnings Only", "GQL_FIELD_DEPRECATED")
+	executeScenario(ctx, client, owner, "Protobuf Warnings Only",
+		defaultSubstrateYaml(), defaultProto(),
+		defaultSubstrateYaml(), changedPackageProto(),
+		"Warnings Only", "PROTO_PACKAGE_CHANGED")
 }
 
 func RunOverride(ctx context.Context, client *github.Client, owner string) {
-	executeScenario(ctx, client, owner, "GraphQL Config Override",
-		defaultSubstrateYaml(), defaultGraphQL(),
-		overrideSubstrateYaml(), removedFieldGraphQL(),
+	executeScenario(ctx, client, owner, "Protobuf Config Override",
+		defaultSubstrateYaml(), defaultProto(),
+		overrideSubstrateYaml(), changedFieldTypeProto(),
 		"All Clear", "")
 }
 
@@ -55,24 +55,24 @@ func executeScenario(ctx context.Context, client *github.Client, owner, scenario
 
 	log.Println("Seeding the main branch with baseline files...")
 	helpers.SeedFile(ctx, client, owner, providerRepoName, "substrate.yaml", "main", baseConfig)
-	helpers.SeedFile(ctx, client, owner, providerRepoName, "schema.graphql", "main", baseSchema)
+	helpers.SeedFile(ctx, client, owner, providerRepoName, "user.proto", "main", baseSchema)
 
 	// Seed the consumer!
 	consumerConfig := fmt.Sprintf(`service: test-consumer
 consumers:
   - name: "test-provider"
-    type: graphql
+    type: protobuf
     source: "github.com/%s/%s"
-    path: "schema.graphql"
+    path: "user.proto"
     branch: "main"`, owner, providerRepoName)
 
 	helpers.SeedFile(ctx, client, owner, consumerRepoName, "substrate.yaml", "main", consumerConfig)
-	helpers.SeedFile(ctx, client, owner, consumerRepoName, "schema.graphql", "main", baseSchema) // Ensure it parses
+	helpers.SeedFile(ctx, client, owner, consumerRepoName, "user.proto", "main", baseSchema)
 
 	log.Println("Waiting 15s for the Registry API to sync baselines...")
 	time.Sleep(15 * time.Second)
 
-	prBranch := fmt.Sprintf("e2e-graphql-%d", time.Now().Unix())
+	prBranch := fmt.Sprintf("e2e-proto-%d", time.Now().Unix())
 	log.Printf("Creating branch %s...", prBranch)
 	ref, _, err := client.Git.GetRef(ctx, owner, providerRepoName, "refs/heads/main")
 	if err != nil { log.Fatalf("Failed to get main ref: %v", err) }
@@ -85,7 +85,7 @@ consumers:
 
 	log.Println("Pushing PR changes...")
 	helpers.SeedFile(ctx, client, owner, providerRepoName, "substrate.yaml", prBranch, prConfig)
-	helpers.SeedFile(ctx, client, owner, providerRepoName, "schema.graphql", prBranch, prSchema)
+	helpers.SeedFile(ctx, client, owner, providerRepoName, "user.proto", prBranch, prSchema)
 
 	log.Println("Opening Pull Request...")
 	pr, _, err := client.PullRequests.Create(ctx, owner, providerRepoName, &github.NewPullRequest{
@@ -141,74 +141,71 @@ consumers:
 }
 
 func defaultSubstrateYaml() string {
-	return `service: test-provider-graphql
-schema_type: graphql
-spec_path: schema.graphql
+	return `service: test-provider-proto
+schema_type: protobuf
+spec_path: user.proto
 `
 }
 
 func overrideSubstrateYaml() string {
-	return `service: test-provider-graphql
-schema_type: graphql
-spec_path: schema.graphql
+	return `service: test-provider-proto
+schema_type: protobuf
+spec_path: user.proto
 
 overrides:
-  - rule_id: GQL_FIELD_REMOVED
-    path: User.email
-    reason: "E2E testing GraphQL override functionality"
+  - rule_id: PROTO_FIELD_TYPE_CHANGED
+    path: schema.proto:6
+    reason: "E2E testing Protobuf override functionality"
     approved_by: "e2e-bot@example.com"
     expires: "2099-12-31"
 `
 }
 
-func defaultGraphQL() string {
-	return `type User {
-  id: ID!
-  name: String!
-  email: String!
-}
+func defaultProto() string {
+	return `syntax = "proto3";
 
-type Query {
-  user(id: ID!): User
+package myorg.v1;
+
+message User {
+  int32 id = 1;
+  string name = 2;
 }
 `
 }
 
-func addedFieldGraphQL() string {
-	return `type User {
-  id: ID!
-  name: String!
-  email: String!
-  age: Int
-}
+func addedFieldProto() string {
+	return `syntax = "proto3";
 
-type Query {
-  user(id: ID!): User
+package myorg.v1;
+
+message User {
+  int32 id = 1;
+  string name = 2;
+  string email = 3;
 }
 `
 }
 
-func removedFieldGraphQL() string {
-	return `type User {
-  id: ID!
-  name: String!
-}
+func changedFieldTypeProto() string {
+	return `syntax = "proto3";
 
-type Query {
-  user(id: ID!): User
+package myorg.v1;
+
+message User {
+  string id = 1; // Changed from int32 to string
+  string name = 2;
 }
 `
 }
 
-func deprecatedFieldGraphQL() string {
-	return `type User {
-  id: ID!
-  name: String!
-  email: String! @deprecated(reason: "Use username instead")
-}
+func changedPackageProto() string {
+	return `syntax = "proto3";
 
-type Query {
-  user(id: ID!): User
+package myorg.v2; // Changed package name
+
+message User {
+  int32 id = 1;
+  string name = 2;
 }
 `
 }

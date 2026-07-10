@@ -21,6 +21,10 @@ export INTERNAL_SERVICE_TOKEN=local-dev-token
 
 # Database
 export DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres
+
+# Required external dependencies for schema diffing
+# Protobuf
+go install github.com/bufbuild/buf/cmd/buf@latest
 ```
 
 ---

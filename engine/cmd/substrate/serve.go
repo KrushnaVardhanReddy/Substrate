@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/config"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/diff"
@@ -128,38 +129,78 @@ func setupMux() *http.ServeMux {
 			return
 		}
 
-		baseFile, err := os.CreateTemp("", "base-*")
+		ext := ""
+		switch req.SchemaType {
+		case "graphql":
+			ext = ".graphql"
+		case "openapi":
+			ext = ".yaml"
+		case "sql":
+			ext = ".sql"
+		case "protobuf", "proto":
+			ext = ".proto"
+		case "avro":
+			ext = ".avsc"
+		}
+
+		tempDir, err := os.MkdirTemp("", "substrate-diff-*")
 		if err != nil {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(`{"error": "internal diff error"}`))
 			return
 		}
-		defer os.Remove(baseFile.Name())
-		baseFile.WriteString(req.BaseSchema)
-		baseFile.Close()
+		defer os.RemoveAll(tempDir)
 
-		headFile, err := os.CreateTemp("", "head-*")
-		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{"error": "internal diff error"}`))
-			return
-		}
-		defer os.Remove(headFile.Name())
-		headFile.WriteString(req.HeadSchema)
-		headFile.Close()
+		var baseTarget, headTarget string
 
-		var configPath string
-		if req.Config != "" {
-			configFile, err := os.CreateTemp("", "config-*")
+		if req.SchemaType == "protobuf" || req.SchemaType == "proto" {
+			baseDir := filepath.Join(tempDir, "base")
+			headDir := filepath.Join(tempDir, "head")
+			os.Mkdir(baseDir, 0755)
+			os.Mkdir(headDir, 0755)
+			
+			baseFilePath := filepath.Join(baseDir, "schema.proto")
+			os.WriteFile(baseFilePath, []byte(req.BaseSchema), 0644)
+			
+			headFilePath := filepath.Join(headDir, "schema.proto")
+			os.WriteFile(headFilePath, []byte(req.HeadSchema), 0644)
+			
+			baseTarget = baseDir
+			headTarget = headDir
+		} else {
+			baseFile, err := os.CreateTemp(tempDir, "base-*"+ext)
 			if err != nil {
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte(`{"error": "internal diff error"}`))
 				return
 			}
-			defer os.Remove(configFile.Name())
+			baseFile.WriteString(req.BaseSchema)
+			baseFile.Close()
+			baseTarget = baseFile.Name()
+
+			headFile, err := os.CreateTemp(tempDir, "head-*"+ext)
+			if err != nil {
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(`{"error": "internal diff error"}`))
+				return
+			}
+			headFile.WriteString(req.HeadSchema)
+			headFile.Close()
+			headTarget = headFile.Name()
+		}
+
+		var configPath string
+		if req.Config != "" {
+			configFile, err := os.CreateTemp(tempDir, "config-*")
+			if err != nil {
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(`{"error": "internal diff error"}`))
+				return
+			}
 			configFile.WriteString(req.Config)
 			configFile.Close()
 			configPath = configFile.Name()
@@ -168,29 +209,29 @@ func setupMux() *http.ServeMux {
 		var rep *report.DiffReport
 		switch req.SchemaType {
 		case "graphql":
-			rep, err = diff.CompareGraphQL(baseFile.Name(), headFile.Name())
+			rep, err = diff.CompareGraphQL(baseTarget, headTarget)
 			if err == nil {
 				rep = applyConfig(rep, configPath)
 			}
 		case "sql":
-			rep, err = runSQLDiff(baseFile.Name(), headFile.Name(), configPath)
+			rep, err = runSQLDiff(baseTarget, headTarget, configPath)
 		case "terraform-plan":
-			rep, err = diff.CompareTerraformPlan(headFile.Name())
+			rep, err = diff.CompareTerraformPlan(headTarget)
 			if err == nil {
 				rep = applyConfig(rep, configPath)
 			}
 		case "ai-model":
-			rep, err = diff.CompareAIML(baseFile.Name(), headFile.Name())
+			rep, err = diff.CompareAIML(baseTarget, headTarget)
 			if err == nil {
 				rep = applyConfig(rep, configPath)
 			}
 		case "asyncapi":
-			rep, err = diff.CompareAsyncAPI(baseFile.Name(), headFile.Name())
+			rep, err = diff.CompareAsyncAPI(baseTarget, headTarget)
 			if err == nil {
 				rep = applyConfig(rep, configPath)
 			}
 		case "protobuf", "proto":
-			rep, err = diff.CompareProto(baseFile.Name(), headFile.Name())
+			rep, err = diff.CompareProto(baseTarget, headTarget)
 			if err == nil {
 				rep = applyConfig(rep, configPath)
 			}
@@ -201,12 +242,12 @@ func setupMux() *http.ServeMux {
 					SchemaRegistryURL: req.AvroRegistryURL,
 				},
 			}
-			rep, err = diff.CompareAvro(baseFile.Name(), headFile.Name(), avroCfg)
+			rep, err = diff.CompareAvro(baseTarget, headTarget, avroCfg)
 			if err == nil {
 				rep = applyConfig(rep, configPath)
 			}
 		default:
-			rep, err = runOpenAPIDiff(baseFile.Name(), headFile.Name(), configPath)
+			rep, err = runOpenAPIDiff(baseTarget, headTarget, configPath)
 		}
 
 		if err != nil {

@@ -20,6 +20,9 @@ e2e-sql: check-token
 e2e-graphql: check-token
 	cd scripts/e2e && go run main.go --scenario=graphql
 
+e2e-protobuf: check-token
+	cd scripts/e2e && go run main.go --scenario=protobuf
+
 e2e-breaking: check-token
 	cd scripts/e2e && go run main.go --scenario=openapi-breaking
 
@@ -55,4 +58,17 @@ e2e-graphql-override: check-token
 
 e2e-graphql-warning: check-token
 	cd scripts/e2e && go run main.go --scenario=graphql-warning
+
+
+e2e-protobuf-breaking: check-token
+	cd scripts/e2e && go run main.go --scenario=protobuf-breaking
+
+e2e-protobuf-safe: check-token
+	cd scripts/e2e && go run main.go --scenario=protobuf-safe
+
+e2e-protobuf-override: check-token
+	cd scripts/e2e && go run main.go --scenario=protobuf-override
+
+e2e-protobuf-warning: check-token
+	cd scripts/e2e && go run main.go --scenario=protobuf-warning
 

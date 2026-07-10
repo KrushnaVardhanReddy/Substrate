@@ -40,5 +40,31 @@ This document serves as the official sign-off log for the Phase 5 End-to-End Cro
   4. Updated the E2E script to strictly assert the exact `Rule ID` in the GitHub PR bot comment to ensure spec-first compliance.
 * **Actual Result:** **PASS**. All 4 SQL test vectors passed successfully and accurately verified the underlying rule IDs.
 
+### Scenario 6: GraphQL Adapter Matrix Testing
+* **Action:** Created `graphql.go` test script and ran the full suite (`make e2e-graphql-safe`, `make e2e-graphql-breaking`, `make e2e-graphql-warning`, `make e2e-graphql-override`).
+* **Bugs Encountered:** 
+  1. Found that `GQL_FIELD_REMOVED` and 15 other GraphQL rules were missing from `KnownRules` in `engine/internal/config/config.go`.
+  2. Discovered the E2E Test Plan spec matrix listed `GRAPHQL_FIELD_REMOVED` instead of the adapter's actual `GQL_FIELD_REMOVED` rule.
+* **Root Cause & Fix:**
+  1. Registered all 16 GraphQL rules into the `KnownRules` map to prevent override parsing failures.
+  2. Updated the spec document `docs/E2E_TEST_PLAN.md` to reflect the correct rule ID.
+* **Actual Result:** **PASS**. All 4 GraphQL test vectors passed successfully, validating deep assertions based on spec first design.
+
+### Scenario 7: Protobuf Adapter Matrix Testing
+* **Action:** Created `protobuf.go` test script and ran the full suite (`make e2e-protobuf-safe`, `make e2e-protobuf-breaking`, `make e2e-protobuf-warning`, `make e2e-protobuf-override`).
+* **Bugs Encountered:**
+  1. Engine returned `500 Internal Server Error` and PR comment posted `Substrate engine error — retry later`.
+  2. Engine returned `Failure: /tmp/head-386708027: not a directory`.
+  3. Engine returned `open /tmp/snap-private-tmp: permission denied`.
+  4. `buf breaking` falsely reported `PROTO_FILE_REMOVED` instead of diffing contents.
+  5. The `protobuf-override` test failed to suppress `PROTO_FIELD_TYPE_CHANGED`.
+* **Root Cause & Fix:**
+  1. `buf` was not installed on the system. Installed `buf` via `go install github.com/bufbuild/buf/cmd/buf@latest` and documented it as a prerequisite.
+  2. `os.CreateTemp` was creating files without a `.proto` extension, causing `buf` to treat them as directory modules. Updated `/diff` to append `.proto`.
+  3. `buf` scanned the entire `/tmp` directory upwards to find `buf.yaml`, hitting restricted OS directories. Updated `/diff` to isolate files inside a unique `substrate-diff-*` temporary directory.
+  4. The temp files had different generated filenames (e.g. `base-123.proto` vs `head-456.proto`). Updated `/diff` to nest them as `base/schema.proto` and `head/schema.proto`.
+  5. The override config was targeting `user.proto:5`, but the engine path reported `schema.proto:6`. Updated the E2E script config to match the engine output.
+* **Actual Result:** **PASS**. All 4 Protobuf test vectors are successfully passing.
+
 ## Conclusion
 The Phase 5 cross-repo impact tracking pipeline is fully operational for both OpenAPI and SQL schemas. The Cloudflare Worker correctly marshals spec snapshots and configuration state to both the stateless Diff Engine and the stateful PostgreSQL Registry API, surfacing real-time dependency impact directly into developer workflows.

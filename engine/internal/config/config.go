@@ -143,6 +143,25 @@ var KnownRules = map[string]bool{
 	"GQL_DIRECTIVE_LOCATION_REMOVED":    true,
 	"GQL_FIELD_DEPRECATED":              true,
 	"GQL_ENUM_VALUE_DEPRECATED":         true,
+	// Protobuf Rules
+	"PROTO_FIELD_TYPE_CHANGED":          true,
+	"PROTO_FIELD_NUMBER_CHANGED":        true,
+	"PROTO_FIELD_RENAMED":               true,
+	"PROTO_FIELD_REMOVED":               true,
+	"PROTO_FIELD_LABEL_CHANGED":         true,
+	"PROTO_FIELD_ONEOF_CHANGED":         true,
+	"PROTO_ENUM_REMOVED":                true,
+	"PROTO_ENUM_VALUE_REMOVED":          true,
+	"PROTO_ENUM_VALUE_NUMBER_CHANGED":   true,
+	"PROTO_ENUM_VALUE_RENAMED":          true,
+	"PROTO_MESSAGE_REMOVED":             true,
+	"PROTO_RPC_REMOVED":                 true,
+	"PROTO_RPC_REQUEST_TYPE_CHANGED":    true,
+	"PROTO_RPC_RESPONSE_TYPE_CHANGED":   true,
+	"PROTO_RPC_STREAMING_CHANGED":       true,
+	"PROTO_SERVICE_REMOVED":             true,
+	"PROTO_PACKAGE_CHANGED":             true,
+	"PROTO_FILE_REMOVED":                true,
 }
 
 func LoadConfig(path string) (*SubstrateConfig, error) {

@@ -109,7 +109,7 @@
 |---|---|---|---|
 | P1c-T01 | GraphQL SDL Diff Adapter (`graphql`) | Jules | ✅ | `prompts/phase-1c-graphql/t01_parser.txt` |
 
-### Phase 1d — Protobuf & gRPC 🔄 IN PROGRESS
+### Phase 1d — Protobuf & gRPC ✅ COMPLETE
 
 > **Library decision:** **`bufbuild/buf`** (Apache 2.0, written in Go). `buf breaking` is the `oasdiff` of Protobuf — 100+ wire-compatibility rules, field number checks, service/method detection. Invoked via `exec.Command` (binary, not Go lib import). Adapter pattern identical to P1-T06 oasdiff. **Spec approved. Jules submitted 2026-07-08.**
 > **Spec:** `docs/specs/phase-1/protobuf-checker-adapter.md` ✅ APPROVED
