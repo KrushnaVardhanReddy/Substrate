@@ -267,6 +267,16 @@ TASKS = {
         "phase": "phase-3-registry",
         "prompt": _load_prompt("prompts/phase-3-registry/t14_interactive_diff_url.txt"),
     },
+    35: {
+        "name": "P3-T06 — GitHub OAuth and Org ACL Middleware",
+        "phase": "phase-3-registry",
+        "prompt": _load_prompt("prompts/phase-3-registry/t06_auth_org.txt"),
+    },
+    36: {
+        "name": "P3-T04 — Connected Repos List & Schema Browser",
+        "phase": "phase-3-registry",
+        "prompt": _load_prompt("prompts/phase-3-registry/t04_dashboard_repos.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
