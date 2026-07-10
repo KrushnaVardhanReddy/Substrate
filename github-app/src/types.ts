@@ -115,3 +115,18 @@ export interface CrossRepoCheckResponse {
   is_safe: boolean;
   results: ConsumerResult[];
 }
+
+export interface AIAutofixRequest {
+  provider_repo: string;
+  schema_type: string;
+  current_schema: string;
+  proposed_schema: string;
+  breaking_changes: any[];
+}
+
+export interface AIAutofixResponse {
+  explanation: string;
+  safe_patch: string;
+  patch_language: string;
+  mock_mode: boolean;
+}
