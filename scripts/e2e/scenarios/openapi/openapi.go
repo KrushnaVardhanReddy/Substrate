@@ -24,6 +24,7 @@ func RunAll(ctx context.Context, client *github.Client, owner string) {
 	RunOverride(ctx, client, owner)
 	RunWarning(ctx, client, owner)
 	RunAIAutofix(ctx, client, owner)
+	RunPIIAuditing(ctx, client, owner)
 	log.Println("🎉 All OpenAPI Scenarios Completed Successfully!")
 }
 
@@ -40,6 +41,14 @@ func RunAIAutofix(ctx context.Context, client *github.Client, owner string) {
 		defaultSubstrateYaml(), defaultOpenAPIYaml(),
 		defaultSubstrateYaml(), removedEndpointYaml(),
 		"BREAKING", "Suggested Safe Remediation")
+}
+
+func RunPIIAuditing(ctx context.Context, client *github.Client, owner string) {
+	// P4-T08: Verify PII compliance tag is generated
+	executeScenario(ctx, client, owner, "Phase 4 - PII Auditing",
+		defaultSubstrateYaml(), defaultOpenAPIYaml(),
+		defaultSubstrateYaml(), addedPIIEndpointYaml(),
+		"All Clear", "PII:SSN")
 }
 
 func RunSafe(ctx context.Context, client *github.Client, owner string) {
@@ -266,6 +275,48 @@ paths:
           required: true
           schema:
             type: string
+      responses:
+        "200":
+          description: OK
+`
+}
+
+func addedPIIEndpointYaml() string {
+	return `openapi: "3.0.0"
+info:
+  title: Provider API
+  version: "1.0.0"
+paths:
+  /users:
+    get:
+      summary: List users
+      responses:
+        "200":
+          description: OK
+  /users/{id}:
+    get:
+      summary: Get user by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+  /secure:
+    post:
+      summary: Submit SSN
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ssn:
+                  type: string
       responses:
         "200":
           description: OK
