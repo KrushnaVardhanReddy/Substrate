@@ -23,6 +23,8 @@ func RunAll(ctx context.Context, client *github.Client, owner string) {
 	RunSafe(ctx, client, owner)
 	RunOverride(ctx, client, owner)
 	RunWarning(ctx, client, owner)
+	RunPIIAuditing(ctx, client, owner)
+	RunTrafficAware(ctx, client, owner)
 	log.Println("🎉 All SQL Scenarios Completed Successfully!")
 }
 
@@ -196,5 +198,43 @@ CREATE TABLE users (
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL DEFAULT 'new@example.com'
 );
+`
+}
+
+func RunPIIAuditing(ctx context.Context, client *github.Client, owner string) {
+	executeScenario(ctx, client, owner, "Phase 4 - SQL PII Auditing",
+		defaultSubstrateYaml(), defaultSQL(),
+		defaultSubstrateYaml(), addedPIIColumnSQL(),
+		"All Clear", "PII:SSN")
+}
+
+func RunTrafficAware(ctx context.Context, client *github.Client, owner string) {
+	executeScenario(ctx, client, owner, "Phase 4 - SQL Traffic Aware Diffing",
+		defaultSubstrateYaml(), defaultSQL(),
+		trafficSubstrateYaml(), removedColumnSQL(),
+		"Warnings Only", "Downgraded due to low traffic")
+}
+
+func addedPIIColumnSQL() string {
+	return `
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL DEFAULT 'unknown@example.com',
+    ssn VARCHAR(9)
+);
+`
+}
+
+func trafficSubstrateYaml() string {
+	return `service: test-provider-sql
+schema_type: sql
+spec_path: schema.sql
+
+traffic:
+  provider: prometheus
+  endpoint: "http://prometheus.internal:9090"
+  lookback_days: 30
+  downgrade_threshold: 0
 `
 }

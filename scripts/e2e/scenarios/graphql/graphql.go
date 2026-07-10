@@ -20,6 +20,8 @@ func RunAll(ctx context.Context, client *github.Client, owner string) {
 	RunSafe(ctx, client, owner)
 	RunOverride(ctx, client, owner)
 	RunWarning(ctx, client, owner)
+	RunPIIAuditing(ctx, client, owner)
+	RunTrafficAware(ctx, client, owner)
 }
 
 func RunSafe(ctx context.Context, client *github.Client, owner string) {
@@ -210,5 +212,46 @@ func deprecatedFieldGraphQL() string {
 type Query {
   user(id: ID!): User
 }
+`
+}
+
+func RunPIIAuditing(ctx context.Context, client *github.Client, owner string) {
+	executeScenario(ctx, client, owner, "Phase 4 - GraphQL PII Auditing",
+		defaultSubstrateYaml(), defaultGraphQL(),
+		defaultSubstrateYaml(), addedPIIFieldGraphQL(),
+		"All Clear", "PII:SSN")
+}
+
+func RunTrafficAware(ctx context.Context, client *github.Client, owner string) {
+	executeScenario(ctx, client, owner, "Phase 4 - GraphQL Traffic Aware Diffing",
+		defaultSubstrateYaml(), defaultGraphQL(),
+		trafficSubstrateYaml(), removedFieldGraphQL(),
+		"Warnings Only", "Downgraded due to low traffic")
+}
+
+func addedPIIFieldGraphQL() string {
+	return `type User {
+  id: ID!
+  name: String!
+  email: String!
+  ssn: String
+}
+
+type Query {
+  user(id: ID!): User
+}
+`
+}
+
+func trafficSubstrateYaml() string {
+	return `service: test-provider-graphql
+schema_type: graphql
+spec_path: schema.graphql
+
+traffic:
+  provider: prometheus
+  endpoint: "http://prometheus.internal:9090"
+  lookback_days: 30
+  downgrade_threshold: 0
 `
 }
