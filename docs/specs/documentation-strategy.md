@@ -20,6 +20,8 @@ When executing task **P3-T12**, the documentation site (built with VitePress or 
 ### 2. Configuration Reference
 - **The `substrate.yaml` file** (Every parameter, type, required status, and default value)
 - **Overrides** (How to acknowledge intentional breaking changes via the `overrides` block)
+- **Traffic-Aware Diffing** (Configuring the `traffic` block with Prometheus to downgrade zero-traffic breaks)
+- **Compliance Auditing** (Configuring PII alerts and Slack Webhooks)
 
 ### 3. CLI Reference
 - `substrate diff` (Base vs Head validation)
@@ -37,6 +39,11 @@ When executing task **P3-T12**, the documentation site (built with VitePress or 
 - **Protobuf Rules** (`buf breaking` mappings)
 - **SQL Rules** (PostgreSQL DDL breaking changes)
 - **AsyncAPI & Avro Rules**
+
+### 6. AI & Shift-Left (Phase 4)
+- **AI PR Remediation:** Understanding the "AI Impact Analysis" and "Suggested Safe Remediation" comments.
+- **AI Playground:** How to simulate breaking changes interactively in the Dashboard.
+- **VSCode Extension:** Catching breaking changes locally before committing.
 
 ## AI / MCP Guidelines
 Because this documentation will be fed directly to LLMs via our MCP server:

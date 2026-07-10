@@ -107,6 +107,12 @@ The CI check will pass and show `✅ Acknowledged (override active until 2026-12
 
 ---
 
+## 📚 Comprehensive Documentation
+
+For a deep dive into configuration options (like integrating Prometheus for zero-traffic breaking change downgrades), setting up the AI Autofix features, and integrating the VSCode extension, please refer to the official [Substrate User Guide (docs/USER_GUIDE.md)](docs/USER_GUIDE.md).
+
+---
+
 # The Problem
 
 Modern engineering organizations have hundreds of interconnected systems:
