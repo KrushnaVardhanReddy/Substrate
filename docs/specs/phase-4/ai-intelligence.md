@@ -289,7 +289,7 @@ var piiPatterns = map[string]string{
 
 | Task | Feature | Est. Effort | Status |
 |---|---|---|---|
-| **P4-T01** | AI Reasoning Bridge (MCP + LLM) | 1 day | 📐 Spec |
+| **P4-T01** | AI Reasoning Bridge (MCP + LLM) | 1 day | ✅ Done |
 | **P4-T02** | Streaming SSE Handler (Go) | 4 hrs | ✅ Done |
 | **P4-T03** | Safe Schema Patch Generator | 1 day | ✅ Done |
 | **P4-T04** | GitHub PR Comment Upgrade | 2 hrs | ✅ Done |

@@ -64,21 +64,18 @@ Be concise. Ground all claims in the diff provided. Do not hallucinate fields no
 
 func AIAnalyzeHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Step 1: Set SSE headers BEFORE writing anything
 		w.Header().Set("Content-Type", "text/event-stream")
 		w.Header().Set("Cache-Control", "no-cache")
 		w.Header().Set("Connection", "keep-alive")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.WriteHeader(http.StatusOK)
 
-		// Step 2: Assert http.Flusher
 		flusher, ok := w.(http.Flusher)
 		if !ok {
 			http.Error(w, "Streaming unsupported!", http.StatusInternalServerError)
 			return
 		}
 
-		// Step 3: Parse the JSON request body
 		var req AIAnalyzeRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			writeSSE(w, flusher, SSEEvent{Type: "error", Content: "invalid request body"})
@@ -86,99 +83,165 @@ func AIAnalyzeHandler() http.HandlerFunc {
 			return
 		}
 
-		// Step 4: Read AIConfig from env
 		cfg := loadAIConfig()
 		if cfg.BaseURL == "" {
 			mockSSEResponse(w, flusher)
 			return
 		}
 
-		// Step 6: Build the user message
 		userMessage := fmt.Sprintf("Schema type: %s\n\nCurrent schema:\n%s\n\nProposed schema:\n%s", req.SchemaType, req.CurrentSchema, req.ProposedSchema)
 
-		// Step 7: Call the OpenAI-compatible chat completions endpoint
-		type chatMessage struct {
-			Role    string `json:"role"`
-			Content string `json:"content"`
+		messages := []chatMessage{
+			{Role: "system", Content: systemPrompt},
+			{Role: "user", Content: userMessage},
 		}
-		type chatRequest struct {
-			Model    string        `json:"model"`
-			Stream   bool          `json:"stream"`
-			Messages []chatMessage `json:"messages"`
-		}
-
-		body := chatRequest{
-			Model:  cfg.Model,
-			Stream: true,
-			Messages: []chatMessage{
-				{Role: "system", Content: systemPrompt},
-				{Role: "user", Content: userMessage},
-			},
-		}
-
-		bodyBytes, err := json.Marshal(body)
-		if err != nil {
-			writeSSE(w, flusher, SSEEvent{Type: "error", Content: "failed to marshal request body"})
-			writeSSE(w, flusher, SSEEvent{Type: "done"})
-			return
-		}
-
-		httpReq, err := http.NewRequest("POST", cfg.BaseURL+"/chat/completions", bytes.NewBuffer(bodyBytes))
-		if err != nil {
-			writeSSE(w, flusher, SSEEvent{Type: "error", Content: "failed to create request"})
-			writeSSE(w, flusher, SSEEvent{Type: "done"})
-			return
-		}
-
-		httpReq.Header.Set("Authorization", "Bearer "+cfg.APIKey)
-		httpReq.Header.Set("Content-Type", "application/json")
 
 		client := &http.Client{}
-		resp, err := client.Do(httpReq)
-		if err != nil {
-			writeSSE(w, flusher, SSEEvent{Type: "error", Content: "failed to call AI provider"})
-			writeSSE(w, flusher, SSEEvent{Type: "done"})
-			return
+
+		for {
+			body := chatRequest{
+				Model:    cfg.Model,
+				Stream:   true,
+				Messages: messages,
+				Tools:    mcpTools,
+			}
+
+			bodyBytes, err := json.Marshal(body)
+			if err != nil {
+				writeSSE(w, flusher, SSEEvent{Type: "error", Content: "failed to marshal request body"})
+				break
+			}
+
+			httpReq, err := http.NewRequest("POST", cfg.BaseURL+"/chat/completions", bytes.NewBuffer(bodyBytes))
+			if err != nil {
+				writeSSE(w, flusher, SSEEvent{Type: "error", Content: "failed to create request"})
+				break
+			}
+
+			httpReq.Header.Set("Authorization", "Bearer "+cfg.APIKey)
+			httpReq.Header.Set("Content-Type", "application/json")
+
+			resp, err := client.Do(httpReq)
+			if err != nil {
+				writeSSE(w, flusher, SSEEvent{Type: "error", Content: "failed to call AI provider"})
+				break
+			}
+
+			if resp.StatusCode != http.StatusOK {
+				resp.Body.Close()
+				writeSSE(w, flusher, SSEEvent{Type: "error", Content: fmt.Sprintf("AI provider returned status: %d", resp.StatusCode)})
+				break
+			}
+
+			scanner := bufio.NewScanner(resp.Body)
+			
+			var pendingToolCalls []toolCall
+			var assistantMessageContent string
+			toolCallsMap := make(map[int]*toolCall)
+
+			for scanner.Scan() {
+				line := scanner.Text()
+				if line == "" || !strings.HasPrefix(line, "data: ") {
+					continue
+				}
+
+				dataStr := strings.TrimPrefix(line, "data: ")
+				if dataStr == "[DONE]" {
+					continue
+				}
+
+				var chunk struct {
+					Choices []struct {
+						FinishReason *string `json:"finish_reason"`
+						Delta        struct {
+							Content   string `json:"content"`
+							ToolCalls []struct {
+								Index    int    `json:"index"`
+								ID       string `json:"id"`
+								Type     string `json:"type"`
+								Function struct {
+									Name      string `json:"name"`
+									Arguments string `json:"arguments"`
+								} `json:"function"`
+							} `json:"tool_calls"`
+						} `json:"delta"`
+					} `json:"choices"`
+				}
+
+				if err := json.Unmarshal([]byte(dataStr), &chunk); err != nil {
+					continue
+				}
+
+				if len(chunk.Choices) > 0 {
+					choice := chunk.Choices[0]
+					
+					// Stream text to frontend as thinking
+					if choice.Delta.Content != "" {
+						assistantMessageContent += choice.Delta.Content
+						writeSSE(w, flusher, SSEEvent{Type: "thinking", Content: choice.Delta.Content})
+					}
+
+					// Accumulate tool calls
+					for _, tcDelta := range choice.Delta.ToolCalls {
+						idx := tcDelta.Index
+						if toolCallsMap[idx] == nil {
+							toolCallsMap[idx] = &toolCall{
+								ID:   tcDelta.ID,
+								Type: tcDelta.Type,
+							}
+							toolCallsMap[idx].Function.Name = tcDelta.Function.Name
+						}
+						toolCallsMap[idx].Function.Arguments += tcDelta.Function.Arguments
+					}
+					
+					// Stop if finished early without tool calls
+					if choice.FinishReason != nil && *choice.FinishReason == "stop" {
+						break
+					}
+				}
+			}
+			resp.Body.Close()
+
+			for i := 0; i < len(toolCallsMap); i++ {
+				if tc, ok := toolCallsMap[i]; ok {
+					pendingToolCalls = append(pendingToolCalls, *tc)
+				}
+			}
+
+			// If no tool calls, we are done
+			if len(pendingToolCalls) == 0 {
+				// Parse final response (the system prompt says output json, or output text with code blocks)
+				// For now, assume done.
+				break
+			}
+
+			// Execute tool calls
+			assistantMsg := chatMessage{
+				Role:      "assistant",
+				Content:   assistantMessageContent,
+				ToolCalls: pendingToolCalls,
+			}
+			messages = append(messages, assistantMsg)
+
+			for _, tc := range pendingToolCalls {
+				writeSSE(w, flusher, SSEEvent{Type: "thinking", Content: fmt.Sprintf("\n* Executing tool: %s *\n", tc.Function.Name)})
+				
+				result, err := executeTool(tc.Function.Name, tc.Function.Arguments, req)
+				if err != nil {
+					result = fmt.Sprintf("Error: %v", err)
+				}
+				
+				messages = append(messages, chatMessage{
+					Role:       "tool",
+					Content:    result,
+					Name:       tc.Function.Name,
+					ToolCallID: tc.ID,
+				})
+			}
+			
+			// Continue loop to send tool results back to LLM
 		}
-		defer resp.Body.Close()
 
-		if resp.StatusCode != http.StatusOK {
-			writeSSE(w, flusher, SSEEvent{Type: "error", Content: fmt.Sprintf("AI provider returned status: %d", resp.StatusCode)})
-			writeSSE(w, flusher, SSEEvent{Type: "done"})
-			return
-		}
-
-		// Step 8: Stream the response
-		scanner := bufio.NewScanner(resp.Body)
-		for scanner.Scan() {
-			line := scanner.Text()
-			if line == "" || !strings.HasPrefix(line, "data: ") {
-				continue
-			}
-
-			dataStr := strings.TrimPrefix(line, "data: ")
-			if dataStr == "[DONE]" {
-				continue
-			}
-
-			var chunk struct {
-				Choices []struct {
-					Delta struct {
-						Content string `json:"content"`
-					} `json:"delta"`
-				} `json:"choices"`
-			}
-
-			if err := json.Unmarshal([]byte(dataStr), &chunk); err != nil {
-				continue // skip invalid chunks
-			}
-
-			if len(chunk.Choices) > 0 && chunk.Choices[0].Delta.Content != "" {
-				writeSSE(w, flusher, SSEEvent{Type: "thinking", Content: chunk.Choices[0].Delta.Content})
-			}
-		}
-
-		// Step 9: After the LLM stream ends, stream done
 		writeSSE(w, flusher, SSEEvent{Type: "done"})
 	}
 }
