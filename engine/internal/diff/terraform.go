@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/compliance"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 )
 
@@ -85,11 +86,11 @@ func CompareTerraformPlan(planJSONPath string) (*report.DiffReport, error) {
 		} else if isUpdate {
 			if resource.Type == "aws_iam_policy" || resource.Type == "aws_iam_role_policy" {
 				rep.Warnings = append(rep.Warnings, report.Change{
-					ID:             "TF_IAM_PERMISSION_REMOVED",
-					RuleID:         "TF_IAM_PERMISSION_REMOVED",
-					Path:           resource.Address,
-					Severity:       report.ChangeSeverityWarning,
-					Description:    fmt.Sprintf("IAM policy %s is being modified. Verify no critical permissions are removed.", resource.Address),
+					ID:          "TF_IAM_PERMISSION_REMOVED",
+					RuleID:      "TF_IAM_PERMISSION_REMOVED",
+					Path:        resource.Address,
+					Severity:    report.ChangeSeverityWarning,
+					Description: fmt.Sprintf("IAM policy %s is being modified. Verify no critical permissions are removed.", resource.Address),
 				})
 			}
 		}
@@ -99,11 +100,11 @@ func CompareTerraformPlan(planJSONPath string) (*report.DiffReport, error) {
 		actions := outputChange.Actions
 		if contains(actions, "delete") {
 			rep.BreakingChanges = append(rep.BreakingChanges, report.Change{
-				ID:             "TF_OUTPUT_REMOVED",
-				RuleID:         "TF_OUTPUT_REMOVED",
-				Path:           outputName,
-				Severity:       report.ChangeSeverityBreaking,
-				Description:    fmt.Sprintf("Terraform output '%s' was removed", outputName),
+				ID:          "TF_OUTPUT_REMOVED",
+				RuleID:      "TF_OUTPUT_REMOVED",
+				Path:        outputName,
+				Severity:    report.ChangeSeverityBreaking,
+				Description: fmt.Sprintf("Terraform output '%s' was removed", outputName),
 			})
 		}
 	}
@@ -123,5 +124,6 @@ func CompareTerraformPlan(planJSONPath string) (*report.DiffReport, error) {
 		rep.Summary.OverallSeverity = report.SeverityNoChanges
 	}
 
+	compliance.Audit(rep)
 	return rep, nil
 }

@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/compliance"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/config"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 )
@@ -27,13 +28,14 @@ func CompareAvro(baseFile, headFile string, cfg *config.SubstrateConfig) (*repor
 
 	if cfg == nil || cfg.Avro == nil || cfg.Avro.SchemaRegistryURL == "" {
 		rep.Warnings = append(rep.Warnings, report.Change{
-			ID:          "avro_no_registry_configured",
-			RuleID:      "AVRO_NO_REGISTRY_CONFIGURED",
-			Severity:    report.ChangeSeverity(report.SeverityWarning),
-			Description: "Avro compatibility checking requires schema_registry_url in substrate.yaml under the avro: block",
+			ID:             "avro_no_registry_configured",
+			RuleID:         "AVRO_NO_REGISTRY_CONFIGURED",
+			Severity:       report.ChangeSeverity(report.SeverityWarning),
+			Description:    "Avro compatibility checking requires schema_registry_url in substrate.yaml under the avro: block",
 			Recommendation: func(s string) *string { return &s }("Add avro:\n  schema_registry_url: https://your-registry.com\n  subject: your-topic-value"),
 		})
 		rep.Summary.WarningCount = 1
+		compliance.Audit(rep)
 		return rep, nil
 	}
 
@@ -74,13 +76,14 @@ func CompareAvro(baseFile, headFile string, cfg *config.SubstrateConfig) (*repor
 	resp, err := client.Do(req)
 	if err != nil {
 		rep.Warnings = append(rep.Warnings, report.Change{
-			ID:          "avro_registry_unavailable",
-			RuleID:      "AVRO_REGISTRY_UNAVAILABLE",
-			Severity:    report.ChangeSeverity(report.SeverityWarning),
-			Description: "Could not reach Schema Registry: " + err.Error(),
+			ID:             "avro_registry_unavailable",
+			RuleID:         "AVRO_REGISTRY_UNAVAILABLE",
+			Severity:       report.ChangeSeverity(report.SeverityWarning),
+			Description:    "Could not reach Schema Registry: " + err.Error(),
 			Recommendation: func(s string) *string { return &s }("Check that schema_registry_url is correct and the registry is reachable from CI."),
 		})
 		rep.Summary.WarningCount = 1
+		compliance.Audit(rep)
 		return rep, nil
 	}
 	defer resp.Body.Close()
@@ -93,6 +96,7 @@ func CompareAvro(baseFile, headFile string, cfg *config.SubstrateConfig) (*repor
 			Description: fmt.Sprintf("Schema Registry returned HTTP %d", resp.StatusCode),
 		})
 		rep.Summary.WarningCount = 1
+		compliance.Audit(rep)
 		return rep, nil
 	}
 
@@ -107,6 +111,7 @@ func CompareAvro(baseFile, headFile string, cfg *config.SubstrateConfig) (*repor
 	}
 
 	if compatResp.IsCompatible {
+		compliance.Audit(rep)
 		return rep, nil
 	}
 
@@ -116,13 +121,14 @@ func CompareAvro(baseFile, headFile string, cfg *config.SubstrateConfig) (*repor
 	}
 
 	rep.BreakingChanges = append(rep.BreakingChanges, report.Change{
-		ID:          "avro_incompatible",
-		RuleID:      "AVRO_INCOMPATIBLE",
-		Severity:    report.ChangeSeverity(report.SeverityBreaking),
-		Path:        subject,
-		Description: desc,
+		ID:             "avro_incompatible",
+		RuleID:         "AVRO_INCOMPATIBLE",
+		Severity:       report.ChangeSeverity(report.SeverityBreaking),
+		Path:           subject,
+		Description:    desc,
 		Recommendation: func(s string) *string { return &s }("Review Avro schema evolution rules. Adding a field without a default value is backward-incompatible."),
 	})
 	rep.Summary.BreakingCount = 1
+	compliance.Audit(rep)
 	return rep, nil
 }

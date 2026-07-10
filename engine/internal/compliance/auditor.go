@@ -12,76 +12,63 @@ import (
 )
 
 var piiPatterns = map[string]string{
-	`(?i)(ssn|social.?security)`:    "PII:SSN",
-	`(?i)(password|passwd|secret)`:  "SECURITY:CREDENTIAL",
-	`(?i)(card.?number|pan|cvv)`:    "PCI:PAYMENT",
+	`(?i)(ssn|social.?security)`:   "PII:SSN",
+	`(?i)(password|passwd|secret)`: "SECURITY:CREDENTIAL",
+	`(?i)(card.?number|pan|cvv)`:   "PCI:PAYMENT",
 	`(?i)(medical|diagnosis|hipaa)`: "HIPAA:PHI",
-	`(?i)(email|phone|address)`:     "PII:CONTACT",
+	`(?i)(email|phone|address)`:    "PII:CONTACT",
 }
 
-// compiledPatterns caches the compiled regexes
-var compiledPatterns map[*regexp.Regexp]string
+// Compile regexes once
+var compiledPatterns map[string]*regexp.Regexp
 
 func init() {
-	compiledPatterns = make(map[*regexp.Regexp]string)
-	for pattern, tag := range piiPatterns {
-		compiledPatterns[regexp.MustCompile(pattern)] = tag
+	compiledPatterns = make(map[string]*regexp.Regexp)
+	for pattern, complianceType := range piiPatterns {
+		compiledPatterns[complianceType] = regexp.MustCompile(pattern)
 	}
 }
 
-// Audit scans a DiffReport for compliance risks and sends alerts if configured
 func Audit(rep *report.DiffReport) {
-	alerts := make([]report.ComplianceAlert, 0)
+	if rep == nil {
+		return
+	}
 
-	// Scan through all changes (added fields might be breaking or safe depending on context,
-	// but generally added response fields or request fields are safe or warnings).
-	// We'll scan the Path string which usually contains the field name.
-	checkChanges := func(changes []report.Change) {
-		for _, c := range changes {
-			// We only care about new fields, but checking everything is fine for MVP
-			for regex, tag := range compiledPatterns {
-				if regex.MatchString(c.Path) {
-					alerts = append(alerts, report.ComplianceAlert{
-						FieldPath:     c.Path,
-						ComplianceTag: tag,
-						Reason:        fmt.Sprintf("Path matches %s pattern", tag),
-					})
+	var allChanges []report.Change
+	allChanges = append(allChanges, rep.BreakingChanges...)
+	allChanges = append(allChanges, rep.Warnings...)
+	allChanges = append(allChanges, rep.SafeChanges...)
+
+	for _, change := range allChanges {
+		for complianceType, regex := range compiledPatterns {
+			if regex.MatchString(change.Path) {
+				alert := report.ComplianceAlert{
+					Path:           change.Path,
+					ComplianceType: complianceType,
+					Message:        fmt.Sprintf("Detected field matching %s pattern", complianceType),
 				}
+				rep.ComplianceAlerts = append(rep.ComplianceAlerts, alert)
+
+				notifySecurityTeam(alert)
 			}
 		}
 	}
-
-	checkChanges(rep.BreakingChanges)
-	checkChanges(rep.Warnings)
-	checkChanges(rep.SafeChanges)
-
-	if len(alerts) > 0 {
-		rep.ComplianceAlerts = alerts
-		notifySecurityTeam(alerts)
-	}
 }
 
-func notifySecurityTeam(alerts []report.ComplianceAlert) {
+func notifySecurityTeam(alert report.ComplianceAlert) {
 	webhookURL := os.Getenv("SUBSTRATE_SLACK_WEBHOOK")
 	if webhookURL == "" {
-		return // Not configured
+		return
 	}
 
-	channel := os.Getenv("SUBSTRATE_SECURITY_CHANNEL")
-	if channel == "" {
-		channel = "#security-alerts"
+	payload := map[string]interface{}{
+		"text": fmt.Sprintf("🚨 *Compliance Alert*: %s detected at `%s`\n%s", alert.ComplianceType, alert.Path, alert.Message),
 	}
 
-	text := "🚨 *Substrate Compliance Alert*\nFound sensitive fields in recent schema changes:\n"
-	for _, a := range alerts {
-		text += fmt.Sprintf("• `%s` matched tag `%s`\n", a.FieldPath, a.ComplianceTag)
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
+		return
 	}
 
-	payload := map[string]string{
-		"channel": channel,
-		"text":    text,
-	}
-	body, _ := json.Marshal(payload)
-
-	http.Post(webhookURL, "application/json", bytes.NewBuffer(body))
+	_, _ = http.Post(webhookURL, "application/json", bytes.NewBuffer(jsonData))
 }

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/compliance"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 	"gopkg.in/yaml.v3"
 )
@@ -387,5 +388,6 @@ func CompareAIML(basePath, headPath string) (*report.DiffReport, error) {
 		rep.Summary.OverallSeverity = report.SeverityNoChanges
 	}
 
+	compliance.Audit(rep)
 	return rep, nil
 }
