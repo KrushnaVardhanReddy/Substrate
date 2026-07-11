@@ -43,6 +43,9 @@ help:
 	@echo "make docs         - Start the Astro Starlight Docs site"
 	@echo "make build-cli    - Build the substrate CLI binary"
 	@echo "make build-mcp    - Build the substrate-mcp binary"
+	@echo "--------------------------------------------------------"
+	@echo "make start-bg     - Start ALL backend services in background"
+	@echo "make stop-bg      - Stop all background backend services"
 	@echo "make e2e-*        - Run the E2E matrix test suites"
 	@echo "--------------------------------------------------------"
 	@echo "See the Makefile source for the full 5-terminal architecture setup."
@@ -80,6 +83,22 @@ build-cli:
 
 build-mcp:
 	cd engine && go build -o substrate-mcp ./cmd/substrate-mcp/main.go
+
+start-bg: postgres
+	@echo "Starting backend services in background..."
+	@make api > api.log 2>&1 & echo $$! > api.pid
+	@make engine > engine.log 2>&1 & echo $$! > engine.pid
+	@make worker > worker.log 2>&1 & echo $$! > worker.pid
+	@echo "Services started. Logs available in api.log, engine.log, worker.log"
+	@echo "Run 'make stop-bg' to terminate."
+
+stop-bg:
+	@echo "Stopping backend services..."
+	@-kill `cat api.pid` 2>/dev/null || true
+	@-kill `cat engine.pid` 2>/dev/null || true
+	@-kill `cat worker.pid` 2>/dev/null || true
+	@rm -f api.pid engine.pid worker.pid api.log engine.log worker.log
+	@podman stop substrate-postgres || true
 
 # Ensure GITHUB_TOKEN is set before running these
 check-token:
