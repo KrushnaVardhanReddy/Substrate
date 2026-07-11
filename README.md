@@ -935,18 +935,18 @@ To run Substrate locally, you need 5 terminals running simultaneously:
 
 # Business Model & Monetization
 
-Substrate scales in value as an organization's complexity grows. The proposed model is a Product-Led Growth (PLG) approach featuring three tiers:
+Substrate scales in value as an organization's complexity grows. The proposed model is a Product-Led Growth (PLG) approach utilizing a **Usage-Based Pricing Model (Per-Repository)** to eliminate seat-based friction:
 
-## 1. Free / Starter Tier (PLG Wedge)
+## 1. Community Tier (PLG Wedge)
 * **Target:** Individual developers, small startups, side projects.
-* **Limits:** Up to 3 connected repositories, max 5 developers, 30 days of schema change history.
-* **Goal:** Create a frictionless 2-minute GitHub App installation that delivers an immediate "Aha!" moment when it catches the first breaking change.
+* **Price:** Free forever.
+* **Limits:** Up to **3 connected repositories**.
+* **Goal:** Create a frictionless 2-minute GitHub App installation. By allowing 3 repos, teams can connect a backend API to a frontend consumer and experience the cross-repo "Aha!" moment for free. The moment they want to roll it out to their wider architecture (4+ repos), they hit the paywall.
 
-## 2. Pro / Team Tier (Active Seat-Based)
-* **Target:** Mid-market companies and scale-ups (50 to 300+ engineers).
-* **Model:** Per-seat pricing (e.g., ~$25/user/month) for every active code contributor.
-* **Why it works:** More engineers = more communication silos = higher risk of downstream breakages. 
-* **Key strategy:** "View-only" seats are free. Product Managers, Data Analysts, and QA can view the dependency graph and architecture docs at no cost, allowing the tool to virally spread through the organization.
+## 2. Pro / Scale Tier (Usage-Based)
+* **Target:** Mid-market companies and scale-ups moving to microservices.
+* **Model:** Per-Repository pricing (e.g., $49/mo for up to 5 connected repos; $299/mo for up to 25 repos).
+* **Why it works:** CI/CD tools suffer from "per-seat" friction because CI runs for the whole team automatically. Charging by repository scales effortlessly as their architecture grows, without haggling over which engineer needs a paid "seat".
 
 ## 3. Enterprise Tier (Custom Pricing)
 * **Target:** Large enterprises, Fintech, Healthcare ($50k+/year).
