@@ -247,6 +247,7 @@ type TrafficProvider interface {
 // Implementations
 type OTelTrafficProvider struct { ... }  // OpenTelemetry Collector
 type PrometheusTrafficProvider struct { ... } // Prometheus query
+type MockProvider struct { ... } // E2E testing (always returns 0)
 type NoOpTrafficProvider struct { ... }  // Default: no data = assume used
 ```
 

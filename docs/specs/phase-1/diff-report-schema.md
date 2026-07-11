@@ -29,7 +29,8 @@ The `DiffReport` is the **single output contract** of the Substrate Diff Engine.
   },
   "breaking_changes": [],
   "warnings": [],
-  "safe_changes": []
+  "safe_changes": [],
+  "compliance_alerts": []
 }
 ```
 
@@ -44,6 +45,7 @@ The `DiffReport` is the **single output contract** of the Substrate Diff Engine.
 | `breaking_changes` | `Change[]` | ✅ | Array of breaking changes (may be empty) |
 | `warnings` | `Change[]` | ✅ | Array of potentially breaking changes (may be empty) |
 | `safe_changes` | `Change[]` | ✅ | Array of confirmed non-breaking changes (may be empty) |
+| `compliance_alerts` | `ComplianceAlert[]` | ❌ | Array of compliance warnings (e.g. PII, HIPAA) |
 
 ---
 
@@ -135,6 +137,26 @@ Each entry in `breaking_changes`, `warnings`, and `safe_changes` is a `Change` o
 | `BREAKING` | `breaking_changes` | Will break downstream consumers |
 | `WARNING` | `warnings` | May break downstream consumers depending on their implementation |
 | `SAFE` | `safe_changes` | Confirmed to not break any downstream consumers |
+
+---
+
+## ComplianceAlert Object
+
+Each entry in `compliance_alerts` is a `ComplianceAlert` object:
+
+```json
+{
+  "path": "components.schemas.Customer.properties.ssn",
+  "compliance_type": "PII:SSN",
+  "message": "Detected field matching PII:SSN pattern"
+}
+```
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `path` | `string` | ✅ | Dot-notation path to the matched element in the schema tree |
+| `compliance_type` | `string` | ✅ | The matched compliance type (e.g., `PII:SSN`, `PCI:PAYMENT`) |
+| `message` | `string` | ✅ | Human-readable explanation of the alert |
 
 ---
 
