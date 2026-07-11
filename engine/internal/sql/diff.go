@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/compliance"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 )
 
@@ -204,6 +205,8 @@ func DiffSchemas(base, head *SQLSchema) *report.DiffReport {
 	} else {
 		rep.Summary.OverallSeverity = report.SeverityNoChanges
 	}
+
+	compliance.Audit(rep)
 
 	return rep
 }
