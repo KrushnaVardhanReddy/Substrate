@@ -282,7 +282,8 @@ var piiPatterns = map[string]string{
 ```
 
 ### Behaviour
-- If a new field matching a PII pattern is introduced in a PR, Substrate:
+- The compliance auditor scans BOTH the `change.Path` and `change.Description` strings for the regex patterns. This ensures detection even for nested fields where adapters (like oasdiff) might report the deep field name in the description rather than the path.
+- If a match is found in a PR, Substrate:
   1. Adds a `[PII]` or `[HIPAA]` tag to the field in the registry.
   2. Posts a compliance alert in the PR comment.
   3. Notifies the security team channel (Slack/Teams webhook).

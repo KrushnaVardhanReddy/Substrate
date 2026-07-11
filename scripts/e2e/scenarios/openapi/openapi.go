@@ -47,7 +47,7 @@ func RunAIAutofix(ctx context.Context, client *github.Client, owner string) {
 func RunPIIAuditing(ctx context.Context, client *github.Client, owner string) {
 	// P4-T08: Verify PII compliance tag is generated
 	executeScenario(ctx, client, owner, "Phase 4 - PII Auditing",
-		defaultSubstrateYaml(), defaultOpenAPIYaml(),
+		defaultSubstrateYaml(), basePIIEndpointYaml(),
 		defaultSubstrateYaml(), addedPIIEndpointYaml(),
 		"All Clear", "PII:SSN")
 }
@@ -290,6 +290,40 @@ paths:
 `
 }
 
+func basePIIEndpointYaml() string {
+	return `openapi: "3.0.0"
+info:
+  title: Provider API
+  version: "1.0.0"
+paths:
+  /users:
+    get:
+      summary: List users
+      responses:
+        "200":
+          description: OK
+  /users/{id}:
+    get:
+      summary: Get user by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+`
+}
+
 func addedPIIEndpointYaml() string {
 	return `openapi: "3.0.0"
 info:
@@ -319,6 +353,8 @@ paths:
               schema:
                 type: object
                 properties:
+                  id:
+                    type: string
                   ssn:
                     type: string
 `
