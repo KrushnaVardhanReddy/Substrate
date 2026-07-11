@@ -36,9 +36,52 @@ help:
 	@echo "Substrate Local Development Commands:"
 	@echo "--------------------------------------------------------"
 	@echo "make postgres     - Start the Postgres database in Docker"
+	@echo "make api          - Start the Registry API (port 8090)"
+	@echo "make engine       - Start the Diff Engine (port 8080)"
+	@echo "make worker       - Start the GitHub Webhook Worker"
+	@echo "make dashboard    - Start the Svelte Dashboard UI"
+	@echo "make docs         - Start the Astro Starlight Docs site"
+	@echo "make build-cli    - Build the substrate CLI binary"
+	@echo "make build-mcp    - Build the substrate-mcp binary"
 	@echo "make e2e-*        - Run the E2E matrix test suites"
 	@echo "--------------------------------------------------------"
-	@echo "See the Makefile source for the 5-terminal architecture setup."# Ensure GITHUB_TOKEN is set before running these
+	@echo "See the Makefile source for the full 5-terminal architecture setup."
+
+postgres:
+	podman run --name substrate-postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres:15
+
+api:
+	cd api && \
+	DATABASE_URL="postgresql://postgres:postgres@localhost:5432/substrate?sslmode=disable" \
+	REGISTRY_API_TOKEN="local-dev-token" \
+	JWT_SECRET="local-jwt-secret" \
+	GITHUB_CLIENT_ID="mock-client-id" \
+	GITHUB_CLIENT_SECRET="mock-client-secret" \
+	DASHBOARD_URL="http://localhost:5173" \
+	SUBSTRATE_AI_BASE_URL="http://127.0.0.1:1234/v1" \
+	SUBSTRATE_AI_API_KEY="lm-studio" \
+	SUBSTRATE_AI_MODEL="qwen/qwen3.5-9b" \
+	go run ./cmd/server/main.go
+
+engine:
+	cd engine && go run ./cmd/substrate/main.go serve
+
+worker:
+	cd github-app && npm run dev
+
+dashboard:
+	cd dashboard && npm run dev
+
+docs:
+	cd docs-site && npm run dev
+
+build-cli:
+	cd engine && go build -o substrate ./cmd/substrate/
+
+build-mcp:
+	cd engine && go build -o substrate-mcp ./cmd/substrate-mcp/main.go
+
+# Ensure GITHUB_TOKEN is set before running these
 check-token:
 	@if [ -z "$(GITHUB_TOKEN)" ]; then \
 		echo "Error: GITHUB_TOKEN is not set."; \
