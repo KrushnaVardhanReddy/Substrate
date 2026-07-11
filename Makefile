@@ -1,4 +1,4 @@
-.PHONY: help e2e e2e-breaking e2e-safe e2e-override e2e-warning
+.PHONY: help e2e e2e-breaking e2e-safe e2e-override e2e-warning postgres api engine worker dashboard docs build-cli build-mcp start-bg stop-bg
 
 # ==============================================================================
 # SUBSTRATE LOCAL DEVELOPMENT ARCHITECTURE
