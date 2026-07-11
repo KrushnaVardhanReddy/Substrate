@@ -1,0 +1,158 @@
+TASK: P3-T12 — Astro Starlight Diataxis Documentation
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Set up a modern documentation site for Substrate using Astro Starlight and migrate the existing monolithic `docs/USER_GUIDE.md` into a structured format following the Diátaxis framework (Tutorials, How-To Guides, Reference, and Explanation).
+
+Spec (READ ONLY):
+  docs/specs/documentation-strategy.md
+
+Note: We are scaffolding a new Astro Starlight project in the repository root under `docs-site/`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+──────────────────────────────────────────────────────────────
+1. SCAFFOLD ASTRO STARLIGHT
+──────────────────────────────────────────────────────────────
+Navigate to the repository root and run:
+`npm create astro@latest docs-site -- --template starlight -y --install --no-git`
+
+──────────────────────────────────────────────────────────────
+──────────────────────────────────────────────────────────────
+2. OVERWRITE index.mdx AND CONFIG (CRITICAL)
+──────────────────────────────────────────────────────────────
+You MUST use the exact code provided below to ensure the site is correctly branded for Substrate.
+
+Write this exact content to `docs-site/src/content/docs/index.mdx`:
+```mdx
+---
+title: Substrate
+description: The Living Map of Your Engineering Ecosystem.
+template: splash
+hero:
+  tagline: CI/CD-integrated data contract and dependency intelligence.
+  actions:
+    - text: Getting Started
+      link: /tutorials/getting-started/
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/KrushnaVardhanReddy/Substrate
+      icon: github
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## Discover Substrate
+
+<CardGrid stagger>
+	<Card title="Tutorials" icon="rocket">
+		Learn how to set up the GitHub Action and configure your first API contract.
+	</Card>
+	<Card title="How-To Guides" icon="document">
+		Actionable guides for handling intentional breaking changes and ORM migrations.
+	</Card>
+	<Card title="Reference" icon="setting">
+		Comprehensive lookup for `substrate.yaml`, CLI commands, and diff rules.
+	</Card>
+	<Card title="Explanation" icon="open-book">
+		Deep dives into the Contract Registry and AI Intelligence architecture.
+	</Card>
+</CardGrid>
+```
+
+Update `docs-site/astro.config.mjs` to set the title and GitHub URL. Use this exact `starlight` integration block:
+```javascript
+import { defineConfig } from 'astro/config';
+import starlight from '@astrojs/starlight';
+
+export default defineConfig({
+	integrations: [
+		starlight({
+			title: 'Substrate',
+			social: {
+				github: 'https://github.com/KrushnaVardhanReddy/Substrate',
+			},
+			sidebar: [
+				{
+					label: 'Tutorials',
+					items: [{ label: 'Getting Started', slug: 'tutorials/getting-started' }],
+				},
+				{
+					label: 'How-To Guides',
+					items: [{ label: 'Intentional Breaking Changes', slug: 'guides/intentional-breaking-changes' }],
+				},
+				{
+					label: 'Reference',
+					items: [
+						{ label: 'Configuration', slug: 'reference/configuration' },
+						{ label: 'CLI', slug: 'reference/cli' },
+						{ label: 'Rules', slug: 'reference/rules' },
+					],
+				},
+				{
+					label: 'Explanation',
+					items: [
+						{ label: 'Contract Registry', slug: 'explanation/contract-registry' },
+						{ label: 'AI & Shift-Left', slug: 'explanation/ai-shift-left' },
+					],
+				},
+			],
+			customCss: ['./src/tailwind.css'],
+		}),
+	],
+});
+```
+
+──────────────────────────────────────────────────────────────
+3. MIGRATE USER_GUIDE.md TO DIÁTAXIS FRAMEWORK
+──────────────────────────────────────────────────────────────
+Read `docs/USER_GUIDE.md` carefully. 
+Create the following directory structure inside `docs-site/src/content/docs/` and FULLY migrate the corresponding content. DO NOT just copy the raw text; properly format it for Starlight:
+- Strip out all redundant `# Heading 1` or `## 1. Getting Started` headers from the markdown content. Starlight automatically generates the `<h1>` from the frontmatter `title:`.
+- `tutorials/`: Create `getting-started.md` (Installation, What is Substrate).
+- `guides/`: Create `intentional-breaking-changes.md` (How to acknowledge an intentional breaking change using `substrate.yaml` overrides).
+- `reference/`: Create `configuration.md` (`substrate.yaml` spec), `cli.md` (CLI reference), and `rules.md` (Breaking Rules Registry).
+- `explanation/`: Create `contract-registry.md` (Cross-repo impact analysis) and `ai-shift-left.md` (AI remediation, playground).
+
+Make sure to include Astro Starlight standard frontmatter (e.g., `title: "Getting Started"`, `description: ...`) at the top of EVERY markdown file.
+
+──────────────────────────────────────────────────────────────
+──────────────────────────────────────────────────────────────
+4. CONFIGURE STARLIGHT SIDEBAR
+──────────────────────────────────────────────────────────────
+Ensure the `sidebar` array in `docs-site/astro.config.mjs` exactly matches the provided code block in Section 2, mapping the labels to their newly created markdown slugs.
+
+──────────────────────────────────────────────────────────────
+5. VERIFY
+──────────────────────────────────────────────────────────────
+Run:
+`cd docs-site && npm run build`
+Ensure the new site builds successfully without errors.
+
+CRITICAL CONTENT VALIDATION:
+Check the contents of the generated files to verify they are not just boilerplate and contain the actual migrated text from `USER_GUIDE.md`:
+1. Verify `docs-site/src/content/docs/index.mdx` contains the string `"The Living Map of Your Engineering Ecosystem"`.
+2. Verify `docs-site/src/content/docs/tutorials/getting-started.md` contains the phrase `"What is Substrate?"` and has `title: Getting Started` in its frontmatter.
+3. Verify `docs-site/src/content/docs/reference/configuration.md` contains the `substrate.yaml` code block.
+If any of this content is missing or if the files still contain redundant `# Heading 1` headers from the old guide, you MUST fix them before completing the task.
+
+═══════════════════════════════════════════════════════════════
+FILES TO MODIFY / CREATE
+═══════════════════════════════════════════════════════════════
+- docs-site/ (CREATE ENTIRE ASTRO PROJECT)
+- docs-site/src/content/docs/index.mdx (MODIFY)
+- docs-site/astro.config.mjs (MODIFY)
+- docs-site/src/content/docs/tutorials/getting-started.md (CREATE)
+- docs-site/src/content/docs/guides/intentional-breaking-changes.md (CREATE)
+- docs-site/src/content/docs/reference/configuration.md (CREATE)
+- docs-site/src/content/docs/reference/cli.md (CREATE)
+- docs-site/src/content/docs/reference/rules.md (CREATE)
+- docs-site/src/content/docs/explanation/contract-registry.md (CREATE)
+- docs-site/src/content/docs/explanation/ai-shift-left.md (CREATE)
+
+Commit: "docs: P3-T12 scaffold astro starlight and migrate to diataxis framework"
+Target branch: feature/dev

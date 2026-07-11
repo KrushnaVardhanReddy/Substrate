@@ -1,6 +1,6 @@
 # Substrate — Task Tracker
 
-> Last updated: 2026-07-10 (Phase 2 complete ✅ — Phase 3 Contract Registry in progress. **P3-T09 MCP Server merged ✅.** P3-T09b + P3-T14 submitted to Jules 2026-07-10. 2 active Jules sessions running.)
+> Last updated: 2026-07-10 (Phase 2 complete ✅ — Phase 3 Contract Registry in progress. **P3-T09 MCP Server merged ✅.** P3-T12 Astro Docs submitted to Jules 2026-07-10. Active Jules session running.)
 > Tracking all development phases, tasks, and their current status.
 
 ---
@@ -232,7 +232,7 @@
 | **P3-T09** | 🔵 P4 | **MCP server implementation** (Go, JSON-RPC 2.0) | Jules | ✅ Merged `feature/dev` 2026-07-09 | `prompts/phase-3-registry/t09_mcp_implementation.txt` |
 | **P3-T09b** | 🔵 P4 | **Wire MCP to live Registry API** — `get_schema_file` (new endpoint), `analyze_repository` (local fs walk), `get_substrate_docs` (embedded docs). `get_breaking_change_history` deferred to Phase 4 (needs new DB table). | Jules | ✅ Merged `feature/dev` 2026-07-10 (`7b3c15e`) | `prompts/phase-3-registry/t09b_wire_mcp_registry.txt` |
 | **P3-T10** | 🔵 P4 | **MCP deployment + IDE integration docs** | Jules | ✅ Merged `feature/dev` 2026-07-10 | `prompts/phase-3-registry/t10_mcp_docs.txt` |
-| **P3-T12** | 🔵 P4 | **Comprehensive Substrate Platform Docs** — Deep-dive install, config, CLI params, and architecture guides optimized for both human reading and MCP/AI ingestion | Antigravity | ✅ | `docs/specs/documentation-strategy.md` |
+| **P3-T12** | 🔵 P4 | **Comprehensive Substrate Platform Docs** — Scaffold Astro Starlight Diátaxis site | Jules | 🔄 Submitted (Session 6304847416252553404) | `prompts/phase-3-registry/t12_astro_starlight_diataxis.txt` |
 | **P3-T13** | 🟢 P3 | **Execution Modes (Enterprise Rollout)** — Add `--mode=legacy\|strict` to CLI for shadow mode / dry-run deployments | Jules | ✅ Merged `feature/dev` 2026-07-09 | `prompts/phase-3-registry/t13_enterprise_modes.txt` |
 | **P3-T14** | 🟢 P3 | **Interactive Diff Viewer URL** — Worker adds a "View Dashboard" link to GitHub comments, routing to the Svelte dashboard | Jules | ✅ Merged `feature/dev` 2026-07-10 (`7ab9f8a`) | `prompts/phase-3-registry/t14_interactive_diff_url.txt` |
 | **P3-T07** | ⚪ P5 | **Free tier limits + production deployment** | Jules | ✅ Merged `feature/dev` 2026-07-10 | `prompts/phase-3-registry/t07_rate_limits.txt` |
