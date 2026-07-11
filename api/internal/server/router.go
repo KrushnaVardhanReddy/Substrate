@@ -48,12 +48,14 @@ func NewRouter(store db.Store, authConfig handlers.AuthConfig, registryApiToken,
 
 	mux.Handle("POST /api/v1/sync", serviceTokenMW(limitsMW(http.HandlerFunc(handlers.SyncHandler(store)))))
 	mux.Handle("POST /api/v1/cross-repo-check", serviceTokenMW(limitsMW(http.HandlerFunc(handlers.CrossRepoCheckHandler(store)))))
+	mux.Handle("POST /api/v1/history", serviceTokenMW(http.HandlerFunc(handlers.HistoryHandler(store))))
 
 	// Protected routes (Service Token OR JWT)
 	authMW := AuthMiddleware(registryApiToken, jwtSecret)
 	mux.Handle("GET /api/v1/graph/{org}", authMW(http.HandlerFunc(handlers.GraphHandler(store))))
 	mux.Handle("GET /api/v1/repos/{org}", authMW(http.HandlerFunc(handlers.ReposHandler(store))))
 	mux.Handle("GET /api/v1/schema/{owner}/{repo}", authMW(http.HandlerFunc(handlers.SchemaHandler(store))))
+	mux.Handle("GET /api/v1/history/{org}/{repo}", authMW(http.HandlerFunc(handlers.HistoryGetHandler(store))))
 
 	// AI routes (public — no auth required, BYOK model)
 	mux.HandleFunc("POST /api/v1/ai/analyze", handlers.AIAnalyzeHandler())

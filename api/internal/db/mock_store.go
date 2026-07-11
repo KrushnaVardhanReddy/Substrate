@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/google/uuid"
 )
@@ -17,6 +18,8 @@ type MockStore struct {
 	GetDependencyGraphFunc             func(ctx context.Context, orgName string) ([]DependencyEdge, error)
 	CountReposByOrgFunc                func(ctx context.Context, orgName string) (int, error)
 	CountDownstreamDependenciesFunc    func(ctx context.Context, providerFullName string) (int, error)
+	RecordBreakingChangeFunc           func(ctx context.Context, repoID uuid.UUID, orgName, repoName, gitSHA string, breakingChanges json.RawMessage) error
+	GetBreakingChangeHistoryFunc       func(ctx context.Context, orgName, repoName string, limit int) ([]BreakingChangeRecord, error)
 }
 
 func (m *MockStore) UpsertOrg(ctx context.Context, installationID int64, orgName string) (uuid.UUID, error) {
@@ -59,6 +62,20 @@ func (m *MockStore) CountReposByOrg(ctx context.Context, orgName string) (int, e
 		return m.CountReposByOrgFunc(ctx, orgName)
 	}
 	return 0, nil
+}
+
+func (m *MockStore) RecordBreakingChange(ctx context.Context, repoID uuid.UUID, orgName, repoName, gitSHA string, breakingChanges json.RawMessage) error {
+	if m.RecordBreakingChangeFunc != nil {
+		return m.RecordBreakingChangeFunc(ctx, repoID, orgName, repoName, gitSHA, breakingChanges)
+	}
+	return nil
+}
+
+func (m *MockStore) GetBreakingChangeHistory(ctx context.Context, orgName, repoName string, limit int) ([]BreakingChangeRecord, error) {
+	if m.GetBreakingChangeHistoryFunc != nil {
+		return m.GetBreakingChangeHistoryFunc(ctx, orgName, repoName, limit)
+	}
+	return []BreakingChangeRecord{}, nil
 }
 
 func (m *MockStore) CountDownstreamDependencies(ctx context.Context, providerFullName string) (int, error) {
