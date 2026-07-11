@@ -41,7 +41,7 @@ func Audit(rep *report.DiffReport) {
 
 	for _, change := range allChanges {
 		for complianceType, regex := range compiledPatterns {
-			if regex.MatchString(change.Path) {
+			if regex.MatchString(change.Path) || regex.MatchString(change.Description) {
 				alert := report.ComplianceAlert{
 					Path:           change.Path,
 					ComplianceType: complianceType,
