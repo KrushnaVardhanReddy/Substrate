@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -39,6 +40,16 @@ type DependencyEdge struct {
 	Status           string `json:"status"`
 }
 
+type BreakingChangeRecord struct {
+	ID              uuid.UUID       `json:"id"`
+	RepoID          uuid.UUID       `json:"repo_id"`
+	OrgName         string          `json:"org_name"`
+	RepoName        string          `json:"repo_name"`
+	GitSHA          string          `json:"git_sha"`
+	Timestamp       time.Time       `json:"timestamp"`
+	BreakingChanges json.RawMessage `json:"breaking_changes"`
+}
+
 type Store interface {
 	UpsertOrg(ctx context.Context, installationID int64, orgName string) (uuid.UUID, error)
 	UpsertRepo(ctx context.Context, orgID uuid.UUID, githubRepoID int64, name, fullName string) (uuid.UUID, error)
@@ -50,4 +61,6 @@ type Store interface {
 	GetDependencyGraph(ctx context.Context, orgName string) ([]DependencyEdge, error)
 	CountReposByOrg(ctx context.Context, orgName string) (int, error)
 	CountDownstreamDependencies(ctx context.Context, providerFullName string) (int, error)
+	RecordBreakingChange(ctx context.Context, repoID uuid.UUID, orgName, repoName, gitSHA string, breakingChanges json.RawMessage) error
+	GetBreakingChangeHistory(ctx context.Context, orgName, repoName string, limit int) ([]BreakingChangeRecord, error)
 }

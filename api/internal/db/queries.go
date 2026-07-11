@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -241,6 +242,60 @@ func CountReposByOrg(ctx context.Context, pool *pgxpool.Pool, orgName string) (i
 		return 0, fmt.Errorf("failed to count repos: %w", err)
 	}
 	return count, nil
+}
+
+// RecordBreakingChange records a new breaking change entry.
+func (s *PGStore) RecordBreakingChange(ctx context.Context, repoID uuid.UUID, orgName, repoName, gitSHA string, breakingChanges json.RawMessage) error {
+	return RecordBreakingChange(ctx, s.pool, repoID, orgName, repoName, gitSHA, breakingChanges)
+}
+
+func RecordBreakingChange(ctx context.Context, pool *pgxpool.Pool, repoID uuid.UUID, orgName, repoName, gitSHA string, breakingChanges json.RawMessage) error {
+	_, err := pool.Exec(ctx, `
+		INSERT INTO breaking_change_history (repo_id, org_name, repo_name, git_sha, breaking_changes)
+		VALUES ($1, $2, $3, $4, $5)
+	`, repoID, orgName, repoName, gitSHA, breakingChanges)
+	if err != nil {
+		return fmt.Errorf("failed to record breaking change: %w", err)
+	}
+	return nil
+}
+
+// GetBreakingChangeHistory retrieves recent breaking changes for a repository.
+func (s *PGStore) GetBreakingChangeHistory(ctx context.Context, orgName, repoName string, limit int) ([]BreakingChangeRecord, error) {
+	return GetBreakingChangeHistory(ctx, s.pool, orgName, repoName, limit)
+}
+
+func GetBreakingChangeHistory(ctx context.Context, pool *pgxpool.Pool, orgName, repoName string, limit int) ([]BreakingChangeRecord, error) {
+	rows, err := pool.Query(ctx, `
+		SELECT id, repo_id, org_name, repo_name, git_sha, timestamp, breaking_changes
+		FROM breaking_change_history
+		WHERE org_name = $1 AND repo_name = $2
+		ORDER BY timestamp DESC
+		LIMIT $3
+	`, orgName, repoName, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get breaking change history: %w", err)
+	}
+	defer rows.Close()
+
+	var records []BreakingChangeRecord
+	for rows.Next() {
+		var r BreakingChangeRecord
+		if err := rows.Scan(&r.ID, &r.RepoID, &r.OrgName, &r.RepoName, &r.GitSHA, &r.Timestamp, &r.BreakingChanges); err != nil {
+			return nil, fmt.Errorf("failed to scan breaking change record: %w", err)
+		}
+		records = append(records, r)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating over breaking change history: %w", err)
+	}
+
+	if records == nil {
+		records = []BreakingChangeRecord{}
+	}
+
+	return records, nil
 }
 
 // CountDownstreamDependencies returns the number of unique downstream consumers for a provider.

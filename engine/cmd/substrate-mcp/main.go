@@ -201,7 +201,63 @@ func main() {
 			"required": []string{"repo"},
 		},
 		Handler: func(params json.RawMessage) (any, error) {
-			return `[{"timestamp": "2024-01-01T00:00:00Z", "git_sha": "mocksha", "breaking_changes": []}]`, nil
+			var input struct {
+				Repo  string `json:"repo"`
+				Limit *int   `json:"limit,omitempty"`
+			}
+			if err := json.Unmarshal(params, &input); err != nil {
+				return nil, fmt.Errorf("invalid params: %w", err)
+			}
+
+			if input.Repo == "" {
+				return nil, fmt.Errorf("repo is required")
+			}
+
+			parts := strings.SplitN(input.Repo, "/", 2)
+			if len(parts) != 2 {
+				return nil, fmt.Errorf("repo must be in format 'org/repo'")
+			}
+			org := parts[0]
+			repo := parts[1]
+
+			limit := 10
+			if input.Limit != nil {
+				limit = *input.Limit
+			}
+
+			registryURL := os.Getenv("REGISTRY_API_URL")
+			if registryURL == "" {
+				registryURL = "http://localhost:8090"
+			}
+			url := fmt.Sprintf("%s/api/v1/history/%s/%s?limit=%d", registryURL, org, repo, limit)
+
+			req, err := http.NewRequest(http.MethodGet, url, nil)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create request: %w", err)
+			}
+
+			token := os.Getenv("REGISTRY_API_TOKEN")
+			if token != "" {
+				req.Header.Set("Authorization", "Bearer "+token)
+			}
+
+			resp, err := http.DefaultClient.Do(req)
+			if err != nil {
+				return nil, fmt.Errorf("failed to fetch history: %w", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				body, _ := io.ReadAll(resp.Body)
+				return nil, fmt.Errorf("registry API returned status %d: %s", resp.StatusCode, string(body))
+			}
+
+			var history any
+			if err := json.NewDecoder(resp.Body).Decode(&history); err != nil {
+				return nil, fmt.Errorf("failed to parse response: %w", err)
+			}
+
+			return history, nil
 		},
 	})
 
