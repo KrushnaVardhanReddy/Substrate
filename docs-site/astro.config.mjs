@@ -15,7 +15,10 @@ export default defineConfig({
 				},
 				{
 					label: 'How-To Guides',
-					items: [{ label: 'Intentional Breaking Changes', slug: 'guides/intentional-breaking-changes' }],
+					items: [
+						{ label: 'Intentional Breaking Changes', slug: 'guides/intentional-breaking-changes' },
+						{ label: 'MCP & AI IDE Integration', slug: 'guides/mcp-ide-integration' },
+					],
 				},
 				{
 					label: 'Reference',
