@@ -314,21 +314,13 @@ paths:
       responses:
         "200":
           description: OK
-  /secure:
-    post:
-      summary: Submit SSN
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                ssn:
-                  type: string
-      responses:
-        "200":
-          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ssn:
+                    type: string
 `
 }
 
