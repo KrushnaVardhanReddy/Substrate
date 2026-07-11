@@ -51,7 +51,7 @@ help:
 	@echo "See the Makefile source for the full 5-terminal architecture setup."
 
 postgres:
-	podman run --name substrate-postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d docker.io/library/postgres:15
+	podman run --replace --name substrate-postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d docker.io/library/postgres:15
 
 api:
 	cd api && \
