@@ -319,6 +319,11 @@ TASKS = {
         "phase": "phase-4-ai",
         "prompt": _load_prompt("prompts/phase-4/t08_compliance_auditing.txt"),
     },
+    9: {
+        "name": "P4-T09 — Breaking Change History (MCP)",
+        "phase": "phase-4-ai",
+        "prompt": _load_prompt("prompts/phase-4/t09_breaking_change_history.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────

@@ -1,0 +1,56 @@
+TASK: P4-T09 — Breaking Change History (MCP Tool)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement the `get_breaking_change_history` MCP tool that was deferred from Phase 3.
+This requires adding a new SQL migration, a new DB table, the associated API endpoints in the Go Registry API, and updating the MCP server to use the real data.
+
+Spec (READ ONLY):
+  docs/specs/phase-4/breaking-change-history.md
+  docs/specs/phase-3/mcp-server.md
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+──────────────────────────────────────────────────────────────
+1. SQL MIGRATION
+──────────────────────────────────────────────────────────────
+Create `api/migrations/0002_breaking_change_history.up.sql` and `.down.sql` according to the spec in `docs/specs/phase-4/breaking-change-history.md`.
+
+──────────────────────────────────────────────────────────────
+2. DATABASE STORE
+──────────────────────────────────────────────────────────────
+Update `api/internal/db/store.go` to include the `BreakingChangeRecord` struct and the two new interface methods: `RecordBreakingChange` and `GetBreakingChangeHistory`.
+Implement these methods in `api/internal/db/postgres.go` and add stub implementations in `mock_store.go`.
+
+──────────────────────────────────────────────────────────────
+3. API ENDPOINTS
+──────────────────────────────────────────────────────────────
+Create `api/internal/handlers/history.go` to handle:
+- `POST /api/v1/history`: Accepts a JSON payload and calls `RecordBreakingChange`.
+- `GET /api/v1/history/{org}/{repo}`: Reads the `limit` query parameter (default 10) and calls `GetBreakingChangeHistory`.
+
+Update `api/internal/server/router.go` to mount these new routes. Be sure to require the internal service token authentication where appropriate, mirroring the existing registry endpoints.
+
+──────────────────────────────────────────────────────────────
+4. MCP SERVER WIRING
+──────────────────────────────────────────────────────────────
+Update `api/internal/mcp/server.go`.
+Modify the existing `get_breaking_change_history` tool implementation to remove the mock data. Instead, make an HTTP GET request to `{REGISTRY_API_URL}/api/v1/history/{org}/{repo}?limit={limit}` and return the retrieved JSON payload.
+
+═══════════════════════════════════════════════════════════════
+FILES TO MODIFY / CREATE
+═══════════════════════════════════════════════════════════════
+- api/migrations/0002_breaking_change_history.up.sql (CREATE)
+- api/migrations/0002_breaking_change_history.down.sql (CREATE)
+- api/internal/db/store.go (MODIFY)
+- api/internal/db/postgres.go (MODIFY)
+- api/internal/db/mock_store.go (MODIFY)
+- api/internal/handlers/history.go (CREATE)
+- api/internal/server/router.go (MODIFY)
+- api/internal/mcp/server.go (MODIFY)
+
+Commit: "feat(mcp): implement get_breaking_change_history with postgres table"
+Target branch: feature/dev

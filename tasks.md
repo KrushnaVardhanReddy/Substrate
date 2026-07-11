@@ -283,6 +283,7 @@
 | **P4-T06** | 🔵 P4 | **Shift-Left VSCode Extension** — Inline breaking-change warnings in the editor | Jules | ✅ Done | `prompts/phase-4/t06_vscode_extension.txt` |
 | **P4-T07** | ⚪ P5 | **Traffic-Aware Diffing** — Prometheus/OTel integration to suppress unused-field warnings | Jules | ✅ Done | `prompts/phase-4/t07_traffic_aware_diffing.txt` |
 | **P4-T08** | ⚪ P5 | **PII & Compliance Auditing** — Auto-tag `[HIPAA]`, `[PCI]`, `[PII]` fields on diff | Jules | ✅ Done | `prompts/phase-4/t08_compliance_auditing.txt` |
+| **P4-T09** | 🔵 P4 | **Breaking Change History (MCP)** — Postgres table and API for MCP tool | Jules | ⏳ Ready | `prompts/phase-4/t09_breaking_change_history.txt` |
 
 ### Phase 4b — Specialized ML (slow — needs 6-12 months of real user data)
 
