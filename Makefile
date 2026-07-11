@@ -61,6 +61,17 @@ api:
 	GITHUB_CLIENT_ID="mock-client-id" \
 	GITHUB_CLIENT_SECRET="mock-client-secret" \
 	DASHBOARD_URL="http://localhost:5173" \
+	go run ./cmd/server/main.go
+
+# To enable real AI (requires LM Studio running at port 1234), use make api-ai instead
+api-ai:
+	cd api && \
+	DATABASE_URL="postgresql://postgres:postgres@localhost:5432/substrate?sslmode=disable" \
+	REGISTRY_API_TOKEN="local-dev-token" \
+	JWT_SECRET="local-jwt-secret" \
+	GITHUB_CLIENT_ID="mock-client-id" \
+	GITHUB_CLIENT_SECRET="mock-client-secret" \
+	DASHBOARD_URL="http://localhost:5173" \
 	SUBSTRATE_AI_BASE_URL="http://127.0.0.1:1234/v1" \
 	SUBSTRATE_AI_API_KEY="lm-studio" \
 	SUBSTRATE_AI_MODEL="qwen/qwen3.5-9b" \
@@ -105,6 +116,8 @@ stop-bg:
 	@-kill `cat engine.pid` 2>/dev/null || true
 	@-kill `cat worker.pid` 2>/dev/null || true
 	@-kill `cat ngrok.pid` 2>/dev/null || true
+	@-fuser -k 8080/tcp 2>/dev/null || true
+	@-fuser -k 8090/tcp 2>/dev/null || true
 	@rm -f api.pid engine.pid worker.pid ngrok.pid api.log engine.log worker.log ngrok.log
 	@podman stop substrate-postgres || true
 
