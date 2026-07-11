@@ -11,11 +11,18 @@ export interface DiffSummary {
   info_count: number;
 }
 
+export interface ComplianceAlert {
+  path: string;
+  compliance_type: string;
+  message: string;
+}
+
 export interface DiffReport {
   breaking_changes: DiffChange[];
   warnings: DiffChange[];
   safe_changes: DiffChange[];
   summary: DiffSummary;
+  compliance_alerts?: ComplianceAlert[];
 }
 
 export interface SubstrateConfig {

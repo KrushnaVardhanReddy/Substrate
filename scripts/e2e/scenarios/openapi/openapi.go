@@ -338,8 +338,8 @@ schema_type: openapi
 spec_path: openapi.yaml
 
 traffic:
-  provider: prometheus
-  endpoint: "http://prometheus.internal:9090"
+  provider: mock
+  endpoint: "mock"
   lookback_days: 30
   downgrade_threshold: 0
 `

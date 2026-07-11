@@ -72,10 +72,7 @@ export function formatPRComment(
       comment += `\n### 🔧 Suggested Safe Remediation\nApply the following change to unblock this PR:\n\`\`\`yaml\n${aiSafePatch}\n\`\`\`\n`;
     }
 
-    comment += `---\n`;
-    comment += `*To acknowledge a breaking change, add an override to your \`substrate.yaml\`.*\n`;
-    comment += `${formatFooter(dashboardUrl, owner, repo, prNumber)}`;
-
+    comment += `\n*To acknowledge a breaking change, add an override to your \`substrate.yaml\`.*\n\n`;
   } else if (warningCount > 0) {
     comment += `## 🟡 Substrate — Warnings Only\n\n`;
     comment += `No breaking changes, but ${warningCount} warning(s) detected.\n\n`;
@@ -97,16 +94,24 @@ export function formatPRComment(
       comment += `</details>\n\n`;
     }
 
-    comment += `---\n`;
-    comment += `${formatFooter(dashboardUrl, owner, repo, prNumber)}`;
-
   } else {
     comment += `## ✅ Substrate — All Clear\n\n`;
     comment += `No breaking changes detected in this PR. Safe to merge. 🎉\n\n`;
 
-    comment += `---\n`;
-    comment += `${formatFooter(dashboardUrl, owner, repo, prNumber)}`;
   }
+
+  if (report.compliance_alerts && report.compliance_alerts.length > 0) {
+    comment += `\n### 🛡️ Compliance & PII Alerts\n\n`;
+    comment += `| Type | Path | Message |\n`;
+    comment += `|---|---|---|\n`;
+    for (const alert of report.compliance_alerts) {
+      comment += `| \`${escapeMarkdown(alert.compliance_type)}\` | \`${escapeMarkdown(alert.path)}\` | ${escapeMarkdown(alert.message)} |\n`;
+    }
+    comment += '\n';
+  }
+
+  comment += `---\n`;
+  comment += `${formatFooter(dashboardUrl, owner, repo, prNumber)}`;
 
   return comment;
 }

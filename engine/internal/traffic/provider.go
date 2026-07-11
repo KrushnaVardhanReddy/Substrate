@@ -22,6 +22,12 @@ func (p *NoOpProvider) GetFieldUsage(org, repo, fieldPath string, days int) (int
 	return -1, nil
 }
 
+type MockProvider struct{}
+
+func (p *MockProvider) GetFieldUsage(org, repo, fieldPath string, days int) (int64, error) {
+	return 0, nil
+}
+
 type PrometheusProvider struct {
 	Endpoint string
 }
