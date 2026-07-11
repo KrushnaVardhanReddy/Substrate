@@ -210,8 +210,36 @@ func AIAnalyzeHandler() http.HandlerFunc {
 
 			// If no tool calls, we are done
 			if len(pendingToolCalls) == 0 {
-				// Parse final response (the system prompt says output json, or output text with code blocks)
-				// For now, assume done.
+				// Parse the assistantMessageContent to extract severity and code block for the UI
+				severity := "WARNING"
+				upperContent := strings.ToUpper(assistantMessageContent)
+				if strings.Contains(upperContent, "BREAKING") {
+					severity = "BREAKING"
+				} else if strings.Contains(upperContent, "SAFE") {
+					severity = "SAFE"
+				}
+				
+				var code, language string
+				startIdx := strings.Index(assistantMessageContent, "```")
+				if startIdx != -1 {
+					endIdx := strings.Index(assistantMessageContent[startIdx+3:], "```")
+					if endIdx != -1 {
+						codeBlock := assistantMessageContent[startIdx+3 : startIdx+3+endIdx]
+						lines := strings.SplitN(codeBlock, "\n", 2)
+						if len(lines) == 2 {
+							language = strings.TrimSpace(lines[0])
+							code = strings.TrimSpace(lines[1])
+						} else {
+							code = strings.TrimSpace(codeBlock)
+						}
+					}
+				}
+				
+				writeSSE(w, flusher, SSEEvent{Type: "finding", Severity: severity, Content: "AI Analysis Complete (See above details)."})
+				if code != "" {
+					writeSSE(w, flusher, SSEEvent{Type: "fix", Language: language, Code: code})
+				}
+				
 				break
 			}
 

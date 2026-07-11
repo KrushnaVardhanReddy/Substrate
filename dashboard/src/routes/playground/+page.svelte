@@ -1,17 +1,41 @@
 <script lang="ts">
     import { env } from '$env/dynamic/public';
 
-    let currentSchema = $state(`type User {
-  id: ID!
-  user_id: String!
-  name: String
-  email: String
-}`);
-    let proposedSchema = $state(`type User {
-  id: ID!
-  name: String
-  email: String
-}`);
+    const templates = {
+        graphql: {
+            current: `type User {\n  id: ID!\n  user_id: String!\n  name: String\n  email: String\n}`,
+            proposed: `type User {\n  id: ID!\n  name: String\n  email: String\n}`
+        },
+        openapi: {
+            current: `openapi: 3.0.0\ninfo:\n  title: Sample API\n  version: 1.0.0\npaths:\n  /users/{id}:\n    get:\n      summary: Get a user by ID\n      responses:\n        '200':\n          description: OK`,
+            proposed: `openapi: 3.0.0\ninfo:\n  title: Sample API\n  version: 1.0.0\npaths:\n  /users:\n    get:\n      summary: Get all users\n      responses:\n        '200':\n          description: OK`
+        },
+        sql: {
+            current: `CREATE TABLE users (\n  id SERIAL PRIMARY KEY,\n  user_id VARCHAR(255) NOT NULL,\n  name VARCHAR(255),\n  email VARCHAR(255)\n);`,
+            proposed: `CREATE TABLE users (\n  id SERIAL PRIMARY KEY,\n  name VARCHAR(255),\n  email VARCHAR(255)\n);`
+        },
+        protobuf: {
+            current: `syntax = "proto3";\npackage users;\nmessage User {\n  string id = 1;\n  string email = 2;\n  string name = 3;\n}`,
+            proposed: `syntax = "proto3";\npackage users;\nmessage User {\n  string id = 1;\n  string name = 3;\n}`
+        },
+        asyncapi: {
+            current: `asyncapi: 2.6.0\ninfo:\n  title: User Events\n  version: 1.0.0\nchannels:\n  user.created:\n    publish:\n      message:\n        payload:\n          type: object\n          required: [id, email]\n          properties:\n            id: { type: string }\n            email: { type: string }`,
+            proposed: `asyncapi: 2.6.0\ninfo:\n  title: User Events\n  version: 1.0.0\nchannels:\n  user.created:\n    publish:\n      message:\n        payload:\n          type: object\n          required: [id]\n          properties:\n            id: { type: string }`
+        },
+        terraform: {
+            current: `resource "aws_s3_bucket" "data" {\n  bucket = "company-data"\n  force_destroy = false\n}`,
+            proposed: `resource "aws_s3_bucket" "data" {\n  bucket = "company-data"\n  force_destroy = true\n}`
+        }
+    };
+
+    let schemaType = $state<'graphql' | 'openapi' | 'sql' | 'protobuf' | 'asyncapi' | 'terraform'>('graphql');
+    let currentSchema = $state(templates.graphql.current);
+    let proposedSchema = $state(templates.graphql.proposed);
+
+    function handleTypeChange() {
+        currentSchema = templates[schemaType].current;
+        proposedSchema = templates[schemaType].proposed;
+    }
     let isAnalyzing = $state(false);
     let analysisResult = $state<null | 'success'>(null);
 
@@ -37,7 +61,7 @@
                     org: 'playground',
                     current_schema: currentSchema,
                     proposed_schema: proposedSchema,
-                    schema_type: 'graphql'
+                    schema_type: schemaType
                 })
             });
 
@@ -108,13 +132,23 @@
             <h1 class="page-title">AI Schema Validator Playground</h1>
             <p class="page-subtitle">Simulate cross-repo intelligence and auto-remediation with Substrate MCP tools.</p>
         </div>
-        <button class="btn analyze-btn" onclick={analyzeWithAI} disabled={isAnalyzing}>
-            {#if isAnalyzing}
-                <span class="sparkle-spin">✨</span> AI is analyzing cross-repo impact...
-            {:else}
-                ✨ Analyze with Substrate AI
-            {/if}
-        </button>
+        <div class="flex items-center gap-4">
+            <select class="schema-select" bind:value={schemaType} onchange={handleTypeChange}>
+                <option value="graphql">GraphQL</option>
+                <option value="openapi">OpenAPI (REST)</option>
+                <option value="sql">SQL (PostgreSQL)</option>
+                <option value="protobuf">Protobuf (gRPC)</option>
+                <option value="asyncapi">AsyncAPI (Kafka)</option>
+                <option value="terraform">Terraform</option>
+            </select>
+            <button class="btn analyze-btn" onclick={analyzeWithAI} disabled={isAnalyzing}>
+                {#if isAnalyzing}
+                    <span class="sparkle-spin">✨</span> AI is analyzing cross-repo impact...
+                {:else}
+                    ✨ Analyze with Substrate AI
+                {/if}
+            </button>
+        </div>
     </div>
 
     <div class="playground-container">
@@ -232,6 +266,17 @@
         cursor: not-allowed;
     }
 
+    .schema-select {
+        background-color: var(--bg-card);
+        color: var(--text-main);
+        border: 1px solid var(--border);
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 0.95rem;
+        outline: none;
+        cursor: pointer;
+    }
+
     @keyframes spin {
         100% { transform: rotate(360deg); }
     }
@@ -286,6 +331,8 @@
     .mb-2 { margin-bottom: 0.5rem; }
     .mt-2 { margin-top: 0.5rem; }
     .mr-1 { margin-right: 0.25rem; }
+    .gap-4 { gap: 1rem; }
+    .items-center { align-items: center; }
     .justify-between { justify-content: space-between; }
     .italic { font-style: italic; }
     .text-sm { font-size: 0.875rem; }

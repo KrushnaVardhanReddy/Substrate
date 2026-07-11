@@ -120,6 +120,7 @@ Implement the `POST /api/v1/ai/analyze` Go handler that streams LLM tokens back 
 - **Local dev default:** LM Studio at `http://localhost:1234/v1` with `qwen2.5-coder-7b-instruct` — free, offline, no API key.
 - **Production default:** Google Gemini Flash via `https://generativelanguage.googleapis.com/v1beta/openai/` with `GEMINI_API_KEY`.
 - Fall back to a deterministic mock response if `SUBSTRATE_AI_BASE_URL` is not set (for CI pipelines with no LLM).
+- **Stream Parsing**: The LLM output stream should be piped to the client as `thinking` events. Once the LLM finishes, the handler must parse the accumulated text to extract the `severity` (e.g., matching BREAKING or SAFE) and the exact remediation code (by matching markdown fenced code blocks). The handler must then emit the final `finding` and `fix` events using this extracted data immediately before emitting the `done` event.
 - Add the route to `api/internal/server/router.go`.
 
 ### Files
@@ -198,6 +199,8 @@ Connect the P3-T16 Playground UI shell (which uses mock/simulated responses) to 
 ### Changes
 - Replace the simulated `setTimeout` mock in `playground/+page.svelte` with a real `fetch` to the SSE endpoint.
 - Use the `EventSource` API (or `fetch` with `ReadableStream`) to consume the streamed tokens and update the UI in real-time as tokens arrive.
+- **Add Schema Type Dropdown:** Introduce a `<select>` bound to `schemaType` covering all supported formats (OpenAPI, GraphQL, SQL, Protobuf, AsyncAPI, Terraform).
+- **Interactive Templates:** When the schema type changes, auto-fill the `currentSchema` and `proposedSchema` text areas with realistic breaking-change examples (e.g., deleting an OpenAPI endpoint, dropping a SQL column, or removing a Protobuf field) to demonstrate the AI's multi-format capabilities.
 - The Playground becomes a fully functional product demo.
 
 ---
