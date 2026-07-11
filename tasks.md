@@ -77,6 +77,7 @@
 | P1-MVP-5 | Create public repo `substrate-engine` in Docker Hub | User | ✅ |
 | P1-MVP-6 | Add `DOCKERHUB_USERNAME` + `DOCKERHUB_TOKEN` secrets to GitHub repo | User | ✅ |
 | P1-MVP-7 | Update `action.yml` Docker Hub image + verify release CI workflow fires on next tag | Antigravity | ✅ |
+| **P1-MVP-8** | **Create Public Wrapper Repo** — Create `substrate-action` public repo with just `action.yml` and `README.md` to publish to GitHub Marketplace while keeping source private | User | 💡 |
 
 > **P1-MVP-5 and P1-MVP-6 require manual steps in the browser (Docker Hub + GitHub Settings). See instructions below.**
 >
@@ -369,6 +370,7 @@ See the full spec: `docs/specs/enterprise-vision.md`
 **Developer Experience (DX) & Tooling**
 - [ ] Surface exact Engine error logs (e.g. invalid schema_type, parsing errors) inside GitHub PR comments for faster debugging.
 - [ ] Implement a local CLI command (`substrate validate` or `substrate diff`) to allow developers to test schema compatibility and configurations locally before committing.
+- [ ] **Bite-Sized Video Tutorials** — Record 60-second YouTube shorts (Installation, config, AI Auto-fix) and embed them directly in the Astro Starlight docs.
 
 **Integrations**
 - [ ] Slack integration for PR notifications
