@@ -40,14 +40,14 @@ export function formatPRComment(
     comment += `This PR introduces **${breakingCount} breaking change(s)** to your ${schemaName} contract.\n`;
     comment += `Consumers of this API may break if this PR is merged without coordination.\n\n`;
 
-    comment += `| Severity | Rule | Path |\n`;
-    comment += `|---|---|---|\n`;
+    comment += `| Severity | Rule | Path | Description |\n`;
+    comment += `|---|---|---|---|\n`;
 
     for (const change of breakingChanges) {
-      comment += `| 🔴 BREAKING | \`${escapeMarkdown(change.rule_id || '')}\` | \`${escapeMarkdown(change.path || '')}\` |\n`;
+      comment += `| 🔴 BREAKING | \`${escapeMarkdown(change.rule_id || '')}\` | \`${escapeMarkdown(change.path || '')}\` | ${escapeMarkdown(change.description || '')} |\n`;
     }
     for (const change of warningChanges) {
-      comment += `| 🟡 WARNING | \`${escapeMarkdown(change.rule_id || '')}\` | \`${escapeMarkdown(change.path || '')}\` |\n`;
+      comment += `| 🟡 WARNING | \`${escapeMarkdown(change.rule_id || '')}\` | \`${escapeMarkdown(change.path || '')}\` | ${escapeMarkdown(change.description || '')} |\n`;
     }
 
     comment += '\n';
@@ -77,11 +77,11 @@ export function formatPRComment(
     comment += `## 🟡 Substrate — Warnings Only\n\n`;
     comment += `No breaking changes, but ${warningCount} warning(s) detected.\n\n`;
 
-    comment += `| Severity | Rule | Path |\n`;
-    comment += `|---|---|---|\n`;
+    comment += `| Severity | Rule | Path | Description |\n`;
+    comment += `|---|---|---|---|\n`;
 
     for (const change of warningChanges) {
-      comment += `| 🟡 WARNING | \`${escapeMarkdown(change.rule_id || '')}\` | \`${escapeMarkdown(change.path || '')}\` |\n`;
+      comment += `| 🟡 WARNING | \`${escapeMarkdown(change.rule_id || '')}\` | \`${escapeMarkdown(change.path || '')}\` | ${escapeMarkdown(change.description || '')} |\n`;
     }
 
     comment += '\n';
