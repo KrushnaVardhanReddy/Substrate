@@ -1,0 +1,30 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+[safety rules prepended automatically by jules_submit.py]
+
+---
+
+TASK: P5-T04 — Event-Driven Discovery
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Discover dependencies in asynchronous/event-driven architectures. Parse AsyncAPI specs for `$ref` paths that point to external repositories (e.g. Avro schemas). Extract Kafka topic mappings from Terraform (`confluent_kafka_topic` blocks).
+
+Follow `docs/specs/phase-5/dependency-discovery.md` for confidence scoring regarding event subscriptions.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. Create `api/internal/discovery/event_scanner.go`.
+2. Add logic to map producers and consumers via shared Topic names.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO ADD:
+- api/internal/discovery/event_scanner.go
+
+FILES TO MODIFY:
+- api/internal/discovery/aggregator.go
+
+Commit: "jules: implement event-driven asyncapi and kafka topic discovery"

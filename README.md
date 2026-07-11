@@ -986,10 +986,16 @@ Trying to be "everything everywhere all at once" is how startups die.
         ↓
 5. V1.0 Release + Marketplace          v1.0  ✅  Docs complete. Platform ready.
         ↓
-6. Best AI Engineering Platform        Phase 4  🔄  AI Reasoning Bridge →
+6. Best AI Engineering Platform        Phase 4  ✅  AI Reasoning Bridge →
                                                      Streaming SSE → Schema
                                                      Patch Generator (Jules
                                                      sessions active)
+        ↓
+7. Zero-Config Dependency Graph        Phase 5  🔄  Env Scanners → Terraform →
+                                                     Message Queues → Graph UI
+        ↓
+8. QA & Automation Layer               Phase 6  🔄  Test Gen → Postman Sync →
+                                                     Coverage → Mock Server
 ```
 
 **Why Phase 2 before Phase 1c–1g?**

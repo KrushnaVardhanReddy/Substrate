@@ -1,0 +1,30 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+[safety rules prepended automatically by jules_submit.py]
+
+---
+
+TASK: P5-T03 — Terraform & UI Confidence Scoring
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Parse Terraform state files and configurations for environment variable injections and outputs (`api/internal/discovery/terraform_scanner.go`).
+Most importantly, rewrite the `dashboard/src/routes/org/[org]/graph/+page.svelte` component. Remove the hardcoded UI mockup and replace it with a dynamic graph visualization library that maps the `data.graphData` JSON returned by the PostgreSQL API. The lines must visually reflect the confidence scores (e.g. solid for High, dashed for Medium).
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. Create Terraform discovery scanner.
+2. Update the Dashboard Svelte component to use dynamic SVG/D3 rendering based on API data instead of hardcoded DOM elements.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO ADD:
+- api/internal/discovery/terraform_scanner.go
+
+FILES TO MODIFY:
+- api/internal/discovery/aggregator.go
+- dashboard/src/routes/org/[org]/graph/+page.svelte
+
+Commit: "jules: implement terraform scanner and dynamic svelte dependency graph ui"

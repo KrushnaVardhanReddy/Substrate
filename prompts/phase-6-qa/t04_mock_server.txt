@@ -1,0 +1,29 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+[safety rules prepended automatically by jules_submit.py]
+
+---
+
+TASK: P6-T04 — Mock Server Time Machine
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Build a local mock server feature into the Substrate CLI. When a user runs `substrate mock --timestamp "2026-07-01"`, fetch the historical OpenAPI schema from the API Registry for that timestamp and spin up a local HTTP server that returns dummy data matching the historical contract.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. Create `engine/pkg/mockserver/server.go`.
+2. Add a `substrate mock` command to the CLI that fetches from the API registry.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO ADD:
+- engine/pkg/mockserver/server.go
+- engine/cmd/substrate/cmd_mock.go
+
+FILES TO MODIFY:
+- engine/cmd/substrate/main.go
+
+Commit: "jules: implement mock server time machine cli command"

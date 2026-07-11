@@ -19,4 +19,13 @@ temp_mockups/
 LAUNCH_PLAN.md
 HANDOFF.md
 
+api.log
+api.pid
+engine.log
+engine.pid
+ngrok.log
+ngrok.pid
+worker.log
+worker.pid
+
 engine/substrate

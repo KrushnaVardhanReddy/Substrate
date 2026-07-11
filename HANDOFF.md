@@ -1,16 +1,28 @@
-# Substrate Project Handoff
+# Substrate Handoff Status
 
-**Date:** July 10, 2026 (End of Session)
+## Current Status (as of Session End)
+**Date/Time:** 2026-07-11
+**Active Branch:** `feature/dev`
 
-## 🚀 What is Tested & Working (100% COMPLETE)
-*   **Diff Engine (Phase 1):** All 8 adapters (OpenAPI, SQL, GraphQL, Protobuf, AsyncAPI, Avro, Terraform, AI/ML) are fully implemented and passing unit tests.
-*   **Live E2E Pipeline (Phase 3):** The automated matrix test script (`make e2e-*`) successfully seeded the database and verified both Safe and Breaking PR status checks across all schema types via the GitHub Worker.
-*   **Registry API (Phase 3):** All 5 core Go handlers (`/health`, `/sync`, `/cross-repo-check`, `/graph`, `/repos`) are fully tested and have 100% passing unit tests. CORS is fixed and active.
-*   **Svelte UI Dashboard (Phase 4 MVP):** Verified working on `http://localhost:3000`. It correctly fetches live Postgres data from the API and renders the visual dependency graph (`consumer → provider`) and breaking change history.
-*   **MCP Server (Phase 3):** Verified working via `stdio`. The `check_compatibility` endpoint correctly integrates with the live Diff Engine and outputs standard JSON-RPC 2.0.
+### What was just completed:
+1. **Phase 5 (Automated Dependency Discovery)** and **Phase 6 (QA & Automation)** specs, tasks, and readme were fully planned and documented.
+2. A total of **9 Jules prompts** were authored and successfully submitted in parallel (5 for Phase 5, 4 for Phase 6).
+3. The `tasks.md` tracker has been updated to reflect that these 9 tasks are in `⏳ Jules PR Pending` status.
+4. **P5-T06 (Phase 5 E2E Tests)** was added to the backlog for post-merge validation.
 
-## 🎯 What is Pending (Next Steps)
-1.  **Wire Mock MCP Endpoints to DB:** The MCP registry lookup tools (`get_dependency_graph`, `get_breaking_change_history`, `get_schema_file`) currently return mock data. They need to be formally wired to the live PostgreSQL API so AI Agents can read real architectural state.
-2.  **Svelte UI Interactive Features:** The Dashboard is currently a static visualizer MVP. Authentication, Settings, API Keys generation, and "Connect Repository" GitHub OAuth flows need to be built out.
-3.  **DX & Local Tooling:** Build the `substrate validate` local CLI tool so developers (and AI Agents) can test schemas locally before committing.
-4.  **Documentation & Launch:** Prepare the final platform documentation, tag `V1.0`, and release the Substrate App to the GitHub Marketplace!
+### What is running in the background:
+Jules is currently working on the following 9 PRs against `feature/dev`:
+- `P5-T01` (Env Var & URL Registry Scanner)
+- `P5-T02` (Package & Generator Scanners)
+- `P5-T03` (Terraform & UI Confidence Scoring)
+- `P5-T04` (Event-Driven Discovery)
+- `P5-T05` (Runtime Confirmation)
+- `P6-T01` (Auto-Updating Postman Collections)
+- `P6-T02` (Shadow API Test Coverage)
+- `P6-T03` (Auto-Generating Test Code)
+- `P6-T04` (Mock Server Time Machine)
+
+### Next Steps for Next Session (in 3-4 hours):
+1. **Merge the PRs:** Review the incoming Jules PRs on the `feature/dev` branch. Resolve any merge conflicts since 9 parallel jobs were fired at once.
+2. **Execute E2E Testing:** Once the Phase 5 PRs are merged, execute the backlog task **P5-T06 (Phase 5 E2E Tests)** to ensure the new dependency scanners actually populate the graph database correctly.
+3. **Verify Dashboard:** Run `make start-bg` and navigate to `/org/[org]/graph` to verify if Jules successfully wired the dynamic D3/SVG graph rendering in the Svelte dashboard (P5-T03).

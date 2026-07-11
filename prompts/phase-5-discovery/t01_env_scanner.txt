@@ -1,0 +1,31 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+[safety rules prepended automatically by jules_submit.py]
+
+---
+
+TASK: P5-T01 — Env Var & URL Registry Scanner
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement Tier 1 of the Automated Dependency Discovery engine. This scanner will identify dependencies by analyzing `.env.example`, Docker Compose (`docker-compose.yml`), and Kubernetes manifests for environment variables following common service URL patterns.
+
+It must extract the dependency URLs without storing sensitive values, and insert them into the PostgreSQL dependency graph table with an appropriate confidence score (15 to 30 points). See `docs/specs/phase-5/dependency-discovery.md` for exact scoring rules.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. Create `api/internal/discovery/env_scanner.go` containing a regex-based variable name matcher and parser for `.env.example`, Docker Compose, and Kubernetes files.
+2. Update the API server to trigger the scanner on GitHub webhook pushes.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO ADD:
+- api/internal/discovery/env_scanner.go
+
+FILES TO MODIFY:
+- api/cmd/server/main.go
+- api/internal/webhook/handler.go
+
+Commit: "jules: implement env var and url registry scanner for phase 5"

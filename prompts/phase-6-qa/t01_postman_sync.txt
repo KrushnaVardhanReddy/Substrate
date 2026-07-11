@@ -1,0 +1,28 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+[safety rules prepended automatically by jules_submit.py]
+
+---
+
+TASK: P6-T01 — Auto-Updating Postman Collections
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement an integration with the Postman API to automatically sync approved OpenAPI schema changes into a dedicated "Substrate Auto-Generated" folder within a team's Postman Workspace. This ensures E2E tests are never out of sync with the backend.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. Create `api/internal/integrations/postman/client.go` to handle Postman API auth and collection updates.
+2. Wire the integration to trigger when a schema update is marked as SAFE or explicitly APPROVED.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO ADD:
+- api/internal/integrations/postman/client.go
+
+FILES TO MODIFY:
+- api/internal/webhook/handler.go
+
+Commit: "jules: implement postman api integration for auto-sync"
