@@ -283,6 +283,8 @@ var piiPatterns = map[string]string{
 
 ### Behaviour
 - The compliance auditor scans BOTH the `change.Path` and `change.Description` strings for the regex patterns. This ensures detection even for nested fields where adapters (like oasdiff) might report the deep field name in the description rather than the path.
+- The `compliance.Audit(rep)` hook MUST be invoked at the end of every schema adapter (`openapi.go`, `sql.go`, `graphql.go`, `avro.go`, `asyncapi.go`, `proto.go`, `terraform.go`) before returning the `DiffReport` to ensure newly added properties trigger alerts.
+- When adding fields to objects (e.g. in GraphQL or Protobuf), the adapter must explicitly track new fields as `Safe` changes (e.g. `GQL_FIELD_ADDED`) so that the compliance engine has a change object to audit.
 - If a match is found in a PR, Substrate:
   1. Adds a `[PII]` or `[HIPAA]` tag to the field in the registry.
   2. Posts a compliance alert in the PR comment.

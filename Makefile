@@ -144,17 +144,6 @@ e2e-graphql: check-token
 e2e-protobuf: check-token
 	cd scripts/e2e && go run main.go --scenario=protobuf
 
-e2e-asyncapi: check-token
-	cd scripts/e2e && go run main.go --scenario=asyncapi
-
-e2e-avro: check-token
-	cd scripts/e2e && go run main.go --scenario=avro
-
-e2e-terraform: check-token
-	cd scripts/e2e && go run main.go --scenario=terraform
-
-e2e-aiml: check-token
-	cd scripts/e2e && go run main.go --scenario=aiml
 
 e2e-breaking: check-token
 	cd scripts/e2e && go run main.go --scenario=openapi-breaking

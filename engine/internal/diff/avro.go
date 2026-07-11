@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/compliance"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/config"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 )
@@ -34,7 +35,8 @@ func CompareAvro(baseFile, headFile string, cfg *config.SubstrateConfig) (*repor
 			Recommendation: func(s string) *string { return &s }("Add avro:\n  schema_registry_url: https://your-registry.com\n  subject: your-topic-value"),
 		})
 		rep.Summary.WarningCount = 1
-		return rep, nil
+		compliance.Audit(rep)
+	return rep, nil
 	}
 
 	headBytes, err := os.ReadFile(headFile)
@@ -81,7 +83,8 @@ func CompareAvro(baseFile, headFile string, cfg *config.SubstrateConfig) (*repor
 			Recommendation: func(s string) *string { return &s }("Check that schema_registry_url is correct and the registry is reachable from CI."),
 		})
 		rep.Summary.WarningCount = 1
-		return rep, nil
+		compliance.Audit(rep)
+	return rep, nil
 	}
 	defer resp.Body.Close()
 
@@ -93,7 +96,8 @@ func CompareAvro(baseFile, headFile string, cfg *config.SubstrateConfig) (*repor
 			Description: fmt.Sprintf("Schema Registry returned HTTP %d", resp.StatusCode),
 		})
 		rep.Summary.WarningCount = 1
-		return rep, nil
+		compliance.Audit(rep)
+	return rep, nil
 	}
 
 	respBody, err := io.ReadAll(resp.Body)
@@ -107,7 +111,8 @@ func CompareAvro(baseFile, headFile string, cfg *config.SubstrateConfig) (*repor
 	}
 
 	if compatResp.IsCompatible {
-		return rep, nil
+		compliance.Audit(rep)
+	return rep, nil
 	}
 
 	desc := "Schema Registry reported incompatibility"
@@ -124,5 +129,6 @@ func CompareAvro(baseFile, headFile string, cfg *config.SubstrateConfig) (*repor
 		Recommendation: func(s string) *string { return &s }("Review Avro schema evolution rules. Adding a field without a default value is backward-incompatible."),
 	})
 	rep.Summary.BreakingCount = 1
+	compliance.Audit(rep)
 	return rep, nil
 }
