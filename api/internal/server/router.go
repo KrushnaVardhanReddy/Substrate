@@ -5,6 +5,7 @@ import (
 
 	"github.com/KrushnaVardhanReddy/Substrate/api/internal/db"
 	"github.com/KrushnaVardhanReddy/Substrate/api/internal/handlers"
+	"github.com/KrushnaVardhanReddy/Substrate/api/internal/webhook"
 )
 
 func corsMiddleware(next http.Handler) http.Handler {
@@ -60,6 +61,9 @@ func NewRouter(store db.Store, authConfig handlers.AuthConfig, registryApiToken,
 	// AI routes (public — no auth required, BYOK model)
 	mux.HandleFunc("POST /api/v1/ai/analyze", handlers.AIAnalyzeHandler())
 	mux.HandleFunc("POST /api/v1/ai/autofix", handlers.AIAutofixHandler())
+
+	// Webhook for Postman integrations
+	mux.HandleFunc("POST /api/v1/webhook", webhook.Handler())
 
 	return corsMiddleware(mux)
 }
