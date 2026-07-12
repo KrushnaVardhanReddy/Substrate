@@ -2,7 +2,7 @@
 
 ## The Living Map of Your Engineering Ecosystem
 
-> **Status:** v1.0.0 🚀 — [OpenAPI Contract Guard](https://github.com/marketplace/actions/substrate-api-contract-guard) live on GitHub Marketplace. **Phase 6 (QA & Automation) ✅ Complete. V1.0 Pre-Flight Checklist in progress.**
+> **Status:** v1.0.0 🚀 — [OpenAPI Contract Guard](https://github.com/marketplace/actions/substrate-api-contract-guard) live on GitHub Marketplace. **Preparing for V1.0 General Availability.**
 
 Substrate is a CI/CD-integrated data contract and dependency intelligence platform that prevents downstream data failures before they reach production.
 
@@ -996,7 +996,22 @@ Trying to be "everything everywhere all at once" is how startups die.
         ↓
 8. QA & Automation Layer               Phase 6  ✅  Test Gen → Postman Sync →
                                                      Coverage → Mock Servers
+        ↓
+9. V1.0 General Availability           v1.0  🚀  GitHub App Auto-Discovery,
+                                                     CLI AI Architect,
+                                                     Interactive Diff Viewer,
+                                                     Deployment Safety Gate
 ```
+
+## Upcoming V1.0 Capabilities
+We are preparing for V1.0 General Availability! The following exciting new features are coming:
+* **GitHub App Auto-Discovery:** Zero-touch onboarding by automatically discovering API contracts across repositories.
+* **CLI AI Architect:** (`substrate init --design`) Interactive LLM-powered CLI to design OpenAPI contracts before writing code.
+* **Interactive Diff Viewer:** Vercel-style preview UI for a side-by-side visual comparison of schema breaks right in PR comments.
+* **Deployment Safety Gate:** (`substrate check-deploy`) Blocks premature consumer deployments in CI/CD before required provider updates are live.
+
+## Future Vision & Roadmap
+For details on Phase 7 (Enterprise/Scale), Phase 8 (Governance), and Phase 9 (Security/Ecosystem) beyond V1.0, please see our [Roadmap](docs/ROADMAP.md).
 
 **Why Phase 2 before Phase 1c–1g?**
 
