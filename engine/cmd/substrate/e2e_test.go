@@ -1,13 +1,18 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
-	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 )
 
 var binaryPath string
@@ -147,5 +152,109 @@ func TestCrossRepoCheckE2E(t *testing.T) {
 
 	if rep.BreakingChanges[0].Path != "GET /users" {
 		t.Errorf("Expected BreakingChanges[0].Path to be 'GET /users', got '%s'", rep.BreakingChanges[0].Path)
+	}
+}
+
+func TestInitDesignE2E(t *testing.T) {
+	// Create a mock server for OpenAI streaming
+	mockResponse := "data: {\"choices\": [{\"delta\": {\"content\": \"```yaml\\nopenapi: 3.0.0\\ninfo:\\n  title: Mock\\n```\"}}]}\n\ndata: [DONE]\n\n"
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+		fmt.Fprint(w, mockResponse)
+	}))
+	defer mockServer.Close()
+
+	// Prepare temporary directory for running the command
+	runDir := t.TempDir()
+
+	// Create environment variables
+	env := append(os.Environ(),
+		"SUBSTRATE_AI_API_KEY=test-key",
+		"SUBSTRATE_AI_BASE_URL="+mockServer.URL+"/v1",
+	)
+
+	// Run the init command with --design
+	cmd := exec.Command(binaryPath, "init", "--design")
+	cmd.Dir = runDir
+	cmd.Env = env
+
+	// Provide standard input
+	cmd.Stdin = strings.NewReader("I want a mock API\n")
+	var stdoutBuf, stderrBuf bytes.Buffer
+	cmd.Stdout = &stdoutBuf
+	cmd.Stderr = &stderrBuf
+
+	err := cmd.Run()
+	if err != nil {
+		t.Fatalf("Command failed with error: %v\nStdout: %s\nStderr: %s", err, stdoutBuf.String(), stderrBuf.String())
+	}
+
+	stdout := stdoutBuf.String()
+	if !strings.Contains(stdout, "openapi: 3.0.0") {
+		t.Errorf("Expected stdout to contain 'openapi: 3.0.0', but got: %s", stdout)
+	}
+	if !strings.Contains(stdout, "Substrate initialized!") {
+		t.Errorf("Expected stdout to contain 'Substrate initialized!', but got: %s", stdout)
+	}
+
+	// Check if openapi.yaml was generated
+	openapiPath := filepath.Join(runDir, "openapi.yaml")
+	content, err := os.ReadFile(openapiPath)
+	if err != nil {
+		t.Fatalf("Failed to read generated openapi.yaml: %v", err)
+	}
+
+	expectedYAML := "openapi: 3.0.0\ninfo:\n  title: Mock\n"
+	if string(content) != expectedYAML {
+		t.Errorf("Expected openapi.yaml content:\n%q\nGot:\n%q", expectedYAML, string(content))
+	}
+
+	// Check if substrate.yaml was generated
+	configPath := filepath.Join(runDir, "substrate.yaml")
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		t.Errorf("substrate.yaml was not generated")
+	}
+
+	// Check if workflow was generated
+	workflowPath := filepath.Join(runDir, ".github", "workflows", "substrate.yml")
+	if _, err := os.Stat(workflowPath); os.IsNotExist(err) {
+		t.Errorf(".github/workflows/substrate.yml was not generated")
+	}
+}
+
+func TestInitDesignFallbackE2E(t *testing.T) {
+	runDir := t.TempDir()
+
+	// Unset SUBSTRATE_AI_BASE_URL to trigger fallback
+	var env []string
+	for _, e := range os.Environ() {
+		if !strings.HasPrefix(e, "SUBSTRATE_AI_BASE_URL=") {
+			env = append(env, e)
+		}
+	}
+	env = append(env, "SUBSTRATE_AI_BASE_URL=")
+
+	cmd := exec.Command(binaryPath, "init", "--design")
+	cmd.Dir = runDir
+	cmd.Env = env
+
+	cmd.Stdin = strings.NewReader("I want a mock API\n")
+	var stdoutBuf, stderrBuf bytes.Buffer
+	cmd.Stdout = &stdoutBuf
+	cmd.Stderr = &stderrBuf
+
+	err := cmd.Run()
+	if err != nil {
+		t.Fatalf("Command failed with error: %v\nStdout: %s\nStderr: %s", err, stdoutBuf.String(), stderrBuf.String())
+	}
+
+	stdout := stdoutBuf.String()
+	if !strings.Contains(stdout, "Using deterministic fallback response") {
+		t.Errorf("Expected stdout to contain 'Using deterministic fallback response', but got: %s", stdout)
+	}
+
+	openapiPath := filepath.Join(runDir, "openapi.yaml")
+	if _, err := os.Stat(openapiPath); os.IsNotExist(err) {
+		t.Errorf("openapi.yaml was not generated")
 	}
 }
