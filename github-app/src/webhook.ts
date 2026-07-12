@@ -115,3 +115,37 @@ export function parsePushEvent(headers: Headers, body: string): PushEvent | null
     return null;
   }
 }
+
+export function parseInstallationRepositoriesEvent(headers: Headers, body: string): import('./types.js').InstallationRepositoriesEvent | null {
+  const eventType = headers.get('X-GitHub-Event');
+  if (eventType !== 'installation_repositories') {
+    return null;
+  }
+
+  try {
+    const payload = JSON.parse(body);
+    if (!payload.action || !payload.installation) {
+      return null;
+    }
+    return payload as import('./types.js').InstallationRepositoriesEvent;
+  } catch (e) {
+    return null;
+  }
+}
+
+export function parseInstallationEvent(headers: Headers, body: string): import('./types.js').InstallationEvent | null {
+  const eventType = headers.get('X-GitHub-Event');
+  if (eventType !== 'installation') {
+    return null;
+  }
+
+  try {
+    const payload = JSON.parse(body);
+    if (!payload.action || !payload.installation) {
+      return null;
+    }
+    return payload as import('./types.js').InstallationEvent;
+  } catch (e) {
+    return null;
+  }
+}

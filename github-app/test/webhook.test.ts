@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { validateWebhookSignature, parsePREvent, parsePushEvent } from '../src/webhook.js';
+import { validateWebhookSignature, parsePREvent, parsePushEvent, parseInstallationRepositoriesEvent, parseInstallationEvent } from '../src/webhook.js';
 
 describe('webhook validation', () => {
   beforeEach(() => {
@@ -156,5 +156,48 @@ describe('Push event parsing', () => {
     const body = JSON.stringify({ ref: 'refs/heads/main' });
     const result = parsePushEvent(headers, body);
     expect(result).toBeNull();
+  });
+});
+
+describe('parseInstallationRepositoriesEvent', () => {
+  it('should return null for incorrect event type', () => {
+    const headers = new Headers({ 'X-GitHub-Event': 'push' });
+    expect(parseInstallationRepositoriesEvent(headers, '{}')).toBeNull();
+  });
+
+  it('should parse valid installation_repositories event', () => {
+    const headers = new Headers({ 'X-GitHub-Event': 'installation_repositories' });
+    const body = JSON.stringify({
+      action: 'added',
+      installation: { id: 123 },
+      repositories_added: [{ id: 1, name: 'repo', full_name: 'owner/repo', owner: { login: 'owner', id: 2 } }],
+      repositories_removed: []
+    });
+
+    const result = parseInstallationRepositoriesEvent(headers, body);
+    expect(result).not.toBeNull();
+    expect(result?.action).toBe('added');
+    expect(result?.repositories_added.length).toBe(1);
+  });
+});
+
+describe('parseInstallationEvent', () => {
+  it('should return null for incorrect event type', () => {
+    const headers = new Headers({ 'X-GitHub-Event': 'push' });
+    expect(parseInstallationEvent(headers, '{}')).toBeNull();
+  });
+
+  it('should parse valid installation event', () => {
+    const headers = new Headers({ 'X-GitHub-Event': 'installation' });
+    const body = JSON.stringify({
+      action: 'created',
+      installation: { id: 123 },
+      repositories: [{ id: 1, name: 'repo', full_name: 'owner/repo', owner: { login: 'owner', id: 2 } }]
+    });
+
+    const result = parseInstallationEvent(headers, body);
+    expect(result).not.toBeNull();
+    expect(result?.action).toBe('created');
+    expect(result?.repositories?.length).toBe(1);
   });
 });
