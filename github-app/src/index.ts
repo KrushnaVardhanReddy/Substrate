@@ -265,6 +265,29 @@ export default {
         return new Response('Engine Error', { status: 200 });
       }
 
+      // Save diff report to the API
+      let diffId: string | undefined;
+      if (env.REGISTRY_API_URL) {
+        try {
+          const saveRes = await fetch(`${env.REGISTRY_API_URL}/api/v1/diff`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${env.REGISTRY_API_TOKEN}`
+            },
+            body: JSON.stringify({ diff_report: diffReport })
+          });
+          if (saveRes.ok) {
+            const saveData = await saveRes.json() as any;
+            diffId = saveData.id;
+          } else {
+            console.error(`Failed to save diff, status: ${saveRes.status}`);
+          }
+        } catch (e) {
+          console.error("Failed to save diff:", e);
+        }
+      }
+
       // Step 9.5: Cross Repo Check
       let crossRepoResponse: CrossRepoCheckResponse | undefined;
       const schemaType = config.schema_type || 'openapi';
@@ -321,7 +344,7 @@ export default {
       }
 
       // Step 10: Post PR comment
-      let commentBody = formatPRComment(diffReport, config, env.DASHBOARD_URL, event.owner, event.repo, event.prNumber, aiExplanation, aiSafePatch);
+      let commentBody = formatPRComment(diffReport, config, env.DASHBOARD_URL, event.owner, event.repo, event.prNumber, aiExplanation, aiSafePatch, diffId);
       if (crossRepoSection) {
         commentBody += "\n" + crossRepoSection;
       }

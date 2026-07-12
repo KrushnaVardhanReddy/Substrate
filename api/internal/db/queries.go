@@ -337,3 +337,31 @@ func UpdateDependencyConfidence(ctx context.Context, pool *pgxpool.Pool, consume
 	}
 	return nil
 }
+
+func (s *PGStore) SaveDiffReport(ctx context.Context, diffReport json.RawMessage) (uuid.UUID, error) {
+	return SaveDiffReport(ctx, s.pool, diffReport)
+}
+
+func SaveDiffReport(ctx context.Context, pool *pgxpool.Pool, diffReport json.RawMessage) (uuid.UUID, error) {
+	var id uuid.UUID
+	err := pool.QueryRow(ctx, `
+		INSERT INTO diff_reports (report_data)
+		VALUES ($1)
+		RETURNING id
+	`, diffReport).Scan(&id)
+	return id, err
+}
+
+func (s *PGStore) GetDiffReport(ctx context.Context, id uuid.UUID) (json.RawMessage, error) {
+	return GetDiffReport(ctx, s.pool, id)
+}
+
+func GetDiffReport(ctx context.Context, pool *pgxpool.Pool, id uuid.UUID) (json.RawMessage, error) {
+	var reportData json.RawMessage
+	err := pool.QueryRow(ctx, `
+		SELECT report_data
+		FROM diff_reports
+		WHERE id = $1
+	`, id).Scan(&reportData)
+	return reportData, err
+}

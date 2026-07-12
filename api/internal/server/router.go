@@ -52,6 +52,7 @@ func NewRouter(store db.Store, authConfig handlers.AuthConfig, registryApiToken,
 	mux.Handle("POST /api/v1/cross-repo-check", serviceTokenMW(limitsMW(http.HandlerFunc(handlers.CrossRepoCheckHandler(store)))))
 	mux.Handle("POST /api/v1/history", serviceTokenMW(http.HandlerFunc(handlers.HistoryHandler(store))))
 	mux.Handle("GET /api/v1/registry/can-deploy", serviceTokenMW(http.HandlerFunc(handlers.CanDeployHandler(store))))
+	mux.Handle("POST /api/v1/diff", serviceTokenMW(http.HandlerFunc(handlers.SaveDiffHandler(store))))
 
 	// Protected routes (Service Token OR JWT)
 	authMW := AuthMiddleware(registryApiToken, jwtSecret)
@@ -64,6 +65,9 @@ func NewRouter(store db.Store, authConfig handlers.AuthConfig, registryApiToken,
 	// AI routes (public — no auth required, BYOK model)
 	mux.HandleFunc("POST /api/v1/ai/analyze", handlers.AIAnalyzeHandler())
 	mux.HandleFunc("POST /api/v1/ai/autofix", handlers.AIAutofixHandler())
+
+	// Public routes
+	mux.HandleFunc("GET /api/v1/diff/{id}", handlers.GetDiffHandler(store))
 
 	// Webhook for Postman integrations
 	mux.HandleFunc("POST /api/v1/webhook", webhook.Handler())

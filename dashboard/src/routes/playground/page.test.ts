@@ -5,8 +5,9 @@ import PlaygroundPage from './+page.svelte';
 describe('AI Playground Page', () => {
 	beforeEach(() => {
 		// Mock global fetch for AI endpoints
-		global.fetch = vi.fn().mockImplementation((url: string) => {
-			if (url.includes('/api/v1/ai/analyze')) {
+		global.fetch = vi.fn().mockImplementation((url: string | URL | Request) => {
+			const urlStr = url.toString();
+			if (urlStr.includes('/api/v1/ai/analyze')) {
 				const stream = new ReadableStream({
 					start(controller) {
 						// Send finding event
@@ -83,6 +84,11 @@ describe('AI Playground Page', () => {
 		expect(applyFixBtn).toBeInTheDocument();
 
 		await fireEvent.click(applyFixBtn);
+
+		// Allow tick/act to process the update
+		await act(() => {
+			vi.advanceTimersByTime(100);
+		});
 
 		// Verify proposed schema textarea was updated
 		const textareas = getAllByRole('textbox');
