@@ -317,3 +317,23 @@ func CountDownstreamDependencies(ctx context.Context, pool *pgxpool.Pool, provid
 	}
 	return count, nil
 }
+
+func (s *PGStore) UpdateDependencyConfidence(ctx context.Context, consumerFullName, providerURL string, boostAmount float64) error {
+	return UpdateDependencyConfidence(ctx, s.pool, consumerFullName, providerURL, boostAmount)
+}
+
+func UpdateDependencyConfidence(ctx context.Context, pool *pgxpool.Pool, consumerFullName, providerURL string, boostAmount float64) error {
+	_, err := pool.Exec(ctx, `
+		UPDATE dependencies
+		SET confidence_score = LEAST(100.0, confidence_score + $1)
+		FROM repositories cr, contracts pc
+		WHERE dependencies.consumer_repo_id = cr.id
+		  AND dependencies.provider_contract_id = pc.id
+		  AND cr.full_name = $2
+		  AND pc.raw_content LIKE '%' || $3 || '%'
+	`, boostAmount, consumerFullName, providerURL)
+	if err != nil {
+		return fmt.Errorf("failed to update confidence score: %w", err)
+	}
+	return nil
+}
