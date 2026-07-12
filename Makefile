@@ -242,3 +242,7 @@ e2e-aiml-safe: check-token
 e2e-aiml-override: check-token
 	cd scripts/e2e && go run main.go --scenario=aiml-override
 
+e2e-discovery:
+	@echo "Running Phase 5 Cross-Repo Dependency Discovery E2E Tests..."
+	cd api && go test -v -run TestPhase5DependencyDiscoveryE2E ./internal/discovery
+
