@@ -89,7 +89,8 @@ func SyncHandler(store db.Store) http.HandlerFunc {
 				return
 			}
 
-			if err := store.UpsertDependency(ctx, consumerRepoID, contractID); err != nil {
+			// For manual yaml configs, confidence score is implicitly 100 since it is explicitly declared
+			if err := store.UpsertDependency(ctx, consumerRepoID, contractID, 100); err != nil {
 				http.Error(w, `{"error": "internal error"}`, http.StatusInternalServerError)
 				return
 			}

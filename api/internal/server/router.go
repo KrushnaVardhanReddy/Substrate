@@ -5,6 +5,7 @@ import (
 
 	"github.com/KrushnaVardhanReddy/Substrate/api/internal/db"
 	"github.com/KrushnaVardhanReddy/Substrate/api/internal/handlers"
+	"github.com/KrushnaVardhanReddy/Substrate/api/internal/webhook"
 )
 
 func corsMiddleware(next http.Handler) http.Handler {
@@ -47,6 +48,7 @@ func NewRouter(store db.Store, authConfig handlers.AuthConfig, registryApiToken,
 	limitsMW := TierLimitsMiddleware(store)
 
 	mux.Handle("POST /api/v1/sync", serviceTokenMW(limitsMW(http.HandlerFunc(handlers.SyncHandler(store)))))
+	mux.Handle("POST /api/v1/webhook", serviceTokenMW(http.HandlerFunc(webhook.PushHandler(store))))
 	mux.Handle("POST /api/v1/cross-repo-check", serviceTokenMW(limitsMW(http.HandlerFunc(handlers.CrossRepoCheckHandler(store)))))
 	mux.Handle("POST /api/v1/history", serviceTokenMW(http.HandlerFunc(handlers.HistoryHandler(store))))
 
