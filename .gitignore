@@ -29,3 +29,4 @@ worker.log
 worker.pid
 
 engine/substrate
+coverage.out
