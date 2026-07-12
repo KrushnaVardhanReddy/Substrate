@@ -1,12 +1,14 @@
 package server
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -111,10 +113,9 @@ func TestAuthMiddleware(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			// Mock path value for tests, this simulates 1.22 routing path values
-			// Since we use request.PathValue("org") in middleware, we need to inject it.
-			// The cleanest way in a pure unit test of a handler without a router is to set the path value manually in 1.22+
-			req.SetPathValue("org", extractOrgFromPath(tt.path))
+			rctx := chi.NewRouteContext()
+			rctx.URLParams.Add("org", extractOrgFromPath(tt.path))
+			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
 			if tt.authHeader != "" {
 				req.Header.Set("Authorization", tt.authHeader)
