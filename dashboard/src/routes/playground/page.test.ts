@@ -1,11 +1,42 @@
-import { describe, it, expect, afterEach, vi } from 'vitest';
+import { describe, it, expect, afterEach, beforeEach, vi, type Mock } from 'vitest';
 import { render, cleanup, fireEvent, act } from '@testing-library/svelte';
 import PlaygroundPage from './+page.svelte';
 
 describe('AI Playground Page', () => {
+	beforeEach(() => {
+		// Mock global fetch for AI endpoints
+		global.fetch = vi.fn().mockImplementation((url: string) => {
+			if (url.includes('/api/v1/ai/analyze')) {
+				const stream = new ReadableStream({
+					start(controller) {
+						// Send finding event
+						const findingEvent = `event: finding\ndata: {"type": "finding", "severity": "🚨 Breaking Change Detected", "content": "Contextual Impact: Breaking Change Detected."}\n\n`;
+						controller.enqueue(new TextEncoder().encode(findingEvent));
+
+						// Send fix event
+						const fixEvent = `event: fix\ndata: {"type": "fix", "language": "graphql", "code": "type User {\\n  id: ID!\\n  user_id: String! @deprecated(reason: \\"Use id instead\\")\\n  name: String\\n  email: String\\n}"}\n\n`;
+						controller.enqueue(new TextEncoder().encode(fixEvent));
+
+						// Send done event
+						const doneEvent = `event: done\ndata: {"type": "done"}\n\n`;
+						controller.enqueue(new TextEncoder().encode(doneEvent));
+
+						controller.close();
+					}
+				});
+				return Promise.resolve({
+					ok: true,
+					body: stream
+				});
+			}
+			return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+		});
+	});
+
 	afterEach(() => {
 		cleanup();
 		vi.useRealTimers();
+		vi.restoreAllMocks();
 	});
 
 	it('renders initial state correctly', () => {
@@ -44,7 +75,7 @@ describe('AI Playground Page', () => {
 		});
 
 		// Check analysis panel is shown
-		expect(getByText('🚨 Breaking Change Detected')).toBeInTheDocument();
+		expect(getByText('🚨 Analysis Results')).toBeInTheDocument();
 		expect(getByText(/Contextual Impact/)).toBeInTheDocument();
 
 		// Check apply fix functionality
