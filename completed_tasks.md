@@ -429,5 +429,6 @@ See the full spec: `docs/specs/enterprise-vision.md`
 | **V1-T04** | 🔵 P4 | **`substrate check-deploy`** — CI/CD deployment safety gate to ensure safe deploy ordering (P2-T06 Deferred). | Jules | ✅ Merged | `docs/specs/v1-preflight/v1-spec.md` |
 | **V1-T05** | ⚪ P5 | **Local `validate` CLI** — Local validation command for developers to test schema changes against the registry offline. | Jules | ✅ Merged | `docs/specs/v1-preflight/v1-spec.md` |
 | **V1-T06** | ⚪ P5 | **Legal & Licensing Audit** — Audit `go.mod` for GPL licenses, add UI Credits/Notices. | Jules | ✅ Merged | `docs/specs/v1-preflight/v1-spec.md` |
+| **V1-T07** | 🟡 P6 | **V1.0 System E2E Tests** — Final E2E orchestration tests mimicking production flow across all modules. | Jules | ✅ Merged | `docs/specs/v1-preflight/v1-e2e-spec.md` |
 
 ---

@@ -17,6 +17,7 @@
 (None currently - awaiting V1.0 E2E)
 
 ### Recently Merged:
+- `V1-T07` (V1.0 System E2E Tests)
 - `V1-T03` (Interactive Diff Viewer UI)
 - `V1-T04` (Deployment Safety Gate) 
 - `V1-T01` (GitHub App Auto-Discovery) 

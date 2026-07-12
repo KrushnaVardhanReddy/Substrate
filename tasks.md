@@ -27,7 +27,6 @@
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **V1-T07** | 🟡 P6 | **V1.0 System E2E Tests** — Final E2E orchestration tests mimicking production flow across all modules. | Antigravity | 🔒 Blocked by T01-T06 | `docs/specs/v1-preflight/v1-e2e-spec.md` |
 
 ---
 
