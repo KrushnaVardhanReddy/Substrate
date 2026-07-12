@@ -51,6 +51,7 @@ func NewRouter(store db.Store, authConfig handlers.AuthConfig, registryApiToken,
 	mux.Handle("POST /api/v1/webhook", serviceTokenMW(http.HandlerFunc(webhook.PushHandler(store))))
 	mux.Handle("POST /api/v1/cross-repo-check", serviceTokenMW(limitsMW(http.HandlerFunc(handlers.CrossRepoCheckHandler(store)))))
 	mux.Handle("POST /api/v1/history", serviceTokenMW(http.HandlerFunc(handlers.HistoryHandler(store))))
+	mux.Handle("GET /api/v1/registry/can-deploy", serviceTokenMW(http.HandlerFunc(handlers.CanDeployHandler(store))))
 
 	// Protected routes (Service Token OR JWT)
 	authMW := AuthMiddleware(registryApiToken, jwtSecret)
