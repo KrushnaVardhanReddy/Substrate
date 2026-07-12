@@ -416,6 +416,21 @@ See the full spec: `docs/specs/enterprise-vision.md`
 
 ---
 
+## 🚀 V1.0 Pre-Flight Checklist (Prod Launch)
+
+**Goal:** Finalize the developer experience, onboarding friction, and legal requirements before pushing Substrate to the GitHub Marketplace.
+
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|---|---|---|---|---|---|
+| **V1-T01** | 🔴 P1 | **GitHub App Auto-Discovery** — Zero-touch onboarding. Auto-scan repos for OpenAPI and open PRs with `substrate.yaml`. | Antigravity | 💡 Backlog | `go-to-market-strategy.md` |
+| **V1-T02** | 🟡 P2 | **CLI AI Architect (`init --design`)** — Conversational LLM interface to scaffold an API contract before writing code. | Antigravity | 💡 Backlog | `go-to-market-strategy.md` |
+| **V1-T03** | 🟢 P3 | **Interactive Diff Viewer UI** — Vercel-style preview URL inside PR comments showing a visual side-by-side schema diff. | Antigravity | 💡 Backlog | `enterprise-vision.md` |
+| **V1-T04** | 🔵 P4 | **`substrate check-deploy`** — CI/CD deployment safety gate to ensure safe deploy ordering (P2-T06 Deferred). | Antigravity | 💡 Backlog | `(Pending)` |
+| **V1-T05** | ⚪ P5 | **Local `validate` CLI** — Local validation command for developers to test schema changes against the registry offline. | Antigravity | 💡 Backlog | `(Pending)` |
+| **V1-T06** | ⚪ P5 | **Legal & Licensing Audit** — Audit `go.mod` for GPL licenses, add UI Credits/Notices. | Antigravity | 💡 Backlog | `(Pending)` |
+
+---
+
 ## How to Submit Jules Tasks
 
 ```bash
