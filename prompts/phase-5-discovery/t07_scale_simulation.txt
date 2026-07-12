@@ -1,0 +1,33 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+[safety rules prepended automatically by jules_submit.py]
+
+---
+
+TASK: P5-T07 — 100-Repo Scale & Universal Protocol Simulation
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement a massive-scale data generator to stress-test the Substrate API and UI. You will generate 100 mock repositories via a Go script and push them to the local webhook endpoint to prove the system can handle enterprise-scale dependency discovery across all 9 supported protocol adapters.
+
+Follow the exact architecture defined in the spec: `docs/specs/phase-5/p5-t07-scale-simulation.md`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. **Scale Generator Script:** Create `scripts/e2e/scale_generator.go`.
+2. **Noise Generation:** The script must generate 60 "noise" repositories with random mock dependencies that do not connect to each other to test false-positive avoidance.
+3. **Protocol Clusters:** The script must generate 40 repositories that form 10 distinct clusters. 9 of these clusters must each map to a specific protocol (OpenAPI, GraphQL, Protobuf, AsyncAPI, Avro, SQL, Terraform, AI/ML, SOAP). The 10th is a hybrid cluster. Ensure the files (e.g. schema.graphql, plan.json, etc.) match perfectly so the discovery scanners link them.
+4. **Flood Webhook:** The script must rapidly POST all 100 repositories to the `localhost:8090/api/v1/webhook/github` endpoint (assuming local dev server is running).
+5. **Makefile Target:** Update `Makefile` to add an `e2e-scale` command that executes this script.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO ADD:
+- scripts/e2e/scale_generator.go
+
+FILES TO MODIFY:
+- Makefile
+
+Commit: "jules: implement P5-T07 100-repo scale simulation with 9 protocol clusters"

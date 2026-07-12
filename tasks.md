@@ -20,6 +20,14 @@
 
 > **Note:** Tasks for Phases 0 through 6 have been archived to [completed_tasks.md](./completed_tasks.md)
 
+## 🏗️ Phase 5 Backlog: Stress Testing
+
+**Goal:** Ensure the discovery algorithms and dashboard visualization can scale to enterprise levels (100+ repos).
+
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|---|---|---|---|---|---|
+| **P5-T07** | 🟡 P7 | **100-Repo Scale & Noise Simulation** — Generate 100 mock repos (80 random noise, 20 forming 5 distinct interdependent clusters) to stress-test discovery accuracy and graph visualization. | Jules | ⏳ Spec Written | `docs/specs/phase-5/p5-t07-scale-simulation.md` |
+
 
 ## 🚀 V1.0 Pre-Flight Checklist (Prod Launch)
 

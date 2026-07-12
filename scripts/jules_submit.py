@@ -341,6 +341,16 @@ TASKS = {
         "phase": "phase-5-discovery",
         "prompt": _load_prompt("prompts/phase-5-discovery/t03_terraform_and_ui.txt"),
     },
+    56: {
+        "name": "P5-T06 — Phase 5 E2E Tests",
+        "phase": "phase-5-discovery",
+        "prompt": _load_prompt("prompts/phase-5-discovery/t06_e2e_tests.txt"),
+    },
+    57: {
+        "name": "P5-T07 — 100-Repo Scale & Noise Simulation",
+        "phase": "phase-5-discovery",
+        "prompt": _load_prompt("prompts/phase-5-discovery/t07_scale_simulation.txt"),
+    },
     54: {
         "name": "P5-T04 — Event-Driven Discovery",
         "phase": "phase-5-discovery",
