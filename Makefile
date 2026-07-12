@@ -100,11 +100,12 @@ start-bg: postgres
 	@make api > api.log 2>&1 & echo $$! > api.pid
 	@make engine > engine.log 2>&1 & echo $$! > engine.pid
 	@make worker > worker.log 2>&1 & echo $$! > worker.pid
+	@make dashboard > dashboard.log 2>&1 & echo $$! > dashboard.pid
 	@echo "Starting ngrok tunnel for webhook routing..."
 	@ngrok http 8787 > ngrok.log 2>&1 & echo $$! > ngrok.pid
 	@sleep 5
 	@echo "=========================================================="
-	@echo "✅ Services started. Logs available in api.log, engine.log, worker.log"
+	@echo "✅ Services started. Logs available in api.log, engine.log, worker.log, dashboard.log"
 	@echo "⚠️ ACTION REQUIRED: Update your GitHub App Webhook URL to:"
 	@curl -s http://localhost:4040/api/tunnels | grep -o '"public_url":"https://[^"]*"' | cut -d'"' -f4 || echo "Failed to fetch ngrok URL (check ngrok.log)"
 	@echo "=========================================================="
@@ -115,10 +116,12 @@ stop-bg:
 	@-kill `cat api.pid` 2>/dev/null || true
 	@-kill `cat engine.pid` 2>/dev/null || true
 	@-kill `cat worker.pid` 2>/dev/null || true
+	@-kill `cat dashboard.pid` 2>/dev/null || true
 	@-kill `cat ngrok.pid` 2>/dev/null || true
 	@-fuser -k 8080/tcp 2>/dev/null || true
 	@-fuser -k 8090/tcp 2>/dev/null || true
-	@rm -f api.pid engine.pid worker.pid ngrok.pid api.log engine.log worker.log ngrok.log
+	@-fuser -k 5173/tcp 2>/dev/null || true
+	@rm -f api.pid engine.pid worker.pid dashboard.pid ngrok.pid api.log engine.log worker.log dashboard.log ngrok.log
 	@podman stop substrate-postgres || true
 
 # Ensure GITHUB_TOKEN is set before running these
