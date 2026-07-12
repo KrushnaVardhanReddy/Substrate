@@ -409,10 +409,10 @@ See the full spec: `docs/specs/enterprise-vision.md`
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **P6-T01** | 🔴 P1 | **Auto-Updating Postman** — Sync schema changes to Postman collections via API or auto-generated folders. | Jules | ⏳ Jules PR Pending | `prompts/phase-6-qa/t01_postman_sync.txt` |
-| **P6-T02** | 🟡 P2 | **Shadow API Coverage** — Map OTel/Datadog traces to OpenAPI to find untested fields. Update Dashboard UI. | Jules | ⏳ Jules PR Pending | `prompts/phase-6-qa/t02_shadow_coverage.txt` |
-| **P6-T03** | 🟢 P3 | **Auto-Generating Test Code** — Fuzz API constraints to generate executable Playwright/Go tests. | Jules | ⏳ Jules PR Pending | `prompts/phase-6-qa/t03_test_code_generation.txt` |
-| **P6-T04** | 🔵 P4 | **Mock Server Time Machine** — CLI command to spin up local mock servers for historical API versions. | Jules | ⏳ Jules PR Pending | `prompts/phase-6-qa/t04_mock_server.txt` |
+| **P6-T01** | 🔴 P1 | **Auto-Updating Postman** — Sync schema changes to Postman collections via API or auto-generated folders. | Jules | ✅ Merged | `prompts/phase-6-qa/t01_postman_sync.txt` |
+| **P6-T02** | 🟡 P2 | **Shadow API Coverage** — Map OTel/Datadog traces to OpenAPI to find untested fields. Update Dashboard UI. | Jules | ✅ Merged | `prompts/phase-6-qa/t02_shadow_coverage.txt` |
+| **P6-T03** | 🟢 P3 | **Auto-Generating Test Code** — Fuzz API constraints to generate executable Playwright/Go tests. | Jules | ✅ Merged | `prompts/phase-6-qa/t03_test_code_generation.txt` |
+| **P6-T04** | 🔵 P4 | **Mock Server Time Machine** — CLI command to spin up local mock servers for historical API versions. | Jules | ✅ Merged | `prompts/phase-6-qa/t04_mock_server.txt` |
 
 ---
 

@@ -994,8 +994,8 @@ Trying to be "everything everywhere all at once" is how startups die.
 7. Zero-Config Dependency Graph        Phase 5  ✅  Env Scanners → Terraform →
                                                      Message Queues → Graph UI
         ↓
-8. QA & Automation Layer               Phase 6  🔄  Test Gen → Postman Sync →
-                                                     Coverage → Mock Server
+8. QA & Automation Layer               Phase 6  ✅  Test Gen → Postman Sync →
+                                                     Coverage → Mock Servers
 ```
 
 **Why Phase 2 before Phase 1c–1g?**
