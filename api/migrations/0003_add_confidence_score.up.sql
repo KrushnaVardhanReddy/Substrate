@@ -1,0 +1,1 @@
+ALTER TABLE dependencies ADD COLUMN IF NOT EXISTS confidence_score FLOAT DEFAULT 0.0;
