@@ -1,12 +1,15 @@
 package webhook
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/KrushnaVardhanReddy/Substrate/api/internal/db"
 	"github.com/KrushnaVardhanReddy/Substrate/api/internal/discovery"
+	"github.com/KrushnaVardhanReddy/Substrate/api/internal/integrations/postman"
 )
 
 type PushPayload struct {
@@ -65,28 +68,16 @@ func PushHandler(store db.Store) http.HandlerFunc {
 			}
 
 			for _, dep := range deps {
-				// We don't have a provider registry yet to look up the URL.
-				// We need to create a dummy provider contract for now, or see if it exists.
-				// Wait, if it doesn't exist, we can't create a dependency!
-				// What does phase-5 spec say?
-				// "resolve against URL->Repo Registry"
-				// Since we don't have the full registry in this task (Tier 1 Env Scanner),
-				// we will just look for existing contracts where the provider repo name might match the URL roughly,
-				// or just insert the dependency if we can resolve it.
-				// Let's resolve the URL to a repo string by stripping http and matching repo name.
-
 				providerRepoName := extractProviderFromURL(dep.VarValue)
 				if providerRepoName == "" {
 					continue
 				}
 
-				// Provide dummy github repo ID since we don't know it
 				providerRepoID, err := store.UpsertRepo(ctx, orgID, 0, providerRepoName, req.Org+"/"+providerRepoName)
 				if err != nil {
 					continue
 				}
 
-				// Create a placeholder contract
 				contractID, err := store.UpsertContract(ctx, providerRepoID, "unknown", "discovered", req.CommitSHA, req.CommitSHA, dep.VarValue)
 				if err != nil {
 					continue
@@ -106,8 +97,6 @@ func PushHandler(store db.Store) http.HandlerFunc {
 }
 
 func extractProviderFromURL(urlStr string) string {
-	// A naive extractor for now: https://users.myorg.com -> users
-	// http://users-service:8080 -> users-service
 	urlStr = strings.TrimPrefix(urlStr, "http://")
 	urlStr = strings.TrimPrefix(urlStr, "https://")
 
@@ -119,4 +108,42 @@ func extractProviderFromURL(urlStr string) string {
 		return hostParts[0]
 	}
 	return ""
+}
+
+type WebhookPayload struct {
+	Event   string `json:"event"`
+	Status  string `json:"status"` // "SAFE", "APPROVED", etc.
+	Schema  string `json:"schema"` // The OpenAPI schema JSON/YAML string
+	Type    string `json:"type"`   // "openapi", etc.
+	Version string `json:"version"`
+}
+
+type SyncClient interface {
+	SyncSchema(ctx context.Context, schema string) error
+}
+
+func Handler() http.HandlerFunc {
+	return HandlerWithClient(postman.NewClient())
+}
+
+func HandlerWithClient(client SyncClient) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var payload WebhookPayload
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			http.Error(w, "invalid payload", http.StatusBadRequest)
+			return
+		}
+
+		if payload.Type == "openapi" && (payload.Status == "SAFE" || payload.Status == "APPROVED") {
+			ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+			defer cancel()
+			err := client.SyncSchema(ctx, payload.Schema)
+			if err != nil {
+				http.Error(w, "failed to sync to postman", http.StatusInternalServerError)
+				return
+			}
+		}
+
+		w.WriteHeader(http.StatusOK)
+	}
 }

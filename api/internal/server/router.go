@@ -64,5 +64,8 @@ func NewRouter(store db.Store, authConfig handlers.AuthConfig, registryApiToken,
 	mux.HandleFunc("POST /api/v1/ai/analyze", handlers.AIAnalyzeHandler())
 	mux.HandleFunc("POST /api/v1/ai/autofix", handlers.AIAutofixHandler())
 
+	// Webhook for Postman integrations
+	mux.HandleFunc("POST /api/v1/webhook", webhook.Handler())
+
 	return corsMiddleware(mux)
 }
