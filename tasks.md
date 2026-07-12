@@ -27,7 +27,6 @@
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **V1-T03** | 🟢 P3 | **Interactive Diff Viewer UI** — Vercel-style preview URL inside PR comments showing a visual side-by-side schema diff. | Jules | ⏳ Jules PR Pending | `docs/specs/v1-preflight/v1-spec.md` |
 | **V1-T07** | 🟡 P6 | **V1.0 System E2E Tests** — Final E2E orchestration tests mimicking production flow across all modules. | Antigravity | 🔒 Blocked by T01-T06 | `docs/specs/v1-preflight/v1-e2e-spec.md` |
 
 ---

@@ -14,10 +14,10 @@
 4. **V1.0 Pre-flight Prompts:** Created detailed Jules prompts for V1-T01 through V1-T07.
 
 ### What is running in the background:
-Jules is currently working on the following V1.0 tasks in parallel against `feature/dev`:
-- `V1-T03` (Interactive Diff Viewer UI) 
+(None currently - awaiting V1.0 E2E)
 
 ### Recently Merged:
+- `V1-T03` (Interactive Diff Viewer UI)
 - `V1-T04` (Deployment Safety Gate) 
 - `V1-T01` (GitHub App Auto-Discovery) 
 - `V1-T02` (CLI AI Architect) 
