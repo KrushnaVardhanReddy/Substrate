@@ -26,7 +26,7 @@
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **P5-T07** | 🟡 P7 | **100-Repo Scale & Noise Simulation** — Generate 100 mock repos (80 random noise, 20 forming 5 distinct interdependent clusters) to stress-test discovery accuracy and graph visualization. | Jules | 🏃 Running (Session: 2074521535255843293) | `docs/specs/phase-5/p5-t07-scale-simulation.md` |
+
 
 
 ## 🚀 V1.0 Pre-Flight Checklist (Prod Launch)
