@@ -10,13 +10,22 @@ OBJECTIVE
 ═══════════════════════════════════════════════════════════════
 Replace the "wall of text" PR comments with a highly visual, actionable UI. When a PR diff is evaluated, Substrate should generate a unique preview URL and append it to the GitHub comment. Clicking the URL should open a visually stunning split-pane schema diff in the Svelte Dashboard.
 
+Previously, this task struggled with complex UI layout and Vitest 501 timeouts. To fix this, we have provided a pre-generated HTML/CSS template to use as a baseline, and explicit testing instructions.
+
 ═══════════════════════════════════════════════════════════════
 DELIVERABLES
 ═══════════════════════════════════════════════════════════════
 1. **API Storage:** Update the Go API server (`api/internal/handlers/diff.go`) to store the generated `DiffReport` JSON into a new PostgreSQL table (`diff_reports`) with a unique UUID (`DiffID`).
 2. **Webhook Update:** Update the Cloudflare Worker (`github-app/src/index.ts`) to append the preview URL (`https://substrate.run/diff/<DiffID>`) to the top of the GitHub PR comment.
 3. **Dashboard UI:** Create a new route in the Svelte Dashboard (`dashboard/src/routes/diff/[id]/+page.svelte`).
-4. **Visual Diffing:** The UI must fetch the DiffReport by ID and render a split-pane, side-by-side visual comparison (Red/Green highlighting for deleted/added lines) showing exactly which schema lines broke.
+4. **Visual Diffing Implementation (CRITICAL):**
+   - You MUST use the HTML/CSS layout provided in `temp_stitch_diff.html` (located in the repository root) as your visual baseline for the split-pane viewer.
+   - Use the `diff` npm package (e.g., `diffLines`) to programmatically parse the Base and Head schemas.
+   - Map the parsed diff output onto the provided HTML/CSS DOM structure, applying the red/green Tailwind classes to the added and removed lines.
+5. **Vitest Fixes (CRITICAL):**
+   - The test `playground/page.test.ts` was failing with a `501 Not Implemented` and timeout. 
+   - Ensure the mock `fetch` inside `beforeEach` exactly matches the URL you are calling in the Svelte component (e.g., `url.includes('/api/v1/ai/analyze')`).
+   - Use `vi.useFakeTimers()` carefully and ensure any Promises or timeouts inside the component are properly awaited using Svelte's `tick()` or Vitest's `act()` equivalent in the test.
 
 ═══════════════════════════════════════════════════════════════
 FILES LIST
@@ -30,5 +39,6 @@ FILES TO MODIFY:
 - api/internal/handlers/diff.go
 - github-app/src/index.ts
 - github-app/src/formatter.ts
+- dashboard/src/routes/playground/page.test.ts (Fix the timeout/501 error here)
 
-Commit: "jules: implement vercel-style interactive diff viewer UI"
+Commit: "jules: implement vercel-style interactive diff viewer UI using stitch template"
