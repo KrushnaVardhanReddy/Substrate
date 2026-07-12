@@ -14,9 +14,7 @@
 7. **V1.0 Pre-Flight Checklist** added to `tasks.md` for final prod launch items.
 
 ### What is running in the background:
-Jules is currently working on:
-- `P6-T05` (Phase 6 E2E Tests) against `feature/dev`
+No active Jules sessions currently.
 
-### Next Steps for Next Session (in 3-4 hours):
-1. **Review and Merge Phase 6 E2E PR:** Once Jules finishes P6-T05, review the mock server fuzzing and integration flow, and merge it.
-2. **Execute V1.0 Pre-Flight Checklist:** Start knocking out V1-T01 through V1-T06 (GitHub App Auto-Discovery, CLI AI Architect, Diff Viewer, etc.) to prepare for Prod Launch.
+### Next Steps for Next Session:
+1. **Execute V1.0 Pre-Flight Checklist:** Start knocking out V1-T01 through V1-T07 (GitHub App Auto-Discovery, CLI AI Architect, Diff Viewer, etc.) to prepare for Prod Launch.

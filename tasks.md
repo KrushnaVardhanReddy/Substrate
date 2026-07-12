@@ -1,6 +1,6 @@
 # Substrate — Task Tracker
 
-> Last updated: 2026-07-12 (Phase 6 features merged ✅. Phase 6 E2E Tests in progress. Active Jules session running.)
+> Last updated: 2026-07-12 (Phase 6 E2E merged ✅. Phase 6 complete. Next: V1.0 Pre-flight.)
 > Tracking all development phases, tasks, and their current status.
 
 ---
