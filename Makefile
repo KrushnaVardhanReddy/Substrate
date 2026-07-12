@@ -246,6 +246,9 @@ e2e-discovery:
 	@echo "Running Phase 5 Cross-Repo Dependency Discovery E2E Tests..."
 	cd api && go test -v -run TestPhase5DependencyDiscoveryE2E ./internal/discovery
 
+e2e-scale: check-token
+	cd scripts/e2e && go run scale_generator.go --scale=100
+
 e2e-v1: check-token
 	@echo "Running V1.0 System E2E Tests..."
 	cd scripts/e2e && go test -v v1_e2e_test.go
