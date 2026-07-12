@@ -1,6 +1,6 @@
 # Substrate — Task Tracker
 
-> Last updated: 2026-07-10 (Phase 2 complete ✅ — Phase 3 Contract Registry in progress. **P3-T09 MCP Server merged ✅.** P3-T12 Astro Docs submitted to Jules 2026-07-10. Active Jules session running.)
+> Last updated: 2026-07-11 (Phase 5 Automated Dependency Discovery PRs merged ✅. Phase 6 QA & Automation in progress. Active Jules session running.)
 > Tracking all development phases, tasks, and their current status.
 
 ---
