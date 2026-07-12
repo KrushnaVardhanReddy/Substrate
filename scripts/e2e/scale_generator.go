@@ -306,10 +306,12 @@ func runAssertionAndReporting(totalDuration time.Duration) {
 	fmt.Printf("Total Time: %v\n", totalDuration)
 	fmt.Printf("Panics Caught: %d (Poison Pills handled)\n", caughtPanics)
 
-	resp, err := http.Get("http://localhost:8090/api/v1/graph?org=chaos-org")
+	req, _ := http.NewRequest("GET", "http://localhost:8090/api/v1/graph/chaos-org", nil)
+	req.Header.Set("Authorization", "Bearer local-dev-token")
+	resp, err := http.DefaultClient.Do(req)
 	accuracy := "100%"
 	if err != nil || resp.StatusCode != 200 {
-		accuracy = "Failed to fetch graph"
+		accuracy = fmt.Sprintf("Failed to fetch graph (Status %d)", resp.StatusCode)
 	} else {
 	    defer resp.Body.Close()
 	    bodyBytes, _ := io.ReadAll(resp.Body)
