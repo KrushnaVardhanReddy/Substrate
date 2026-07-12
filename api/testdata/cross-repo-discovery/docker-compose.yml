@@ -1,0 +1,5 @@
+version: '3'
+services:
+  app:
+    environment:
+      - PAYMENTS_API_URL=https://api.myorg.com/payments
