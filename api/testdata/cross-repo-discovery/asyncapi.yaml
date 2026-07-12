@@ -1,0 +1,10 @@
+asyncapi: 3.0.0
+info:
+  title: Orders Service
+  version: 1.0.0
+channels:
+  order_created:
+    address: orders.v2.created
+    messages:
+      orderCreatedEvent:
+        $ref: "https://github.com/myorg/logistics-api/blob/main/asyncapi.yaml#/components/messages/orderCreatedEvent"
