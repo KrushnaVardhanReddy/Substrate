@@ -84,17 +84,17 @@ func UpsertContract(ctx context.Context, pool *pgxpool.Pool, repoID uuid.UUID, s
 }
 
 // UpsertDependency links a consumer repo to a provider contract.
-func (s *PGStore) UpsertDependency(ctx context.Context, consumerRepoID, providerContractID uuid.UUID) error {
-	return UpsertDependency(ctx, s.pool, consumerRepoID, providerContractID)
+func (s *PGStore) UpsertDependency(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, confidenceScore int) error {
+	return UpsertDependency(ctx, s.pool, consumerRepoID, providerContractID, confidenceScore)
 }
 
-func UpsertDependency(ctx context.Context, pool *pgxpool.Pool, consumerRepoID, providerContractID uuid.UUID) error {
+func UpsertDependency(ctx context.Context, pool *pgxpool.Pool, consumerRepoID, providerContractID uuid.UUID, confidenceScore int) error {
 	_, err := pool.Exec(ctx, `
-		INSERT INTO dependencies (consumer_repo_id, provider_contract_id, last_checked_at)
-		VALUES ($1, $2, NOW())
+		INSERT INTO dependencies (consumer_repo_id, provider_contract_id, last_checked_at, confidence_score)
+		VALUES ($1, $2, NOW(), $3)
 		ON CONFLICT (consumer_repo_id, provider_contract_id) DO UPDATE
-		SET last_checked_at = EXCLUDED.last_checked_at
-	`, consumerRepoID, providerContractID)
+		SET last_checked_at = EXCLUDED.last_checked_at, confidence_score = EXCLUDED.confidence_score
+	`, consumerRepoID, providerContractID, confidenceScore)
 	if err != nil {
 		return fmt.Errorf("failed to upsert dependency: %w", err)
 	}
