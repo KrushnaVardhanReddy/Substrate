@@ -2,6 +2,7 @@
 	import '../app.css';
 	import Sidebar from '$lib/components/Sidebar.svelte';
 	import TopNav from '$lib/components/TopNav.svelte';
+	import Footer from '$lib/components/Footer.svelte';
 	import { page } from '$app/stores';
 
 	let { data, children } = $props();
@@ -17,4 +18,6 @@
 
 	<!-- Content Area -->
 	{@render children()}
+
+	<Footer />
 </div>
