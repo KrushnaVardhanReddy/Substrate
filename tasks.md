@@ -29,6 +29,16 @@
 
 
 
+## 🎨 Phase 6.5: Dynamic UI & Graph Visualization
+
+**Goal:** Transform the Svelte Dashboard from a hardcoded mock into a fully dynamic, interactive dependency map powered by the backend Registry API.
+
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|---|---|---|---|---|---|
+| **UI-T01** | 🔴 P1 | **Dynamic Cytoscape Rendering** — Integrate `cytoscape.js` into the Svelte frontend to dynamically render the 100+ dependency nodes and edges returned by the `GET /api/v1/graph` endpoint. | Unassigned | 💡 Backlog | `docs/specs/ui/ui-t01-dynamic-graph.md` |
+
+---
+
 ## 🚀 V1.0 Pre-Flight Checklist (Prod Launch)
 
 **Goal:** Finalize the developer experience, onboarding friction, and legal requirements before pushing Substrate to the GitHub Marketplace.

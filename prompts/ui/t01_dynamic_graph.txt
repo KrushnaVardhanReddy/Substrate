@@ -1,0 +1,29 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+[safety rules prepended automatically by jules_submit.py]
+
+---
+
+TASK: UI-T01 — Dynamic Cytoscape Graph Rendering
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Replace the hardcoded static `div` nodes in the Substrate Svelte Dashboard with a fully interactive `cytoscape.js` graph that renders the live dependency data from the Go API.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. **Dependency:** Run `npm install cytoscape cytoscape-dagre` inside the `dashboard/` directory.
+2. **Component Refactor:** In `dashboard/src/routes/org/[org]/graph/+page.svelte`, remove the `<svg class="connections-layer">` and `<div class="nodes-layer">` blocks.
+3. **Cytoscape Mount:** Initialize a `cytoscape` instance inside a new `<div id="cy" style="width: 100%; height: 100%"></div>`. Bind it using Svelte's `onMount`.
+4. **Data Mapping:** Iterate over `data.graphData` (which contains `{provider, consumer, status}`) to dynamically generate the nodes and edges for Cytoscape. Ensure nodes are uniquely mapped to avoid duplication.
+5. **Layout:** Use the `dagre` layout to automatically position the nodes from left-to-right or top-to-bottom.
+6. **Interactivity:** Bind Cytoscape's `tap` event to trigger the existing `selectNode(nodeData)` function so the Side Panel continues to work natively.
+
+═══════════════════════════════════════════════════════════════
+FILES TO MODIFY
+═══════════════════════════════════════════════════════════════
+- dashboard/package.json
+- dashboard/src/routes/org/[org]/graph/+page.svelte
+
+Commit message: "feat(ui): implement dynamic cytoscape rendering for dependency graph"

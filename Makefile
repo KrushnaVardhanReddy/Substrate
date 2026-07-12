@@ -102,7 +102,7 @@ start-bg: postgres
 	@make worker > worker.log 2>&1 & echo $$! > worker.pid
 	@echo "Starting ngrok tunnel for webhook routing..."
 	@ngrok http 8787 > ngrok.log 2>&1 & echo $$! > ngrok.pid
-	@sleep 3
+	@sleep 5
 	@echo "=========================================================="
 	@echo "✅ Services started. Logs available in api.log, engine.log, worker.log"
 	@echo "⚠️ ACTION REQUIRED: Update your GitHub App Webhook URL to:"

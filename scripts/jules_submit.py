@@ -341,6 +341,16 @@ TASKS = {
         "phase": "phase-5-discovery",
         "prompt": _load_prompt("prompts/phase-5-discovery/t03_terraform_and_ui.txt"),
     },
+    61: {
+        "name": "P6-T05 — Phase 6 E2E Tests",
+        "phase": "phase-6-qa",
+        "prompt": _load_prompt("prompts/phase-6-qa/t05_e2e_tests.txt"),
+    },
+    71: {
+        "name": "UI-T01 — Dynamic Cytoscape Graph Rendering",
+        "phase": "ui",
+        "prompt": _load_prompt("prompts/ui/t01_dynamic_graph.txt"),
+    },
     56: {
         "name": "P5-T06 — Phase 5 E2E Tests",
         "phase": "phase-5-discovery",
