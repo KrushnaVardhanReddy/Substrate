@@ -311,6 +311,7 @@ func main() {
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(serveCmd)
 	rootCmd.AddCommand(generateTestsCmd)
+	rootCmd.AddCommand(mockCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
