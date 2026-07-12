@@ -310,6 +310,7 @@ func main() {
 	rootCmd.AddCommand(validateCmd)
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(serveCmd)
+	rootCmd.AddCommand(generateTestsCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
