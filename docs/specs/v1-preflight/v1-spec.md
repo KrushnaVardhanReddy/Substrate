@@ -56,9 +56,5 @@ Before pushing Substrate to the GitHub Marketplace for general enterprise availa
 ## V1-T07: V1.0 System E2E Tests
 **Goal:** Prove the final V1.0 pipeline—from automated onboarding, AI design, schema diffing, to final deployment gates—works as a seamless pipeline.
 **Implementation:**
-- Write `scripts/e2e/v1_e2e_test.go`.
-- **Step 1:** Simulate the GitHub App Webhook receiving a new repository installation, asserting it triggers the Auto-Discovery PR (V1-T01).
-- **Step 2:** Simulate a developer invoking the CLI AI Architect (V1-T02) using a mocked LLM interface, asserting the generated YAML is valid.
-- **Step 3:** Simulate a PR schema break and assert that the interactive Diff Viewer UI JSON is correctly generated and stored (V1-T03).
-- **Step 4:** Execute the `substrate validate` (V1-T05) locally to fix the break.
-- **Step 5:** Execute `substrate check-deploy` (V1-T04) and assert it blocks a premature consumer deployment.
+- This task has been moved to a dedicated specification.
+- See `docs/specs/v1-preflight/v1-e2e-spec.md` for the full E2E orchestration architecture and scenario flow.
