@@ -393,12 +393,12 @@ See the full spec: `docs/specs/enterprise-vision.md`
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **P5-T01** | 🔴 P1 | **Env Var & URL Registry** — Scan `.env.example`, k8s, docker-compose. Populate URL→Repo registry via GitHub Deployments. | Jules | ⏳ Jules PR Pending | `prompts/phase-5-discovery/t01_env_scanner.txt` |
-| **P5-T02** | 🟡 P2 | **Package & Generator Scanners** — Parse `package.json`, `go.mod`, and `openapi-generator-config.yaml` for internal SDKs. | Jules | ⏳ Jules PR Pending | `prompts/phase-5-discovery/t02_package_scanner.txt` |
-| **P5-T03** | 🟢 P3 | **Terraform & UI** — Analyze Terraform env injection/outputs. Build Confidence Scoring UI in the Svelte Dashboard. | Antigravity | ⏳ Jules PR Pending | `prompts/phase-5-discovery/t03_terraform_and_ui.txt` |
-| **P5-T04** | 🔵 P4 | **Event-Driven Discovery** — Map Kafka topics and AsyncAPI `$ref` cross-references for message queues. | Jules | ⏳ Jules PR Pending | `prompts/phase-5-discovery/t04_event_discovery.txt` |
-| **P5-T05** | ⚪ P5 | **Runtime Confirmation** — Ingest OTel/Datadog traces and eBPF network logs to confirm static graph edges. | Antigravity | ⏳ Jules PR Pending | `prompts/phase-5-discovery/t05_runtime_confirmation.txt` |
-| **P5-T06** | 🟡 P6 | **Phase 5 E2E Tests** — Cross-repo dependency discovery tests validating Env, Package, Terraform, and Event scanners against mock repositories. | Antigravity | 💡 Backlog | `(Pending)` |
+| **P5-T01** | 🔴 P1 | **Env Var & URL Registry** — Scan `.env.example`, k8s, docker-compose. Populate URL→Repo registry via GitHub Deployments. | Jules | ✅ Merged | `prompts/phase-5-discovery/t01_env_scanner.txt` |
+| **P5-T02** | 🟡 P2 | **Package & Generator Scanners** — Parse `package.json`, `go.mod`, and `openapi-generator-config.yaml` for internal SDKs. | Jules | ✅ Merged | `prompts/phase-5-discovery/t02_package_scanner.txt` |
+| **P5-T03** | 🟢 P3 | **Terraform & UI** — Analyze Terraform env injection/outputs. Build Confidence Scoring UI in the Svelte Dashboard. | Antigravity | ✅ Merged | `prompts/phase-5-discovery/t03_terraform_and_ui.txt` |
+| **P5-T04** | 🔵 P4 | **Event-Driven Discovery** — Map Kafka topics and AsyncAPI `$ref` cross-references for message queues. | Jules | ✅ Merged | `prompts/phase-5-discovery/t04_event_discovery.txt` |
+| **P5-T05** | ⚪ P5 | **Runtime Confirmation** — Ingest OTel/Datadog traces and eBPF network logs to confirm static graph edges. | Antigravity | ✅ Merged | `prompts/phase-5-discovery/t05_runtime_confirmation.txt` |
+| **P5-T06** | 🟡 P6 | **Phase 5 E2E Tests** — Cross-repo dependency discovery tests validating Env, Package, Terraform, and Event scanners against mock repositories. | Antigravity | ⏳ Ready to Start | `(Pending)` |
 
 ---
 
