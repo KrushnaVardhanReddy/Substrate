@@ -98,6 +98,10 @@ func main() {
 		openapi.RunOverride(ctx, client, owner)
 	case "openapi-warning":
 		openapi.RunWarning(ctx, client, owner)
+	case "openapi-pii":
+		openapi.RunPIIAuditing(ctx, client, owner)
+	case "openapi-traffic":
+		openapi.RunTrafficAware(ctx, client, owner)
 	case "sql-breaking":
 		sql.RunBreaking(ctx, client, owner)
 	case "sql-safe":

@@ -1,0 +1,32 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+[safety rules prepended automatically by jules_submit.py]
+
+---
+
+TASK: V1-T04 — Deployment Safety Gate (substrate check-deploy)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement the CI/CD deployment safety gate to prevent bad deployments where a provider microservice deploys a breaking change *before* its consumers are updated to handle it. This command should run right before the CD step (e.g., `kubectl apply`).
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. **CLI Command:** Add the `check-deploy` command to the Substrate CLI (`engine/cmd/substrate/main.go`).
+2. **Registry API:** Add a `GET /api/v1/registry/can-deploy?repo=<name>&commit=<sha>` endpoint to the Go API server.
+3. **Logic:** The API verifies all registered consumers of the `repo` at `commit`. It checks the current deployed versions of those consumers in production. If the provider is deploying a breaking change that consumers have not yet been updated to handle, return `HTTP 409 Conflict`.
+4. **CLI Exit Codes:** The CLI must exit with `0` if safe, or non-zero (`1`) if blocked, which will fail the CI/CD pipeline.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO ADD:
+- engine/cmd/substrate/check_deploy.go
+
+FILES TO MODIFY:
+- engine/cmd/substrate/main.go
+- api/internal/handlers/registry.go
+- api/cmd/server/main.go
+
+Commit: "jules: implement substrate check-deploy safety gate"

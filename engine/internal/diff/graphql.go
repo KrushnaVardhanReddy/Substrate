@@ -336,5 +336,19 @@ func diffFields(rep *report.DiffReport, baseType, headType *ast.Definition) {
 				}
 			}
 		}
+	} else if headType.Kind == ast.Object || headType.Kind == ast.Interface {
+		for _, headField := range headType.Fields {
+			if baseType.Fields.ForName(headField.Name) == nil {
+				rep.SafeChanges = append(rep.SafeChanges, report.Change{
+					ID:          fmt.Sprintf("gql-field-added-%s-%s", headType.Name, headField.Name),
+					RuleID:      "GQL_FIELD_ADDED",
+					Severity:    report.ChangeSeveritySafe,
+					Path:        fmt.Sprintf("%s.%s", headType.Name, headField.Name),
+					Description: fmt.Sprintf("Field '%s' was added to '%s'.", headField.Name, headType.Name),
+					Before:      nil,
+					After:       headField.Name,
+				})
+			}
+		}
 	}
 }

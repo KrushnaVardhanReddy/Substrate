@@ -1,0 +1,31 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+[safety rules prepended automatically by jules_submit.py]
+
+---
+
+TASK: P5-T05 — Runtime Confirmation
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement the Tier 3 runtime confirmation engine. Provide an endpoint in the API server to ingest OpenTelemetry traces (`http.url` and `service.name`) and eBPF/Istio logs. 
+
+Cross-reference these runtime signals against the static graph constructed by Tier 1 and 2 scanners to boost the confidence score of verified edges.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. Add an OTel ingestion endpoint `/api/v1/telemetry/traces`.
+2. Create `api/internal/discovery/runtime_confirmation.go` to process incoming telemetry and update confidence scores in PostgreSQL.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO ADD:
+- api/internal/discovery/runtime_confirmation.go
+
+FILES TO MODIFY:
+- api/cmd/server/main.go
+- api/internal/discovery/aggregator.go
+
+Commit: "jules: implement otel runtime confirmation ingestion endpoint"

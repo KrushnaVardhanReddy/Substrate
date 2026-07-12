@@ -1,0 +1,32 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+[safety rules prepended automatically by jules_submit.py]
+
+---
+
+TASK: P5-T02 — Package & Generator Scanners
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement the Package Manifest and OpenAPI Generator scanners. This component reads `package.json`, `go.mod`, `openapi-generator-config.yaml`, and `openapitools.json` to extract explicitly declared dependencies.
+
+If an internal SDK or direct OpenAPI spec URL is referenced, this constitutes a High Confidence dependency (40 to 50 points). Read `docs/specs/phase-5/dependency-discovery.md` for details on resolution logic.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. Create `api/internal/discovery/package_scanner.go` to parse `package.json` and `go.mod`.
+2. Create `api/internal/discovery/openapi_scanner.go` to parse `openapi-generator-config.yaml` and `openapitools.json`.
+3. Integrate both scanners into the main discovery engine aggregator.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO ADD:
+- api/internal/discovery/package_scanner.go
+- api/internal/discovery/openapi_scanner.go
+
+FILES TO MODIFY:
+- api/internal/discovery/aggregator.go
+
+Commit: "jules: implement package manifest and openapi generator scanners"

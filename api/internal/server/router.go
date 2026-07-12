@@ -3,8 +3,9 @@ package server
 import (
 	"net/http"
 
-	"github.com/KrushnaVardhanReddy/Substrate/api/internal/db"
-	"github.com/KrushnaVardhanReddy/Substrate/api/internal/handlers"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/handlers"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/webhook"
 )
 
 func corsMiddleware(next http.Handler) http.Handler {
@@ -47,17 +48,29 @@ func NewRouter(store db.Store, authConfig handlers.AuthConfig, registryApiToken,
 	limitsMW := TierLimitsMiddleware(store)
 
 	mux.Handle("POST /api/v1/sync", serviceTokenMW(limitsMW(http.HandlerFunc(handlers.SyncHandler(store)))))
+	mux.Handle("POST /api/v1/webhook", serviceTokenMW(http.HandlerFunc(webhook.PushHandler(store))))
 	mux.Handle("POST /api/v1/cross-repo-check", serviceTokenMW(limitsMW(http.HandlerFunc(handlers.CrossRepoCheckHandler(store)))))
+	mux.Handle("POST /api/v1/history", serviceTokenMW(http.HandlerFunc(handlers.HistoryHandler(store))))
+	mux.Handle("GET /api/v1/registry/can-deploy", serviceTokenMW(http.HandlerFunc(handlers.CanDeployHandler(store))))
+	mux.Handle("POST /api/v1/diff", serviceTokenMW(http.HandlerFunc(handlers.SaveDiffHandler(store))))
 
 	// Protected routes (Service Token OR JWT)
 	authMW := AuthMiddleware(registryApiToken, jwtSecret)
 	mux.Handle("GET /api/v1/graph/{org}", authMW(http.HandlerFunc(handlers.GraphHandler(store))))
 	mux.Handle("GET /api/v1/repos/{org}", authMW(http.HandlerFunc(handlers.ReposHandler(store))))
 	mux.Handle("GET /api/v1/schema/{owner}/{repo}", authMW(http.HandlerFunc(handlers.SchemaHandler(store))))
+	mux.Handle("GET /api/v1/history/{org}/{repo}", authMW(http.HandlerFunc(handlers.HistoryGetHandler(store))))
+	mux.Handle("POST /api/v1/telemetry/traces", serviceTokenMW(http.HandlerFunc(handlers.TelemetryHandler(store))))
 
 	// AI routes (public — no auth required, BYOK model)
 	mux.HandleFunc("POST /api/v1/ai/analyze", handlers.AIAnalyzeHandler())
 	mux.HandleFunc("POST /api/v1/ai/autofix", handlers.AIAutofixHandler())
+
+	// Public routes
+	mux.HandleFunc("GET /api/v1/diff/{id}", handlers.GetDiffHandler(store))
+
+	// Webhook for Postman integrations
+	mux.HandleFunc("POST /api/v1/webhook", webhook.Handler())
 
 	return corsMiddleware(mux)
 }

@@ -12,6 +12,7 @@ import (
 	initcmd "github.com/KrushnaVardhanReddy/substrate/engine/internal/init"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 	sqlpkg "github.com/KrushnaVardhanReddy/substrate/engine/internal/sql"
+	"github.com/KrushnaVardhanReddy/substrate/engine/pkg/ai"
 	"github.com/spf13/cobra"
 	"path/filepath"
 )
@@ -267,11 +268,22 @@ func main() {
 		},
 	}
 
+	var designFlag bool
 	var initOptions initcmd.InitOptions
 	var initCmd = &cobra.Command{
 		Use:   "init",
 		Short: "Initialize Substrate in the current directory",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if designFlag {
+				err := ai.RunArchitect(os.Stdin, os.Stdout)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Architect Error: %v\n", err)
+					os.Exit(3)
+				}
+				// The architect generates openapi.yaml
+				initOptions.Spec = "openapi.yaml"
+			}
+
 			err := initcmd.Init(initOptions)
 			if err != nil {
 				if errors.Is(err, initcmd.ErrPermissionDenied) {
@@ -292,6 +304,7 @@ func main() {
 	initCmd.Flags().BoolVar(&initOptions.Force, "force", false, "Overwrite existing files without prompting")
 	initCmd.Flags().BoolVar(&initOptions.NoWorkflow, "no-workflow", false, "Skip generating .github/workflows/substrate.yml")
 	initCmd.Flags().BoolVar(&initOptions.NoConfig, "no-config", false, "Skip generating substrate.yaml")
+	initCmd.Flags().BoolVar(&designFlag, "design", false, "Start AI architect to scaffold your API spec")
 
 	var port string
 	var serveCmd = &cobra.Command{
@@ -310,6 +323,9 @@ func main() {
 	rootCmd.AddCommand(validateCmd)
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(serveCmd)
+	rootCmd.AddCommand(generateTestsCmd)
+	rootCmd.AddCommand(mockCmd)
+	rootCmd.AddCommand(checkDeployCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)

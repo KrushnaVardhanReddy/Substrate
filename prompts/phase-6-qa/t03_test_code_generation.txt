@@ -1,0 +1,29 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+[safety rules prepended automatically by jules_submit.py]
+
+---
+
+TASK: P6-T03 — Auto-Generating Test Code
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement a fuzzer that reads schema constraints (e.g. `maxLength`, `minimum`, `required`) and generates executable Go test code (`httpexpect`) for edge cases.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. Create `engine/pkg/fuzzer/test_generator.go` that parses OpenAPI constraints and outputs valid `_test.go` files.
+2. Add a `substrate generate-tests` command to the CLI.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO ADD:
+- engine/pkg/fuzzer/test_generator.go
+- engine/cmd/substrate/cmd_generate_tests.go
+
+FILES TO MODIFY:
+- engine/cmd/substrate/main.go
+
+Commit: "jules: implement auto-generating go test code from openapi schema constraints"

@@ -249,8 +249,8 @@ schema_type: graphql
 spec_path: schema.graphql
 
 traffic:
-  provider: prometheus
-  endpoint: "http://prometheus.internal:9090"
+  provider: mock
+  endpoint: "http://mock"
   lookback_days: 30
   downgrade_threshold: 0
 `

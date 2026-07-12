@@ -1,0 +1,6 @@
+[
+  {
+    "service.name": "orders-service",
+    "http.url": "https://api.myorg.com/logistics/v1/shipments"
+  }
+]

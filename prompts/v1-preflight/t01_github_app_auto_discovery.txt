@@ -1,0 +1,34 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+[safety rules prepended automatically by jules_submit.py]
+
+---
+
+TASK: V1-T01 — GitHub App Auto-Discovery (Zero-Touch Onboarding)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement the "Zero-Touch Onboarding" feature for the Cloudflare Worker GitHub App. When an organization installs the Substrate GitHub App on a new repository, Substrate should automatically scan the repository for API contracts (e.g., `openapi.yaml`, `schema.graphql`) and automatically open a Pull Request to inject a default `substrate.yaml` configuration file.
+
+This completely removes the friction of developers needing to manually run `substrate init` and commit the file themselves.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. **Webhook Parsing:** Update `github-app/src/webhook.ts` to parse the `installation_repositories` and `installation` GitHub webhook events.
+2. **Auto-Discovery Logic:** Create `github-app/src/discovery.ts`. When an `installation_repositories` event fires, iterate over the added repositories. For each repo, query the GitHub API to check if an `openapi.yaml`, `schema.graphql`, or `.env` file exists in the root directory.
+3. **GitHub API Client:** Update `github-app/src/github-client.ts` with functions to create a new branch (`substrate-init`), create a commit with the new `substrate.yaml` file, and open a Pull Request.
+4. **Worker Entrypoint:** Update `github-app/src/index.ts` to intercept the installation events and trigger the auto-discovery flow.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO ADD:
+- github-app/src/discovery.ts
+
+FILES TO MODIFY:
+- github-app/src/index.ts
+- github-app/src/webhook.ts
+- github-app/src/github-client.ts
+
+Commit: "jules: implement zero-touch repo auto-discovery on github app installation"

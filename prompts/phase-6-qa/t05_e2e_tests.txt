@@ -1,0 +1,32 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+[safety rules prepended automatically by jules_submit.py]
+
+---
+
+TASK: P6-T05 — Phase 6 QA & Automation E2E Tests
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement the End-to-End (E2E) integration test suite for the Phase 6 QA & Automation layer. This test must prove that all Phase 6 features (Mock Server, Test Generator, Shadow Coverage, and Postman Sync) work together in a unified pipeline without regressions.
+
+You will write a comprehensive test in `scripts/e2e/phase6_e2e_test.go` that executes the QA Feedback Loop outlined in `docs/specs/phase-6/p6-t05-e2e.md`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. Write the E2E test suite in `scripts/e2e/phase6_e2e_test.go`.
+2. The test must orchestrate spinning up a Mock Server, fuzzing it with the Test Generator, evaluating Shadow API Coverage, and triggering the Postman Sync webhook (using mocks to prevent real network calls).
+3. Provide necessary OpenAPI fixtures in `scripts/e2e/testdata/phase6/` to support the test.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO ADD:
+- scripts/e2e/phase6_e2e_test.go
+- scripts/e2e/testdata/phase6/mock_api.yaml
+
+FILES TO MODIFY:
+- (None)
+
+Commit: "jules: implement phase 6 qa & automation e2e tests"

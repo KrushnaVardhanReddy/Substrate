@@ -1,0 +1,38 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+[safety rules prepended automatically by jules_submit.py]
+
+---
+
+TASK: P5-T06 — Phase 5 Dependency Discovery E2E Tests
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement the cross-repo E2E integration test suite for the Automated Dependency Discovery engine. This test must validate that the Phase 5 scanners (Env Var, Package, OpenAPI Generator, Terraform, Kafka, and OTel Runtime) can work together to build a complete cross-repo dependency graph.
+
+You will create a mock "polyglot" microservice repository under `api/testdata/cross-repo-discovery/` that contains fixture files for all the different scanners to parse. Then, you will write a comprehensive test in `api/internal/discovery/e2e_test.go` that runs the Aggregator and asserts that the resulting dependency graph contains the correct edges with their combined confidence scores.
+
+Refer to the test strategy and expected graph assertions detailed in `docs/specs/phase-5/p5-t06-e2e.md`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. Create mock fixture files in `api/testdata/cross-repo-discovery/` including a `docker-compose.yml`, `package.json`, `openapitools.json`, `terraform/plan.json`, `asyncapi.yaml`, and `otel_traces.json`.
+2. Write the E2E test `TestPhase5DependencyDiscoveryE2E` in `api/internal/discovery/e2e_test.go` to parse the fixture files through the full Aggregator and validate the output edges.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO ADD:
+- api/testdata/cross-repo-discovery/docker-compose.yml
+- api/testdata/cross-repo-discovery/package.json
+- api/testdata/cross-repo-discovery/openapitools.json
+- api/testdata/cross-repo-discovery/terraform/plan.json
+- api/testdata/cross-repo-discovery/asyncapi.yaml
+- api/testdata/cross-repo-discovery/otel_traces.json
+- api/internal/discovery/e2e_test.go
+
+FILES TO MODIFY:
+- (None)
+
+Commit: "jules: implement phase 5 cross-repo discovery e2e tests"

@@ -18,7 +18,7 @@ type AIAnalyzeRequest struct {
 }
 
 type SSEEvent struct {
-	Type     string `json:"type"`               // "thinking" | "finding" | "fix" | "done" | "error"
+	Type     string `json:"type"` // "thinking" | "finding" | "fix" | "done" | "error"
 	Content  string `json:"content,omitempty"`
 	Severity string `json:"severity,omitempty"` // "BREAKING" | "WARNING" | "SAFE"
 	Language string `json:"language,omitempty"` // "yaml" | "sql" | "graphql"
@@ -134,7 +134,7 @@ func AIAnalyzeHandler() http.HandlerFunc {
 			}
 
 			scanner := bufio.NewScanner(resp.Body)
-			
+
 			var pendingToolCalls []toolCall
 			var assistantMessageContent string
 			toolCallsMap := make(map[int]*toolCall)
@@ -174,7 +174,7 @@ func AIAnalyzeHandler() http.HandlerFunc {
 
 				if len(chunk.Choices) > 0 {
 					choice := chunk.Choices[0]
-					
+
 					// Stream text to frontend as thinking
 					if choice.Delta.Content != "" {
 						assistantMessageContent += choice.Delta.Content
@@ -193,7 +193,7 @@ func AIAnalyzeHandler() http.HandlerFunc {
 						}
 						toolCallsMap[idx].Function.Arguments += tcDelta.Function.Arguments
 					}
-					
+
 					// Stop if finished early without tool calls
 					if choice.FinishReason != nil && *choice.FinishReason == "stop" {
 						break
@@ -210,8 +210,36 @@ func AIAnalyzeHandler() http.HandlerFunc {
 
 			// If no tool calls, we are done
 			if len(pendingToolCalls) == 0 {
-				// Parse final response (the system prompt says output json, or output text with code blocks)
-				// For now, assume done.
+				// Parse the assistantMessageContent to extract severity and code block for the UI
+				severity := "WARNING"
+				upperContent := strings.ToUpper(assistantMessageContent)
+				if strings.Contains(upperContent, "BREAKING") {
+					severity = "BREAKING"
+				} else if strings.Contains(upperContent, "SAFE") {
+					severity = "SAFE"
+				}
+
+				var code, language string
+				startIdx := strings.Index(assistantMessageContent, "```")
+				if startIdx != -1 {
+					endIdx := strings.Index(assistantMessageContent[startIdx+3:], "```")
+					if endIdx != -1 {
+						codeBlock := assistantMessageContent[startIdx+3 : startIdx+3+endIdx]
+						lines := strings.SplitN(codeBlock, "\n", 2)
+						if len(lines) == 2 {
+							language = strings.TrimSpace(lines[0])
+							code = strings.TrimSpace(lines[1])
+						} else {
+							code = strings.TrimSpace(codeBlock)
+						}
+					}
+				}
+
+				writeSSE(w, flusher, SSEEvent{Type: "finding", Severity: severity, Content: "AI Analysis Complete (See above details)."})
+				if code != "" {
+					writeSSE(w, flusher, SSEEvent{Type: "fix", Language: language, Code: code})
+				}
+
 				break
 			}
 
@@ -225,12 +253,12 @@ func AIAnalyzeHandler() http.HandlerFunc {
 
 			for _, tc := range pendingToolCalls {
 				writeSSE(w, flusher, SSEEvent{Type: "thinking", Content: fmt.Sprintf("\n* Executing tool: %s *\n", tc.Function.Name)})
-				
+
 				result, err := executeTool(tc.Function.Name, tc.Function.Arguments, req)
 				if err != nil {
 					result = fmt.Sprintf("Error: %v", err)
 				}
-				
+
 				messages = append(messages, chatMessage{
 					Role:       "tool",
 					Content:    result,
@@ -238,7 +266,7 @@ func AIAnalyzeHandler() http.HandlerFunc {
 					ToolCallID: tc.ID,
 				})
 			}
-			
+
 			// Continue loop to send tool results back to LLM
 		}
 

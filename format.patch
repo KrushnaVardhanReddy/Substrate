@@ -1,0 +1,8 @@
+--- scripts/e2e/phase6_e2e_test.go
++++ scripts/e2e/phase6_e2e_test.go
+@@ -3,6 +3,7 @@
+ import (
+	"bytes"
++	"encoding/json"
+	"net/http"
+	"net/http/httptest"

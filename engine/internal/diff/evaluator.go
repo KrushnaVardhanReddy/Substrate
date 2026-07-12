@@ -17,6 +17,8 @@ func ApplyConfigAndTraffic(rep *report.DiffReport, cfg *config.SubstrateConfig, 
 	var trafficProvider traffic.Provider
 	if cfg.Traffic.Provider == "prometheus" {
 		trafficProvider = &traffic.PrometheusProvider{Endpoint: cfg.Traffic.Endpoint}
+	} else if cfg.Traffic.Provider == "mock" {
+		trafficProvider = &traffic.MockProvider{}
 	} else {
 		trafficProvider = &traffic.NoOpProvider{}
 	}

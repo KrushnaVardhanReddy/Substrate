@@ -1,0 +1,31 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+[safety rules prepended automatically by jules_submit.py]
+
+---
+
+TASK: V1-T05 — Local Validation CLI (substrate validate)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement the `substrate validate` command. This allows developers to test schema breaks locally, completely offline (if they have the base schema locally) or against a remote registry, before they commit and push their code.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. **CLI Stub Completion:** Complete the `validate` command stub in `engine/cmd/substrate/main.go`.
+2. **Offline Mode:** Allow the CLI to execute the diffing logic strictly locally. It should compare the current local file against a `--base` file without needing an HTTP server.
+3. **Registry Mode (Optional):** If a `--remote` flag is passed, fetch the base schema from the Substrate Registry API.
+4. **Formatting:** Output clean, readable terminal text formatting using Red/Green terminal codes for deleted/added properties and explicit Breaking Change summaries.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO ADD:
+- engine/cmd/substrate/validate.go
+- engine/pkg/format/terminal.go
+
+FILES TO MODIFY:
+- engine/cmd/substrate/main.go
+
+Commit: "jules: implement substrate validate CLI for local offline checks"

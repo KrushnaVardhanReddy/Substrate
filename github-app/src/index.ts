@@ -3,6 +3,8 @@ import { validateWebhookSignature, parsePREvent, parsePushEvent } from './webhoo
 import { generateInstallationToken, fetchFileContent, postPRComment, setCommitStatus } from './github-client.js';
 import { formatPRComment, formatMissingConfigComment, getCommitStatusState, getCommitStatusDescription, formatCrossRepoImpact } from './formatter.js';
 import { parseConsumersFromYaml, syncToRegistry, crossRepoCheck } from './registry-client.js';
+import { parseInstallationRepositoriesEvent, parseInstallationEvent } from './webhook.js';
+import { processAutoDiscovery } from './discovery.js';
 
 
 // YAML parser mock/regex for the stub phase
@@ -47,7 +49,7 @@ async function callContainerService(containerUrl: string, baseSchema: string, he
 }
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     // Step 1: Only accept POST
     if (request.method !== 'POST') {
       return new Response('Method Not Allowed', { status: 405 });
@@ -67,6 +69,24 @@ export default {
     }
 
     const eventType = request.headers.get('X-GitHub-Event');
+
+    if (eventType === 'installation_repositories') {
+      const installReposEvent = parseInstallationRepositoriesEvent(request.headers, body);
+      if (installReposEvent && installReposEvent.action === 'added' && installReposEvent.repositories_added) {
+        // Fire and forget auto-discovery
+        ctx.waitUntil(processAutoDiscovery(env, installReposEvent.installation.id, installReposEvent.repositories_added).catch(console.error));
+      }
+      return new Response('Accepted', { status: 202 });
+    }
+
+    if (eventType === 'installation') {
+      const installEvent = parseInstallationEvent(request.headers, body);
+      if (installEvent && installEvent.action === 'created' && installEvent.repositories) {
+         // Fire and forget auto-discovery
+         ctx.waitUntil(processAutoDiscovery(env, installEvent.installation.id, installEvent.repositories).catch(console.error));
+      }
+      return new Response('Accepted', { status: 202 });
+    }
     if (eventType === 'push') {
       const pushEvent = parsePushEvent(request.headers, body);
       if (!pushEvent) {
@@ -245,6 +265,29 @@ export default {
         return new Response('Engine Error', { status: 200 });
       }
 
+      // Save diff report to the API
+      let diffId: string | undefined;
+      if (env.REGISTRY_API_URL) {
+        try {
+          const saveRes = await fetch(`${env.REGISTRY_API_URL}/api/v1/diff`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${env.REGISTRY_API_TOKEN}`
+            },
+            body: JSON.stringify({ diff_report: diffReport })
+          });
+          if (saveRes.ok) {
+            const saveData = await saveRes.json() as any;
+            diffId = saveData.id;
+          } else {
+            console.error(`Failed to save diff, status: ${saveRes.status}`);
+          }
+        } catch (e) {
+          console.error("Failed to save diff:", e);
+        }
+      }
+
       // Step 9.5: Cross Repo Check
       let crossRepoResponse: CrossRepoCheckResponse | undefined;
       const schemaType = config.schema_type || 'openapi';
@@ -301,7 +344,7 @@ export default {
       }
 
       // Step 10: Post PR comment
-      let commentBody = formatPRComment(diffReport, config, env.DASHBOARD_URL, event.owner, event.repo, event.prNumber, aiExplanation, aiSafePatch);
+      let commentBody = formatPRComment(diffReport, config, env.DASHBOARD_URL, event.owner, event.repo, event.prNumber, aiExplanation, aiSafePatch, diffId);
       if (crossRepoSection) {
         commentBody += "\n" + crossRepoSection;
       }

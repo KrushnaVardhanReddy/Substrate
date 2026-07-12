@@ -1,4 +1,4 @@
-.PHONY: help e2e e2e-breaking e2e-safe e2e-override e2e-warning
+.PHONY: help e2e e2e-breaking e2e-safe e2e-override e2e-warning postgres api engine worker dashboard docs build-cli build-mcp start-bg stop-bg
 
 # ==============================================================================
 # SUBSTRATE LOCAL DEVELOPMENT ARCHITECTURE
@@ -36,9 +36,92 @@ help:
 	@echo "Substrate Local Development Commands:"
 	@echo "--------------------------------------------------------"
 	@echo "make postgres     - Start the Postgres database in Docker"
+	@echo "make api          - Start the Registry API (port 8090)"
+	@echo "make engine       - Start the Diff Engine (port 8080)"
+	@echo "make worker       - Start the GitHub Webhook Worker"
+	@echo "make dashboard    - Start the Svelte Dashboard UI"
+	@echo "make docs         - Start the Astro Starlight Docs site"
+	@echo "make build-cli    - Build the substrate CLI binary"
+	@echo "make build-mcp    - Build the substrate-mcp binary"
+	@echo "--------------------------------------------------------"
+	@echo "make start-bg     - Start ALL backend services in background"
+	@echo "make stop-bg      - Stop all background backend services"
 	@echo "make e2e-*        - Run the E2E matrix test suites"
 	@echo "--------------------------------------------------------"
-	@echo "See the Makefile source for the 5-terminal architecture setup."# Ensure GITHUB_TOKEN is set before running these
+	@echo "See the Makefile source for the full 5-terminal architecture setup."
+
+postgres:
+	podman run --replace --name substrate-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=substrate -p 5432:5432 -d docker.io/library/postgres:15
+
+api:
+	cd api && \
+	DATABASE_URL="postgresql://postgres:postgres@localhost:5432/substrate?sslmode=disable" \
+	REGISTRY_API_TOKEN="local-dev-token" \
+	JWT_SECRET="local-jwt-secret" \
+	GITHUB_CLIENT_ID="mock-client-id" \
+	GITHUB_CLIENT_SECRET="mock-client-secret" \
+	DASHBOARD_URL="http://localhost:5173" \
+	go run ./cmd/server/main.go
+
+# To enable real AI (requires LM Studio running at port 1234), use make api-ai instead
+api-ai:
+	cd api && \
+	DATABASE_URL="postgresql://postgres:postgres@localhost:5432/substrate?sslmode=disable" \
+	REGISTRY_API_TOKEN="local-dev-token" \
+	JWT_SECRET="local-jwt-secret" \
+	GITHUB_CLIENT_ID="mock-client-id" \
+	GITHUB_CLIENT_SECRET="mock-client-secret" \
+	DASHBOARD_URL="http://localhost:5173" \
+	SUBSTRATE_AI_BASE_URL="http://127.0.0.1:1234/v1" \
+	SUBSTRATE_AI_API_KEY="lm-studio" \
+	SUBSTRATE_AI_MODEL="qwen/qwen3.5-9b" \
+	go run ./cmd/server/main.go
+
+engine:
+	cd engine && go run ./cmd/substrate/ serve
+
+worker:
+	cd github-app && npm run dev
+
+dashboard:
+	cd dashboard && npm run dev
+
+docs:
+	cd docs-site && npm run dev
+
+build-cli:
+	cd engine && go build -o substrate ./cmd/substrate/
+
+build-mcp:
+	cd engine && go build -o substrate-mcp ./cmd/substrate-mcp/main.go
+
+start-bg: postgres
+	@echo "Starting backend services in background..."
+	@make api > api.log 2>&1 & echo $$! > api.pid
+	@make engine > engine.log 2>&1 & echo $$! > engine.pid
+	@make worker > worker.log 2>&1 & echo $$! > worker.pid
+	@echo "Starting ngrok tunnel for webhook routing..."
+	@ngrok http 8787 > ngrok.log 2>&1 & echo $$! > ngrok.pid
+	@sleep 3
+	@echo "=========================================================="
+	@echo "✅ Services started. Logs available in api.log, engine.log, worker.log"
+	@echo "⚠️ ACTION REQUIRED: Update your GitHub App Webhook URL to:"
+	@curl -s http://localhost:4040/api/tunnels | grep -o '"public_url":"https://[^"]*"' | cut -d'"' -f4 || echo "Failed to fetch ngrok URL (check ngrok.log)"
+	@echo "=========================================================="
+	@echo "Run 'make stop-bg' to terminate."
+
+stop-bg:
+	@echo "Stopping backend services..."
+	@-kill `cat api.pid` 2>/dev/null || true
+	@-kill `cat engine.pid` 2>/dev/null || true
+	@-kill `cat worker.pid` 2>/dev/null || true
+	@-kill `cat ngrok.pid` 2>/dev/null || true
+	@-fuser -k 8080/tcp 2>/dev/null || true
+	@-fuser -k 8090/tcp 2>/dev/null || true
+	@rm -f api.pid engine.pid worker.pid ngrok.pid api.log engine.log worker.log ngrok.log
+	@podman stop substrate-postgres || true
+
+# Ensure GITHUB_TOKEN is set before running these
 check-token:
 	@if [ -z "$(GITHUB_TOKEN)" ]; then \
 		echo "Error: GITHUB_TOKEN is not set."; \
@@ -60,6 +143,7 @@ e2e-graphql: check-token
 
 e2e-protobuf: check-token
 	cd scripts/e2e && go run main.go --scenario=protobuf
+
 
 e2e-breaking: check-token
 	cd scripts/e2e && go run main.go --scenario=openapi-breaking
@@ -158,3 +242,10 @@ e2e-aiml-safe: check-token
 e2e-aiml-override: check-token
 	cd scripts/e2e && go run main.go --scenario=aiml-override
 
+e2e-discovery:
+	@echo "Running Phase 5 Cross-Repo Dependency Discovery E2E Tests..."
+	cd api && go test -v -run TestPhase5DependencyDiscoveryE2E ./internal/discovery
+
+e2e-v1: check-token
+	@echo "Running V1.0 System E2E Tests..."
+	cd scripts/e2e && go test -v v1_e2e_test.go

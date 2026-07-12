@@ -1,0 +1,30 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+[safety rules prepended automatically by jules_submit.py]
+
+---
+
+TASK: P6-T02 — Shadow API Test Coverage
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Build a mechanism to calculate "Shadow API Coverage." Ingest test run traffic (via OTel or Datadog traces), map the payloads to the OpenAPI spec, and record which fields were actively tested. Update the Svelte dashboard to color-code the schema (Green/Red) based on coverage.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. Create `api/internal/coverage/shadow_calculator.go`.
+2. Expose the coverage metrics via a new API endpoint.
+3. Update `dashboard/src/routes/org/[org]/repo/[repo]/+page.svelte` to display visual schema coverage.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO ADD:
+- api/internal/coverage/shadow_calculator.go
+
+FILES TO MODIFY:
+- api/cmd/server/main.go
+- dashboard/src/routes/org/[org]/repo/[repo]/+page.svelte
+
+Commit: "jules: implement shadow api test coverage calculator and UI"

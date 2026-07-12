@@ -1,0 +1,28 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.6.0",
+  "variables": {},
+  "planned_values": {
+    "root_module": {
+      "resources": [
+        {
+          "address": "module.notifications.aws_lambda_function.main",
+          "mode": "managed",
+          "type": "aws_lambda_function",
+          "name": "main",
+          "provider_name": "registry.terraform.io/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "environment": [
+              {
+                "variables": {
+                  "NOTIFICATIONS_SERVICE_URL": "https://notifications.myorg.com"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

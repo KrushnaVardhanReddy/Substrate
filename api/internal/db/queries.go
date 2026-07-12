@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -83,17 +84,17 @@ func UpsertContract(ctx context.Context, pool *pgxpool.Pool, repoID uuid.UUID, s
 }
 
 // UpsertDependency links a consumer repo to a provider contract.
-func (s *PGStore) UpsertDependency(ctx context.Context, consumerRepoID, providerContractID uuid.UUID) error {
-	return UpsertDependency(ctx, s.pool, consumerRepoID, providerContractID)
+func (s *PGStore) UpsertDependency(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, confidenceScore int) error {
+	return UpsertDependency(ctx, s.pool, consumerRepoID, providerContractID, confidenceScore)
 }
 
-func UpsertDependency(ctx context.Context, pool *pgxpool.Pool, consumerRepoID, providerContractID uuid.UUID) error {
+func UpsertDependency(ctx context.Context, pool *pgxpool.Pool, consumerRepoID, providerContractID uuid.UUID, confidenceScore int) error {
 	_, err := pool.Exec(ctx, `
-		INSERT INTO dependencies (consumer_repo_id, provider_contract_id, last_checked_at)
-		VALUES ($1, $2, NOW())
+		INSERT INTO dependencies (consumer_repo_id, provider_contract_id, last_checked_at, confidence_score)
+		VALUES ($1, $2, NOW(), $3)
 		ON CONFLICT (consumer_repo_id, provider_contract_id) DO UPDATE
-		SET last_checked_at = EXCLUDED.last_checked_at
-	`, consumerRepoID, providerContractID)
+		SET last_checked_at = EXCLUDED.last_checked_at, confidence_score = EXCLUDED.confidence_score
+	`, consumerRepoID, providerContractID, confidenceScore)
 	if err != nil {
 		return fmt.Errorf("failed to upsert dependency: %w", err)
 	}
@@ -243,6 +244,60 @@ func CountReposByOrg(ctx context.Context, pool *pgxpool.Pool, orgName string) (i
 	return count, nil
 }
 
+// RecordBreakingChange records a new breaking change entry.
+func (s *PGStore) RecordBreakingChange(ctx context.Context, repoID uuid.UUID, orgName, repoName, gitSHA string, breakingChanges json.RawMessage) error {
+	return RecordBreakingChange(ctx, s.pool, repoID, orgName, repoName, gitSHA, breakingChanges)
+}
+
+func RecordBreakingChange(ctx context.Context, pool *pgxpool.Pool, repoID uuid.UUID, orgName, repoName, gitSHA string, breakingChanges json.RawMessage) error {
+	_, err := pool.Exec(ctx, `
+		INSERT INTO breaking_change_history (repo_id, org_name, repo_name, git_sha, breaking_changes)
+		VALUES ($1, $2, $3, $4, $5)
+	`, repoID, orgName, repoName, gitSHA, breakingChanges)
+	if err != nil {
+		return fmt.Errorf("failed to record breaking change: %w", err)
+	}
+	return nil
+}
+
+// GetBreakingChangeHistory retrieves recent breaking changes for a repository.
+func (s *PGStore) GetBreakingChangeHistory(ctx context.Context, orgName, repoName string, limit int) ([]BreakingChangeRecord, error) {
+	return GetBreakingChangeHistory(ctx, s.pool, orgName, repoName, limit)
+}
+
+func GetBreakingChangeHistory(ctx context.Context, pool *pgxpool.Pool, orgName, repoName string, limit int) ([]BreakingChangeRecord, error) {
+	rows, err := pool.Query(ctx, `
+		SELECT id, repo_id, org_name, repo_name, git_sha, timestamp, breaking_changes
+		FROM breaking_change_history
+		WHERE org_name = $1 AND repo_name = $2
+		ORDER BY timestamp DESC
+		LIMIT $3
+	`, orgName, repoName, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get breaking change history: %w", err)
+	}
+	defer rows.Close()
+
+	var records []BreakingChangeRecord
+	for rows.Next() {
+		var r BreakingChangeRecord
+		if err := rows.Scan(&r.ID, &r.RepoID, &r.OrgName, &r.RepoName, &r.GitSHA, &r.Timestamp, &r.BreakingChanges); err != nil {
+			return nil, fmt.Errorf("failed to scan breaking change record: %w", err)
+		}
+		records = append(records, r)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating over breaking change history: %w", err)
+	}
+
+	if records == nil {
+		records = []BreakingChangeRecord{}
+	}
+
+	return records, nil
+}
+
 // CountDownstreamDependencies returns the number of unique downstream consumers for a provider.
 func (s *PGStore) CountDownstreamDependencies(ctx context.Context, providerFullName string) (int, error) {
 	return CountDownstreamDependencies(ctx, s.pool, providerFullName)
@@ -261,4 +316,52 @@ func CountDownstreamDependencies(ctx context.Context, pool *pgxpool.Pool, provid
 		return 0, fmt.Errorf("failed to count downstream dependencies: %w", err)
 	}
 	return count, nil
+}
+
+func (s *PGStore) UpdateDependencyConfidence(ctx context.Context, consumerFullName, providerURL string, boostAmount float64) error {
+	return UpdateDependencyConfidence(ctx, s.pool, consumerFullName, providerURL, boostAmount)
+}
+
+func UpdateDependencyConfidence(ctx context.Context, pool *pgxpool.Pool, consumerFullName, providerURL string, boostAmount float64) error {
+	_, err := pool.Exec(ctx, `
+		UPDATE dependencies
+		SET confidence_score = LEAST(100.0, confidence_score + $1)
+		FROM repositories cr, contracts pc
+		WHERE dependencies.consumer_repo_id = cr.id
+		  AND dependencies.provider_contract_id = pc.id
+		  AND cr.full_name = $2
+		  AND pc.raw_content LIKE '%' || $3 || '%'
+	`, boostAmount, consumerFullName, providerURL)
+	if err != nil {
+		return fmt.Errorf("failed to update confidence score: %w", err)
+	}
+	return nil
+}
+
+func (s *PGStore) SaveDiffReport(ctx context.Context, diffReport json.RawMessage) (uuid.UUID, error) {
+	return SaveDiffReport(ctx, s.pool, diffReport)
+}
+
+func SaveDiffReport(ctx context.Context, pool *pgxpool.Pool, diffReport json.RawMessage) (uuid.UUID, error) {
+	var id uuid.UUID
+	err := pool.QueryRow(ctx, `
+		INSERT INTO diff_reports (report_data)
+		VALUES ($1)
+		RETURNING id
+	`, diffReport).Scan(&id)
+	return id, err
+}
+
+func (s *PGStore) GetDiffReport(ctx context.Context, id uuid.UUID) (json.RawMessage, error) {
+	return GetDiffReport(ctx, s.pool, id)
+}
+
+func GetDiffReport(ctx context.Context, pool *pgxpool.Pool, id uuid.UUID) (json.RawMessage, error) {
+	var reportData json.RawMessage
+	err := pool.QueryRow(ctx, `
+		SELECT report_data
+		FROM diff_reports
+		WHERE id = $1
+	`, id).Scan(&reportData)
+	return reportData, err
 }

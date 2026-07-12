@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@myorg/auth-sdk": "1.0.0"
+  }
+}

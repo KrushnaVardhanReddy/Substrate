@@ -11,11 +11,18 @@ export interface DiffSummary {
   info_count: number;
 }
 
+export interface ComplianceAlert {
+  path: string;
+  compliance_type: string;
+  message: string;
+}
+
 export interface DiffReport {
   breaking_changes: DiffChange[];
   warnings: DiffChange[];
   safe_changes: DiffChange[];
   summary: DiffSummary;
+  compliance_alerts?: ComplianceAlert[];
 }
 
 export interface SubstrateConfig {
@@ -129,4 +136,31 @@ export interface AIAutofixResponse {
   safe_patch: string;
   patch_language: string;
   mock_mode: boolean;
+}
+
+export interface InstallationRepo {
+  id: number;
+  name: string;
+  full_name: string;
+  owner: {
+    login: string;
+    id: number;
+  };
+}
+
+export interface InstallationRepositoriesEvent {
+  action: 'added' | 'removed';
+  installation: {
+    id: number;
+  };
+  repositories_added: InstallationRepo[];
+  repositories_removed: InstallationRepo[];
+}
+
+export interface InstallationEvent {
+  action: 'created' | 'deleted' | 'suspend' | 'unsuspend' | 'new_permissions_accepted';
+  installation: {
+    id: number;
+  };
+  repositories?: InstallationRepo[];
 }
