@@ -12,6 +12,7 @@
 2. **Ghost File Cleanups:** Cleaned up empty 0-byte ghost files (`validate.go` and `terminal.go`) that were breaking the Go compiler.
 3. **v0.2.0 Released:** Tagged and pushed `v0.2.0` from `main` to trigger the Docker Hub release.
 4. **P5-T07 Spec & Prompt Written:** Completely rewrote the Stress Testing spec to include 9 unique protocol clusters, a 60% noise generation with poison pills, concurrency with jitter, graph mutations, and a terminal reporting matrix.
+5. **P5-T08 Chi Router Migration:** Merged PR migrating `api/internal/server/router.go` to `chi` to secure the backend against Poison Pill panics using `middleware.Recoverer`.
 
 ### What is running in the background:
 **Jules is currently executing P5-T07** (100-Repo Scale & Universal Protocol Simulation). 
