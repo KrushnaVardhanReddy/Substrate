@@ -22,7 +22,7 @@ Create a highly concurrent Go script that programmatically synthesizes parameter
 #### B. Execution Phases
 1. **The Flood:** Fire all webhooks concurrently using Go routines with random microsecond jitter to simulate CI/CD rush hour and test for Postgres deadlocks.
 2. **The Mutation:** Wait 5 seconds, then randomly mutate the state: delete 5 repositories (orphaning edges), rename 5 endpoints, and introduce 3 breaking changes. Ensure the graph dynamically recalculates.
-3. **The Assertion:** Query the Registry API to assert that exactly the expected number of nodes and edges survived the mutations, with 0 false positives from the noise.
+3. **The Assertion:** Query the Registry API (`GET /api/v1/graph/{org}`) passing the `Authorization: Bearer <local-dev-token>` header to assert that exactly the expected number of nodes and edges survived the mutations, with 0 false positives from the noise.
 
 #### C. Observability & Reporting Matrix
 Because we cannot manually monitor 100+ repos, the `scale_generator.go` script MUST act as an APM tool. At the end of the execution, it must output a terminal table displaying:
