@@ -27,12 +27,8 @@
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **V1-T01** | 🔴 P1 | **GitHub App Auto-Discovery** — Zero-touch onboarding. Auto-scan repos for OpenAPI and open PRs with `substrate.yaml`. | Jules | ⏳ Jules PR Pending | `docs/specs/v1-preflight/v1-spec.md` |
-| **V1-T02** | 🟡 P2 | **CLI AI Architect (`init --design`)** — Conversational LLM interface to scaffold an API contract before writing code. | Jules | ⏳ Jules PR Pending | `docs/specs/v1-preflight/v1-spec.md` |
 | **V1-T03** | 🟢 P3 | **Interactive Diff Viewer UI** — Vercel-style preview URL inside PR comments showing a visual side-by-side schema diff. | Jules | ⏳ Jules PR Pending | `docs/specs/v1-preflight/v1-spec.md` |
 | **V1-T04** | 🔵 P4 | **`substrate check-deploy`** — CI/CD deployment safety gate to ensure safe deploy ordering (P2-T06 Deferred). | Jules | ⏳ Jules PR Pending | `docs/specs/v1-preflight/v1-spec.md` |
-| **V1-T05** | ⚪ P5 | **Local `validate` CLI** — Local validation command for developers to test schema changes against the registry offline. | Jules | ⏳ Jules PR Pending | `docs/specs/v1-preflight/v1-spec.md` |
-| **V1-T06** | ⚪ P5 | **Legal & Licensing Audit** — Audit `go.mod` for GPL licenses, add UI Credits/Notices. | Jules | ⏳ Jules PR Pending | `docs/specs/v1-preflight/v1-spec.md` |
 | **V1-T07** | 🟡 P6 | **V1.0 System E2E Tests** — Final E2E orchestration tests mimicking production flow across all modules. | Antigravity | 🔒 Blocked by T01-T06 | `docs/specs/v1-preflight/v1-spec.md` |
 
 ---

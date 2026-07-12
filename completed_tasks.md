@@ -416,3 +416,16 @@ See the full spec: `docs/specs/enterprise-vision.md`
 | **P6-T05** | 🟡 P6 | **Phase 6 E2E Tests** — Cross-functional E2E suite validating Mock Server, Test Generation, Shadow Coverage, and Postman sync. | Antigravity | ✅ Merged | `docs/specs/phase-6/p6-t05-e2e.md` |
 
 ---
+
+## 🚀 V1.0 Pre-Flight Checklist (Prod Launch)
+
+**Goal:** Finalize the developer experience, onboarding friction, and legal requirements before pushing Substrate to the GitHub Marketplace.
+
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|---|---|---|---|---|---|
+| **V1-T01** | 🔴 P1 | **GitHub App Auto-Discovery** — Zero-touch onboarding. Auto-scan repos for OpenAPI and open PRs with `substrate.yaml`. | Jules | ✅ Merged | `docs/specs/v1-preflight/v1-spec.md` |
+| **V1-T02** | 🟡 P2 | **CLI AI Architect (`init --design`)** — Conversational LLM interface to scaffold an API contract before writing code. | Jules | ✅ Merged | `docs/specs/v1-preflight/v1-spec.md` |
+| **V1-T05** | ⚪ P5 | **Local `validate` CLI** — Local validation command for developers to test schema changes against the registry offline. | Jules | ✅ Merged | `docs/specs/v1-preflight/v1-spec.md` |
+| **V1-T06** | ⚪ P5 | **Legal & Licensing Audit** — Audit `go.mod` for GPL licenses, add UI Credits/Notices. | Jules | ✅ Merged | `docs/specs/v1-preflight/v1-spec.md` |
+
+---
