@@ -1,0 +1,32 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+[safety rules prepended automatically by jules_submit.py]
+
+---
+
+TASK: V1-T07 — V1.0 System E2E Tests
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Prove the final V1.0 pipeline works as a seamless end-to-end flow—from automated onboarding, AI design, schema diffing, to final deployment gates.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. **E2E Suite:** Write `scripts/e2e/v1_e2e_test.go`.
+2. **Step 1 (Discovery):** Simulate the GitHub App Webhook receiving a new repository installation, asserting it triggers the Auto-Discovery PR (V1-T01 logic).
+3. **Step 2 (AI Scaffold):** Simulate a developer invoking the CLI AI Architect (V1-T02) using a mocked LLM interface, asserting the generated YAML is valid.
+4. **Step 3 (Diff Viewer):** Simulate a PR schema break and assert that the interactive Diff Viewer UI JSON is correctly generated and stored (V1-T03 logic).
+5. **Step 4 (Validation):** Execute the `substrate validate` (V1-T05) locally to fix the break.
+6. **Step 5 (Deploy Gate):** Execute `substrate check-deploy` (V1-T04) and assert it blocks a premature consumer deployment.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO ADD:
+- scripts/e2e/v1_e2e_test.go
+
+FILES TO MODIFY:
+- (None)
+
+Commit: "jules: implement V1.0 system E2E tests"

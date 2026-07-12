@@ -1,0 +1,30 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+[safety rules prepended automatically by jules_submit.py]
+
+---
+
+TASK: V1-T06 — Legal & Licensing Audit
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Ensure that enterprise procurement teams can approve the Substrate binary by guaranteeing license compliance. This task requires auditing all transitive dependencies in the Go modules and surfacing attributions in the UI.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. **Audit Script:** Create `scripts/legal_audit.sh` which executes `go-licenses` (or similar) across the `engine` and `api` modules. Ensure no `GPL` or `AGPL` transitive dependencies exist.
+2. **Attributions File:** Generate an `ATTRIBUTIONS.md` file at the root of the repository listing all OSS licenses.
+3. **Dashboard Footer:** Embed a "Credits / OSS Licenses" modal in the Svelte dashboard footer (`dashboard/src/lib/components/Footer.svelte` or similar).
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO ADD:
+- scripts/legal_audit.sh
+- ATTRIBUTIONS.md
+
+FILES TO MODIFY:
+- dashboard/src/routes/+layout.svelte
+
+Commit: "jules: implement legal licensing audit and UI attributions"

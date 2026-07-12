@@ -1,0 +1,32 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+[safety rules prepended automatically by jules_submit.py]
+
+---
+
+TASK: V1-T02 — CLI AI Architect (init --design)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement the `--design` flag for the `substrate init` command. This feature provides a conversational LLM interface that helps developers scaffold an OpenAPI contract from scratch before they write any code.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. **CLI Flag:** Update `engine/cmd/substrate/main.go` to accept the `--design` flag on the `init` command.
+2. **AI Interface:** Implement the conversational loop using the `github.com/sashabaranov/go-openai` library (which should be added to `go.mod`). Prompt the user via `stdin` for their desired API endpoints (e.g., "I need a blog API with posts and comments").
+3. **Spec Generation:** Stream the LLM response to generate a valid OpenAPI 3.0 YAML spec.
+4. **File Output:** Automatically save the generated spec to the local filesystem (e.g., `openapi.yaml`) and create the corresponding `substrate.yaml` configuration file pointing to it.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO ADD:
+- engine/pkg/ai/architect.go
+
+FILES TO MODIFY:
+- engine/cmd/substrate/main.go
+- engine/go.mod
+- engine/go.sum
+
+Commit: "jules: implement init --design CLI AI architect"

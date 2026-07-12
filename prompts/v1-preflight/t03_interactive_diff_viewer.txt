@@ -1,0 +1,34 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+[safety rules prepended automatically by jules_submit.py]
+
+---
+
+TASK: V1-T03 — Interactive Diff Viewer UI (Vercel-style)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Replace the "wall of text" PR comments with a highly visual, actionable UI. When a PR diff is evaluated, Substrate should generate a unique preview URL and append it to the GitHub comment. Clicking the URL should open a visually stunning split-pane schema diff in the Svelte Dashboard.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. **API Storage:** Update the Go API server (`api/internal/handlers/diff.go`) to store the generated `DiffReport` JSON into a new PostgreSQL table (`diff_reports`) with a unique UUID (`DiffID`).
+2. **Webhook Update:** Update the Cloudflare Worker (`github-app/src/index.ts`) to append the preview URL (`https://substrate.run/diff/<DiffID>`) to the top of the GitHub PR comment.
+3. **Dashboard UI:** Create a new route in the Svelte Dashboard (`dashboard/src/routes/diff/[id]/+page.svelte`).
+4. **Visual Diffing:** The UI must fetch the DiffReport by ID and render a split-pane, side-by-side visual comparison (Red/Green highlighting for deleted/added lines) showing exactly which schema lines broke.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO ADD:
+- api/internal/db/migrations/XXXXXX_create_diff_reports.sql
+- dashboard/src/routes/diff/[id]/+page.svelte
+- dashboard/src/routes/diff/[id]/+page.ts
+
+FILES TO MODIFY:
+- api/internal/handlers/diff.go
+- github-app/src/index.ts
+- github-app/src/formatter.ts
+
+Commit: "jules: implement vercel-style interactive diff viewer UI"
