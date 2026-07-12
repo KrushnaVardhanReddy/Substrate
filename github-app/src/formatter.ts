@@ -5,9 +5,12 @@ function escapeMarkdown(text: string): string {
   return text.replace(/\|/g, '\\|').replace(/`/g, '\\`');
 }
 
-function formatFooter(dashboardUrl?: string, owner?: string, repo?: string, prNumber?: number): string {
+function formatFooter(dashboardUrl?: string, owner?: string, repo?: string, prNumber?: number, diffId?: string): string {
   const poweredBy = `*Powered by [Substrate](https://github.com/KrushnaVardhanReddy/Substrate)*`;
-  if (dashboardUrl && owner && repo && prNumber) {
+  if (dashboardUrl && diffId) {
+    const link = `${dashboardUrl}/diff/${diffId}`;
+    return `[View in Dashboard →](${link})\n${poweredBy}`;
+  } else if (dashboardUrl && owner && repo && prNumber) {
     const link = `${dashboardUrl}/diff?owner=${owner}&repo=${repo}&pr=${prNumber}`;
     return `[View in Dashboard →](${link})\n${poweredBy}`;
   }
@@ -22,7 +25,8 @@ export function formatPRComment(
   repo?: string,
   prNumber?: number,
   aiExplanation?: string,
-  aiSafePatch?: string
+  aiSafePatch?: string,
+  diffId?: string
 ): string {
   const breakingCount = report.summary?.breaking_count || 0;
   const warningCount = report.summary?.warning_count || 0;
@@ -110,8 +114,12 @@ export function formatPRComment(
     comment += '\n';
   }
 
+  if (dashboardUrl && diffId) {
+      comment = `[🔍 View Interactive Diff](${dashboardUrl}/diff/${diffId})\n\n` + comment;
+  }
+
   comment += `---\n`;
-  comment += `${formatFooter(dashboardUrl, owner, repo, prNumber)}`;
+  comment += `${formatFooter(dashboardUrl, owner, repo, prNumber, diffId)}`;
 
   return comment;
 }
