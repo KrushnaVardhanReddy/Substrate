@@ -1,0 +1,36 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+[safety rules prepended automatically by jules_submit.py]
+
+---
+
+TASK: E2E-T01 — 1-Hour Chaos Endurance Mode & Live UI Polling
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Upgrade `scale_generator.go` to support a continuous `--duration` loop for sustained 1-hour chaos testing, and update the Svelte UI to poll the graph every 5 seconds to visualize the chaos live.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. **Generator Update (`scripts/e2e/scale_generator.go`):**
+   - Add a `durationFlag` flag for `time.Duration` (default `1h`).
+   - Rewrite `RunScaleSimulation` to use a `context.WithTimeout` based on the duration.
+   - Run a continuous loop inside the worker pool. Workers should continually select a random ID between `0` and `config.Scale` and execute `generatePoisonPill`, `generateProtocolCluster`, or a mutation (randomly deleting or renaming).
+   - Ensure latency stats and panic counters are updated thread-safely over the entire duration.
+   - Print a live status to the terminal every 60 seconds (or 10 seconds if duration is short).
+   - When the context expires (or Ctrl+C is pressed), print the final report.
+
+2. **UI Polling (`dashboard/src/routes/org/[org]/graph/+page.svelte`):**
+   - Add a `setInterval` inside an `$effect()` block to fetch from `http://localhost:8090/api/v1/graph/chaos-org` every 5 seconds. (Ensure the `Authorization: Bearer local-dev-token` header is passed).
+   - Compute the diff between the new data and the existing Cytoscape elements.
+   - Use `cy.add()` for new nodes/edges and `cy.remove()` for deleted nodes/edges.
+   - Call `cy.layout({ name: 'dagre', rankDir: 'LR', nodeSep: 50, rankSep: 150 }).run()` after diffing to animate the structural changes.
+
+═══════════════════════════════════════════════════════════════
+FILES TO MODIFY
+═══════════════════════════════════════════════════════════════
+- scripts/e2e/scale_generator.go
+- dashboard/src/routes/org/[org]/graph/+page.svelte
+
+Commit message: "feat(e2e): implement 1-hour continuous chaos mode and live cytoscape polling"
