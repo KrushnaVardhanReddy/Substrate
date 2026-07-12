@@ -447,6 +447,20 @@ See the full spec: `docs/specs/enterprise-vision.md`
 
 ---
 
+## 📈 Phase 8: Compliance, IDEs & Analytics (The Enterprise Moat)
+
+**Goal:** Provide compliance auditing, IDE-level developer experience, and management-level reporting to justify enterprise adoption.
+
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|---|---|---|---|---|---|
+| **P8-T01** | 🔴 P1 | **Shift-Left IDE Plugins** — VSCode/IntelliJ extensions powered by the MCP server to underline breaking changes as the developer types. | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
+| **P8-T02** | 🟡 P2 | **Continuous AI Sync (`watch`)** — Background daemon that monitors code changes in the IDE and updates the local OpenAPI spec in real-time. | Unassigned | 💡 Backlog | `docs/specs/go-to-market-strategy.md` |
+| **P8-T03** | 🟢 P3 | **Compliance Mapping** — Auto-tag schemas with SOC2/GDPR/HIPAA warnings when fields like `ssn` or `medical_history` are detected. | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
+| **P8-T04** | 🔵 P4 | **Quality Gates (SonarQube-style)** — Allow setting different failure thresholds based on service tier (e.g., Tier 1 allows 0 warnings, Beta allows breakages). | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
+| **P8-T05** | ⚪ P5 | **Management ROI Dashboard** — A dashboard view that calculates the literal hours and money saved by preventing outages this month. | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
+
+---
+
 ## How to Submit Jules Tasks
 
 ```bash
