@@ -1,6 +1,6 @@
 # Substrate — Task Tracker
 
-> Last updated: 2026-07-11 (Phase 5 Automated Dependency Discovery PRs merged ✅. Phase 6 QA & Automation in progress. Active Jules session running.)
+> Last updated: 2026-07-12 (Phase 6 features merged ✅. Phase 6 E2E Tests in progress. Active Jules session running.)
 > Tracking all development phases, tasks, and their current status.
 
 ---
@@ -413,7 +413,7 @@ See the full spec: `docs/specs/enterprise-vision.md`
 | **P6-T02** | 🟡 P2 | **Shadow API Coverage** — Map OTel/Datadog traces to OpenAPI to find untested fields. Update Dashboard UI. | Jules | ✅ Merged | `prompts/phase-6-qa/t02_shadow_coverage.txt` |
 | **P6-T03** | 🟢 P3 | **Auto-Generating Test Code** — Fuzz API constraints to generate executable Playwright/Go tests. | Jules | ✅ Merged | `prompts/phase-6-qa/t03_test_code_generation.txt` |
 | **P6-T04** | 🔵 P4 | **Mock Server Time Machine** — CLI command to spin up local mock servers for historical API versions. | Jules | ✅ Merged | `prompts/phase-6-qa/t04_mock_server.txt` |
-| **P6-T05** | 🟡 P6 | **Phase 6 E2E Tests** — Cross-functional E2E suite validating Mock Server, Test Generation, Shadow Coverage, and Postman sync. | Antigravity | ⏳ Ready to Start | `docs/specs/phase-6/p6-t05-e2e.md` |
+| **P6-T05** | 🟡 P6 | **Phase 6 E2E Tests** — Cross-functional E2E suite validating Mock Server, Test Generation, Shadow Coverage, and Postman sync. | Antigravity | ⏳ Jules PR Pending | `docs/specs/phase-6/p6-t05-e2e.md` |
 
 ---
 
