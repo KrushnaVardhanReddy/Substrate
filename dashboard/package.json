@@ -21,6 +21,7 @@
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
 		"@testing-library/jest-dom": "^6.9.1",
 		"@testing-library/svelte": "^5.4.2",
+		"@types/d3": "^7.4.3",
 		"@types/node": "^26.1.1",
 		"jsdom": "^29.1.1",
 		"svelte": "^5.56.1",
@@ -29,5 +30,8 @@
 		"typescript": "^6.0.3",
 		"vite": "^8.1.4",
 		"vitest": "^4.1.10"
+	},
+	"dependencies": {
+		"d3": "^7.9.0"
 	}
 }
