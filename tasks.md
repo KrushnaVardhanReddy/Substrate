@@ -74,6 +74,20 @@
 
 ---
 
+## 🚀 Phase 10: The Ultimate Enterprise SDLC (Post-V1.0 Vision)
+
+**Goal:** Extend Substrate beyond schema safety into auto-remediation, code generation, and runtime API governance.
+
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|---|---|---|---|---|---|
+| **P10-T01** | 🔴 P1 | **CI/CD Cascading Rollback Gate** — `substrate check-rollback` CLI command to block a provider from rolling back in production if a consumer has already deployed code requiring the newer schema. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P10-T02** | 🟡 P2 | **AI Mock Data Generator (QA)** — Scan QA repositories for JSON test fixtures and use the AI engine to auto-update mock data when the upstream API schema changes. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P10-T03** | 🟢 P3 | **AI Spectral Linter (API Governance)** — Enforce plain-English API design rules (e.g. "All endpoints must use camelCase") during the PR diff process to maintain org-wide consistency. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P10-T04** | 🔵 P4 | **Auto-SDK Generator PRs** — Automatically generate TypeScript/Swift/Go clients via OpenAPI Generator when a schema is merged, opening PRs directly in the downstream consumer repositories. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P10-T05** | ⚪ P5 | **Traffic-Aware Pruning (Zombies)** — Correlate schema endpoints with live Datadog/OTel metrics to detect unused "zombie" APIs and auto-generate PRs to delete the dead code. | Unassigned | 💡 Backlog | `(Pending)` |
+
+---
+
 ## How to Submit Jules Tasks
 
 ```bash
