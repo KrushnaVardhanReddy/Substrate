@@ -346,7 +346,7 @@ TASKS = {
         "phase": "phase-6-qa",
         "prompt": _load_prompt("prompts/phase-6-qa/t05_e2e_tests.txt"),
     },
-    71: {
+    104: {
         "name": "UI-T01 — Dynamic Cytoscape Graph Rendering",
         "phase": "ui",
         "prompt": _load_prompt("prompts/ui/t01_dynamic_graph.txt"),
