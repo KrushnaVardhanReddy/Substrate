@@ -1,26 +1,31 @@
 # Substrate Handoff Status
 
 ## Current Status (as of Session End)
-**Date/Time:** 2026-07-11
+**Date/Time:** 2026-07-12
 **Active Branch:** `feature/dev`
 
+### Core Development Philosophy
+**Spec-First Approach:** NEVER write code before updating the specification in `docs/specs/` and creating a detailed prompt. Update `tasks.md` before executing new tasks.
+
 ### What was just completed:
-1. **Phase 5 (Automated Dependency Discovery)** and **Phase 6 (QA & Automation)** specs, tasks, and readme were fully planned and documented.
-2. A total of **9 Jules prompts** were authored and successfully submitted in parallel (5 for Phase 5, 4 for Phase 6).
-3. The **5 Jules PRs for Phase 5** (P5-T01 through P5-T05) have been reviewed, merge conflicts resolved, and merged successfully into `feature/dev`. Tests are passing.
-4. **Phase 5 E2E Tests** (P5-T06) were implemented and successfully merged.
-5. The **4 Jules PRs for Phase 6** (P6-T01 through P6-T04) have been reviewed, merge conflicts resolved, and merged successfully into `feature/dev`. Tests are passing.
-6. The `tasks.md` tracker has been updated to reflect Phase 5 and Phase 6 implementation tasks as `✅ Merged`.
-7. **V1.0 Pre-Flight Checklist** added to `tasks.md` for final prod launch items.
+1. **Phase 6 E2E Tests (P6-T05):** Merged and validated. Phase 6 is completely done.
+2. **Tasks Cleanup:** Archived all Phase 0-6 completed tasks to `completed_tasks.md` to keep `tasks.md` clean.
+3. **Enterprise Roadmap:** Added Phase 7, Phase 8, and Phase 9 (Security & Ecosystem) to `tasks.md`.
+4. **V1.0 Pre-flight Prompts:** Created detailed Jules prompts for V1-T01 through V1-T07.
 
 ### What is running in the background:
-Jules is currently working on:
-- `V1-T01` (GitHub App Auto-Discovery) against `feature/dev`
-- `V1-T02` (CLI AI Architect) against `feature/dev`
-- `V1-T03` (Interactive Diff Viewer UI) against `feature/dev`
-- `V1-T04` (Deployment Safety Gate) against `feature/dev`
-- `V1-T05` (Local Validation CLI) against `feature/dev`
-- `V1-T06` (Legal & Licensing Audit) against `feature/dev`
+Jules is currently working on the following V1.0 tasks in parallel against `feature/dev`:
+- `V1-T01` (GitHub App Auto-Discovery) 
+- `V1-T02` (CLI AI Architect) 
+- `V1-T03` (Interactive Diff Viewer UI) 
+- `V1-T04` (Deployment Safety Gate) 
+- `V1-T05` (Local Validation CLI) 
+- `V1-T06` (Legal & Licensing Audit) 
 
-### Next Steps for Next Session:
-1. **Execute V1.0 Pre-Flight Checklist:** Start knocking out V1-T01 through V1-T07 (GitHub App Auto-Discovery, CLI AI Architect, Diff Viewer, etc.) to prepare for Prod Launch.
+### Next Steps for Next Session (Post-Break):
+1. **Merge Jules PRs Carefully:** Since V1-T02, T04, and T05 all modify `engine/cmd/substrate/main.go`, expect merge conflicts. Merge one by one and manually resolve conflicts.
+2. **Post-Merge Checklist:** After each merge, be sure to:
+   - Move the task from `tasks.md` to `completed_tasks.md`.
+   - Mark its status as `✅ Merged`.
+   - Ensure the Svelte UI and Go tests pass (`go test ./...` and `make e2e`).
+3. **Execute V1-T07:** Once T01-T06 are merged, submit the `prompts/v1-preflight/t07_system_e2e.txt` prompt to Jules to validate the entire V1.0 system.
