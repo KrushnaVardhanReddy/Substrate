@@ -346,10 +346,15 @@ TASKS = {
         "phase": "phase-6-qa",
         "prompt": _load_prompt("prompts/phase-6-qa/t05_e2e_tests.txt"),
     },
-    71: {
+    104: {
         "name": "UI-T01 — Dynamic Cytoscape Graph Rendering",
         "phase": "ui",
         "prompt": _load_prompt("prompts/ui/t01_dynamic_graph.txt"),
+    },
+    105: {
+        "name": "E2E-T01 — 1-Hour Chaos Endurance Mode & Live UI Polling",
+        "phase": "ui",
+        "prompt": _load_prompt("prompts/e2e/t01_endurance_mode.txt"),
     },
     56: {
         "name": "P5-T06 — Phase 5 E2E Tests",

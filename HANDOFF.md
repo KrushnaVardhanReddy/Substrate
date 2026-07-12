@@ -7,17 +7,19 @@
 ### Core Development Philosophy
 **Spec-First Approach:** NEVER write code before updating the specification in `docs/specs/` and creating a detailed prompt. Update `tasks.md` before executing new tasks.
 
-### What was just completed:
-1. **P5-T08 Chi Router Migration:** Merged PR migrating `api/internal/server/router.go` to `chi` to secure the backend against Poison Pill panics using `middleware.Recoverer`.
-2. **P5-T07 Chaos Simulator:** Merged the highly concurrent 100-repo Chaos Generator script into `feature/dev`. It is now capable of firing webhook payloads with jitter and poison pills to the local API.
+## Current Status
+- **Phase 5 (Dependency Discovery):** 100% Complete. The `chi/v5` router migration and P5-T07 Scale Simulation passed perfectly.
+- **Phase 6.5 (Dynamic UI):** In Progress. Jules is currently working on **UI-T01 (Dynamic Cytoscape Graph Rendering)**.
 
-### What is running in the background:
-(None currently)
+## Pending Jules PRs
+- [x] ~~P5-T08 (Chi Router & Panic Recovery)~~ -> Merged!
+- [x] ~~P5-T07 (100-Repo Chaos Simulation)~~ -> Merged!
+- [ ] **UI-T01 (Dynamic Cytoscape Graph Rendering)** -> Session 14986260967206386919 (In Progress)
 
-### Next Steps for Next Session (Post-Break):
-1. **Start the Engine:** Run `make start-bg` to boot up the Postgres container and the Chi-backed Registry API.
-2. **Start the Dashboard:** Run `make dashboard` to open the Svelte UI.
-3. **Unleash Chaos:** Run `make e2e-scale` (or `cd scripts/e2e && go run .`) to fire the 100-repo scale simulation.
-4. **Observe:** 
-   - Check the terminal output from the generator for the Latency & Panic reporting matrix.
-   - Refresh the Svelte UI to ensure it renders all 10 distinct protocol clusters without freezing the browser.
+## Next Steps for the Human
+1. **Wait for Jules:** Monitor the Jules session for `UI-T01`.
+2. **Review & Merge:** Once Jules opens the PR:
+   - Run `git pull origin feature/dev`.
+   - Run `make start-bg` to start the backend and the Svelte dashboard.
+   - Navigate to `http://localhost:5173/org/chaos-org/graph` and visually verify that the 100+ simulated repositories render dynamically via Cytoscape with the `dagre` layout.
+3. **Transition to Enterprise Features:** After validating the UI, archive Phase 6.5 and begin working on Phase 7 (Enterprise SaaS Integrations & Monetization).

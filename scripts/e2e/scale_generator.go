@@ -190,26 +190,15 @@ func fireRealWebhook(id int, protocol string, isPoison bool, action string) {
 	url := "http://localhost:8090/api/v1/webhook"
 
 	payload := map[string]interface{}{
-		"action": action,
-		"installation": map[string]interface{}{
-			"id": 12345,
-		},
-		"repository": map[string]interface{}{
-			"id":        id,
-			"name":      fmt.Sprintf("repo-%d", id),
-			"full_name": fmt.Sprintf("chaos-org/repo-%d", id),
-			"owner": map[string]interface{}{
-				"login": "chaos-org",
-			},
-		},
-		"ref": "refs/heads/main",
-		"after": "abcdef123",
-		"commits": []map[string]interface{}{
+		"installation_id": 12345,
+		"org": "chaos-org",
+		"repo": fmt.Sprintf("chaos-org/repo-%d", id),
+		"github_repo_id": id,
+		"commit_sha": "abcdef123",
+		"files": []map[string]interface{}{
 			{
-				"id": "abcdef123",
-				"added": []string{"schema.yaml"},
-				"modified": []string{},
-				"removed": []string{},
+				"path": "schema.yaml",
+				"content": getMockContent(protocol, isPoison),
 			},
 		},
 	}
@@ -321,10 +310,10 @@ func runAssertionAndReporting(totalDuration time.Duration) {
 	        Edges []interface{} `json:"edges"`
 	    }
 
-	    if err := json.Unmarshal(bodyBytes, &graph); err == nil {
-	        if len(graph.Nodes) == 0 {
-	            accuracy = "Failed (0 nodes in graph)"
-	        }
+	    if err := json.Unmarshal(bodyBytes, &graph); err != nil {
+	        accuracy = fmt.Sprintf("Failed to parse graph JSON (err: %v)", err)
+	    } else if len(graph.Nodes) == 0 {
+	        accuracy = "Failed (0 nodes in graph)"
 	    }
 	}
 
