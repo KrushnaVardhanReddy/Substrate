@@ -37,10 +37,10 @@ func TestHistoryHandler_Post(t *testing.T) {
 		{
 			name: "missing required fields",
 			reqBody: RecordBreakingChangeRequest{
-				RepoID:          uuid.New(),
-				OrgName:         "testorg",
+				RepoID:  uuid.New(),
+				OrgName: "testorg",
 			},
-			storeFunc: nil,
+			storeFunc:  nil,
 			wantStatus: http.StatusBadRequest,
 		},
 	}

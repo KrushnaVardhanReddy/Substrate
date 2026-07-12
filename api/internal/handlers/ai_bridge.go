@@ -31,11 +31,11 @@ var mcpTools = []map[string]interface{}{
 }
 
 type chatMessage struct {
-	Role       string      `json:"role"`
-	Content    string      `json:"content,omitempty"`
-	Name       string      `json:"name,omitempty"`
-	ToolCalls  []toolCall  `json:"tool_calls,omitempty"`
-	ToolCallID string      `json:"tool_call_id,omitempty"`
+	Role       string     `json:"role"`
+	Content    string     `json:"content,omitempty"`
+	Name       string     `json:"name,omitempty"`
+	ToolCalls  []toolCall `json:"tool_calls,omitempty"`
+	ToolCallID string     `json:"tool_call_id,omitempty"`
 }
 
 type toolCall struct {

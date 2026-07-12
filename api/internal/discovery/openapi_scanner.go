@@ -25,7 +25,7 @@ func (s *OpenAPIScanner) Scan(ctx context.Context, repo string, files map[string
 		} else if filename == "openapitools.json" {
 			edges = append(edges, s.scanJSONTools(repo, filename, content, urlResolver)...)
 		} else if filename == "package.json" {
-		    edges = append(edges, s.scanPackageScripts(repo, filename, content, urlResolver)...)
+			edges = append(edges, s.scanPackageScripts(repo, filename, content, urlResolver)...)
 		}
 	}
 
@@ -94,7 +94,7 @@ var openapiGeneratorRegex = regexp.MustCompile(`openapi-generator\s+generate\s+.
 var swaggerCodegenRegex = regexp.MustCompile(`swagger-codegen\s+generate\s+.*-i\s+([^\s]+)`)
 
 func (s *OpenAPIScanner) scanPackageScripts(repo, filename string, content []byte, urlResolver func(string) string) []DependencyEdge {
-    var edges []DependencyEdge
+	var edges []DependencyEdge
 
 	var pkg struct {
 		Scripts map[string]string `json:"scripts"`
@@ -105,8 +105,8 @@ func (s *OpenAPIScanner) scanPackageScripts(repo, filename string, content []byt
 	}
 
 	for _, script := range pkg.Scripts {
-	    if matches := openapiGeneratorRegex.FindStringSubmatch(script); len(matches) > 1 {
-	        if targetRepo := urlResolver(matches[1]); targetRepo != "" {
+		if matches := openapiGeneratorRegex.FindStringSubmatch(script); len(matches) > 1 {
+			if targetRepo := urlResolver(matches[1]); targetRepo != "" {
 				edges = append(edges, DependencyEdge{
 					SourceRepo: repo,
 					TargetRepo: targetRepo,
@@ -115,10 +115,10 @@ func (s *OpenAPIScanner) scanPackageScripts(repo, filename string, content []byt
 					Files:      []string{filename},
 				})
 			}
-	    }
+		}
 
-	    if matches := swaggerCodegenRegex.FindStringSubmatch(script); len(matches) > 1 {
-	        if targetRepo := urlResolver(matches[1]); targetRepo != "" {
+		if matches := swaggerCodegenRegex.FindStringSubmatch(script); len(matches) > 1 {
+			if targetRepo := urlResolver(matches[1]); targetRepo != "" {
 				edges = append(edges, DependencyEdge{
 					SourceRepo: repo,
 					TargetRepo: targetRepo,
@@ -127,7 +127,7 @@ func (s *OpenAPIScanner) scanPackageScripts(repo, filename string, content []byt
 					Files:      []string{filename},
 				})
 			}
-	    }
+		}
 	}
 
 	return edges

@@ -18,7 +18,7 @@ type AIAnalyzeRequest struct {
 }
 
 type SSEEvent struct {
-	Type     string `json:"type"`               // "thinking" | "finding" | "fix" | "done" | "error"
+	Type     string `json:"type"` // "thinking" | "finding" | "fix" | "done" | "error"
 	Content  string `json:"content,omitempty"`
 	Severity string `json:"severity,omitempty"` // "BREAKING" | "WARNING" | "SAFE"
 	Language string `json:"language,omitempty"` // "yaml" | "sql" | "graphql"
@@ -134,7 +134,7 @@ func AIAnalyzeHandler() http.HandlerFunc {
 			}
 
 			scanner := bufio.NewScanner(resp.Body)
-			
+
 			var pendingToolCalls []toolCall
 			var assistantMessageContent string
 			toolCallsMap := make(map[int]*toolCall)
@@ -174,7 +174,7 @@ func AIAnalyzeHandler() http.HandlerFunc {
 
 				if len(chunk.Choices) > 0 {
 					choice := chunk.Choices[0]
-					
+
 					// Stream text to frontend as thinking
 					if choice.Delta.Content != "" {
 						assistantMessageContent += choice.Delta.Content
@@ -193,7 +193,7 @@ func AIAnalyzeHandler() http.HandlerFunc {
 						}
 						toolCallsMap[idx].Function.Arguments += tcDelta.Function.Arguments
 					}
-					
+
 					// Stop if finished early without tool calls
 					if choice.FinishReason != nil && *choice.FinishReason == "stop" {
 						break
@@ -218,7 +218,7 @@ func AIAnalyzeHandler() http.HandlerFunc {
 				} else if strings.Contains(upperContent, "SAFE") {
 					severity = "SAFE"
 				}
-				
+
 				var code, language string
 				startIdx := strings.Index(assistantMessageContent, "```")
 				if startIdx != -1 {
@@ -234,12 +234,12 @@ func AIAnalyzeHandler() http.HandlerFunc {
 						}
 					}
 				}
-				
+
 				writeSSE(w, flusher, SSEEvent{Type: "finding", Severity: severity, Content: "AI Analysis Complete (See above details)."})
 				if code != "" {
 					writeSSE(w, flusher, SSEEvent{Type: "fix", Language: language, Code: code})
 				}
-				
+
 				break
 			}
 
@@ -253,12 +253,12 @@ func AIAnalyzeHandler() http.HandlerFunc {
 
 			for _, tc := range pendingToolCalls {
 				writeSSE(w, flusher, SSEEvent{Type: "thinking", Content: fmt.Sprintf("\n* Executing tool: %s *\n", tc.Function.Name)})
-				
+
 				result, err := executeTool(tc.Function.Name, tc.Function.Arguments, req)
 				if err != nil {
 					result = fmt.Sprintf("Error: %v", err)
 				}
-				
+
 				messages = append(messages, chatMessage{
 					Role:       "tool",
 					Content:    result,
@@ -266,7 +266,7 @@ func AIAnalyzeHandler() http.HandlerFunc {
 					ToolCallID: tc.ID,
 				})
 			}
-			
+
 			// Continue loop to send tool results back to LLM
 		}
 
