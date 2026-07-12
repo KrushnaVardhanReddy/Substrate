@@ -413,6 +413,7 @@ See the full spec: `docs/specs/enterprise-vision.md`
 | **P6-T02** | 🟡 P2 | **Shadow API Coverage** — Map OTel/Datadog traces to OpenAPI to find untested fields. Update Dashboard UI. | Jules | ✅ Merged | `prompts/phase-6-qa/t02_shadow_coverage.txt` |
 | **P6-T03** | 🟢 P3 | **Auto-Generating Test Code** — Fuzz API constraints to generate executable Playwright/Go tests. | Jules | ✅ Merged | `prompts/phase-6-qa/t03_test_code_generation.txt` |
 | **P6-T04** | 🔵 P4 | **Mock Server Time Machine** — CLI command to spin up local mock servers for historical API versions. | Jules | ✅ Merged | `prompts/phase-6-qa/t04_mock_server.txt` |
+| **P6-T05** | 🟡 P6 | **Phase 6 E2E Tests** — Cross-functional E2E suite validating Mock Server, Test Generation, Shadow Coverage, and Postman sync. | Antigravity | ⏳ Ready to Start | `docs/specs/phase-6/p6-t05-e2e.md` |
 
 ---
 
@@ -428,6 +429,7 @@ See the full spec: `docs/specs/enterprise-vision.md`
 | **V1-T04** | 🔵 P4 | **`substrate check-deploy`** — CI/CD deployment safety gate to ensure safe deploy ordering (P2-T06 Deferred). | Antigravity | 💡 Backlog | `(Pending)` |
 | **V1-T05** | ⚪ P5 | **Local `validate` CLI** — Local validation command for developers to test schema changes against the registry offline. | Antigravity | 💡 Backlog | `(Pending)` |
 | **V1-T06** | ⚪ P5 | **Legal & Licensing Audit** — Audit `go.mod` for GPL licenses, add UI Credits/Notices. | Antigravity | 💡 Backlog | `(Pending)` |
+| **V1-T07** | 🟡 P6 | **V1.0 System E2E Tests** — Final E2E orchestration tests mimicking production flow across all modules. | Antigravity | 💡 Backlog | `(Pending)` |
 
 ---
 
