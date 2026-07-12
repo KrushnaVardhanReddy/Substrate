@@ -351,6 +351,11 @@ TASKS = {
         "phase": "phase-5-discovery",
         "prompt": _load_prompt("prompts/phase-5-discovery/t07_scale_simulation.txt"),
     },
+    58: {
+        "name": "P5-T08 — Chi Router Migration & Panic Recovery",
+        "phase": "phase-5-discovery",
+        "prompt": _load_prompt("prompts/phase-5-discovery/t08_chi_router.txt"),
+    },
     54: {
         "name": "P5-T04 — Event-Driven Discovery",
         "phase": "phase-5-discovery",

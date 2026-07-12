@@ -27,6 +27,7 @@
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
 | **P5-T07** | 🟡 P7 | **100-Repo Scale & Noise Simulation** — Generate 100 mock repos (80 random noise, 20 forming 5 distinct interdependent clusters) to stress-test discovery accuracy and graph visualization. | Jules | 🏃 Running (Session: 2074521535255843293) | `docs/specs/phase-5/p5-t07-scale-simulation.md` |
+| **P5-T08** | 🔴 P1 | **Chi Router Migration & Panic Recovery** — Migrate standard `http.ServeMux` to `go-chi/chi/v5` and implement `middleware.Recoverer` to prevent poison pill panics during stress testing. | Jules | ⏳ Spec Written | `docs/specs/phase-5/p5-t08-chi-router.md` |
 
 
 ## 🚀 V1.0 Pre-Flight Checklist (Prod Launch)

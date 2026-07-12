@@ -1,0 +1,40 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+[safety rules prepended automatically by jules_submit.py]
+
+---
+
+TASK: P5-T08 — Chi Router Migration & Panic Recovery
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Migrate the Substrate API from Go 1.22 `http.ServeMux` to `go-chi/chi/v5` to gain access to battle-tested middlewares—specifically `middleware.Recoverer`. This is a critical prerequisite to stress-testing the system, as we must prevent "Poison Pill" schemas from crashing the entire server via unhandled panics.
+
+Follow the exact architecture defined in the spec: `docs/specs/phase-5/p5-t08-chi-router.md`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. **Dependencies:** Update `api/go.mod` by running `go get github.com/go-chi/chi/v5` and `github.com/go-chi/cors` inside the `api/` directory.
+2. **Router Refactor:** Rewrite `api/internal/server/router.go`. Replace `mux := http.NewServeMux()` with `r := chi.NewRouter()`. 
+3. **Route Syntax:** Convert Go 1.22 routes like `mux.HandleFunc("GET /api/v1/health", handler)` into Chi syntax: `r.Get("/api/v1/health", handler)`. Do this for ALL routes.
+4. **Middlewares:** Inject the following standard Chi middlewares globally using `r.Use()`:
+   - `middleware.RequestID`
+   - `middleware.RealIP`
+   - `middleware.Logger`
+   - `middleware.Recoverer` (CRITICAL)
+   - `middleware.Timeout(60 * time.Second)`
+   - `cors.Handler(...)` (Replace the custom cors function currently at the top of `router.go`)
+5. **Path Parameter Extraction:** In `api/internal/server/middleware.go` (specifically `AuthMiddleware`), update the logic that extracts the `{org}` and `{owner}` parameters from the URL. Replace Go 1.22's `r.PathValue("org")` with `chi.URLParam(r, "org")`. 
+6. **Testing:** Ensure `cd api && go test ./...` passes.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO MODIFY:
+- api/go.mod
+- api/go.sum
+- api/internal/server/router.go
+- api/internal/server/middleware.go
+
+Commit: "jules: migrate api to go-chi/chi and implement panic recovery"
