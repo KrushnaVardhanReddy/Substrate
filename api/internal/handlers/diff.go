@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/KrushnaVardhanReddy/Substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 	"github.com/google/uuid"
 	"net/http"
 )

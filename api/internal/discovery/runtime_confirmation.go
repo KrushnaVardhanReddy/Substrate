@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/KrushnaVardhanReddy/Substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 )
 
 // OTelSpan represents a simplified OpenTelemetry span relevant to discovery.

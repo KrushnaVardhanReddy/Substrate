@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/KrushnaVardhanReddy/Substrate/api/internal/db"
-	"github.com/KrushnaVardhanReddy/Substrate/api/internal/discovery"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/discovery"
 )
 
 func TelemetryHandler(store db.Store) http.HandlerFunc {

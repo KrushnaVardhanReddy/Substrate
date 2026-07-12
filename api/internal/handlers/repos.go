@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/KrushnaVardhanReddy/Substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 )
 
 // ReposHandler handles the /api/v1/repos/{org} endpoint.

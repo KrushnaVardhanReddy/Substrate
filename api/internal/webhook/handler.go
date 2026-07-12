@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/KrushnaVardhanReddy/Substrate/api/internal/db"
-	"github.com/KrushnaVardhanReddy/Substrate/api/internal/discovery"
-	"github.com/KrushnaVardhanReddy/Substrate/api/internal/integrations/postman"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/discovery"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/integrations/postman"
 )
 
 type PushPayload struct {

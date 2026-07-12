@@ -3,9 +3,9 @@ package server
 import (
 	"net/http"
 
-	"github.com/KrushnaVardhanReddy/Substrate/api/internal/db"
-	"github.com/KrushnaVardhanReddy/Substrate/api/internal/handlers"
-	"github.com/KrushnaVardhanReddy/Substrate/api/internal/webhook"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/handlers"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/webhook"
 )
 
 func corsMiddleware(next http.Handler) http.Handler {
