@@ -373,6 +373,41 @@ TASKS = {
         "phase": "phase-6-qa",
         "prompt": _load_prompt("prompts/phase-6-qa/t04_mock_server.txt"),
     },
+    71: {
+        "name": "V1-T01 — GitHub App Auto-Discovery",
+        "phase": "v1-preflight",
+        "prompt": _load_prompt("prompts/v1-preflight/t01_github_app_auto_discovery.txt"),
+    },
+    72: {
+        "name": "V1-T02 — CLI AI Architect",
+        "phase": "v1-preflight",
+        "prompt": _load_prompt("prompts/v1-preflight/t02_cli_ai_architect.txt"),
+    },
+    73: {
+        "name": "V1-T03 — Interactive Diff Viewer UI",
+        "phase": "v1-preflight",
+        "prompt": _load_prompt("prompts/v1-preflight/t03_interactive_diff_viewer.txt"),
+    },
+    74: {
+        "name": "V1-T04 — Deployment Safety Gate",
+        "phase": "v1-preflight",
+        "prompt": _load_prompt("prompts/v1-preflight/t04_check_deploy.txt"),
+    },
+    75: {
+        "name": "V1-T05 — Local Validate CLI",
+        "phase": "v1-preflight",
+        "prompt": _load_prompt("prompts/v1-preflight/t05_local_validate_cli.txt"),
+    },
+    76: {
+        "name": "V1-T06 — Legal Audit",
+        "phase": "v1-preflight",
+        "prompt": _load_prompt("prompts/v1-preflight/t06_legal_audit.txt"),
+    },
+    77: {
+        "name": "V1-T07 — V1.0 System E2E Tests",
+        "phase": "v1-preflight",
+        "prompt": _load_prompt("prompts/v1-preflight/t07_system_e2e.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
