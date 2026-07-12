@@ -14,7 +14,13 @@
 7. **V1.0 Pre-Flight Checklist** added to `tasks.md` for final prod launch items.
 
 ### What is running in the background:
-No active Jules sessions currently.
+Jules is currently working on:
+- `V1-T01` (GitHub App Auto-Discovery) against `feature/dev`
+- `V1-T02` (CLI AI Architect) against `feature/dev`
+- `V1-T03` (Interactive Diff Viewer UI) against `feature/dev`
+- `V1-T04` (Deployment Safety Gate) against `feature/dev`
+- `V1-T05` (Local Validation CLI) against `feature/dev`
+- `V1-T06` (Legal & Licensing Audit) against `feature/dev`
 
 ### Next Steps for Next Session:
 1. **Execute V1.0 Pre-Flight Checklist:** Start knocking out V1-T01 through V1-T07 (GitHub App Auto-Discovery, CLI AI Architect, Diff Viewer, etc.) to prepare for Prod Launch.
