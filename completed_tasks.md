@@ -425,6 +425,7 @@ See the full spec: `docs/specs/enterprise-vision.md`
 |---|---|---|---|---|---|
 | **V1-T01** | 🔴 P1 | **GitHub App Auto-Discovery** — Zero-touch onboarding. Auto-scan repos for OpenAPI and open PRs with `substrate.yaml`. | Jules | ✅ Merged | `docs/specs/v1-preflight/v1-spec.md` |
 | **V1-T02** | 🟡 P2 | **CLI AI Architect (`init --design`)** — Conversational LLM interface to scaffold an API contract before writing code. | Jules | ✅ Merged | `docs/specs/v1-preflight/v1-spec.md` |
+| **V1-T04** | 🔵 P4 | **`substrate check-deploy`** — CI/CD deployment safety gate to ensure safe deploy ordering (P2-T06 Deferred). | Jules | ✅ Merged | `docs/specs/v1-preflight/v1-spec.md` |
 | **V1-T05** | ⚪ P5 | **Local `validate` CLI** — Local validation command for developers to test schema changes against the registry offline. | Jules | ✅ Merged | `docs/specs/v1-preflight/v1-spec.md` |
 | **V1-T06** | ⚪ P5 | **Legal & Licensing Audit** — Audit `go.mod` for GPL licenses, add UI Credits/Notices. | Jules | ✅ Merged | `docs/specs/v1-preflight/v1-spec.md` |
 

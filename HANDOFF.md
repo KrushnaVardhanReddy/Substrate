@@ -16,9 +16,9 @@
 ### What is running in the background:
 Jules is currently working on the following V1.0 tasks in parallel against `feature/dev`:
 - `V1-T03` (Interactive Diff Viewer UI) 
-- `V1-T04` (Deployment Safety Gate) 
 
 ### Recently Merged:
+- `V1-T04` (Deployment Safety Gate) 
 - `V1-T01` (GitHub App Auto-Discovery) 
 - `V1-T02` (CLI AI Architect) 
 - `V1-T05` (Local Validation CLI) 

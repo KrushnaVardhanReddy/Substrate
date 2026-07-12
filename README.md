@@ -1008,7 +1008,7 @@ We are preparing for V1.0 General Availability! The following exciting new featu
 * **GitHub App Auto-Discovery:** Zero-touch onboarding by automatically discovering API contracts across repositories.
 * **CLI AI Architect:** (`substrate init --design`) Interactive LLM-powered CLI to design OpenAPI contracts before writing code.
 * **Interactive Diff Viewer:** Vercel-style preview UI for a side-by-side visual comparison of schema breaks right in PR comments.
-* **Deployment Safety Gate:** (`substrate check-deploy`) Blocks premature consumer deployments in CI/CD before required provider updates are live.
+* **Deployment Safety Gate:** (`substrate check-deploy`) Blocks provider microservices from deploying breaking changes in CI/CD before their downstream consumers are updated and ready.
 
 ## Future Vision & Roadmap
 For details on Phase 7 (Enterprise/Scale), Phase 8 (Governance), and Phase 9 (Security/Ecosystem) beyond V1.0, please see our [Roadmap](docs/ROADMAP.md).
