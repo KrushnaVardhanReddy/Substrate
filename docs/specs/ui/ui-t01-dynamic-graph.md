@@ -10,17 +10,29 @@ We need to integrate `cytoscape.js` (and `svelte-cytoscape` if applicable) to dy
 ### 1. Client-Side Authentication (Already Patched)
 - The load function in `+page.ts` now securely fetches the graph data by passing `Authorization: Bearer <local-dev-token>`. The `data.graphData` object contains the real nodes and edges.
 
-### 2. Cytoscape Integration
-- `npm install cytoscape` in the `dashboard/` directory.
-- Replace the `<div class="nodes-layer">` and `<svg class="connections-layer">` with a dynamic Cytoscape canvas container.
-- Map the backend `graphData` array into Cytoscape's `elements` array format:
-  - Create a Node for every unique `provider` and `consumer`.
-  - Create an Edge connecting the `consumer` (source) to the `provider` (target).
+### 2. Svelte 5 Integration & Reactivity
+- **Dependency:** Run `npm install cytoscape cytoscape-dagre` inside the `dashboard/` directory.
+- Svelte 5 uses Runes. Initialize Cytoscape inside an `$effect()` block (not standard `onMount`) since the `div` container must exist first. 
+- Use a `bind:this={containerRef}` on the root `<div id="cy" class="main-canvas"></div>` to attach the Cytoscape canvas.
 
-### 3. Styling & Interactivity
-- Replicate the dark-mode aesthetic of the original mock UI.
-- Edges should be colored based on the `status` field (`SAFE` = Green, `BREAKING` = Red).
-- Clicking a node should trigger the existing `selectNode()` logic to open the detail panel on the right side of the screen.
+### 3. Data Mapping Logic (Edges -> Nodes)
+- The backend `data.graphData` returns an array of relationships: `[{provider: "x", consumer: "y", status: "SAFE"}]`.
+- **Node Extraction:** You MUST iterate over `graphData` and create a unique `Set` of node names. 
+- **Elements Array Construction:**
+  - Nodes: `{ data: { id: "nodeName", name: "nodeName", status: derivedStatus } }`
+  - Edges: `{ data: { source: "consumer", target: "provider", status: "status" } }`
 
-### 4. Auto-Layout
-- Use a directed acyclic graph (DAG) layout plugin (like `cytoscape-dagre`) to automatically structure the upstream providers on the left/top and downstream consumers on the right/bottom.
+### 4. Advanced Cytoscape Stylesheet
+- Implement a high-fidelity dark-mode `style` array:
+  - **Nodes:** `background-color: #1e293b`, `border-color: #3b82f6` (blue for SAFE), `border-width: 2px`, `label: data(name)`, `color: #f8fafc` (white text).
+  - **Error Nodes:** If node status is `BREAKING`, `border-color: #ef4444`.
+  - **Edges:** `line-color: #334155` (SAFE), `target-arrow-color: #334155`, `target-arrow-shape: triangle`, `curve-style: bezier`.
+  - **Error Edges:** If edge status is `BREAKING`, `line-color: #ef4444`, `target-arrow-color: #ef4444`.
+
+### 5. Layout Engine
+- Register `cytoscape-dagre` via `cytoscape.use(dagre)`.
+- Use the `dagre` layout options: `rankDir: 'LR'` (Left to Right), `nodeSep: 50`, `edgeSep: 10`, `rankSep: 100` to create a beautiful flow diagram.
+
+### 6. Interactivity & Detail Panel
+- Listen for clicks using `cy.on('tap', 'node', function(evt){ ... })`.
+- When a node is tapped, call `selectNode()` with a reconstructed object so the existing right-hand Side Panel UI works perfectly (`{ name: node.id(), version: "v1.0", status: "SAFE" }`).

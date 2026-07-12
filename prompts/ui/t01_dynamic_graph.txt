@@ -13,12 +13,21 @@ Replace the hardcoded static `div` nodes in the Substrate Svelte Dashboard with 
 ═══════════════════════════════════════════════════════════════
 DELIVERABLES
 ═══════════════════════════════════════════════════════════════
-1. **Dependency:** Run `npm install cytoscape cytoscape-dagre` inside the `dashboard/` directory.
-2. **Component Refactor:** In `dashboard/src/routes/org/[org]/graph/+page.svelte`, remove the `<svg class="connections-layer">` and `<div class="nodes-layer">` blocks.
-3. **Cytoscape Mount:** Initialize a `cytoscape` instance inside a new `<div id="cy" style="width: 100%; height: 100%"></div>`. Bind it using Svelte's `onMount`.
-4. **Data Mapping:** Iterate over `data.graphData` (which contains `{provider, consumer, status}`) to dynamically generate the nodes and edges for Cytoscape. Ensure nodes are uniquely mapped to avoid duplication.
-5. **Layout:** Use the `dagre` layout to automatically position the nodes from left-to-right or top-to-bottom.
-6. **Interactivity:** Bind Cytoscape's `tap` event to trigger the existing `selectNode(nodeData)` function so the Side Panel continues to work natively.
+1. **Dependencies:** In `dashboard/`, run `npm install cytoscape cytoscape-dagre`. You must also install types if needed: `npm install -D @types/cytoscape @types/cytoscape-dagre`.
+2. **Svelte 5 UI Refactor:** Open `dashboard/src/routes/org/[org]/graph/+page.svelte`. Delete the entire `<div class="nodes-layer">` and `<svg class="connections-layer">` blocks. Replace them with a single container: `<div bind:this={cyContainer} style="width: 100%; height: 100%;"></div>`.
+3. **Data Transformation:** The API provides `data.graphData` as an array of edges: `[{provider: "A", consumer: "B", status: "SAFE"}]`. 
+   - Write a function that iterates through this array.
+   - Extract a unique list of Nodes (every unique `provider` and `consumer`). Format: `{ data: { id: name, label: name } }`.
+   - Format Edges: `{ data: { source: consumer, target: provider, status: status } }`.
+4. **Cytoscape Initialization (Svelte 5):** 
+   - Use `import cytoscape from 'cytoscape'; import dagre from 'cytoscape-dagre'; cytoscape.use(dagre);`
+   - Use an `$effect()` block to initialize the graph once `cyContainer` is bound. Ensure you clean up (`cy.destroy()`) on component unmount to prevent memory leaks.
+5. **High-Fidelity Styling:** Implement the following `style` array in the Cytoscape config:
+   - **Nodes:** `background-color: #1e293b`, `border-width: 2px`, `border-color: #3b82f6` (default), `color: #f8fafc`, `text-valign: center`, `font-size: 12px`, `font-family: monospace`, `padding: 10px`, `shape: round-rectangle`.
+   - **Edges:** `width: 2`, `line-color: #334155`, `target-arrow-color: #334155`, `target-arrow-shape: triangle`, `curve-style: bezier`.
+   - **Error Highlighting:** Add conditional styling in Cytoscape (e.g. `selector: 'edge[status = "BREAKING"]'`) that changes `line-color` and `target-arrow-color` to `#ef4444`. Do the same for nodes that represent breaking providers.
+6. **Layout Configuration:** Use `{ name: 'dagre', rankDir: 'LR', nodeSep: 50, rankSep: 150, fit: true, padding: 50 }` for the layout.
+7. **Side Panel Integration:** Bind the tap event: `cy.on('tap', 'node', (evt) => { selectNode({ name: evt.target.id(), version: "v1.0.0", status: "SAFE" }) })`. This ensures the existing right-hand sidebar continues to work.
 
 ═══════════════════════════════════════════════════════════════
 FILES TO MODIFY
