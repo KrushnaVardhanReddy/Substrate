@@ -433,6 +433,20 @@ See the full spec: `docs/specs/enterprise-vision.md`
 
 ---
 
+## 🏢 Phase 7: Enterprise Integrations & ITSM (Post-V1.0)
+
+**Goal:** Integrate Substrate deeply into corporate workflows, providing custom governance, automated ticketing, and targeted notifications.
+
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|---|---|---|---|---|---|
+| **P7-T01** | 🔴 P1 | **ServiceNow/Jira Dynamic CAB** — Auto-create ITSM tickets for breaking changes and assign specific downstream Tech Leads as approvers. | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
+| **P7-T02** | 🟡 P2 | **Targeted Notifications (Slack/Teams)** — Notify specific CODEOWNERS in Slack/Teams when their downstream consumer repo is broken by an upstream change. | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
+| **P7-T03** | 🟢 P3 | **Custom Rules Engine (CEL/OPA)** — Let enterprises define custom schema rules (e.g., "All APIs must have an X-Correlation-ID header") in `substrate.yaml`. | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
+| **P7-T04** | 🔵 P4 | **Cross-Repo Auto-Fix PRs** — Use an LLM to automatically generate a draft PR in the downstream consumer repo to fix the breaking dependency. | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
+| **P7-T05** | ⚪ P5 | **Runtime Drift Detection (eBPF/Envoy)** — Deploy a sidecar to sample 1% of live API traffic and compare it against the Substrate registry to detect un-documented payloads. | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
+
+---
+
 ## How to Submit Jules Tasks
 
 ```bash
