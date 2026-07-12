@@ -16,7 +16,19 @@ Follow the exact architecture defined in the spec: `docs/specs/phase-5/p5-t07-sc
 DELIVERABLES
 ═══════════════════════════════════════════════════════════════
 1. **Scale Generator Script:** Create `scripts/e2e/scale_generator.go`. It must accept `--scale` and `--concurrency` flags.
-2. **Cluster & Noise Gen:** 60% of repos are noise (including massive 50k-line schemas and infinite loops). 40% are strictly grouped into 10 distinct dependency clusters covering the 9 Substrate protocols.
+2. **Cluster & Noise Gen:** 
+   - **Noise (60%):** Generate disconnected repos including **Poison Pills** (massive 50k-line GraphQL schemas, recursive infinite loop OpenAPI files, corrupted binaries masquerading as `package.json`).
+   - **Protocol Clusters (40%):** Strictly group these into the following 10 distinct dependency clusters to test every single adapter:
+     1. **REST / OpenAPI:** API Gateway -> NextJS Frontend -> Node Backend
+     2. **GraphQL Federation:** Apollo Gateway -> Users Subgraph -> Posts Subgraph
+     3. **gRPC / Protobuf:** Mobile App -> gRPC Gateway -> C++ Backend
+     4. **AsyncAPI (Events):** Order Service -> Kafka Topic -> Fulfillment Service
+     5. **Apache Avro:** Data Pipeline -> Schema Registry -> Analytics Engine
+     6. **SQL DDL:** Migration Repo -> Postgres DB -> BI Tool
+     7. **Terraform (IaC):** VPC Module -> EKS Cluster -> RDS Database
+     8. **AI/ML Models:** Training Pipeline -> Model Registry -> Inference API
+     9. **Enterprise SOAP:** Legacy Salesforce -> Enterprise Service Bus -> Payment Gateway
+     10. **Hybrid Chaos:** A single cluster mixing OpenAPI, GraphQL, and SQL in one microservice flow.
 3. **Phased Execution:** 
    - Flood the API concurrently (with jitter).
    - Mutate the API (delete/update repos) to test graph recalculation.
