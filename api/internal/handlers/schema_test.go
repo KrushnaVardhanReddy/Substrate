@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/KrushnaVardhanReddy/Substrate/api/internal/db"
-	"github.com/KrushnaVardhanReddy/Substrate/api/internal/handlers"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/handlers"
 )
 
 func TestSchemaHandler_Success(t *testing.T) {

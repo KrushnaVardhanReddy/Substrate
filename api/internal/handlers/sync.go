@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/KrushnaVardhanReddy/Substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 )
 
 type DependencyPayload struct {

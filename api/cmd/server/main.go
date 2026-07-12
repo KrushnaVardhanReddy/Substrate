@@ -10,9 +10,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/KrushnaVardhanReddy/Substrate/api/internal/db"
-	"github.com/KrushnaVardhanReddy/Substrate/api/internal/handlers"
-	"github.com/KrushnaVardhanReddy/Substrate/api/internal/server"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/handlers"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/server"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 

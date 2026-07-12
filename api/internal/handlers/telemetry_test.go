@@ -9,7 +9,7 @@ import (
 	"testing"
 	"sync"
 
-	"github.com/KrushnaVardhanReddy/Substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 )
 
 func TestTelemetryHandler(t *testing.T) {

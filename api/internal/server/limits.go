@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/KrushnaVardhanReddy/Substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 )
 
 func TierLimitsMiddleware(store db.Store) func(http.Handler) http.Handler {

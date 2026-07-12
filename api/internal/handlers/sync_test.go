@@ -8,7 +8,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/KrushnaVardhanReddy/Substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 )
 
 func TestSyncHandler_MissingAuthToken(t *testing.T) {
