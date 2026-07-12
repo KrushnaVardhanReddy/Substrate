@@ -399,6 +399,7 @@ See the full spec: `docs/specs/enterprise-vision.md`
 | **P5-T04** | 🔵 P4 | **Event-Driven Discovery** — Map Kafka topics and AsyncAPI `$ref` cross-references for message queues. | Jules | ✅ Merged | `prompts/phase-5-discovery/t04_event_discovery.txt` |
 | **P5-T05** | ⚪ P5 | **Runtime Confirmation** — Ingest OTel/Datadog traces and eBPF network logs to confirm static graph edges. | Antigravity | ✅ Merged | `prompts/phase-5-discovery/t05_runtime_confirmation.txt` |
 | **P5-T06** | 🟡 P6 | **Phase 5 E2E Tests** — Cross-repo dependency discovery tests validating Env, Package, Terraform, and Event scanners against mock repositories. | Antigravity | ⏳ Ready to Start | `(Pending)` |
+| **P5-T07** | 🟡 P7 | **100-Repo Scale & Noise Simulation** — Generate 100 mock repos (80 random noise, 20 forming 5 distinct interdependent clusters) to stress-test discovery accuracy and graph visualization. | Antigravity | 💡 Backlog | `(Pending)` |
 
 ---
 
