@@ -8,27 +8,16 @@
 **Spec-First Approach:** NEVER write code before updating the specification in `docs/specs/` and creating a detailed prompt. Update `tasks.md` before executing new tasks.
 
 ### What was just completed:
-1. **Phase 6 E2E Tests (P6-T05):** Merged and validated. Phase 6 is completely done.
-2. **Tasks Cleanup:** Archived all Phase 0-6 completed tasks to `completed_tasks.md` to keep `tasks.md` clean.
-3. **Enterprise Roadmap:** Added Phase 7, Phase 8, and Phase 9 (Security & Ecosystem) to `tasks.md`.
-4. **V1.0 Pre-flight Prompts:** Created detailed Jules prompts for V1-T01 through V1-T07.
+1. **V1.0 Pre-flight Complete:** All V1-T01 through V1-T07 tasks are merged and validated. E2E tests pass.
+2. **Ghost File Cleanups:** Cleaned up empty 0-byte ghost files (`validate.go` and `terminal.go`) that were breaking the Go compiler.
+3. **v0.2.0 Released:** Tagged and pushed `v0.2.0` from `main` to trigger the Docker Hub release.
+4. **P5-T07 Spec & Prompt Written:** Completely rewrote the Stress Testing spec to include 9 unique protocol clusters, a 60% noise generation with poison pills, concurrency with jitter, graph mutations, and a terminal reporting matrix.
 
 ### What is running in the background:
-(None currently - awaiting V1.0 E2E)
-
-### Recently Merged:
-- `V1-T07` (V1.0 System E2E Tests)
-- `V1-T03` (Interactive Diff Viewer UI)
-- `V1-T04` (Deployment Safety Gate) 
-- `V1-T01` (GitHub App Auto-Discovery) 
-- `V1-T02` (CLI AI Architect) 
-- `V1-T05` (Local Validation CLI) 
-- `V1-T06` (Legal & Licensing Audit) 
+**Jules is currently executing P5-T07** (100-Repo Scale & Universal Protocol Simulation). 
+Session ID: `2074521535255843293`
 
 ### Next Steps for Next Session (Post-Break):
-1. **Merge Jules PRs Carefully:** Since V1-T02, T04, and T05 all modify `engine/cmd/substrate/main.go`, expect merge conflicts. Merge one by one and manually resolve conflicts.
-2. **Post-Merge Checklist:** After each merge, be sure to:
-   - Move the task from `tasks.md` to `completed_tasks.md`.
-   - Mark its status as `✅ Merged`.
-   - Ensure the Svelte UI and Go tests pass (`go test ./...` and `make e2e`).
-3. **Execute V1-T07:** Once T01-T06 are merged, submit the `prompts/v1-preflight/t07_system_e2e.txt` prompt to Jules to validate the entire V1.0 system.
+1. **Review P5-T07 PR:** Check the pull request opened by Jules for the scale generator script. 
+2. **Validate Stress Test locally:** Run `make e2e-scale` locally to ensure the simulation performs correctly, catches panics, and outputs the telemetry table.
+3. **Resolve Graph Rendering:** Load the Svelte Dashboard during the test to ensure it does not freeze when rendering 100+ nodes and edges.
