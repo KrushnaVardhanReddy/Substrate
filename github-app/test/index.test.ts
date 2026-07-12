@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import worker from '../src/index.js';
 import * as githubClient from '../src/github-client.js';
+const ctx: any = { waitUntil: vi.fn(), passThroughOnException: vi.fn() };
 
 // Mock the github-client functions
 vi.mock('../src/github-client.js', () => ({
@@ -37,6 +38,11 @@ async function signWebhook(payload: string, secret: string): Promise<string> {
 }
 
 describe('Worker Handler', () => {
+  const ctx = {
+    waitUntil: vi.fn(),
+    passThroughOnException: vi.fn()
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
     (githubClient.generateInstallationToken as any).mockResolvedValue('mock-token');
@@ -44,13 +50,13 @@ describe('Worker Handler', () => {
 
   it('1. Non-POST method -> 405', async () => {
     const request = new Request('http://localhost', { method: 'GET' });
-    const response = await worker.fetch(request, MOCK_ENV as any);
+    const response = await worker.fetch(request, MOCK_ENV as any, ctx as any);
     expect(response.status).toBe(405);
   });
 
   it('2. Missing X-Hub-Signature-256 header -> 401', async () => {
     const request = new Request('http://localhost', { method: 'POST', body: '{}' });
-    const response = await worker.fetch(request, MOCK_ENV as any);
+    const response = await worker.fetch(request, MOCK_ENV as any, ctx as any);
     expect(response.status).toBe(401);
   });
 
@@ -60,7 +66,7 @@ describe('Worker Handler', () => {
       headers: { 'X-Hub-Signature-256': 'sha256=invalid' },
       body: '{}'
     });
-    const response = await worker.fetch(request, MOCK_ENV as any);
+    const response = await worker.fetch(request, MOCK_ENV as any, ctx as any);
     expect(response.status).toBe(401);
   });
 
@@ -75,7 +81,7 @@ describe('Worker Handler', () => {
       },
       body: payload
     });
-    const response = await worker.fetch(request, MOCK_ENV as any);
+    const response = await worker.fetch(request, MOCK_ENV as any, ctx as any);
     expect(response.status).toBe(200);
     expect(githubClient.generateInstallationToken).not.toHaveBeenCalled();
   });
@@ -91,7 +97,7 @@ describe('Worker Handler', () => {
       },
       body: payload
     });
-    const response = await worker.fetch(request, MOCK_ENV as any);
+    const response = await worker.fetch(request, MOCK_ENV as any, ctx as any);
     expect(response.status).toBe(200);
     expect(githubClient.generateInstallationToken).not.toHaveBeenCalled();
   });
@@ -115,7 +121,7 @@ describe('Worker Handler', () => {
 
     (githubClient.fetchFileContent as any).mockResolvedValueOnce(null);
 
-    const response = await worker.fetch(request, MOCK_ENV as any);
+    const response = await worker.fetch(request, MOCK_ENV as any, ctx as any);
     expect(response.status).toBe(200);
 
     expect(githubClient.generateInstallationToken).toHaveBeenCalled();
@@ -155,7 +161,7 @@ describe('Worker Handler', () => {
       .mockResolvedValueOnce(null) // base.yaml
       .mockResolvedValueOnce('head content'); // head.yaml
 
-    const response = await worker.fetch(request, MOCK_ENV as any);
+    const response = await worker.fetch(request, MOCK_ENV as any, ctx as any);
     expect(response.status).toBe(200);
 
     expect(githubClient.setCommitStatus).toHaveBeenCalledWith(
@@ -193,7 +199,7 @@ describe('Worker Handler', () => {
       status: 500
     });
 
-    const response = await worker.fetch(request, MOCK_ENV as any);
+    const response = await worker.fetch(request, MOCK_ENV as any, ctx as any);
     expect(response.status).toBe(200);
 
     expect(githubClient.setCommitStatus).toHaveBeenCalledWith(
@@ -231,7 +237,7 @@ describe('Worker Handler', () => {
       })
     });
 
-    const response = await worker.fetch(request, MOCK_ENV as any);
+    const response = await worker.fetch(request, MOCK_ENV as any, ctx as any);
     expect(response.status).toBe(200);
 
     expect(githubClient.postPRComment).toHaveBeenCalledWith(
@@ -295,7 +301,7 @@ describe('Worker Handler', () => {
 
     const envWithReg = { ...MOCK_ENV, REGISTRY_API_URL: 'http://reg.api', REGISTRY_API_TOKEN: 'token' };
 
-    const response = await worker.fetch(request, envWithReg as any);
+    const response = await worker.fetch(request, envWithReg as any, ctx as any);
     expect(response.status).toBe(200);
 
     expect(githubClient.postPRComment).toHaveBeenCalledWith(
@@ -356,7 +362,7 @@ describe('Worker Handler Push Event', () => {
 
     (syncToRegistry as any).mockResolvedValueOnce({ synced: 1 });
 
-    const response = await worker.fetch(request, MOCK_ENV as any);
+    const response = await worker.fetch(request, MOCK_ENV as any, ctx as any);
     expect(response.status).toBe(200);
 
     expect(syncToRegistry).toHaveBeenCalledWith(undefined, undefined, expect.objectContaining({
@@ -386,7 +392,7 @@ describe('Worker Handler Push Event', () => {
 
     (githubClient.fetchFileContent as any).mockResolvedValueOnce(null);
 
-    const response = await worker.fetch(request, MOCK_ENV as any);
+    const response = await worker.fetch(request, MOCK_ENV as any, ctx as any);
     expect(response.status).toBe(200);
     expect(await response.text()).toBe('Ignored');
   });
@@ -412,7 +418,7 @@ describe('Worker Handler Push Event', () => {
     (githubClient.fetchFileContent as any).mockResolvedValueOnce('content');
     (parseConsumersFromYaml as any).mockResolvedValueOnce([]);
 
-    const response = await worker.fetch(request, MOCK_ENV as any);
+    const response = await worker.fetch(request, MOCK_ENV as any, ctx as any);
     expect(response.status).toBe(200);
     expect(await response.text()).toBe('Ignored');
   });
@@ -432,7 +438,7 @@ describe('Worker Handler Push Event', () => {
       body: payload
     });
 
-    const response = await worker.fetch(request, MOCK_ENV as any);
+    const response = await worker.fetch(request, MOCK_ENV as any, ctx as any);
     expect(response.status).toBe(200);
     expect(await response.text()).toBe('Ignored');
   });
@@ -481,7 +487,7 @@ describe('Worker Handler Cross Repo PR Events', () => {
     (crossRepoCheck as any).mockResolvedValueOnce(crossRepoRes);
 
     const envWithReg = { ...MOCK_ENV, REGISTRY_API_URL: 'http://reg.api', REGISTRY_API_TOKEN: 'token' };
-    const response = await worker.fetch(request, envWithReg as any);
+    const response = await worker.fetch(request, envWithReg as any, ctx as any);
     expect(response.status).toBe(200);
 
     expect(githubClient.postPRComment).toHaveBeenCalledWith(
@@ -516,7 +522,7 @@ describe('Worker Handler Cross Repo PR Events', () => {
     });
 
     const envWithoutReg = { ...MOCK_ENV, REGISTRY_API_URL: '' };
-    const response = await worker.fetch(request, envWithoutReg as any);
+    const response = await worker.fetch(request, envWithoutReg as any, ctx as any);
     expect(response.status).toBe(200);
 
     expect(crossRepoCheck).not.toHaveBeenCalled();
@@ -554,7 +560,7 @@ describe('Worker Handler Cross Repo PR Events', () => {
     (crossRepoCheck as any).mockResolvedValueOnce(crossRepoRes);
 
     const envWithReg = { ...MOCK_ENV, REGISTRY_API_URL: 'http://reg.api', REGISTRY_API_TOKEN: 'token' };
-    const response = await worker.fetch(request, envWithReg as any);
+    const response = await worker.fetch(request, envWithReg as any, ctx as any);
     expect(response.status).toBe(200);
 
     expect(githubClient.setCommitStatus).toHaveBeenCalledWith(
@@ -588,7 +594,7 @@ describe('Worker Handler Cross Repo PR Events', () => {
     (crossRepoCheck as any).mockResolvedValueOnce(crossRepoRes);
 
     const envWithReg = { ...MOCK_ENV, REGISTRY_API_URL: 'http://reg.api', REGISTRY_API_TOKEN: 'token' };
-    const response = await worker.fetch(request, envWithReg as any);
+    const response = await worker.fetch(request, envWithReg as any, ctx as any);
     expect(response.status).toBe(200);
 
     expect(githubClient.setCommitStatus).toHaveBeenCalledWith(
@@ -620,7 +626,7 @@ describe('Worker Handler Cross Repo PR Events', () => {
     });
 
     const envWithDashboard = { ...MOCK_ENV, DASHBOARD_URL: 'https://substrate.example.com', REGISTRY_API_URL: '' };
-    const response = await worker.fetch(request, envWithDashboard as any);
+    const response = await worker.fetch(request, envWithDashboard as any, ctx as any);
     expect(response.status).toBe(200);
 
     expect(githubClient.postPRComment).toHaveBeenCalledWith(
@@ -655,7 +661,7 @@ describe('Worker Handler Cross Repo PR Events', () => {
     });
 
     const envWithoutDashboard = { ...MOCK_ENV, DASHBOARD_URL: undefined, REGISTRY_API_URL: '' };
-    const response = await worker.fetch(request, envWithoutDashboard as any);
+    const response = await worker.fetch(request, envWithoutDashboard as any, ctx as any);
     expect(response.status).toBe(200);
 
     expect(githubClient.postPRComment).toHaveBeenCalledWith(
@@ -689,7 +695,7 @@ describe('Worker Handler Cross Repo PR Events', () => {
     (crossRepoCheck as any).mockResolvedValueOnce(crossRepoRes);
 
     const envWithReg = { ...MOCK_ENV, REGISTRY_API_URL: 'http://reg.api', REGISTRY_API_TOKEN: 'token' };
-    const response = await worker.fetch(request, envWithReg as any);
+    const response = await worker.fetch(request, envWithReg as any, ctx as any);
     expect(response.status).toBe(200);
 
     expect(githubClient.setCommitStatus).toHaveBeenCalledWith(

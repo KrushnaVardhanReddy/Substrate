@@ -137,3 +137,30 @@ export interface AIAutofixResponse {
   patch_language: string;
   mock_mode: boolean;
 }
+
+export interface InstallationRepo {
+  id: number;
+  name: string;
+  full_name: string;
+  owner: {
+    login: string;
+    id: number;
+  };
+}
+
+export interface InstallationRepositoriesEvent {
+  action: 'added' | 'removed';
+  installation: {
+    id: number;
+  };
+  repositories_added: InstallationRepo[];
+  repositories_removed: InstallationRepo[];
+}
+
+export interface InstallationEvent {
+  action: 'created' | 'deleted' | 'suspend' | 'unsuspend' | 'new_permissions_accepted';
+  installation: {
+    id: number;
+  };
+  repositories?: InstallationRepo[];
+}
