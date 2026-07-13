@@ -14,6 +14,12 @@ The biggest barrier to developer tool adoption is configuration friction. Substr
 - **GitHub App Auto-Discovery:** When installed on an organization, the GitHub App automatically scans repositories for existing schemas (`openapi.yaml`, `schema.graphql`).
 - **Auto-PR:** If a schema is found, the App automatically opens a Pull Request that adds a pre-configured `substrate.yaml` file. The user only needs to click "Merge" to get immediate protection.
 
+## 2.5 The "Proof of Value" Trial (3-Month Free Audit Mode)
+Enterprise software sales are notoriously slow because blocking a CI/CD pipeline is highly disruptive. Substrate bypasses this friction using a **3-Month Free Trial in Audit Mode**.
+- **The Hook:** Enterprises install Substrate for free and deploy it in "Shadow Mode" (`--mode audit`). Substrate will silently monitor PRs, but it will **never block** a deployment.
+- **The Value Realization:** For 3 months, Substrate logs every single breaking change it detects into the Management ROI Dashboard, calculating the exact engineering hours and downtime that *would* have been prevented.
+- **The Close:** At the end of the trial, the VP of Engineering logs into the dashboard, sees `$120,000 in prevented outages`, and simply flips the switch to "Blocking Mode" upon paying for the Enterprise license.
+
 ## 3. AI-Driven Spec Generation (Solving the Missing Schema Problem)
 Many companies have REST APIs but lack an OpenAPI specification. Substrate turns this missing requirement into a feature:
 - **Framework Auto-Config:** Substrate detects the framework (e.g., Go/Gin, Node/Express) and uses an AI agent to open a PR that installs auto-generation tooling (like `swag` or `tsoa`) and CI pipeline steps.
