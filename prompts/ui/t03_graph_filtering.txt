@@ -12,13 +12,15 @@ Please strictly follow the architectural guidelines in:
    - **Status Toggle:** A checkbox/toggle labeled "Show Only BREAKING Changes".
    - **Protocol Dropdown:** A `<select>` to filter nodes by Protocol (e.g., All, OpenAPI, GraphQL, Protobuf). Note: Since the mock generator prefixes provider names (e.g., `service-openapi`), you can filter by checking if `node.id().includes('openapi')`.
    - **Search Input:** A text input to search for a repository name. 
+   - **Include Neighbors Toggle:** A checkbox input labeled "Highlight connected neighbors".
 
-3. **Cytoscape Filtering Logic**:
+3. **Cytoscape Filtering Logic (Two-Step Exploration)**:
    - Do **NOT** destroy the `cy` instance when filters change. We want a smooth, client-side UX.
    - You must update the `style` array in the `cytoscape({...})` initialization to include two new dynamic classes: 
      - `.hidden` `{ 'display': 'none' }`
      - `.dimmed` `{ 'opacity': 0.2 }`
-   - When a filter state changes, use `cy.nodes().removeClass('hidden dimmed')` to reset, then selectively apply `.hidden` to nodes/edges that don't match the Protocol/Status filter, and `.dimmed` to nodes that don't match the search text.
+   - **Step 1 (Strict Isolation):** When a search text or protocol filter is active, selectively apply `.dimmed` to all nodes and edges that *do not* explicitly match. If the "Highlight connected neighbors" toggle is *checked*, you must override this by keeping the exact matches AND their `.connectedNodes()`/`.connectedEdges()` visible.
+   - **Step 2 (Click to Explore):** Add an event listener `cy.on('tap', 'node', (evt) => { ... })`. When a node is clicked, immediately apply the "Focus Mode": the clicked node AND its `.connectedNodes()` and `.connectedEdges()` remain fully opaque, while all other nodes/edges receive the `.dimmed` class.
    - **CRITICAL**: After applying classes, you MUST re-run the layout (`cy.layout({ name: 'dagre', ... }).run()`) so the remaining visible nodes collapse cleanly into the freed space.
 
 4. **Integration with the 5-Second Polling Loop**:
