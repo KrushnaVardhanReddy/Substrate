@@ -1,0 +1,3 @@
+service: substrate-engine
+schema_type: openapi
+spec_path: test-mcp-dir/openapi.yaml
