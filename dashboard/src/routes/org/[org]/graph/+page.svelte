@@ -10,6 +10,10 @@
 	let cyContainer: HTMLDivElement;
 	let cyInstance = $state<cytoscape.Core | null>(null);
 
+	let showOnlyBreaking = $state(false);
+	let protocolFilter = $state('All');
+	let searchQuery = $state('');
+
 	function selectNode(node: any) {
 		selectedNode = node;
 	}
@@ -98,6 +102,18 @@
 					style: {
 						'border-color': '#ef4444'
 					}
+				},
+				{
+					selector: '.hidden',
+					style: {
+						'display': 'none'
+					}
+				},
+				{
+					selector: '.dimmed',
+					style: {
+						'opacity': 0.2
+					}
 				}
 			],
 			layout: {
@@ -114,6 +130,35 @@
 
 		cy.on('tap', 'node', (evt) => {
 			selectNode({ name: evt.target.id(), version: "v1.0.0", status: evt.target.data('status') || "SAFE" });
+		});
+
+		$effect(() => {
+			if (!cyInstance) return;
+
+			const cy = cyInstance;
+			cy.elements().removeClass('hidden dimmed');
+
+			if (showOnlyBreaking) {
+				cy.nodes('[status != "BREAKING"]').addClass('hidden');
+				cy.edges('[status != "BREAKING"]').addClass('hidden');
+			}
+
+			if (protocolFilter !== 'All') {
+				cy.nodes().filter(ele => !ele.id().includes(protocolFilter)).addClass('hidden');
+			}
+
+			if (searchQuery.trim() !== '') {
+				const query = searchQuery.trim().toLowerCase();
+				cy.nodes().filter(ele => !ele.id().toLowerCase().includes(query)).addClass('dimmed');
+			}
+
+			cy.layout({
+				name: 'dagre',
+				rankDir: 'LR',
+				nodeSep: 50,
+				rankSep: 150,
+				fit: false,
+			} as cytoscape.LayoutOptions).run();
 		});
 
 		const interval = setInterval(async () => {
@@ -150,6 +195,21 @@
 
 					cy.elements().remove();
 					cy.add(newElements);
+
+					if (showOnlyBreaking) {
+						cy.nodes('[status != "BREAKING"]').addClass('hidden');
+						cy.edges('[status != "BREAKING"]').addClass('hidden');
+					}
+
+					if (protocolFilter !== 'All') {
+						cy.nodes().filter(ele => !ele.id().includes(protocolFilter)).addClass('hidden');
+					}
+
+					if (searchQuery.trim() !== '') {
+						const query = searchQuery.trim().toLowerCase();
+						cy.nodes().filter(ele => !ele.id().toLowerCase().includes(query)).addClass('dimmed');
+					}
+
 					cy.layout({
 						name: 'dagre',
 						rankDir: 'LR',
@@ -180,12 +240,28 @@
 
 		<!-- Graph Controls overlay -->
 		<div class="graph-controls" style="z-index: 20;">
-			<button class="icon-btn" aria-label="Zoom In" onclick={zoomIn}>
-				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
-			</button>
-			<button class="icon-btn" aria-label="Zoom Out" onclick={zoomOut}>
-				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
-			</button>
+			<div class="filter-panel">
+				<label class="filter-label">
+					<input type="checkbox" bind:checked={showOnlyBreaking} />
+					Show Only BREAKING Changes
+				</label>
+				<select bind:value={protocolFilter} class="filter-select">
+					<option value="All">All Protocols</option>
+					<option value="openapi">OpenAPI</option>
+					<option value="graphql">GraphQL</option>
+					<option value="protobuf">Protobuf</option>
+					<option value="avro">Avro</option>
+				</select>
+				<input type="text" bind:value={searchQuery} placeholder="Search repository..." class="filter-input" />
+			</div>
+			<div class="zoom-controls">
+				<button class="icon-btn" aria-label="Zoom In" onclick={zoomIn}>
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+				</button>
+				<button class="icon-btn" aria-label="Zoom Out" onclick={zoomOut}>
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+				</button>
+			</div>
 		</div>
 
 		<div bind:this={cyContainer} style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 10;"></div>
@@ -283,8 +359,45 @@
 		top: 24px;
 		right: 24px;
 		display: flex;
-		gap: 8px;
+		flex-direction: column;
+		gap: 12px;
 		z-index: 20;
+		align-items: flex-end;
+	}
+
+	.filter-panel {
+		background-color: var(--bg-card);
+		border: 1px solid var(--border);
+		border-radius: 6px;
+		padding: 12px;
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+	}
+
+	.filter-label {
+		color: var(--text-main);
+		font-size: 13px;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		cursor: pointer;
+	}
+
+	.filter-select, .filter-input {
+		background-color: var(--bg-dark);
+		border: 1px solid var(--border);
+		color: var(--text-main);
+		padding: 6px 8px;
+		border-radius: 4px;
+		font-size: 13px;
+		width: 100%;
+		box-sizing: border-box;
+	}
+
+	.zoom-controls {
+		display: flex;
+		gap: 8px;
 	}
 
 	.icon-btn {
