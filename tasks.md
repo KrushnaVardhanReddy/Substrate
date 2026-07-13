@@ -78,7 +78,7 @@
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **P8-T01** | 🔴 P1 | **Adaptive Job Queue (Graceful Fallback)** — Abstract job processing. If a Redis connection string is present, use a distributed Redis queue (Asynq/KeyDB). If not, gracefully degrade to an in-memory Go channel queue. Prevents webhook timeouts without forcing extra infrastructure. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P8-T01** | 🔴 P1 | **PostgreSQL Job Queue (River)** — Offload synchronous webhook diffing and DB inserts to background workers using a Postgres-backed queue (e.g. `riverqueue/river`). Prevents webhook timeouts while requiring zero extra infrastructure (no Redis). | Unassigned | 💡 Backlog | `(Pending)` |
 | **P8-T02** | 🔴 P1 | **Enterprise Authz (Casbin/OpenFGA)** — Implement strict Role-Based Access Control (RBAC) engine for dashboard and API permissions. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P8-T03** | 🟡 P2 | **CI/CD Cascading Rollback Gate** — `check-rollback` CLI command to block a provider from rolling back in production if a consumer has already deployed code requiring the newer schema. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P8-T04** | 🟢 P3 | **Spotify Backstage Plugin** — Pipe the dependency graph, schema health scores, and API docs directly into Backstage.io developer portals. | Unassigned | 💡 Backlog | `(Pending)` |
