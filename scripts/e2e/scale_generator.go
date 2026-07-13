@@ -171,11 +171,11 @@ func generatePoisonPill(id int, client *github.Client, owner string) string {
 	var pillType string
 	switch mod {
 	case 0:
-		pillType = "GraphQL 50k"
+		pillType = "GraphQL-Poison"
 	case 1:
-		pillType = "OpenAPI loop"
+		pillType = "OpenAPI-Poison"
 	case 2:
-		pillType = "Corrupted binary"
+		pillType = "Corrupted-Binary"
 	}
 
 	fireRealWebhook(id, pillType, true, "push")

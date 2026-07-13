@@ -3,6 +3,7 @@ package webhook
 import (
 	"context"
 	"encoding/json"
+	"hash/crc32"
 	"net/http"
 	"strings"
 	"time"
@@ -88,7 +89,14 @@ func PushHandler(store db.Store) http.HandlerFunc {
 					continue
 				}
 
-				providerRepoID, err := store.UpsertRepo(ctx, orgID, 0, providerRepoName, req.Org+"/"+providerRepoName)
+				fullName := req.Org + "/" + providerRepoName
+				pseudoID := int64(crc32.ChecksumIEEE([]byte(fullName)))
+				// Make it negative to avoid colliding with real github IDs
+				if pseudoID > 0 {
+					pseudoID = -pseudoID
+				}
+				
+				providerRepoID, err := store.UpsertRepo(ctx, orgID, pseudoID, providerRepoName, fullName)
 				if err != nil {
 					continue
 				}
