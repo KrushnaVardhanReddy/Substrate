@@ -9,10 +9,16 @@ As the dependency graph scales to enterprise proportions (100+ nodes), a full un
 - **Location:** Update `dashboard/src/routes/org/[org]/graph/+page.svelte` to add a new "Filter Panel" inside the `.graph-controls` or as a sticky sidebar overlay.
 - **Controls Needed:**
   - **Status Toggle:** A checkbox or toggle button to "Show Only BREAKING Changes". When active, this hides any consumer or provider node that is strictly `SAFE`.
-  - **Protocol Filter:** A select dropdown to filter by protocol (e.g., `OpenAPI`, `GraphQL`, `Avro`). Note: When filtering for a specific protocol, the UI **must** retain not only the matched provider nodes but also all of their connected consumer nodes so that the edges remain visible.
-  - **Search Input:** A text box allowing the user to type a repository name. Nodes matching the substring, along with their directly connected nodes and edges, should be highlighted. Completely disconnected or non-matching nodes and edges should be dimmed (`opacity: 0.2`).
+  - **Protocol Filter:** A select dropdown to filter by protocol (e.g., `OpenAPI`, `GraphQL`, `Avro`).
+  - **Search Input:** A text box allowing the user to type a repository name.
+  - **Include Neighbors Toggle:** A checkbox (e.g. "Highlight connected neighbors") placed near the filters. Default: Off.
 
-### 2. Cytoscape Filtering Logic
+### 2. Search & Filtering UX Flow (Two-Step Exploration)
+- **Step 1: Strict Isolation.** By default, when a user applies a Protocol Filter or a Search Query, the graph must **strictly highlight only the exact matching nodes**. All other nodes and edges MUST be dimmed (`opacity: 0.2`). This prevents visual clutter and allows the user to immediately locate the matching nodes in the haystack.
+- **Step 2: Click to Explore (Blast Radius).** When a user clicks/taps on any node, the graph must enter a "Focus Mode". It should fully highlight the clicked node AND its first-degree connected edges/neighbors (upstream providers and downstream consumers). All other graph elements remain dimmed.
+- **Neighbor Override.** If the "Highlight connected neighbors" toggle is checked, Step 1 is overridden: the initial search/filter will automatically highlight the matching nodes *plus* all of their connected neighbors and edges immediately.
+
+### 3. Cytoscape Implementation Details
 - When a filter is applied, do **not** destroy the Cytoscape instance.
 - Instead, use Cytoscape collections to apply CSS classes or manipulate visibility:
   - Example: `cy.nodes().removeClass('hidden')` and `cy.nodes('[status != "BREAKING"]').addClass('hidden')`.
