@@ -38,6 +38,10 @@ export function formatPRComment(
 
   let comment = '';
 
+  if (config.mode === 'audit') {
+    comment += `> ℹ️ **Substrate is running in Audit Mode.** This breaking change has been recorded, but this PR is NOT blocked.\n\n`;
+  }
+
   if (breakingCount > 0) {
     comment += `## 🔴 Substrate — Breaking Changes Detected\n\n`;
     const schemaName = (report as any).schema_type === 'sql' ? 'SQL' : 'OpenAPI';
@@ -148,6 +152,10 @@ export function getCommitStatusState(
   config: SubstrateConfig,
   crossRepo?: CrossRepoCheckResponse
 ): 'success' | 'failure' {
+  if (config.mode === 'audit') {
+    return 'success';
+  }
+
   const breakingCount = report.summary?.breaking_count || 0;
 
   if (crossRepo?.is_safe === false) {
@@ -169,23 +177,28 @@ export function getCommitStatusState(
 
 export function getCommitStatusDescription(
   report: DiffReport,
-  crossRepo?: CrossRepoCheckResponse
+  crossRepo?: CrossRepoCheckResponse,
+  config?: SubstrateConfig
 ): string {
   const breakingCount = report.summary?.breaking_count || 0;
 
+  let description = '';
+
   if (breakingCount > 0 && crossRepo?.is_safe === false) {
-    return `${breakingCount} breaking change(s) detected — ${crossRepo.broken_consumers} consumer(s) affected`;
+    description = `${breakingCount} breaking change(s) detected — ${crossRepo.broken_consumers} consumer(s) affected`;
+  } else if (breakingCount > 0) {
+    description = `${breakingCount} breaking change(s) detected`;
+  } else if (crossRepo?.is_safe === false) {
+    description = `${crossRepo.broken_consumers} downstream consumer(s) affected by this change`;
+  } else {
+    description = 'All clear — no breaking changes';
   }
 
-  if (breakingCount > 0) {
-    return `${breakingCount} breaking change(s) detected`;
+  if (config?.mode === 'audit' && breakingCount > 0) {
+    description += ' (Audit Mode: Non-blocking)';
   }
 
-  if (crossRepo?.is_safe === false) {
-    return `${crossRepo.broken_consumers} downstream consumer(s) affected by this change`;
-  }
-
-  return 'All clear — no breaking changes';
+  return description;
 }
 
 export function formatCrossRepoImpact(response: CrossRepoCheckResponse): string {

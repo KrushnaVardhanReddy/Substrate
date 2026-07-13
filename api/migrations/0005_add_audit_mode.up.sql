@@ -1,0 +1,1 @@
+ALTER TABLE diff_reports ADD COLUMN IF NOT EXISTS is_audit_mode BOOLEAN DEFAULT false;

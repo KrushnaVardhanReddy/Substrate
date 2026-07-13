@@ -130,13 +130,13 @@ func main() {
 
 			finalMode := "strict"
 			if modeFlag != "" {
-				if modeFlag == "strict" || modeFlag == "legacy" {
+				if modeFlag == "strict" || modeFlag == "legacy" || modeFlag == "audit" {
 					finalMode = modeFlag
 				} else {
-					fmt.Fprintf(os.Stderr, "Error: invalid mode '%s'. Must be 'strict' or 'legacy'\n", modeFlag)
+					fmt.Fprintf(os.Stderr, "Error: invalid mode '%s'. Must be 'strict', 'legacy', or 'audit'\n", modeFlag)
 					os.Exit(3)
 				}
-			} else if cfg != nil && (cfg.Mode == "strict" || cfg.Mode == "legacy") {
+			} else if cfg != nil && (cfg.Mode == "strict" || cfg.Mode == "legacy" || cfg.Mode == "audit") {
 				finalMode = cfg.Mode
 			}
 			rep.Mode = finalMode
@@ -245,6 +245,11 @@ func main() {
 
 			if finalMode == "legacy" {
 				os.Exit(0)
+			} else if finalMode == "audit" {
+				if rep.Summary.BreakingCount > 0 {
+					fmt.Println("[AUDIT MODE] Breaking changes detected, but exiting with 0 to allow merge.")
+				}
+				os.Exit(0)
 			} else {
 				if rep.Summary.BreakingCount > 0 {
 					os.Exit(2)
@@ -260,7 +265,7 @@ func main() {
 	diffCmd.Flags().StringVar(&configPath, "config", "./substrate.yaml", "Path to override config file")
 	diffCmd.Flags().StringVar(&format, "format", "json", "Output format")
 	diffCmd.Flags().StringVar(&schemaType, "schema-type", "", "Force schema type")
-	diffCmd.Flags().StringVar(&modeFlag, "mode", "", "Execution mode: strict or legacy")
+	diffCmd.Flags().StringVar(&modeFlag, "mode", "", "Execution mode: strict, legacy, or audit")
 
 	var validateCmd = &cobra.Command{
 		Use:   "validate [spec-file]",

@@ -338,17 +338,17 @@ func UpdateDependencyConfidence(ctx context.Context, pool *pgxpool.Pool, consume
 	return nil
 }
 
-func (s *PGStore) SaveDiffReport(ctx context.Context, diffReport json.RawMessage) (uuid.UUID, error) {
-	return SaveDiffReport(ctx, s.pool, diffReport)
+func (s *PGStore) SaveDiffReport(ctx context.Context, diffReport json.RawMessage, isAuditMode bool) (uuid.UUID, error) {
+	return SaveDiffReport(ctx, s.pool, diffReport, isAuditMode)
 }
 
-func SaveDiffReport(ctx context.Context, pool *pgxpool.Pool, diffReport json.RawMessage) (uuid.UUID, error) {
+func SaveDiffReport(ctx context.Context, pool *pgxpool.Pool, diffReport json.RawMessage, isAuditMode bool) (uuid.UUID, error) {
 	var id uuid.UUID
 	err := pool.QueryRow(ctx, `
-		INSERT INTO diff_reports (report_data)
-		VALUES ($1)
+		INSERT INTO diff_reports (report_data, is_audit_mode)
+		VALUES ($1, $2)
 		RETURNING id
-	`, diffReport).Scan(&id)
+	`, diffReport, isAuditMode).Scan(&id)
 	return id, err
 }
 

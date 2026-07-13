@@ -1,32 +1,10 @@
-openapi: "3.0.0"
+openapi: 3.0.0
 info:
-  title: Mock API
-  version: "1.0.0"
+  title: Test API
+  version: 1.0.0
 paths:
   /users:
     get:
-      summary: Get users
-      parameters:
-        - name: sort
-          in: query
-          schema:
-            type: string
-            enum: [asc]
       responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                  name:
-                    type: string
-  /deleted:
-    get:
-      summary: This endpoint is deleted in rev_breaking.yaml to trigger breaking path
-      responses:
-        "200":
+        '200':
           description: OK

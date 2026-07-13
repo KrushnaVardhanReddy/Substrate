@@ -244,7 +244,7 @@ func LoadConfig(path string) (*SubstrateConfig, error) {
 	}
 
 	// Default mode
-	if config.Mode != "strict" && config.Mode != "legacy" {
+	if config.Mode != "strict" && config.Mode != "legacy" && config.Mode != "audit" {
 		config.Mode = "strict"
 	}
 
