@@ -19,7 +19,9 @@
 1. **Review Jules PRs:**
    - Pull down the `V1-T07` branch and run the System E2E tests against our local `make postgres` instance to validate their scripts.
    - Pull down the `UI-T03` branch, run the dashboard (`npm run dev`), and manually verify the new two-step graph filtering UX behaves elegantly.
-2. **V1.0 Pre-Flight:**
-   - Once these two PRs are merged, continue burning down the remaining `V1.0 Pre-Flight Checklist` (e.g., GitHub App Auto-Discovery, CLI AI Architect, Legal Audit) located in `tasks.md`.
+2. **V1.0 Pre-Flight & 2-Day Timeline Goal:**
+   - **Target:** Complete all V1.0 testing and release within 2 days.
+   - **Day 1:** Merge `V1-T07` and `UI-T03`. Submit the remaining `V1.0 Pre-Flight Checklist` tasks (`V1-T01` to `V1-T06`) to Jules in parallel.
+   - **Day 2:** Run the final comprehensive System E2E Test Suite locally, perform the final audit, and apply the V1.0 release tag.
 3. **Database TRUNCATE Reminder:**
    - Before running new E2E tests, remember to clear stale graph data using `PGPASSWORD=postgres psql -h localhost -U postgres -d substrate -c "TRUNCATE TABLE dependencies CASCADE; TRUNCATE TABLE contracts CASCADE; TRUNCATE TABLE repositories CASCADE;"`.
