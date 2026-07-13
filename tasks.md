@@ -84,6 +84,7 @@
 | **P8-T04** | 🟢 P3 | **Spotify Backstage Plugin** — Pipe the dependency graph, schema health scores, and API docs directly into Backstage.io developer portals. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P8-T05** | 🔵 P4 | **Distributed Tracing (OpenTelemetry)** — Add OpenTelemetry to trace requests across the GitHub Worker, Go API, and diff engine for waterfall debugging. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P8-T06** | ⚪ P5 | **Management ROI Dashboard** — A specialized view that calculates the literal engineering hours and monetary value saved by Substrate preventing downstream outages this month. | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
+| **P8-T07** | 🔴 P1 | **Billing & Subscription Engine (Paywall Pause)** — Add `trial_ends_at` to the DB, update the GitHub App to enforce Audit Mode during the 90-day trial, and gracefully pause analysis when the trial expires until Stripe checkout. | Unassigned | 💡 Backlog | `docs/specs/go-to-market-strategy.md` |
 
 ---
 
