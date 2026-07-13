@@ -1,0 +1,35 @@
+TASK: UI-T03 — Enterprise Graph Filtering & Navigation
+
+I need your help implementing a critical Enterprise feature for the Substrate Svelte Dashboard. As our chaos testing generates 100+ dependency nodes across 10 protocol clusters, the Cytoscape graph becomes visually overwhelming. We need you to implement a robust filtering UI.
+
+Please strictly follow the architectural guidelines in:
+`docs/specs/ui/ui-t03-graph-filtering.md`
+
+### Implementation Details:
+1. **Target File**: `dashboard/src/routes/org/[org]/graph/+page.svelte`
+2. **UI Controls Overlay**:
+   - Add a new "Filter Panel" to the UI (you can place it inside `.graph-controls` or as a new `.filter-panel` sidebar overlay).
+   - **Status Toggle:** A checkbox/toggle labeled "Show Only BREAKING Changes".
+   - **Protocol Dropdown:** A `<select>` to filter nodes by Protocol (e.g., All, OpenAPI, GraphQL, Protobuf). Note: Since the mock generator prefixes provider names (e.g., `service-openapi`), you can filter by checking if `node.id().includes('openapi')`.
+   - **Search Input:** A text input to search for a repository name. 
+   - **Include Neighbors Toggle:** A checkbox input labeled "Highlight connected neighbors".
+
+3. **Cytoscape Filtering Logic (Two-Step Exploration)**:
+   - Do **NOT** destroy the `cy` instance when filters change. We want a smooth, client-side UX.
+   - You must update the `style` array in the `cytoscape({...})` initialization to include two new dynamic classes: 
+     - `.hidden` `{ 'display': 'none' }`
+     - `.dimmed` `{ 'opacity': 0.2 }`
+   - **Step 1 (Strict Isolation):** When a search text or protocol filter is active, selectively apply `.dimmed` to all nodes and edges that *do not* explicitly match. If the "Highlight connected neighbors" toggle is *checked*, you must override this by keeping the exact matches AND their `.connectedNodes()`/`.connectedEdges()` visible.
+   - **Step 2 (Click to Explore):** Add an event listener `cy.on('tap', 'node', (evt) => { ... })`. When a node is clicked, immediately apply the "Focus Mode": the clicked node AND its `.connectedNodes()` and `.connectedEdges()` remain fully opaque, while all other nodes/edges receive the `.dimmed` class.
+   - **CRITICAL**: After applying classes, you MUST re-run the layout (`cy.layout({ name: 'dagre', ... }).run()`) so the remaining visible nodes collapse cleanly into the freed space.
+
+4. **Integration with the 5-Second Polling Loop**:
+   - The file currently has a `setInterval` that fetches from `/api/v1/graph` every 5 seconds.
+   - When new nodes/edges are added inside this interval (`cy.add(newElements)`), ensure they immediately inherit the currently active filters before the layout re-runs.
+
+### Validation:
+- We are using Svelte 5 (`$state`, `$effect`). Please ensure your reactive variables are declared correctly.
+- Do not install large third-party UI libraries (use vanilla HTML inputs styled consistently with our dark theme).
+- Run `npm run check` in the `dashboard/` directory to verify TypeScript interfaces before you finalize.
+
+Take a deep breath and let's make this dependency graph usable at enterprise scale!

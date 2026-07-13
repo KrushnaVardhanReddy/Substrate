@@ -10,15 +10,18 @@ OBJECTIVE
 ═══════════════════════════════════════════════════════════════
 Prove the final V1.0 pipeline works as a seamless end-to-end flow—from automated onboarding, AI design, schema diffing, to final deployment gates.
 
+**CRITICAL: True System Integration**
+Unlike previous E2E tests, this suite MUST NOT use in-memory database mocks or sqlite drivers. It must hit the REAL local PostgreSQL container and fire REAL HTTP requests to the local Go API server. Only external services (GitHub API, OpenAI API) can be mocked via local HTTP servers.
+
 IMPORTANT: Follow the exact testing architecture and scenario flow outlined in the source-of-truth specification: `docs/specs/v1-preflight/v1-e2e-spec.md`.
 
 ═══════════════════════════════════════════════════════════════
 DELIVERABLES
 ═══════════════════════════════════════════════════════════════
 1. **E2E Suite:** Write `scripts/e2e/v1_e2e_test.go` using Go's standard `testing` package.
-2. **Step 1 (Discovery):** Simulate the GitHub App Webhook receiving a new repository installation, asserting it triggers the Auto-Discovery PR.
+2. **Step 1 (Discovery):** Simulate the GitHub App Webhook receiving a new repository installation, asserting it triggers the Auto-Discovery PR by firing a payload via real HTTP to the API.
 3. **Step 2 (AI Scaffold):** Simulate a developer invoking the CLI AI Architect using a mocked LLM interface, asserting the generated YAML is valid.
-4. **Step 3 (Diff Viewer):** Simulate a PR schema break and assert that the interactive Diff Viewer UI JSON is correctly generated and stored.
+4. **Step 3 (Diff Viewer):** Simulate a PR schema break and assert that the interactive Diff Viewer UI JSON is correctly generated and stored in the real PostgreSQL database.
 5. **Step 4 (Validation):** Execute `substrate validate` locally to fix the break.
 6. **Step 5 (Deploy Gate):** Execute `substrate check-deploy`. Validate that it successfully blocks a **provider** from deploying a breaking change to production when its consumers are not yet updated.
 
@@ -31,4 +34,4 @@ FILES TO ADD:
 FILES TO MODIFY:
 - (None)
 
-Commit: "jules: implement V1.0 system E2E tests"
+Commit: "jules: implement V1.0 un-mocked system E2E tests"

@@ -12,13 +12,15 @@ The V1.0 System E2E test suite validates the entire Substrate lifecycle from the
 
 ## 2. Testing Architecture
 
-Since Substrate consists of multiple components (GitHub Worker, Go API Registry, Svelte Dashboard, CLI), the E2E test will orchestrate these interactions using Go's `testing` package with mocked HTTP boundaries where necessary.
+Since Substrate consists of multiple components (GitHub Worker, Go API Registry, Svelte Dashboard, CLI), the E2E test will orchestrate these interactions using Go's `testing` package but must **avoid in-memory mocks for the database**. 
+
+**CRITICAL: True System Integration**
+The E2E suite MUST connect to the real, locally running PostgreSQL database and the real, locally running Go API server via HTTP. 
+- **No Mock Drivers:** Do not use sqlite or mock DB drivers. Connect directly to `postgres://postgres:postgres@localhost:5432/substrate`.
+- **Real HTTP:** Fire actual HTTP requests with `Authorization: Bearer local-dev-token` to `http://localhost:8090/api/v1/webhook`.
+- **Mocks Allowed:** Only external systems like GitHub APIs and LLM (OpenAI) endpoints may be mocked via local HTTP test servers.
 
 The test file should be located at: `scripts/e2e/v1_e2e_test.go`
-
-- **Execution:** Uses `go test` with a specific build tag or environment variable (e.g., `TEST_E2E=1`).
-- **Dependencies:** The test spins up an in-memory test instance of the Go API Server and utilizes the CLI functions programmatically.
-- **Mocks:** External GitHub API calls and LLM (OpenAI) interactions must be mocked via local HTTP test servers.
 
 ## 3. The End-to-End Scenario Flow
 

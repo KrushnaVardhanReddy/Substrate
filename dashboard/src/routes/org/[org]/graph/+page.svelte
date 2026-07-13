@@ -1,18 +1,313 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import cytoscape from 'cytoscape';
+	import dagre from 'cytoscape-dagre';
+
+	cytoscape.use(dagre);
 	
 	let { data } = $props();
 	let selectedNode = $state<any>(null);
+	let cyContainer: HTMLDivElement;
+	let cyInstance = $state<cytoscape.Core | null>(null);
+
+	let showOnlyBreaking = $state(false);
+	let protocolFilter = $state('All');
+	let searchQuery = $state('');
+	let includeNeighbors = $state(false);
+	let hideOrphans = $state(true);
+	let focusedNodeId = $state<string | null>(null);
 
 	function selectNode(node: any) {
 		selectedNode = node;
 	}
+
+	function zoomIn() {
+		if (cyInstance) cyInstance.zoom(cyInstance.zoom() * 1.2);
+	}
+	function zoomOut() {
+		if (cyInstance) cyInstance.zoom(cyInstance.zoom() * 0.8);
+	}
+
+	function applyFilters(cy: cytoscape.Core) {
+		// Read all reactive states to ensure Svelte tracks them
+		const _show = showOnlyBreaking;
+		const _proto = protocolFilter;
+		const _search = searchQuery;
+		const _neighbors = includeNeighbors;
+		const _orphans = hideOrphans;
+		const _focus = focusedNodeId;
+
+		cy.elements().removeClass('hidden dimmed');
+
+		if (showOnlyBreaking) {
+			cy.nodes('[status != "BREAKING"]').addClass('hidden');
+			cy.edges('[status != "BREAKING"]').addClass('hidden');
+		}
+
+		if (hideOrphans) {
+			cy.nodes().filter(n => n.degree(false) === 0).addClass('hidden');
+		}
+
+		let toKeepNodes = cy.nodes();
+		let toKeepEdges = cy.edges();
+		let filtered = false;
+
+		if (protocolFilter !== 'All') {
+			filtered = true;
+			const query = protocolFilter.toLowerCase();
+			const matchedNodes = cy.nodes().filter(n => n.id().toLowerCase().includes(query));
+			if (includeNeighbors) {
+				toKeepNodes = matchedNodes.union(matchedNodes.neighborhood('node'));
+				toKeepEdges = matchedNodes.connectedEdges();
+			} else {
+				toKeepNodes = matchedNodes;
+				toKeepEdges = matchedNodes.edgesWith(matchedNodes);
+			}
+		}
+
+		if (searchQuery.trim() !== '') {
+			const wasFiltered = filtered;
+			filtered = true;
+			const query = searchQuery.trim().toLowerCase();
+			const matchedNodes = cy.nodes().filter(n => n.id().toLowerCase().includes(query));
+			if (includeNeighbors) {
+				toKeepNodes = wasFiltered ? toKeepNodes.intersection(matchedNodes.union(matchedNodes.neighborhood('node'))) : matchedNodes.union(matchedNodes.neighborhood('node'));
+				toKeepEdges = wasFiltered ? toKeepEdges.intersection(matchedNodes.connectedEdges()) : matchedNodes.connectedEdges();
+			} else {
+				toKeepNodes = wasFiltered ? toKeepNodes.intersection(matchedNodes) : matchedNodes;
+				toKeepEdges = wasFiltered ? toKeepEdges.intersection(matchedNodes.edgesWith(matchedNodes)) : matchedNodes.edgesWith(matchedNodes);
+			}
+		}
+
+		if (filtered) {
+			cy.nodes().difference(toKeepNodes).addClass('dimmed');
+			cy.edges().difference(toKeepEdges).addClass('dimmed');
+		}
+
+		if (focusedNodeId) {
+			// Blast Radius Focus Mode: Hide everything else completely
+			cy.elements().addClass('hidden');
+			const focusedNode = cy.getElementById(focusedNodeId);
+			if (focusedNode.length > 0) {
+				focusedNode.neighborhood().removeClass('hidden');
+				focusedNode.removeClass('hidden');
+			}
+		}
+
+		cy.layout({
+			name: 'dagre',
+			rankDir: 'LR',
+			nodeSep: 50,
+			rankSep: 150,
+			fit: true,
+			padding: 50,
+			animate: true,
+			animationDuration: 300
+		} as cytoscape.LayoutOptions).run();
+	}
+
+	function getNodeType(id: string) {
+		const lower = id.toLowerCase();
+		if (lower.includes('ui') || lower.includes('web') || lower.includes('frontend') || lower.includes('dashboard') || lower.includes('app')) return 'frontend';
+		if (lower.includes('db') || lower.includes('data') || lower.includes('postgres') || lower.includes('redis') || lower.includes('kafka')) return 'data';
+		return 'backend';
+	}
 	
-	// Separate upstream and downstream for simple rendering
-	let providers = $derived(data.graphData.filter((e: any) => e.provider !== "api/gateway-service"));
-	let consumers = $derived(data.graphData.filter((e: any) => e.consumer !== "api/gateway-service"));
-	
-	// We'll just hardcode a layout for the demo like the mockup did
+	$effect(() => {
+		if (!cyContainer) return;
+
+		const nodesMap = new Map();
+		const elements: cytoscape.ElementDefinition[] = [];
+
+		for (const edge of data.graphData) {
+			const { provider, consumer, status } = edge;
+
+			if (!nodesMap.has(provider)) {
+				nodesMap.set(provider, true);
+				elements.push({ data: { id: provider, label: provider, status: 'SAFE' }, classes: getNodeType(provider) });
+			}
+			if (!nodesMap.has(consumer)) {
+				nodesMap.set(consumer, true);
+				elements.push({ data: { id: consumer, label: consumer, status: 'SAFE' }, classes: getNodeType(consumer) });
+			}
+
+			elements.push({
+				data: {
+					source: consumer,
+					target: provider,
+					status: status
+				}
+			});
+		}
+
+		for (const edge of data.graphData) {
+			if (edge.status === 'BREAKING') {
+				const providerNode = elements.find(e => e.data.id === edge.provider);
+				if (providerNode) {
+					providerNode.data.status = 'BREAKING';
+				}
+			}
+		}
+
+		const cy = cytoscape({
+			container: cyContainer,
+			elements: elements,
+			style: [
+				{
+					selector: 'node',
+					style: {
+						'background-color': '#1e293b',
+						'border-width': 2,
+						'border-color': '#3b82f6',
+						'color': '#f8fafc',
+						'text-valign': 'center',
+						'font-size': '12px',
+						'font-family': 'monospace',
+						'padding': '10px',
+						'shape': 'round-rectangle',
+						'label': 'data(label)'
+					}
+				},
+				{
+					selector: 'edge',
+					style: {
+						'width': 2,
+						'line-color': '#334155',
+						'target-arrow-color': '#334155',
+						'target-arrow-shape': 'triangle',
+						'curve-style': 'bezier'
+					}
+				},
+				{
+					selector: 'edge[status = "BREAKING"]',
+					style: {
+						'line-color': '#ef4444',
+						'target-arrow-color': '#ef4444'
+					}
+				},
+				{
+					selector: 'node[status = "BREAKING"]',
+					style: {
+						'border-color': '#ef4444'
+					}
+				},
+				{
+					selector: '.frontend',
+					style: {
+						'border-color': '#a855f7'
+					}
+				},
+				{
+					selector: '.data',
+					style: {
+						'border-color': '#22c55e'
+					}
+				},
+				{
+					selector: '.backend',
+					style: {
+						'border-color': '#3b82f6'
+					}
+				},
+				{
+					selector: '.hidden',
+					style: {
+						'display': 'none'
+					}
+				},
+				{
+					selector: '.dimmed',
+					style: {
+						'opacity': 0.2
+					}
+				}
+			],
+			layout: {
+				name: 'dagre',
+				rankDir: 'LR',
+				nodeSep: 50,
+				rankSep: 150,
+				fit: true,
+				padding: 50
+			} as cytoscape.LayoutOptions
+		});
+
+		cyInstance = cy;
+
+		cy.on('tap', 'node', (evt) => {
+			const node = evt.target;
+			const incoming = node.incomers('node').map((n: any) => n.id());
+			const outgoing = node.outgoers('node').map((n: any) => n.id());
+
+			selectNode({ 
+				name: node.id(), 
+				version: "v1.0.0", 
+				status: node.data('status') || "SAFE",
+				upstream: outgoing,
+				downstream: incoming
+			});
+			focusedNodeId = node.id();
+		});
+
+		cy.on('tap', (evt) => {
+			if (evt.target === cy) {
+				focusedNodeId = null;
+				selectedNode = null;
+			}
+		});
+
+		$effect(() => {
+			if (!cyInstance) return;
+			applyFilters(cyInstance);
+		});
+
+		const interval = setInterval(async () => {
+			try {
+				const res = await fetch(`http://localhost:8090/api/v1/graph/${$page.params.org}`, {
+					headers: { "Authorization": "Bearer local-dev-token" }
+				});
+				const edges = await res.json();
+				if (Array.isArray(edges)) {
+					const nodesMap = new Map();
+					const newElements: cytoscape.ElementDefinition[] = [];
+
+					for (const edge of edges) {
+						const { provider, consumer, status } = edge;
+						if (!nodesMap.has(provider)) {
+							nodesMap.set(provider, true);
+							newElements.push({ data: { id: provider, label: provider, status: 'SAFE' }, classes: getNodeType(provider) });
+						}
+						if (!nodesMap.has(consumer)) {
+							nodesMap.set(consumer, true);
+							newElements.push({ data: { id: consumer, label: consumer, status: 'SAFE' }, classes: getNodeType(consumer) });
+						}
+						newElements.push({ data: { source: consumer, target: provider, status: status } });
+					}
+
+					for (const edge of edges) {
+						if (edge.status === 'BREAKING') {
+							const providerNode = newElements.find(e => e.data.id === edge.provider);
+							if (providerNode) {
+								providerNode.data.status = 'BREAKING';
+							}
+						}
+					}
+
+					cy.elements().remove();
+					cy.add(newElements);
+
+					applyFilters(cy);
+				}
+			} catch (err) {
+				console.error("Polling error", err);
+			}
+		}, 5000);
+
+		return () => {
+			clearInterval(interval);
+			cy.destroy();
+		};
+	});
 </script>
 
 <div class="graph-container">
@@ -24,94 +319,40 @@
 		</div>
 
 		<!-- Graph Controls overlay -->
-		<div class="graph-controls">
-			<button class="icon-btn" aria-label="Refresh">
-				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
-			</button>
-			<button class="icon-btn" aria-label="Zoom Out">
-				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
-			</button>
-		</div>
-
-		<!-- SVG for connections (absolute positioned behind nodes) -->
-		<svg class="connections-layer" style="z-index: 0;">
-			<!-- Paths connecting roughly where the nodes are placed below -->
-			<path class="svg-connection" d="M 220 150 C 350 150, 350 300, 480 300"></path>
-			<path class="svg-connection" d="M 220 300 C 350 300, 350 300, 480 300"></path>
-			<path class="svg-connection svg-connection-error" d="M 220 450 C 350 450, 350 300, 480 300"></path>
-			<path class="svg-connection" d="M 720 300 C 850 300, 850 200, 980 200"></path>
-			<path class="svg-connection" d="M 720 300 C 850 300, 850 400, 980 400"></path>
-		</svg>
-
-		<!-- Graph Nodes Container -->
-		<div class="nodes-layer" style="z-index: 10;">
-			<!-- Upstream Column -->
-			<!-- svelte-ignore a11y_click_events_have_key_events -->
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div class="node-card" style="left: 20px; top: 110px; width: 200px;" onclick={() => selectNode({ name: 'core/auth', version: 'v1.0.5', status: 'SAFE' })}>
-				<div class="node-header">
-					<span class="node-title">core/auth</span>
-					<div class="status-badge safe">SAFE</div>
-				</div>
-				<div class="node-version">v1.0.5</div>
+		<div class="graph-controls" style="z-index: 20;">
+			<div class="filter-panel">
+				<label class="filter-label">
+					<input type="checkbox" bind:checked={showOnlyBreaking} />
+					Show Only BREAKING Changes
+				</label>
+				<label class="filter-label">
+					<input type="checkbox" bind:checked={hideOrphans} />
+					Hide Orphaned Nodes
+				</label>
+				<select bind:value={protocolFilter} class="filter-select">
+					<option value="All">All Protocols</option>
+					<option value="openapi">OpenAPI</option>
+					<option value="graphql">GraphQL</option>
+					<option value="protobuf">Protobuf</option>
+					<option value="avro">Avro</option>
+				</select>
+				<input type="text" bind:value={searchQuery} placeholder="Search repository..." class="filter-input" />
+				<label class="filter-label">
+					<input type="checkbox" bind:checked={includeNeighbors} />
+					Highlight connected neighbors
+				</label>
 			</div>
-
-			<!-- svelte-ignore a11y_click_events_have_key_events -->
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div class="node-card" style="left: 20px; top: 260px; width: 200px;" onclick={() => selectNode({ name: 'db/postgres-driver', version: 'v3.2.1', status: 'SAFE' })}>
-				<div class="node-header">
-					<span class="node-title">db/postgres-driver</span>
-					<div class="status-badge safe">SAFE</div>
-				</div>
-				<div class="node-version">v3.2.1</div>
-			</div>
-
-			<!-- svelte-ignore a11y_click_events_have_key_events -->
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div class="node-card error-card" style="left: 20px; top: 410px; width: 200px;" onclick={() => selectNode({ name: 'utils/logger', version: 'v0.9.8', status: 'BREAKING' })}>
-				<div class="node-header">
-					<span class="node-title">utils/logger</span>
-					<div class="status-badge error">BREAKING</div>
-				</div>
-				<div class="node-version error-text">v0.9.8 (Deprecated)</div>
-			</div>
-
-			<!-- Central Target Column -->
-			<!-- svelte-ignore a11y_click_events_have_key_events -->
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div class="node-card selected-card" style="left: 480px; top: 260px; width: 240px; z-index: 20;" onclick={() => selectNode({ name: 'api/gateway-service', version: 'v4.1.0', status: 'SAFE', selected: true })}>
-				<div class="node-header">
-					<span class="node-title bold">api/gateway-service</span>
-					<div class="status-badge safe">SAFE</div>
-				</div>
-				<div class="node-version mb-sm">v4.1.0</div>
-				<div class="node-stats">
-					<span class="stat-badge">3 In</span>
-					<span class="stat-badge">2 Out</span>
-				</div>
-			</div>
-
-			<!-- Downstream Column -->
-			<!-- svelte-ignore a11y_click_events_have_key_events -->
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div class="node-card" style="left: 980px; top: 160px; width: 200px;" onclick={() => selectNode({ name: 'frontend/dashboard', version: 'v2.2.0', status: 'SAFE' })}>
-				<div class="node-header">
-					<span class="node-title">frontend/dashboard</span>
-					<div class="status-badge safe">SAFE</div>
-				</div>
-				<div class="node-version">v2.2.0</div>
-			</div>
-
-			<!-- svelte-ignore a11y_click_events_have_key_events -->
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div class="node-card" style="left: 980px; top: 360px; width: 200px;" onclick={() => selectNode({ name: 'workers/indexer', version: 'v1.0.1', status: 'SAFE' })}>
-				<div class="node-header">
-					<span class="node-title">workers/indexer</span>
-					<div class="status-badge safe">SAFE</div>
-				</div>
-				<div class="node-version">v1.0.1</div>
+			<div class="zoom-controls">
+				<button class="icon-btn" aria-label="Zoom In" onclick={zoomIn}>
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+				</button>
+				<button class="icon-btn" aria-label="Zoom Out" onclick={zoomOut}>
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+				</button>
 			</div>
 		</div>
+
+		<div bind:this={cyContainer} style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 10;"></div>
 	</main>
 
 	<!-- Side Panel (Detail View) -->
@@ -154,6 +395,37 @@
 					<div class="meta-value monospace">MIT</div>
 					<div class="meta-label">Status</div>
 					<div class="meta-value {selectedNode.status === 'BREAKING' ? 'error-text' : ''}">{selectedNode.status}</div>
+				</div>
+			</section>
+
+			<!-- Impact Analysis -->
+			<section class="detail-section">
+				<h4 class="section-title">Impact Analysis</h4>
+				<div class="impact-lists">
+					<div class="impact-col">
+						<div class="meta-label">Downstream Consumers</div>
+						{#if selectedNode.downstream && selectedNode.downstream.length > 0}
+							<ul class="impact-ul">
+								{#each selectedNode.downstream as p}
+									<li class="meta-value">{p}</li>
+								{/each}
+							</ul>
+						{:else}
+							<div class="meta-value">None</div>
+						{/if}
+					</div>
+					<div class="impact-col" style="margin-top: 12px;">
+						<div class="meta-label">Upstream Providers</div>
+						{#if selectedNode.upstream && selectedNode.upstream.length > 0}
+							<ul class="impact-ul">
+								{#each selectedNode.upstream as p}
+									<li class="meta-value">{p}</li>
+								{/each}
+							</ul>
+						{:else}
+							<div class="meta-value">None</div>
+						{/if}
+					</div>
 				</div>
 			</section>
 		</div>
@@ -206,8 +478,45 @@
 		top: 24px;
 		right: 24px;
 		display: flex;
-		gap: 8px;
+		flex-direction: column;
+		gap: 12px;
 		z-index: 20;
+		align-items: flex-end;
+	}
+
+	.filter-panel {
+		background-color: var(--bg-card);
+		border: 1px solid var(--border);
+		border-radius: 6px;
+		padding: 12px;
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+	}
+
+	.filter-label {
+		color: var(--text-main);
+		font-size: 13px;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		cursor: pointer;
+	}
+
+	.filter-select, .filter-input {
+		background-color: var(--bg-dark);
+		border: 1px solid var(--border);
+		color: var(--text-main);
+		padding: 6px 8px;
+		border-radius: 4px;
+		font-size: 13px;
+		width: 100%;
+		box-sizing: border-box;
+	}
+
+	.zoom-controls {
+		display: flex;
+		gap: 8px;
 	}
 
 	.icon-btn {
@@ -225,128 +534,6 @@
 	.icon-btn:hover {
 		color: var(--text-main);
 		background-color: var(--bg-hover);
-	}
-
-	.connections-layer {
-		position: absolute;
-		inset: 0;
-		width: 100%;
-		height: 100%;
-		pointer-events: none;
-	}
-
-	.svg-connection {
-		fill: none;
-		stroke: var(--border);
-		stroke-width: 1.5;
-		stroke-dasharray: 4;
-		animation: dash 20s linear infinite;
-	}
-
-	.svg-connection-error {
-		stroke: var(--danger);
-		stroke-dasharray: none;
-	}
-
-	@keyframes dash {
-		to { stroke-dashoffset: -100; }
-	}
-
-	.nodes-layer {
-		position: relative;
-		width: 100%;
-		height: 100%;
-		margin-top: 60px;
-	}
-
-	.node-card {
-		position: absolute;
-		background-color: var(--bg-dark);
-		border: 1px solid var(--border);
-		border-radius: 6px;
-		padding: 12px;
-		cursor: pointer;
-		transition: all 0.2s ease;
-	}
-
-	.node-card:hover {
-		border-color: var(--accent);
-		transform: translateY(-2px);
-	}
-
-	.node-card.selected-card {
-		border-color: var(--accent);
-		box-shadow: 0 0 15px rgba(59, 130, 246, 0.15);
-	}
-
-	.error-card {
-		border-color: rgba(239, 68, 68, 0.5);
-	}
-
-	.node-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: flex-start;
-		margin-bottom: 8px;
-	}
-
-	.node-title {
-		font-family: 'JetBrains Mono', monospace;
-		font-size: 12px;
-		color: var(--text-main);
-	}
-
-	.node-title.bold {
-		font-weight: bold;
-		font-size: 13px;
-	}
-
-	.status-badge {
-		font-size: 10px;
-		padding: 2px 6px;
-		border-radius: 4px;
-		font-weight: 600;
-		letter-spacing: 0.05em;
-	}
-
-	.status-badge.safe {
-		background-color: rgba(34, 197, 94, 0.1);
-		color: var(--safe);
-		border: 1px solid rgba(34, 197, 94, 0.2);
-	}
-
-	.status-badge.error {
-		background-color: rgba(239, 68, 68, 0.1);
-		color: var(--danger);
-		border: 1px solid rgba(239, 68, 68, 0.2);
-	}
-
-	.node-version {
-		color: var(--text-muted);
-		font-family: 'JetBrains Mono', monospace;
-		font-size: 11px;
-	}
-
-	.error-text {
-		color: var(--danger);
-	}
-
-	.mb-sm {
-		margin-bottom: 8px;
-	}
-
-	.node-stats {
-		display: flex;
-		gap: 8px;
-	}
-
-	.stat-badge {
-		font-size: 10px;
-		background-color: var(--bg-card);
-		border: 1px solid var(--border);
-		padding: 2px 4px;
-		border-radius: 4px;
-		color: var(--text-muted);
 	}
 
 	/* Detail Panel */
@@ -489,5 +676,23 @@
 
 	.btn-primary:hover {
 		opacity: 0.9;
+	}
+
+	.impact-ul {
+		list-style: none;
+		padding: 0;
+		margin: 4px 0 0 0;
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+
+	.impact-ul li {
+		font-family: 'JetBrains Mono', monospace;
+		font-size: 11px;
+		background: var(--bg-dark);
+		padding: 4px 8px;
+		border-radius: 4px;
+		border: 1px solid var(--border);
 	}
 </style>

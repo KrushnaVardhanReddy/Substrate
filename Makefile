@@ -51,7 +51,7 @@ help:
 	@echo "See the Makefile source for the full 5-terminal architecture setup."
 
 postgres:
-	podman run --replace --name substrate-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=substrate -p 5432:5432 -d docker.io/library/postgres:15
+	docker rm -f substrate-postgres || true && docker run --name substrate-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=substrate -p 5432:5432 -d docker.io/library/postgres:15
 
 api:
 	cd api && \
@@ -97,14 +97,17 @@ build-mcp:
 
 start-bg: postgres
 	@echo "Starting backend services in background..."
+	@rm -f *.log
+	@rm -f *.pid
 	@make api > api.log 2>&1 & echo $$! > api.pid
 	@make engine > engine.log 2>&1 & echo $$! > engine.pid
 	@make worker > worker.log 2>&1 & echo $$! > worker.pid
+	@make dashboard > dashboard.log 2>&1 & echo $$! > dashboard.pid
 	@echo "Starting ngrok tunnel for webhook routing..."
 	@ngrok http 8787 > ngrok.log 2>&1 & echo $$! > ngrok.pid
-	@sleep 3
+	@sleep 5
 	@echo "=========================================================="
-	@echo "✅ Services started. Logs available in api.log, engine.log, worker.log"
+	@echo "✅ Services started. Logs available in api.log, engine.log, worker.log, dashboard.log"
 	@echo "⚠️ ACTION REQUIRED: Update your GitHub App Webhook URL to:"
 	@curl -s http://localhost:4040/api/tunnels | grep -o '"public_url":"https://[^"]*"' | cut -d'"' -f4 || echo "Failed to fetch ngrok URL (check ngrok.log)"
 	@echo "=========================================================="
@@ -115,11 +118,13 @@ stop-bg:
 	@-kill `cat api.pid` 2>/dev/null || true
 	@-kill `cat engine.pid` 2>/dev/null || true
 	@-kill `cat worker.pid` 2>/dev/null || true
+	@-kill `cat dashboard.pid` 2>/dev/null || true
 	@-kill `cat ngrok.pid` 2>/dev/null || true
 	@-fuser -k 8080/tcp 2>/dev/null || true
 	@-fuser -k 8090/tcp 2>/dev/null || true
-	@rm -f api.pid engine.pid worker.pid ngrok.pid api.log engine.log worker.log ngrok.log
-	@podman stop substrate-postgres || true
+	@-fuser -k 5173/tcp 2>/dev/null || true
+	@rm -f api.pid engine.pid worker.pid dashboard.pid ngrok.pid api.log engine.log worker.log dashboard.log ngrok.log
+	@docker stop substrate-postgres || true
 
 # Ensure GITHUB_TOKEN is set before running these
 check-token:
@@ -245,6 +250,9 @@ e2e-aiml-override: check-token
 e2e-discovery:
 	@echo "Running Phase 5 Cross-Repo Dependency Discovery E2E Tests..."
 	cd api && go test -v -run TestPhase5DependencyDiscoveryE2E ./internal/discovery
+
+e2e-scale: check-token
+	cd scripts/e2e && go run scale_generator.go --scale=100
 
 e2e-v1: check-token
 	@echo "Running V1.0 System E2E Tests..."

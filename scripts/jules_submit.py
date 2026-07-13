@@ -341,6 +341,26 @@ TASKS = {
         "phase": "phase-5-discovery",
         "prompt": _load_prompt("prompts/phase-5-discovery/t03_terraform_and_ui.txt"),
     },
+    61: {
+        "name": "P6-T05 — Phase 6 E2E Tests",
+        "phase": "phase-6-qa",
+        "prompt": _load_prompt("prompts/phase-6-qa/t05_e2e_tests.txt"),
+    },
+    104: {
+        "name": "UI-T01 — Dynamic Cytoscape Graph Rendering",
+        "phase": "ui",
+        "prompt": _load_prompt("prompts/ui/t01_dynamic_graph.txt"),
+    },
+    105: {
+        "name": "E2E-T01 — 1-Hour Chaos Endurance Mode & Live UI Polling",
+        "phase": "ui",
+        "prompt": _load_prompt("prompts/e2e/t01_endurance_mode.txt"),
+    },
+    106: {
+        "name": "UI-T03 — Graph Filtering & Navigation",
+        "phase": "ui",
+        "prompt": _load_prompt("prompts/ui/t03_graph_filtering.txt"),
+    },
     56: {
         "name": "P5-T06 — Phase 5 E2E Tests",
         "phase": "phase-5-discovery",
@@ -350,6 +370,11 @@ TASKS = {
         "name": "P5-T07 — 100-Repo Scale & Noise Simulation",
         "phase": "phase-5-discovery",
         "prompt": _load_prompt("prompts/phase-5-discovery/t07_scale_simulation.txt"),
+    },
+    58: {
+        "name": "P5-T08 — Chi Router Migration & Panic Recovery",
+        "phase": "phase-5-discovery",
+        "prompt": _load_prompt("prompts/phase-5-discovery/t08_chi_router.txt"),
     },
     54: {
         "name": "P5-T04 — Event-Driven Discovery",
@@ -417,6 +442,11 @@ TASKS = {
         "name": "V1-T07 — V1.0 System E2E Tests",
         "phase": "v1-preflight",
         "prompt": _load_prompt("prompts/v1-preflight/t07_system_e2e.txt"),
+    },
+    78: {
+        "name": "V1-T08 — Custom Discovery Rules via YAML",
+        "phase": "v1-preflight",
+        "prompt": _load_prompt("prompts/v1-preflight/t08_custom_discovery_rules.txt"),
     },
 }
 

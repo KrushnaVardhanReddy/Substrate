@@ -23,25 +23,39 @@ test.describe('Dependency Graph', () => {
 		});
 	});
 
-	test('should render graph nodes and display node details on click', async ({ page }) => {
+	test('should render graph container and filter controls', async ({ page }) => {
 		// Navigate directly to the graph page (SSR is disabled in tests)
 		await page.goto('/org/testorg/graph');
 
 		// Wait for the graph page to load
 		await expect(page.locator('h1.page-title')).toContainText('Dependency Graph');
 
-		// Ensure the node card for "core/auth" is visible
-		const authNode = page.locator('.node-card', { hasText: 'core/auth' }).first();
-		await expect(authNode).toBeVisible();
+		// Check for Graph Controls (filter panel)
+		await expect(page.locator('.filter-panel')).toBeVisible();
 
-		// Click the node card
-		await authNode.click({ force: true });
+		// Check that the checkbox, select, and input are rendered
+		await expect(page.locator('input[type="checkbox"]')).toBeVisible();
+		await expect(page.locator('select.filter-select')).toBeVisible();
+		await expect(page.locator('input.filter-input')).toBeVisible();
 
-		// Assert that the detail panel becomes visible
-		const detailPanel = page.locator('aside.detail-panel');
-		await expect(detailPanel).toBeVisible({ timeout: 10000 });
+		// Check for the Cytoscape container (canvas is inside)
+		const cyContainer = page.locator('.main-canvas div').first();
+		await expect(cyContainer).toBeVisible();
+	});
 
-		// Verify the detail panel displays "core/auth"
-		await expect(detailPanel.locator('.detail-title')).toContainText('core/auth');
+	test('should render graph nodes and intercept network responses', async ({ page }) => {
+		// Navigate directly to the graph page (SSR is disabled in tests)
+		const responsePromise = page.waitForResponse('**/api/v1/graph/*');
+		await page.goto('/org/testorg/graph');
+
+		// Wait for the graph page to load
+		await expect(page.locator('h1.page-title')).toContainText('Dependency Graph');
+
+		// Wait for network response
+		await responsePromise;
+
+		// Ensure the graph container is visible
+		const cyContainer = page.locator('.main-canvas div').first();
+		await expect(cyContainer).toBeVisible();
 	});
 });

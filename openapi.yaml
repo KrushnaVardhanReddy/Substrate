@@ -1,0 +1,48 @@
+openapi: 3.0.3
+info:
+  title: Substrate API
+  description: The internal API for the Substrate dependency intelligence platform.
+  version: 1.0.0
+paths:
+  /health:
+    get:
+      summary: Health Check
+      responses:
+        '200':
+          description: OK
+  /api/v1/graph/{org}:
+    get:
+      summary: Get Dependency Graph
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of dependency edges
+  /api/v1/webhook:
+    post:
+      summary: GitHub Push Webhook
+      responses:
+        '200':
+          description: Webhook processed
+  /api/v1/diff:
+    post:
+      summary: Save Diff Report
+      responses:
+        '201':
+          description: Diff report saved
+  /api/v1/ai/analyze:
+    post:
+      summary: Analyze Schema with AI
+      responses:
+        '200':
+          description: Analysis stream
+  /api/v1/ai/autofix:
+    post:
+      summary: Generate Auto-Fix with AI
+      responses:
+        '200':
+          description: Auto-fix diff

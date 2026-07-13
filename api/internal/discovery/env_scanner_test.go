@@ -125,3 +125,29 @@ spec:
 		})
 	}
 }
+
+func TestEnvScanner_CustomPatterns(t *testing.T) {
+	scanner := NewEnvScanner([]string{`.*_ENDPOINT$`})
+	content := `
+apiVersion: apps/v1
+kind: Deployment
+spec:
+  template:
+    spec:
+      containers:
+        - name: myapp
+          env:
+            - name: PAYMENT_ENDPOINT
+              value: https://api.payments.com
+            - name: OTHER_VAR
+              value: "value"
+`
+	want := []DiscoveredDependency{
+		{VarName: "PAYMENT_ENDPOINT", VarValue: "https://api.payments.com", ConfidenceScore: 15},
+	}
+
+	got := scanner.ScanKubernetesManifest(content)
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("ScanKubernetesManifest() = %v, want %v", got, want)
+	}
+}

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -73,9 +74,9 @@ func AuthMiddleware(registryApiToken, jwtSecret string) func(http.Handler) http.
 			// Our paths are like /api/v1/repos/{org}, /api/v1/graph/{org}, /api/v1/schema/{org}/{repo}
 
 			// We can use the Request's PathValue method which is available in Go 1.22+ ServeMux
-			orgPath := r.PathValue("org")
+			orgPath := chi.URLParam(r, "org")
 			if orgPath == "" {
-				orgPath = r.PathValue("owner")
+				orgPath = chi.URLParam(r, "owner")
 			}
 
 			if orgPath != "" && !orgsMap[orgPath] {

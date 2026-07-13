@@ -399,6 +399,8 @@ See the full spec: `docs/specs/enterprise-vision.md`
 | **P5-T04** | 🔵 P4 | **Event-Driven Discovery** — Map Kafka topics and AsyncAPI `$ref` cross-references for message queues. | Jules | ✅ Merged | `prompts/phase-5-discovery/t04_event_discovery.txt` |
 | **P5-T05** | ⚪ P5 | **Runtime Confirmation** — Ingest OTel/Datadog traces and eBPF network logs to confirm static graph edges. | Antigravity | ✅ Merged | `prompts/phase-5-discovery/t05_runtime_confirmation.txt` |
 | **P5-T06** | 🟡 P6 | **Phase 5 E2E Tests** — Cross-repo dependency discovery tests validating Env, Package, Terraform, and Event scanners against mock repositories. | Antigravity | ✅ Merged | `(Pending)` |
+| **P5-T07** | 🟡 P7 | **100-Repo Scale & Chaos Simulation** — Built a highly concurrent APM simulator that fires 100 repositories with jitter, tests poison pill schemas (50k lines), mutates the graph, and outputs a telemetry reporting matrix. | Jules | ✅ Merged | `docs/specs/phase-5/p5-t07-scale-simulation.md` |
+| **P5-T08** | 🔴 P1 | **Chi Router Migration & Panic Recovery** — Migrate standard `http.ServeMux` to `go-chi/chi/v5` and implement `middleware.Recoverer` to prevent poison pill panics during stress testing. | Jules | ✅ Merged | `docs/specs/phase-5/p5-t08-chi-router.md` |
 
 ---
 

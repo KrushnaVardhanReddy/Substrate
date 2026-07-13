@@ -3,10 +3,12 @@ package webhook
 import (
 	"context"
 	"encoding/json"
+	"hash/crc32"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/config"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/discovery"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/integrations/postman"
@@ -56,15 +58,29 @@ func PushHandler(store db.Store) http.HandlerFunc {
 		}
 
 		discoveredCount := 0
+
+		var matchPatterns []string
+		for _, file := range req.Files {
+			if file.Path == "substrate.yaml" {
+				cfg, err := config.Parse([]byte(file.Content))
+				if err == nil && cfg.Discovery != nil && len(cfg.Discovery.MatchPatterns) > 0 {
+					matchPatterns = cfg.Discovery.MatchPatterns
+				}
+				break
+			}
+		}
+
+		envScanner := discovery.NewEnvScanner(matchPatterns)
+
 		for _, file := range req.Files {
 			var deps []discovery.DiscoveredDependency
 
 			if strings.HasSuffix(file.Path, ".env.example") || strings.HasSuffix(file.Path, ".env.template") || strings.HasSuffix(file.Path, ".env.sample") {
-				deps = append(deps, discovery.ScanEnvFile(file.Content)...)
+				deps = append(deps, envScanner.ScanEnvFile(file.Content)...)
 			} else if strings.Contains(file.Path, "docker-compose") {
-				deps = append(deps, discovery.ScanDockerCompose(file.Content)...)
+				deps = append(deps, envScanner.ScanDockerCompose(file.Content)...)
 			} else if strings.HasSuffix(file.Path, ".yaml") || strings.HasSuffix(file.Path, ".yml") {
-				deps = append(deps, discovery.ScanKubernetesManifest(file.Content)...)
+				deps = append(deps, envScanner.ScanKubernetesManifest(file.Content)...)
 			}
 
 			for _, dep := range deps {
@@ -73,7 +89,14 @@ func PushHandler(store db.Store) http.HandlerFunc {
 					continue
 				}
 
-				providerRepoID, err := store.UpsertRepo(ctx, orgID, 0, providerRepoName, req.Org+"/"+providerRepoName)
+				fullName := req.Org + "/" + providerRepoName
+				pseudoID := int64(crc32.ChecksumIEEE([]byte(fullName)))
+				// Make it negative to avoid colliding with real github IDs
+				if pseudoID > 0 {
+					pseudoID = -pseudoID
+				}
+				
+				providerRepoID, err := store.UpsertRepo(ctx, orgID, pseudoID, providerRepoName, fullName)
 				if err != nil {
 					continue
 				}

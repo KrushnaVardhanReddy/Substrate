@@ -1,0 +1,57 @@
+MANDATORY RULES — VIOLATION = REJECTED PR:
+[safety rules prepended automatically by jules_submit.py]
+
+---
+
+TASK: V1-T08 — Custom Discovery Rules via YAML
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement a critical Enterprise feature for Substrate before our V1.0 launch. Currently, our dependency discovery scanner (which flags dependencies inside Kubernetes manifests) uses a hardcoded regex targeting `_API_URL`. We must make this dynamic so enterprises can supply their own custom match rules (e.g., `_ENDPOINT`) via the `substrate.yaml` file.
+
+Please strictly follow the architectural guidelines in `docs/specs/v1-preflight/v1-t08-custom-discovery-rules.md`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. Config Struct Updates (`api/internal/config/`):
+   - Locate where `substrate.yaml` is parsed (likely `Config` or `SubstrateConfig`).
+   - Add a nested `Discovery` struct containing a `MatchPatterns []string` field to accept YAML lists.
+   - Example YAML structure you must support:
+     ```yaml
+     discovery:
+       match_patterns:
+         - '.*_ENDPOINT$'
+         - '.*_HOST$'
+     ```
+
+2. Scanner Refactoring (`api/internal/discovery/env_scanner.go`):
+   - Update the `ScanKubernetesManifest` (or equivalent) function signature to accept the `Config` object or the `[]string` of match patterns.
+   - **Regex Compilation:** Inside the scanner, dynamically build a compiled `*regexp.Regexp` that merges the default patterns with any custom ones provided by the user. 
+   - **Graceful Fallback:** If `config.Discovery.MatchPatterns` is nil or empty, default back to the hardcoded `_API_URL|_SERVICE_URL` to prevent breaking existing integrations.
+
+3. Routing/Wiring:
+   - Follow the dependency injection chain backwards to ensure that when `env_scanner` is invoked (likely by `api/internal/webhook/handler.go` or `engine/`), the config is properly passed in.
+   - Avoid touching unrelated routing or engine logic.
+
+4. Testing (`api/internal/discovery/env_scanner_test.go`):
+   - Add a new unit test named `TestEnvScanner_CustomPatterns`.
+   - Programmatically construct a config with `match_patterns: [".*_ENDPOINT$"]`.
+   - Pass a mock Kubernetes manifest containing a container environment variable named `PAYMENT_ENDPOINT`.
+   - Assert that the scanner correctly identifies it and extracts the dependency edge.
+   - Ensure `go test ./...` passes before completing.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO ADD:
+- None
+
+FILES TO MODIFY:
+- api/internal/config/config.go
+- api/internal/discovery/env_scanner.go
+- api/internal/discovery/env_scanner_test.go
+- api/internal/webhook/handler.go
+
+Commit: "jules: implement dynamic regex discovery matching via substrate.yaml"

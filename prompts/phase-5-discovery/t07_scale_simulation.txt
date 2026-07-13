@@ -3,23 +3,38 @@ MANDATORY RULES — VIOLATION = REJECTED PR:
 
 ---
 
-TASK: P5-T07 — 100-Repo Scale & Universal Protocol Simulation
+TASK: P5-T07 — Dynamic Chaos & Scale Simulation
 
 ═══════════════════════════════════════════════════════════════
 OBJECTIVE
 ═══════════════════════════════════════════════════════════════
-Implement a massive-scale data generator to stress-test the Substrate API and UI. You will generate 100 mock repositories via a Go script and push them to the local webhook endpoint to prove the system can handle enterprise-scale dependency discovery across all 9 supported protocol adapters.
+Implement a massive-scale chaos engineering data generator to stress-test the Substrate API and UI. You will generate a parameterized number of mock repositories (including poison pills), fire them highly concurrently with jitter, mutate them over time, and output a detailed latency and error report.
 
 Follow the exact architecture defined in the spec: `docs/specs/phase-5/p5-t07-scale-simulation.md`.
 
 ═══════════════════════════════════════════════════════════════
 DELIVERABLES
 ═══════════════════════════════════════════════════════════════
-1. **Scale Generator Script:** Create `scripts/e2e/scale_generator.go`.
-2. **Noise Generation:** The script must generate 60 "noise" repositories with random mock dependencies that do not connect to each other to test false-positive avoidance.
-3. **Protocol Clusters:** The script must generate 40 repositories that form 10 distinct clusters. 9 of these clusters must each map to a specific protocol (OpenAPI, GraphQL, Protobuf, AsyncAPI, Avro, SQL, Terraform, AI/ML, SOAP). The 10th is a hybrid cluster. Ensure the files (e.g. schema.graphql, plan.json, etc.) match perfectly so the discovery scanners link them.
-4. **Flood Webhook:** The script must rapidly POST all 100 repositories to the `localhost:8090/api/v1/webhook/github` endpoint (assuming local dev server is running).
-5. **Makefile Target:** Update `Makefile` to add an `e2e-scale` command that executes this script.
+1. **Scale Generator Script:** Create `scripts/e2e/scale_generator.go`. It must accept `--scale` and `--concurrency` flags.
+2. **Cluster & Noise Gen:** 
+   - **Noise (60%):** Generate disconnected repos including **Poison Pills** (massive 50k-line GraphQL schemas, recursive infinite loop OpenAPI files, corrupted binaries masquerading as `package.json`).
+   - **Protocol Clusters (40%):** Strictly group these into the following 10 distinct dependency clusters to test every single adapter:
+     1. **REST / OpenAPI:** API Gateway -> NextJS Frontend -> Node Backend
+     2. **GraphQL Federation:** Apollo Gateway -> Users Subgraph -> Posts Subgraph
+     3. **gRPC / Protobuf:** Mobile App -> gRPC Gateway -> C++ Backend
+     4. **AsyncAPI (Events):** Order Service -> Kafka Topic -> Fulfillment Service
+     5. **Apache Avro:** Data Pipeline -> Schema Registry -> Analytics Engine
+     6. **SQL DDL:** Migration Repo -> Postgres DB -> BI Tool
+     7. **Terraform (IaC):** VPC Module -> EKS Cluster -> RDS Database
+     8. **AI/ML Models:** Training Pipeline -> Model Registry -> Inference API
+     9. **Enterprise SOAP:** Legacy Salesforce -> Enterprise Service Bus -> Payment Gateway
+     10. **Hybrid Chaos:** A single cluster mixing OpenAPI, GraphQL, and SQL in one microservice flow.
+3. **Phased Execution:** 
+   - Flood the API concurrently (with jitter).
+   - Mutate the API (delete/update repos) to test graph recalculation.
+   - Assert the graph is perfectly accurate.
+4. **Reporting Matrix:** The script must aggregate the results and print a terminal table showing Average Latency per Protocol, HTTP status codes, and caught panics.
+5. **Makefile Target:** Update `Makefile` to add an `e2e-scale` command that executes this script with `--scale=100`.
 
 ═══════════════════════════════════════════════════════════════
 FILES LIST
@@ -30,4 +45,4 @@ FILES TO ADD:
 FILES TO MODIFY:
 - Makefile
 
-Commit: "jules: implement P5-T07 100-repo scale simulation with 9 protocol clusters"
+Commit: "jules: implement P5-T07 dynamic chaos simulation with observability reporting"

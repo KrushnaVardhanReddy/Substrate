@@ -26,8 +26,21 @@
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **P5-T07** | 🟡 P7 | **100-Repo Scale & Noise Simulation** — Generate 100 mock repos (80 random noise, 20 forming 5 distinct interdependent clusters) to stress-test discovery accuracy and graph visualization. | Jules | ⏳ Spec Written | `docs/specs/phase-5/p5-t07-scale-simulation.md` |
 
+
+
+## 🎨 Phase 6.5: Dynamic UI & Graph Visualization
+
+**Goal:** Transform the Svelte Dashboard from a hardcoded mock into a fully dynamic, interactive dependency map powered by the backend Registry API.
+
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|---|---|---|---|---|---|
+| **UI-T01** | 🔴 P1 | **Dynamic Cytoscape Rendering** — Integrate `cytoscape.js` into the Svelte frontend to dynamically render the 100+ dependency nodes and edges returned by the `GET /api/v1/graph` endpoint. | Jules | ✅ Complete | `docs/specs/ui/ui-t01-dynamic-graph.md` |
+| **E2E-T01** | 🔴 P1 | **1-Hour Chaos Endurance & UI Polling** — Upgrade `scale_generator.go` to a continuous 1-hour loop and update the Svelte UI to poll and animate the graph changes in real-time. | Jules | ✅ Complete | `docs/specs/e2e/e2e-t01-endurance-mode.md` |
+| **UI-T03** | 🟡 P2 | **Graph Filtering & Navigation** — Add a status filter (Show only BREAKING) and protocol filter to the Cytoscape visualization to handle enterprise-scale graphs. | Jules | ✅ Complete | `docs/specs/ui/ui-t03-graph-filtering.md` |
+| **UI-T04** | 🟢 P3 | **Enterprise Graph UX Overhaul** — Semantic node coloring, orphan node hiding, and a dedicated Blast Radius Modal for isolating impact analysis. | Antigravity | 🔄 In Progress | `docs/specs/ui/ui-t04-enterprise-graph-ux.md` |
+
+---
 
 ## 🚀 V1.0 Pre-Flight Checklist (Prod Launch)
 
@@ -35,6 +48,10 @@
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
+| **V1-T07** | 🔴 P1 | **V1.0 System E2E Tests** — Prove the final V1.0 pipeline works as a seamless end-to-end flow using the real local PostgreSQL database. | Jules | ✅ Complete | `docs/specs/v1-preflight/v1-e2e-spec.md` |
+| **V1-T08** | 🔴 P1 | **Custom Discovery Rules via YAML** — Expose dependency matching rules via `substrate.yaml` to allow enterprises to define custom regex (e.g., `_ENDPOINT`) for the Kubernetes manifest scanner. | Jules | ✅ Complete | `docs/specs/v1-preflight/v1-t08-custom-discovery-rules.md` |
+| **V1-T09** | 🔴 P1 | **True Dogfooding via OpenAPI** — Formalize the internal Substrate API into a valid `openapi.yaml` specification so the engine can monitor and block its own breaking changes. | Antigravity | ✅ Complete | `docs/specs/v1-preflight/v1-t09-dogfooding-openapi.md` |
+| **V1-T10** | 🔴 P1 | **GitHub App First-Time Setup** — Ensure the GitHub App detects when a user is uploading a schema for the first time, avoids a baseline fetch error, and returns a friendly "Welcome to Substrate" PR status. | Antigravity | ✅ Complete | `docs/specs/v1-preflight/v1-t10-github-app-first-time-setup.md` |
 
 ---
 
@@ -50,6 +67,7 @@
 | **P7-T03** | 🟢 P3 | **Custom Rules Engine (CEL/OPA)** — Let enterprises define custom schema rules (e.g., "All APIs must have an X-Correlation-ID header") in `substrate.yaml`. | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
 | **P7-T04** | 🔵 P4 | **Cross-Repo Auto-Fix PRs** — Use an LLM to automatically generate a draft PR in the downstream consumer repo to fix the breaking dependency. | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
 | **P7-T05** | ⚪ P5 | **Runtime Drift Detection (eBPF/Envoy)** — Deploy a sidecar to sample 1% of live API traffic and compare it against the Substrate registry to detect un-documented payloads. | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
+| **P7-T06** | 🔴 P1 | **Audit Mode (Shadow Mode)** — Allow enterprises to deploy Substrate without blocking PRs. Substrate comments on PRs and logs cross-repo breaks to the dashboard, providing proof of ROI before switching to blocking mode. | Unassigned | 💡 Backlog | `docs/specs/phase-7/audit-mode-rollout.md` |
 
 ---
 
@@ -76,6 +94,11 @@
 | **P9-T01** | 🔴 P1 | **Automated Security Fuzzing (OWASP)** — Upgrade the Phase 6 fuzzer to inject malicious payloads (SQLi, IDOR) based on the schema, acting as an automated pentester. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T02** | 🟡 P2 | **Spotify Backstage Plugin** — Pipe the dependency graph, schema health scores, and API docs directly into Backstage.io developer portals. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T03** | 🟢 P3 | **API Gateway Auto-Sync** — Automatically push validated OpenAPI schemas to AWS API Gateway, Kong, or Cloudflare API Shield on merge to `main`. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P9-T04** | 🔵 P4 | **Hexagonal Architecture & `sqlc` Refactor** — Formally isolate engines from HTTP transports, migrate raw `pgx` queries to `sqlc` for type-safe database layer generation, and allow pluggable graph databases (Neo4j). | Unassigned | 💡 Backlog | `(Pending)` |
+| **P9-T05** | ⚪ P5 | **Distributed Tracing (OpenTelemetry)** — Add OpenTelemetry to trace requests across the GitHub Worker, Go API, and diff engine for waterfall debugging. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P9-T06** | ⚪ P6 | **Job Queue (Asynq/Temporal)** — Offload synchronous webhook diffing and database inserts to Redis-backed background workers to prevent GitHub timeouts at scale. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P9-T07** | ⚪ P7 | **Configuration Management (Viper)** — Migrate `os.Getenv` calls to Viper for robust `.env`, CLI flag, and YAML configuration loading. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P9-T08** | ⚪ P8 | **Enterprise Authz (Casbin/OpenFGA)** — Implement a Google Zanzibar-style Role-Based Access Control (RBAC) engine for enterprise graph permissions. | Unassigned | 💡 Backlog | `(Pending)` |
 
 ---
 
@@ -90,6 +113,21 @@
 | **P10-T03** | 🟢 P3 | **AI Spectral Linter (API Governance)** — Enforce plain-English API design rules (e.g. "All endpoints must use camelCase") during the PR diff process to maintain org-wide consistency. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P10-T04** | 🔵 P4 | **Auto-SDK Generator PRs** — Automatically generate TypeScript/Swift/Go clients via OpenAPI Generator when a schema is merged, opening PRs directly in the downstream consumer repositories. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P10-T05** | ⚪ P5 | **Traffic-Aware Pruning (Zombies)** — Correlate schema endpoints with live Datadog/OTel metrics to detect unused "zombie" APIs and auto-generate PRs to delete the dead code. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P10-T06** | 🟣 P1 | **MCP Runtime Diffing** — Spin up Model Context Protocol (MCP) servers in a sandbox during CI/CD to dynamically diff `tools/list` and block AI agent breaking changes. | Unassigned | 💡 Backlog | `docs/specs/phase-10/p10-t06-mcp-diffing.md` |
+
+---
+
+## 🗺️ Phase 11: Advanced Graph Visualization (V2.0 UX)
+
+**Goal:** Elevate the Substrate Dependency Graph into a world-class architectural explorer with cascading impact analysis and team-based layouts.
+
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|---|---|---|---|---|---|
+| **P11-T01** | 🟡 P2 | **Cascading Blast Radius (Nth-Degree)** — Add an "Impact Depth" slider to the focus mode to animate and reveal 2nd and 3rd-degree downstream consumers to track rippling failures. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P11-T02** | 🟡 P2 | **Team Neighborhoods (Compound Nodes)** — Group repository nodes physically inside Cytoscape compound boundary boxes based on their `CODEOWNERS` or organizational team structure. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P11-T03** | 🟢 P3 | **Interactive Edge Tooltips** — Hovering over a dependency edge reveals a tooltip showing exactly which endpoints/contracts are being consumed (e.g., `GET /api/v1/customers`). | Unassigned | 💡 Backlog | `(Pending)` |
+| **P11-T04** | 🔵 P4 | **Historical Volatility Heatmap** — Add a toggle to color-code the graph by historical breaking changes (Red = frequent breakers, Blue = stable core services). | Unassigned | 💡 Backlog | `(Pending)` |
+| **P11-T05** | ⚪ P5 | **Bird's Eye Mini-Map** — Introduce a Cytoscape navigator widget in the bottom-left corner for maintaining context when zoomed into a localized blast radius on 100+ repo graphs. | Unassigned | 💡 Backlog | `(Pending)` |
 
 ---
 
