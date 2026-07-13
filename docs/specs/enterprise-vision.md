@@ -8,6 +8,7 @@ This document captures the long-term strategic vision for Substrate. These featu
 
 ### Execution Modes (`--mode`)
 Large organizations migrate at different speeds. Applying strict schema checks to a 5-year-old legacy monolith creates friction and blocks adoption.
+*   **`--mode=audit` (Shadow Mode):** *The ultimate adoption wedge.* Substrate analyzes changes, posts informational PR comments, and logs breaks to the management dashboard, but **always returns Exit Code 0**. This allows managers to prove ROI ("We caught 4 silent breaks this week") without slowing down developer velocity, eventually justifying the switch to `default` mode.
 *   **`--mode=legacy` (Relaxed):** Only stops PRs on catastrophic breaks (e.g., deleted fields). Ignores missing documentation, missing pagination, or styling.
 *   **`--mode=default`:** Standard breaking change prevention with informational warnings.
 *   **`--mode=strict` (Spec-First):** For new microservices. Enforces flawless design: every field must have a description, endpoints must be versioned, naming conventions (`snake_case`) must be uniform, and all warnings are treated as hard failures.

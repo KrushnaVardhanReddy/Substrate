@@ -64,6 +64,7 @@
 | **P7-T03** | 🟢 P3 | **Custom Rules Engine (CEL/OPA)** — Let enterprises define custom schema rules (e.g., "All APIs must have an X-Correlation-ID header") in `substrate.yaml`. | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
 | **P7-T04** | 🔵 P4 | **Cross-Repo Auto-Fix PRs** — Use an LLM to automatically generate a draft PR in the downstream consumer repo to fix the breaking dependency. | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
 | **P7-T05** | ⚪ P5 | **Runtime Drift Detection (eBPF/Envoy)** — Deploy a sidecar to sample 1% of live API traffic and compare it against the Substrate registry to detect un-documented payloads. | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
+| **P7-T06** | 🔴 P1 | **Audit Mode (Shadow Mode)** — Allow enterprises to deploy Substrate without blocking PRs. Substrate comments on PRs and logs cross-repo breaks to the dashboard, providing proof of ROI before switching to blocking mode. | Unassigned | 💡 Backlog | `docs/specs/phase-7/audit-mode-rollout.md` |
 
 ---
 
