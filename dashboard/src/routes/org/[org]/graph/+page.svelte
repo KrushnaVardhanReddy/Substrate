@@ -13,6 +13,8 @@
 	let showOnlyBreaking = $state(false);
 	let protocolFilter = $state('All');
 	let searchQuery = $state('');
+	let includeNeighbors = $state(false);
+	let focusedNodeId = $state<string | null>(null);
 
 	function selectNode(node: any) {
 		selectedNode = node;
@@ -23,6 +25,71 @@
 	}
 	function zoomOut() {
 		if (cyInstance) cyInstance.zoom(cyInstance.zoom() * 0.8);
+	}
+
+	function applyFilters(cy: cytoscape.Core) {
+		cy.elements().removeClass('hidden dimmed');
+
+		if (showOnlyBreaking) {
+			cy.nodes('[status != "BREAKING"]').addClass('hidden');
+			cy.edges('[status != "BREAKING"]').addClass('hidden');
+		}
+
+		let toKeepNodes = cy.nodes();
+		let toKeepEdges = cy.edges();
+		let filtered = false;
+
+		if (protocolFilter !== 'All') {
+			filtered = true;
+			const query = protocolFilter.toLowerCase();
+			const matchedNodes = cy.nodes().filter(n => n.id().toLowerCase().includes(query));
+			if (includeNeighbors) {
+				toKeepNodes = matchedNodes.union(matchedNodes.connectedNodes());
+				toKeepEdges = matchedNodes.connectedEdges();
+			} else {
+				toKeepNodes = matchedNodes;
+				toKeepEdges = cy.collection(); // or no edges? spec says exact matches. Edges connecting them should probably be kept if both ends are kept, but let's say all edges are dimmed unless they connect two matched nodes. Actually, let's keep edges where both source and target are in matchedNodes.
+				// For strict isolation, exactly matching nodes are highlighted. Other nodes AND EDGES are dimmed.
+				toKeepEdges = matchedNodes.edgesWith(matchedNodes);
+			}
+		}
+
+		if (searchQuery.trim() !== '') {
+			filtered = true;
+			const query = searchQuery.trim().toLowerCase();
+			const matchedNodes = cy.nodes().filter(n => n.id().toLowerCase().includes(query));
+			if (includeNeighbors) {
+				toKeepNodes = filtered ? toKeepNodes.intersection(matchedNodes.union(matchedNodes.connectedNodes())) : matchedNodes.union(matchedNodes.connectedNodes());
+				toKeepEdges = filtered ? toKeepEdges.intersection(matchedNodes.connectedEdges()) : matchedNodes.connectedEdges();
+			} else {
+				toKeepNodes = filtered ? toKeepNodes.intersection(matchedNodes) : matchedNodes;
+				toKeepEdges = filtered ? toKeepEdges.intersection(matchedNodes.edgesWith(matchedNodes)) : matchedNodes.edgesWith(matchedNodes);
+			}
+		}
+
+		if (filtered) {
+			cy.nodes().difference(toKeepNodes).addClass('dimmed');
+			cy.edges().difference(toKeepEdges).addClass('dimmed');
+		}
+
+		if (focusedNodeId) {
+			// Click to explore overrides Step 1 logic
+			cy.elements().addClass('dimmed');
+			const focusedNode = cy.getElementById(focusedNodeId);
+			if (focusedNode.length > 0) {
+				const toKeep = focusedNode.union(focusedNode.connectedNodes());
+				toKeep.removeClass('dimmed');
+				focusedNode.connectedEdges().removeClass('dimmed');
+			}
+		}
+
+		cy.layout({
+			name: 'dagre',
+			rankDir: 'LR',
+			nodeSep: 50,
+			rankSep: 150,
+			fit: false,
+		} as cytoscape.LayoutOptions).run();
 	}
 	
 	$effect(() => {
@@ -130,41 +197,19 @@
 
 		cy.on('tap', 'node', (evt) => {
 			selectNode({ name: evt.target.id(), version: "v1.0.0", status: evt.target.data('status') || "SAFE" });
+			focusedNodeId = evt.target.id();
+		});
+
+		cy.on('tap', (evt) => {
+			if (evt.target === cy) {
+				focusedNodeId = null;
+				selectedNode = null;
+			}
 		});
 
 		$effect(() => {
 			if (!cyInstance) return;
-
-			const cy = cyInstance;
-			cy.elements().removeClass('hidden dimmed');
-
-			if (showOnlyBreaking) {
-				cy.nodes('[status != "BREAKING"]').addClass('hidden');
-				cy.edges('[status != "BREAKING"]').addClass('hidden');
-			}
-
-			if (protocolFilter !== 'All') {
-				const query = protocolFilter.toLowerCase();
-				const matchedProviders = cy.nodes().filter(n => n.id().toLowerCase().includes(query));
-				const toKeep = matchedProviders.union(matchedProviders.connectedNodes());
-				cy.nodes().difference(toKeep).addClass('hidden');
-			}
-
-			if (searchQuery.trim() !== '') {
-				const query = searchQuery.trim().toLowerCase();
-				const matchedNodes = cy.nodes().filter(n => n.id().toLowerCase().includes(query));
-				const toKeep = matchedNodes.union(matchedNodes.connectedNodes());
-				cy.nodes().difference(toKeep).addClass('dimmed');
-				cy.edges().difference(matchedNodes.connectedEdges()).addClass('dimmed');
-			}
-
-			cy.layout({
-				name: 'dagre',
-				rankDir: 'LR',
-				nodeSep: 50,
-				rankSep: 150,
-				fit: false,
-			} as cytoscape.LayoutOptions).run();
+			applyFilters(cyInstance);
 		});
 
 		const interval = setInterval(async () => {
@@ -202,33 +247,7 @@
 					cy.elements().remove();
 					cy.add(newElements);
 
-					if (showOnlyBreaking) {
-						cy.nodes('[status != "BREAKING"]').addClass('hidden');
-						cy.edges('[status != "BREAKING"]').addClass('hidden');
-					}
-
-					if (protocolFilter !== 'All') {
-						const query = protocolFilter.toLowerCase();
-						const matchedProviders = cy.nodes().filter(n => n.id().toLowerCase().includes(query));
-						const toKeep = matchedProviders.union(matchedProviders.connectedNodes());
-						cy.nodes().difference(toKeep).addClass('hidden');
-					}
-
-					if (searchQuery.trim() !== '') {
-						const query = searchQuery.trim().toLowerCase();
-						const matchedNodes = cy.nodes().filter(n => n.id().toLowerCase().includes(query));
-						const toKeep = matchedNodes.union(matchedNodes.connectedNodes());
-						cy.nodes().difference(toKeep).addClass('dimmed');
-						cy.edges().difference(matchedNodes.connectedEdges()).addClass('dimmed');
-					}
-
-					cy.layout({
-						name: 'dagre',
-						rankDir: 'LR',
-						nodeSep: 50,
-						rankSep: 150,
-						fit: false,
-					} as cytoscape.LayoutOptions).run();
+					applyFilters(cy);
 				}
 			} catch (err) {
 				console.error("Polling error", err);
@@ -265,6 +284,10 @@
 					<option value="avro">Avro</option>
 				</select>
 				<input type="text" bind:value={searchQuery} placeholder="Search repository..." class="filter-input" />
+				<label class="filter-label">
+					<input type="checkbox" bind:checked={includeNeighbors} />
+					Highlight connected neighbors
+				</label>
 			</div>
 			<div class="zoom-controls">
 				<button class="icon-btn" aria-label="Zoom In" onclick={zoomIn}>
