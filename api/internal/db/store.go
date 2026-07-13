@@ -50,6 +50,16 @@ type BreakingChangeRecord struct {
 	BreakingChanges json.RawMessage `json:"breaking_changes"`
 }
 
+type DriftAnomaly struct {
+	ID           uuid.UUID `json:"id"`
+	OrgName      string    `json:"org_name"`
+	RepoName     string    `json:"repo_name"`
+	Method       string    `json:"method"`
+	Path         string    `json:"path"`
+	ErrorMessage string    `json:"error_message"`
+	Timestamp    time.Time `json:"timestamp"`
+}
+
 type Store interface {
 	UpsertOrg(ctx context.Context, installationID int64, orgName string) (uuid.UUID, error)
 	UpsertRepo(ctx context.Context, orgID uuid.UUID, githubRepoID int64, name, fullName string) (uuid.UUID, error)
@@ -66,4 +76,6 @@ type Store interface {
 	UpdateDependencyConfidence(ctx context.Context, consumerFullName, providerURL string, boostAmount float64) error
 	SaveDiffReport(ctx context.Context, diffReport json.RawMessage) (uuid.UUID, error)
 	GetDiffReport(ctx context.Context, id uuid.UUID) (json.RawMessage, error)
+	RecordDriftAnomaly(ctx context.Context, anomaly DriftAnomaly) error
+	GetDriftAnomalies(ctx context.Context, orgName, repoName string) ([]DriftAnomaly, error)
 }
