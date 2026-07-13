@@ -50,6 +50,14 @@ type BreakingChangeRecord struct {
 	BreakingChanges json.RawMessage `json:"breaking_changes"`
 }
 
+type WebhookConfig struct {
+	ID        string
+	Org       string
+	URL       string
+	Secret    string
+	CreatedAt time.Time
+}
+
 type Store interface {
 	UpsertOrg(ctx context.Context, installationID int64, orgName string) (uuid.UUID, error)
 	UpsertRepo(ctx context.Context, orgID uuid.UUID, githubRepoID int64, name, fullName string) (uuid.UUID, error)
@@ -66,4 +74,6 @@ type Store interface {
 	UpdateDependencyConfidence(ctx context.Context, consumerFullName, providerURL string, boostAmount float64) error
 	SaveDiffReport(ctx context.Context, diffReport json.RawMessage) (uuid.UUID, error)
 	GetDiffReport(ctx context.Context, id uuid.UUID) (json.RawMessage, error)
+	RegisterWebhook(ctx context.Context, config WebhookConfig) error
+	GetWebhooks(ctx context.Context, org string) ([]WebhookConfig, error)
 }

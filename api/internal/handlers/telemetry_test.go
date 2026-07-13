@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"testing"
 	"sync"
+	"testing"
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 )

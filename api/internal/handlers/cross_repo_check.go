@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"os"
@@ -51,6 +52,144 @@ type CrossRepoCheckResponse struct {
 	Results         []ConsumerResult `json:"results"`
 }
 
+// PerformCrossRepoCheck extracts the core logic of CrossRepoCheckHandler.
+func PerformCrossRepoCheck(ctx context.Context, store db.Store, req CrossRepoCheckRequest) (CrossRepoCheckResponse, error) {
+	diffEngineURL := os.Getenv("DIFF_ENGINE_URL")
+	if diffEngineURL == "" {
+		diffEngineURL = "http://localhost:8080"
+	}
+
+	response := CrossRepoCheckResponse{
+		IsSafe:  true,
+		Results: []ConsumerResult{},
+	}
+
+	contracts, err := store.GetContractsByProviderFullName(ctx, req.ProviderRepo)
+	if err != nil {
+		return response, err
+	}
+
+	consumerSeen := make(map[string]bool)
+
+	for _, contract := range contracts {
+		if contract.SchemaType != req.SchemaType {
+			continue
+		}
+
+		consumers, err := store.GetConsumersByProviderContract(ctx, contract.ID)
+		if err != nil {
+			continue
+		}
+
+		for _, consumer := range consumers {
+			if consumerSeen[consumer.ConsumerFullName] {
+				continue
+			}
+			consumerSeen[consumer.ConsumerFullName] = true
+			response.TotalConsumers++
+
+			diffReq := DiffEngineRequest{
+				BaseSchema: consumer.ContractRawContent,
+				HeadSchema: req.HeadSchemaContent,
+				SchemaType: req.SchemaType,
+				Config:     req.ConfigContent,
+			}
+
+			diffReqBytes, err := json.Marshal(diffReq)
+			if err != nil {
+				continue
+			}
+
+			diffResp, err := http.Post(diffEngineURL+"/diff", "application/json", bytes.NewBuffer(diffReqBytes))
+			if err != nil {
+				response.BrokenConsumers++
+				response.IsSafe = false
+				response.Results = append(response.Results, ConsumerResult{
+					ConsumerRepo: consumer.ConsumerFullName,
+					Status:       "error",
+					DiffReport: &DiffReport{
+						Breaking: []interface{}{map[string]interface{}{"severity": "BREAKING", "description": "Failed to connect to diff engine"}},
+						Summary:  DiffReportSummary{BreakingCount: 1},
+					},
+				})
+				continue
+			}
+
+			if diffResp.StatusCode != http.StatusOK {
+				var errResp struct {
+					Error string `json:"error"`
+				}
+				json.NewDecoder(diffResp.Body).Decode(&errResp)
+				diffResp.Body.Close()
+
+				errMsg := "Internal Engine Error"
+				if errResp.Error != "" {
+					errMsg = errResp.Error
+				}
+
+				response.BrokenConsumers++
+				response.IsSafe = false
+				response.Results = append(response.Results, ConsumerResult{
+					ConsumerRepo: consumer.ConsumerFullName,
+					Status:       "error",
+					DiffReport: &DiffReport{
+						Breaking: []interface{}{
+							map[string]interface{}{
+								"severity":    "BREAKING",
+								"description": errMsg,
+							},
+						},
+						Summary: DiffReportSummary{BreakingCount: 1},
+					},
+				})
+				continue
+			}
+
+			var diffReport DiffReport
+			if err := json.NewDecoder(diffResp.Body).Decode(&diffReport); err != nil {
+				diffResp.Body.Close()
+				response.BrokenConsumers++
+				response.IsSafe = false
+				response.Results = append(response.Results, ConsumerResult{
+					ConsumerRepo: consumer.ConsumerFullName,
+					Status:       "error",
+					DiffReport: &DiffReport{
+						Breaking: []interface{}{map[string]interface{}{"severity": "BREAKING", "description": "Malformed response from diff engine"}},
+						Summary:  DiffReportSummary{BreakingCount: 1},
+					},
+				})
+				continue
+			}
+			diffResp.Body.Close()
+
+			status := "safe"
+			if diffReport.Summary.BreakingCount > 0 {
+				status = "breaking"
+				response.BrokenConsumers++
+				response.IsSafe = false
+			}
+
+			if diffReport.Breaking == nil {
+				diffReport.Breaking = []interface{}{}
+			}
+			if diffReport.Warning == nil {
+				diffReport.Warning = []interface{}{}
+			}
+			if diffReport.Info == nil {
+				diffReport.Info = []interface{}{}
+			}
+
+			response.Results = append(response.Results, ConsumerResult{
+				ConsumerRepo: consumer.ConsumerFullName,
+				Status:       status,
+				DiffReport:   &diffReport,
+			})
+		}
+	}
+
+	return response, nil
+}
+
 // CrossRepoCheckHandler handles the /api/v1/cross-repo-check endpoint.
 func CrossRepoCheckHandler(store db.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -73,139 +212,10 @@ func CrossRepoCheckHandler(store db.Store) http.HandlerFunc {
 
 		ctx := r.Context()
 
-		diffEngineURL := os.Getenv("DIFF_ENGINE_URL")
-		if diffEngineURL == "" {
-			diffEngineURL = "http://localhost:8080"
-		}
-
-		contracts, err := store.GetContractsByProviderFullName(ctx, req.ProviderRepo)
+		response, err := PerformCrossRepoCheck(ctx, store, req)
 		if err != nil {
 			http.Error(w, `{"error": "internal error"}`, http.StatusInternalServerError)
 			return
-		}
-
-		response := CrossRepoCheckResponse{
-			IsSafe:  true,
-			Results: []ConsumerResult{},
-		}
-
-		consumerSeen := make(map[string]bool)
-
-		for _, contract := range contracts {
-			if contract.SchemaType != req.SchemaType {
-				continue
-			}
-
-			consumers, err := store.GetConsumersByProviderContract(ctx, contract.ID)
-			if err != nil {
-				continue
-			}
-
-			for _, consumer := range consumers {
-				if consumerSeen[consumer.ConsumerFullName] {
-					continue
-				}
-				consumerSeen[consumer.ConsumerFullName] = true
-				response.TotalConsumers++
-
-				diffReq := DiffEngineRequest{
-					BaseSchema: consumer.ContractRawContent,
-					HeadSchema: req.HeadSchemaContent,
-					SchemaType: req.SchemaType,
-					Config:     req.ConfigContent,
-				}
-
-				diffReqBytes, err := json.Marshal(diffReq)
-				if err != nil {
-					continue
-				}
-
-				diffResp, err := http.Post(diffEngineURL+"/diff", "application/json", bytes.NewBuffer(diffReqBytes))
-				if err != nil {
-					response.BrokenConsumers++
-					response.IsSafe = false
-					response.Results = append(response.Results, ConsumerResult{
-						ConsumerRepo: consumer.ConsumerFullName,
-						Status:       "error",
-						DiffReport: &DiffReport{
-							Breaking: []interface{}{map[string]interface{}{"severity": "BREAKING", "description": "Failed to connect to diff engine"}},
-							Summary:  DiffReportSummary{BreakingCount: 1},
-						},
-					})
-					continue
-				}
-
-				if diffResp.StatusCode != http.StatusOK {
-					// Extract the error message from the engine if possible
-					var errResp struct {
-						Error string `json:"error"`
-					}
-					json.NewDecoder(diffResp.Body).Decode(&errResp)
-					diffResp.Body.Close()
-
-					errMsg := "Internal Engine Error"
-					if errResp.Error != "" {
-						errMsg = errResp.Error
-					}
-
-					response.BrokenConsumers++
-					response.IsSafe = false
-					response.Results = append(response.Results, ConsumerResult{
-						ConsumerRepo: consumer.ConsumerFullName,
-						Status:       "error",
-						DiffReport: &DiffReport{
-							Breaking: []interface{}{
-								map[string]interface{}{
-									"severity":    "BREAKING",
-									"description": errMsg,
-								},
-							},
-							Summary: DiffReportSummary{BreakingCount: 1},
-						},
-					})
-					continue
-				}
-
-				var diffReport DiffReport
-				if err := json.NewDecoder(diffResp.Body).Decode(&diffReport); err != nil {
-					diffResp.Body.Close()
-					response.BrokenConsumers++
-					response.IsSafe = false
-					response.Results = append(response.Results, ConsumerResult{
-						ConsumerRepo: consumer.ConsumerFullName,
-						Status:       "error",
-						DiffReport: &DiffReport{
-							Breaking: []interface{}{map[string]interface{}{"severity": "BREAKING", "description": "Malformed response from diff engine"}},
-							Summary:  DiffReportSummary{BreakingCount: 1},
-						},
-					})
-					continue
-				}
-				diffResp.Body.Close()
-
-				status := "safe"
-				if diffReport.Summary.BreakingCount > 0 {
-					status = "breaking"
-					response.BrokenConsumers++
-					response.IsSafe = false
-				}
-
-				if diffReport.Breaking == nil {
-					diffReport.Breaking = []interface{}{}
-				}
-				if diffReport.Warning == nil {
-					diffReport.Warning = []interface{}{}
-				}
-				if diffReport.Info == nil {
-					diffReport.Info = []interface{}{}
-				}
-
-				response.Results = append(response.Results, ConsumerResult{
-					ConsumerRepo: consumer.ConsumerFullName,
-					Status:       status,
-					DiffReport:   &diffReport,
-				})
-			}
 		}
 
 		w.Header().Set("Content-Type", "application/json")

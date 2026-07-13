@@ -281,6 +281,7 @@ export default {
 
       // Save diff report to the API
       let diffId: string | undefined;
+      const schemaType = config.schema_type || 'openapi';
       if (env.REGISTRY_API_URL) {
         try {
           const saveRes = await fetch(`${env.REGISTRY_API_URL}/api/v1/diff`, {
@@ -289,7 +290,17 @@ export default {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${env.REGISTRY_API_TOKEN}`
             },
-            body: JSON.stringify({ diff_report: diffReport })
+            body: JSON.stringify({
+              diff_report: diffReport,
+              org: event.owner,
+              provider_repo: event.fullName,
+              pr_number: event.prNumber,
+              commit_sha: event.commitSha,
+              head_schema_content: headContent,
+              schema_type: schemaType,
+              config_content: configContent,
+              installation_id: event.installationId
+            })
           });
           if (saveRes.ok) {
             const saveData = await saveRes.json() as any;
@@ -304,7 +315,6 @@ export default {
 
       // Step 9.5: Cross Repo Check
       let crossRepoResponse: CrossRepoCheckResponse | undefined;
-      const schemaType = config.schema_type || 'openapi';
 
       if (env.REGISTRY_API_URL) {
         const payload: CrossRepoCheckRequest = {
