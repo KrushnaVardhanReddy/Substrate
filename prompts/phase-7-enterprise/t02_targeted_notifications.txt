@@ -1,0 +1,36 @@
+TASK: P7-T02 — Targeted Notifications (Slack/Teams)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Send formatted alerts (Slack Block Kit / Teams Adaptive Cards) directly to the 
+downstream teams impacted by a breaking change, using GitHub CODEOWNERS to route 
+the messages.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-7/p7-t02-targeted-notifications.md
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FILE: api/migrations/004_notification_routes.sql
+   Create table `notification_routes` (id, org, github_team, destination_type, destination_url).
+
+2. MODIFY: api/internal/db/store.go and pgstore.go
+   Add methods `AddNotificationRoute` and `GetNotificationRoutes(org, team string)`.
+
+3. FILE: api/internal/notifications/slack.go
+   Implement a Slack dispatcher that builds a Block Kit JSON payload and POSTs it to the Webhook URL. Include the upstream repo, breaking change count, and a link to the Substrate dashboard.
+
+4. FILE: api/internal/notifications/teams.go
+   Implement a MS Teams dispatcher that builds an Adaptive Card JSON payload.
+
+5. MODIFY: api/internal/handlers/diff.go
+   After the cross-repo check returns the list of `BrokenConsumers`:
+   - Extract the `CODEOWNERS` for each broken consumer.
+   - Lookup the notification route for each CODEOWNER.
+   - Dispatch the Slack/Teams messages asynchronously.
+
+Commit: "feat: P7-T02 add targeted Slack and Teams notifications via CODEOWNERS"
+Target branch: feature/p7-t02-targeted-notifications

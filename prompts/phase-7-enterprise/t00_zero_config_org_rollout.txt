@@ -1,0 +1,30 @@
+TASK: P7-T00 — Zero-Config Org Rollout
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Allow enterprises to protect all repositories in their GitHub organization without 
+needing to commit a `substrate.yaml` file to every single repository. Substrate 
+will look for a global `substrate-org.yaml` in the `.github` repository.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-7/zero-config-org-rollout.md
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. MODIFY: github-app/src/index.ts
+   In the `pull_request` event handler (and `push`), when `fetchFileContent` is called to fetch `substrate.yaml`:
+   - If `substrate.yaml` is NOT found in the current repo:
+     - Make an API call to fetch `.github/substrate-org.yaml` from the `.github` repository of the same organization.
+     - If the global org config exists, use it as the fallback.
+   - If neither exists, then post the "Missing Config" comment.
+
+2. MODIFY: github-app/src/index.ts (Auto-Discovery override)
+   If a global config is used, Substrate needs to know where the spec files live.
+   - Default to `openapi.yaml` at the repository root if not specified.
+   - Attempt to fetch `openapi.yaml`. If not found, gracefully skip or post an error indicating the spec file is missing.
+
+Commit: "feat: P7-T00 support global org-level zero-config rollout"
+Target branch: feature/p7-t00-zero-config

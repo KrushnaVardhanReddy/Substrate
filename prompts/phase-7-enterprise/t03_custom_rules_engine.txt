@@ -1,0 +1,40 @@
+TASK: P7-T03 — Custom Rules Engine (CEL)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Allow enterprises to write custom schema governance rules in `substrate.yaml` 
+using Google's Common Expression Language (CEL).
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-7/p7-t03-custom-rules-engine.md
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. MODIFY: engine/go.mod
+   Add `github.com/google/cel-go/cel`. Run `go mod tidy`.
+
+2. MODIFY: engine/internal/config/config.go
+   Add `CustomRules []CustomRule` to `SubstrateConfig`.
+   ```go
+   type CustomRule struct {
+       ID          string
+       Description string
+       Severity    string
+       Match       string
+   }
+   ```
+
+3. FILE: engine/internal/diff/evaluator.go
+   Create `EvaluateCustomRules(schemaAST interface{}, rules []config.CustomRule) []report.Change`.
+   - Setup a CEL environment with variables mapping to the schema AST structure.
+   - Compile and evaluate each `Match` expression.
+   - If a rule evaluates to `false`, generate a `report.Change`.
+
+4. MODIFY: engine/internal/diff/openapi.go
+   Call `EvaluateCustomRules` at the end of `CompareOpenAPI` and append the results to the diff report.
+
+Commit: "feat: P7-T03 implement custom governance rules via CEL"
+Target branch: feature/p7-t03-custom-rules-engine

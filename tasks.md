@@ -61,13 +61,13 @@
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **P7-T00** | 🔴 P1 | **Zero-Config Org Rollout** — Run engine without `substrate.yaml`, read global `substrate-org.yaml` from `.github` repo, and globally enforce via Dashboard. | Unassigned | 💡 Backlog | `docs/specs/phase-7/zero-config-org-rollout.md` |
+| **P7-T00** | 🔴 P1 | **Zero-Config Org Rollout** — Run engine without `substrate.yaml`, read global `substrate-org.yaml` from `.github` repo, and globally enforce via Dashboard. | Unassigned | ⏳ Ready | `docs/specs/phase-7/zero-config-org-rollout.md` |
 | **P7-T01** | 🔴 P1 | **Enterprise Webhook & Event Egress** — Emit a standardized JSON event whenever a contract is broken to trigger enterprise ITSM workflows (ServiceNow, AWS EventBridge, etc.). | Unassigned | ⏳ Ready | `docs/specs/phase-7/p7-t01-webhook-egress.md` |
-| **P7-T02** | 🟡 P2 | **Targeted Notifications (Slack/Teams)** — Notify specific CODEOWNERS in Slack/Teams when their downstream consumer repo is broken by an upstream change. | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
-| **P7-T03** | 🟢 P3 | **Custom Rules Engine (CEL/OPA)** — Let enterprises define custom schema rules (e.g., "All APIs must have an X-Correlation-ID header") in `substrate.yaml`. | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
-| **P7-T04** | 🔵 P4 | **Cross-Repo Auto-Fix PRs** — Use an LLM to automatically generate a draft PR in the downstream consumer repo to fix the breaking dependency. | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
-| **P7-T05** | ⚪ P5 | **Runtime Drift Detection (eBPF/Envoy)** — Deploy a sidecar to sample 1% of live API traffic and compare it against the Substrate registry to detect un-documented payloads. | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
-| **P7-T06** | 🔴 P1 | **Audit Mode (Shadow Mode)** — Allow enterprises to deploy Substrate without blocking PRs. Substrate comments on PRs and logs cross-repo breaks to the dashboard, providing proof of ROI before switching to blocking mode. | Unassigned | 💡 Backlog | `docs/specs/phase-7/audit-mode-rollout.md` |
+| **P7-T02** | 🟡 P2 | **Targeted Notifications (Slack/Teams)** — Notify specific CODEOWNERS in Slack/Teams when their downstream consumer repo is broken by an upstream change. | Unassigned | ⏳ Ready | `docs/specs/phase-7/p7-t02-targeted-notifications.md` |
+| **P7-T03** | 🟢 P3 | **Custom Rules Engine (CEL/OPA)** — Let enterprises define custom schema rules (e.g., "All APIs must have an X-Correlation-ID header") in `substrate.yaml`. | Unassigned | ⏳ Ready | `docs/specs/phase-7/p7-t03-custom-rules-engine.md` |
+| **P7-T04** | 🔵 P4 | **Cross-Repo Auto-Fix PRs** — Use an LLM to automatically generate a draft PR in the downstream consumer repo to fix the breaking dependency. | Unassigned | ⏳ Ready | `docs/specs/phase-7/p7-t04-cross-repo-autofix.md` |
+| **P7-T05** | ⚪ P5 | **Runtime Drift Detection (eBPF/Envoy)** — Deploy a sidecar to sample 1% of live API traffic and compare it against the Substrate registry to detect un-documented payloads. | Unassigned | ⏳ Ready | `docs/specs/phase-7/p7-t05-runtime-drift-detection.md` |
+| **P7-T06** | 🔴 P1 | **Audit Mode (Shadow Mode)** — Allow enterprises to deploy Substrate without blocking PRs. Substrate comments on PRs and logs cross-repo breaks to the dashboard, providing proof of ROI before switching to blocking mode. | Unassigned | ⏳ Ready | `docs/specs/phase-7/audit-mode-rollout.md` |
 
 ---
 

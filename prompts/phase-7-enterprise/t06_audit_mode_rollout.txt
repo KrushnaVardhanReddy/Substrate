@@ -1,0 +1,30 @@
+TASK: P7-T06 — Audit Mode (Shadow Mode)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Allow enterprises to deploy Substrate without immediately blocking developers. 
+In Audit Mode, Substrate comments on PRs and tracks breaks in the DB, but 
+always returns a 'Success' commit status to GitHub.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-7/audit-mode-rollout.md
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. MODIFY: engine/internal/config/config.go
+   In `SubstrateConfig`, support `Mode string \`yaml:"mode"\``.
+   Valid values: `strict` (default) and `audit`.
+
+2. MODIFY: github-app/src/formatter.ts
+   In `getCommitStatusState`, if `config.mode === 'audit'`, ALWAYS return `success`.
+   In `getCommitStatusDescription`, if `mode === 'audit'` and there are breaking changes, append `(Audit Mode: Non-blocking)` to the description.
+
+3. MODIFY: github-app/src/formatter.ts
+   In `formatPRComment`, if `mode === 'audit'`, add a clear banner at the top:
+   `> ℹ️ **Substrate is running in Audit Mode.** This breaking change has been recorded, but this PR is NOT blocked.`
+
+Commit: "feat: P7-T06 implement non-blocking Audit Mode"
+Target branch: feature/p7-t06-audit-mode
