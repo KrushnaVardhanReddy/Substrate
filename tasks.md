@@ -61,8 +61,8 @@
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **P7-T00** | 🔴 P1 | **Zero-Config Org Rollout** — Run engine without `substrate.yaml`, read global `substrate-org.yaml` from `.github` repo, and globally enforce via Dashboard. | Jules | 🔄 In Progress (`12481278589189112980`) | `docs/specs/phase-7/zero-config-org-rollout.md` |
-| **P7-T01** | 🔴 P1 | **Enterprise Webhook & Event Egress** — Emit a standardized JSON event whenever a contract is broken to trigger enterprise ITSM workflows (ServiceNow, AWS EventBridge, etc.). | Jules | 🔄 In Progress (`6330508859736619301`) | `docs/specs/phase-7/p7-t01-webhook-egress.md` |
+| **P7-T00** | 🔴 P1 | **Zero-Config Org Rollout** — Run engine without `substrate.yaml`, read global `substrate-org.yaml` from `.github` repo, and globally enforce via Dashboard. | Jules | 🔄 In Progress (`17054865686922683816`) | `docs/specs/phase-7/zero-config-org-rollout.md` |
+| **P7-T01** | 🔴 P1 | **Enterprise Webhook & Event Egress** — Emit a standardized JSON event whenever a contract is broken to trigger enterprise ITSM workflows (ServiceNow, AWS EventBridge, etc.). | Jules | 🔄 In Progress (`8339582148664302277`) | `docs/specs/phase-7/p7-t01-webhook-egress.md` |
 | **P7-T02** | 🟡 P2 | **Targeted Notifications (Slack/Teams)** — Notify specific CODEOWNERS in Slack/Teams when their downstream consumer repo is broken by an upstream change. | Unassigned | 🔒 Blocked (Waiting on T01) | `docs/specs/phase-7/p7-t02-targeted-notifications.md` |
 | **P7-T03** | 🟢 P3 | **Custom Rules Engine (CEL/OPA)** — Let enterprises define custom schema rules (e.g., "All APIs must have an X-Correlation-ID header") in `substrate.yaml`. | Jules | 🔄 In Progress (`18128216030615102239`) | `docs/specs/phase-7/p7-t03-custom-rules-engine.md` |
 | **P7-T04** | 🔵 P4 | **Cross-Repo Auto-Fix PRs** — Use an LLM to automatically generate a draft PR in the downstream consumer repo to fix the breaking dependency. | Jules | 🔄 In Progress (`10050853153193134468`) | `docs/specs/phase-7/p7-t04-cross-repo-autofix.md` |

@@ -12,6 +12,12 @@ Spec (READ ONLY — implement from it, never edit):
   docs/specs/phase-7/p7-t01-webhook-egress.md
 
 ═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- IMPORTANT: Make sure to clean up any temporary Python scripts or patch files before completing the task. No repo pollution!
+- Verify that `CrossRepoCheckRequest` contains an `Org` field before using or omitting it. Trust the Go compiler over static analysis tools.
+
+═══════════════════════════════════════════════════════════════
 CONTEXT — EXISTING REPO LAYOUT
 ═══════════════════════════════════════════════════════════════
 The Registry API lives in `api/`.
@@ -42,7 +48,7 @@ DELIVERABLES
    RegisterWebhook(ctx context.Context, config WebhookConfig) error
    GetWebhooks(ctx context.Context, org string) ([]WebhookConfig, error)
    ```
-   Implement these methods in `pgstore.go`. Create a new migration file `api/migrations/003_webhooks.sql` to create the `org_webhooks` table.
+   Implement these methods in `pgstore.go`. Create new migration files `api/migrations/0005_webhooks.up.sql` and `api/migrations/0005_webhooks.down.sql` to create the `org_webhooks` table.
 
 2. FILE: api/internal/webhook/egress.go (CREATE NEW)
    Package: package webhook
@@ -84,7 +90,7 @@ DELIVERABLES
    Map `POST /api/v1/org/{org}/webhooks` to the new `RegisterWebhookHandler` (protected by AuthMiddleware).
 
 5. MODIFY: api/internal/handlers/diff.go
-   In `SaveDiffHandler`, if the diff has breaking changes, you should trigger `webhook.DispatchEvent` asynchronously (in a goroutine).
+   In `SaveDiffHandler`, if the diff has breaking changes, you should trigger `webhook.DispatchEvent` asynchronously (in a goroutine). Wrap the context in a timeout.
    *CRITICAL REFACTOR:* To populate the `BrokenConsumers` array in the webhook payload, you must move the Cross-Repo check logic (currently exposed via `CrossRepoCheckHandler`) into an internal service function. 
    Inside `SaveDiffHandler`, after saving the diff, invoke this internal cross-repo check function to determine the blast radius, and include those results in the `BreakingChangeEvent` payload before dispatching it.
 
@@ -93,7 +99,8 @@ FILES LIST
 ═══════════════════════════════════════════════════════════════
 
 FILES TO CREATE:
-- api/migrations/003_webhooks.sql
+- api/migrations/0005_webhooks.up.sql
+- api/migrations/0005_webhooks.down.sql
 - api/internal/webhook/egress.go
 - api/internal/handlers/webhooks.go
 
@@ -104,4 +111,4 @@ FILES TO MODIFY:
 - api/internal/handlers/diff.go
 
 Commit: "feat: P7-T01 implement enterprise webhook egress system"
-Target branch: feature/p7-t01-webhook-egress
+Target branch: feature/dev

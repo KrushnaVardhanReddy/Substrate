@@ -14,17 +14,19 @@ Spec (READ ONLY — implement from it, never edit):
 DELIVERABLES
 ═══════════════════════════════════════════════════════════════
 
-1. MODIFY: github-app/src/index.ts
-   In the `pull_request` event handler (and `push`), when `fetchFileContent` is called to fetch `substrate.yaml`:
-   - If `substrate.yaml` is NOT found in the current repo:
-     - Make an API call to fetch `.github/substrate-org.yaml` from the `.github` repository of the same organization.
-     - If the global org config exists, use it as the fallback.
-   - If neither exists, then post the "Missing Config" comment.
+1. Diff Engine Fallback (engine/pkg/config/parser.go)
+   Update parser to return a `DefaultConfig` struct when `substrate.yaml` is missing.
 
-2. MODIFY: github-app/src/index.ts (Auto-Discovery override)
-   If a global config is used, Substrate needs to know where the spec files live.
-   - Default to `openapi.yaml` at the repository root if not specified.
-   - Attempt to fetch `openapi.yaml`. If not found, gracefully skip or post an error indicating the spec file is missing.
+2. Worker Heuristics & Org Config Fetcher (github-app/src/index.ts & github-client.ts)
+   - Scan PR file payloads. If known schemas (openapi.yaml, schema.graphql) are modified, auto-route to diff engine.
+   - If `substrate.yaml` is NOT found in the current repo, fetch `.github/substrate-org.yaml` from the `.github` repo of the same org. Fall back to it.
+   - If global config is used, default spec to `openapi.yaml`.
+
+3. Dashboard Admin UI (Svelte dashboard)
+   Add "Organization Settings" page protected by OAuth Admin scopes, with a toggle for "Enforce Substrate Globally".
+
+4. Branch Protection Script
+   Write Go logic to iterate over all repos in a GitHub Org and apply the required status check API calls when "Enforce Substrate Globally" is toggled.
 
 Commit: "feat: P7-T00 support global org-level zero-config rollout"
-Target branch: feature/p7-t00-zero-config
+Target branch: feature/dev
