@@ -23,5 +23,9 @@
    - **Target:** Complete all V1.0 testing and release within 2 days.
    - **Day 1:** Merge `V1-T07` and `UI-T03`. Submit the remaining `V1.0 Pre-Flight Checklist` tasks (`V1-T01` to `V1-T06`) to Jules in parallel.
    - **Day 2:** Run the final comprehensive System E2E Test Suite locally, perform the final audit, and apply the V1.0 release tag.
+
+## 📝 Architectural Notes for the Future
+- **Database Layer (`sqlc`):** We discussed migrating our raw `pgx` queries in `api/internal/db/queries.go` over to `sqlc` for type-safe code generation. To minimize launch risk before the V1.0 release, this refactor is officially scheduled for **Phase 9 (Task P9-T04)**.
+
 3. **Database TRUNCATE Reminder:**
    - Before running new E2E tests, remember to clear stale graph data using `PGPASSWORD=postgres psql -h localhost -U postgres -d substrate -c "TRUNCATE TABLE dependencies CASCADE; TRUNCATE TABLE contracts CASCADE; TRUNCATE TABLE repositories CASCADE;"`.

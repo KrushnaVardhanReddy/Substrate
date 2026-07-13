@@ -90,7 +90,7 @@
 | **P9-T01** | 🔴 P1 | **Automated Security Fuzzing (OWASP)** — Upgrade the Phase 6 fuzzer to inject malicious payloads (SQLi, IDOR) based on the schema, acting as an automated pentester. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T02** | 🟡 P2 | **Spotify Backstage Plugin** — Pipe the dependency graph, schema health scores, and API docs directly into Backstage.io developer portals. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T03** | 🟢 P3 | **API Gateway Auto-Sync** — Automatically push validated OpenAPI schemas to AWS API Gateway, Kong, or Cloudflare API Shield on merge to `main`. | Unassigned | 💡 Backlog | `(Pending)` |
-| **P9-T04** | 🔵 P4 | **Hexagonal Architecture Refactor** — Formally isolate the core Discovery/Diff engines from HTTP transports and SQL storage to allow pluggable graph databases (Neo4j) and robust in-memory unit testing. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P9-T04** | 🔵 P4 | **Hexagonal Architecture & `sqlc` Refactor** — Formally isolate engines from HTTP transports, migrate raw `pgx` queries to `sqlc` for type-safe database layer generation, and allow pluggable graph databases (Neo4j). | Unassigned | 💡 Backlog | `(Pending)` |
 
 ---
 
