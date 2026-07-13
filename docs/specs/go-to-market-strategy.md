@@ -18,7 +18,7 @@ The biggest barrier to developer tool adoption is configuration friction. Substr
 Enterprise software sales are notoriously slow because blocking a CI/CD pipeline is highly disruptive. Substrate bypasses this friction using a **3-Month Free Trial in Audit Mode**.
 - **The Hook:** Enterprises install Substrate for free and deploy it in "Shadow Mode" (`--mode audit`). Substrate will silently monitor PRs, but it will **never block** a deployment.
 - **The Value Realization:** For 3 months, Substrate logs every single breaking change it detects into the Management ROI Dashboard, calculating the exact engineering hours and downtime that *would* have been prevented.
-- **The Close:** At the end of the trial, the VP of Engineering logs into the dashboard, sees `$120,000 in prevented outages`, and simply flips the switch to "Blocking Mode" upon paying for the Enterprise license.
+- **The Close (The Paywall Pause):** On Day 91, the trial gracefully expires. Rather than suddenly breaking pipelines, Substrate simply pauses its analysis. The dashboard displays: *"Trial Expired: Substrate detected $120,000 in potential outages over the last 90 days. Upgrade to Enterprise to unlock Blocking Mode and resume analytics."* This forces a purchasing decision based on undeniable, quantified ROI without disrupting engineering velocity.
 
 ## 3. AI-Driven Spec Generation (Solving the Missing Schema Problem)
 Many companies have REST APIs but lack an OpenAPI specification. Substrate turns this missing requirement into a feature:
