@@ -28,6 +28,13 @@
 	}
 
 	function applyFilters(cy: cytoscape.Core) {
+		// Read all reactive states to ensure Svelte tracks them
+		const _show = showOnlyBreaking;
+		const _proto = protocolFilter;
+		const _search = searchQuery;
+		const _neighbors = includeNeighbors;
+		const _focus = focusedNodeId;
+
 		cy.elements().removeClass('hidden dimmed');
 
 		if (showOnlyBreaking) {
@@ -44,26 +51,25 @@
 			const query = protocolFilter.toLowerCase();
 			const matchedNodes = cy.nodes().filter(n => n.id().toLowerCase().includes(query));
 			if (includeNeighbors) {
-				toKeepNodes = matchedNodes.union(matchedNodes.connectedNodes());
+				toKeepNodes = matchedNodes.union(matchedNodes.neighborhood('node'));
 				toKeepEdges = matchedNodes.connectedEdges();
 			} else {
 				toKeepNodes = matchedNodes;
-				toKeepEdges = cy.collection(); // or no edges? spec says exact matches. Edges connecting them should probably be kept if both ends are kept, but let's say all edges are dimmed unless they connect two matched nodes. Actually, let's keep edges where both source and target are in matchedNodes.
-				// For strict isolation, exactly matching nodes are highlighted. Other nodes AND EDGES are dimmed.
 				toKeepEdges = matchedNodes.edgesWith(matchedNodes);
 			}
 		}
 
 		if (searchQuery.trim() !== '') {
+			const wasFiltered = filtered;
 			filtered = true;
 			const query = searchQuery.trim().toLowerCase();
 			const matchedNodes = cy.nodes().filter(n => n.id().toLowerCase().includes(query));
 			if (includeNeighbors) {
-				toKeepNodes = filtered ? toKeepNodes.intersection(matchedNodes.union(matchedNodes.connectedNodes())) : matchedNodes.union(matchedNodes.connectedNodes());
-				toKeepEdges = filtered ? toKeepEdges.intersection(matchedNodes.connectedEdges()) : matchedNodes.connectedEdges();
+				toKeepNodes = wasFiltered ? toKeepNodes.intersection(matchedNodes.union(matchedNodes.neighborhood('node'))) : matchedNodes.union(matchedNodes.neighborhood('node'));
+				toKeepEdges = wasFiltered ? toKeepEdges.intersection(matchedNodes.connectedEdges()) : matchedNodes.connectedEdges();
 			} else {
-				toKeepNodes = filtered ? toKeepNodes.intersection(matchedNodes) : matchedNodes;
-				toKeepEdges = filtered ? toKeepEdges.intersection(matchedNodes.edgesWith(matchedNodes)) : matchedNodes.edgesWith(matchedNodes);
+				toKeepNodes = wasFiltered ? toKeepNodes.intersection(matchedNodes) : matchedNodes;
+				toKeepEdges = wasFiltered ? toKeepEdges.intersection(matchedNodes.edgesWith(matchedNodes)) : matchedNodes.edgesWith(matchedNodes);
 			}
 		}
 
@@ -77,9 +83,8 @@
 			cy.elements().addClass('dimmed');
 			const focusedNode = cy.getElementById(focusedNodeId);
 			if (focusedNode.length > 0) {
-				const toKeep = focusedNode.union(focusedNode.connectedNodes());
-				toKeep.removeClass('dimmed');
-				focusedNode.connectedEdges().removeClass('dimmed');
+				focusedNode.neighborhood().removeClass('dimmed');
+				focusedNode.removeClass('dimmed');
 			}
 		}
 

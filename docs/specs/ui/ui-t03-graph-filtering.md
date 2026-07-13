@@ -23,6 +23,7 @@ As the dependency graph scales to enterprise proportions (100+ nodes), a full un
 - Instead, use Cytoscape collections to apply CSS classes or manipulate visibility:
   - Example: `cy.nodes().removeClass('hidden')` and `cy.nodes('[status != "BREAKING"]').addClass('hidden')`.
   - Ensure the stylesheet contains a `.hidden` class (`{ display: 'none' }`) and a `.dimmed` class (`{ opacity: 0.2 }`).
+- **Critical API Constraint:** When retrieving adjacent nodes from a node collection, you MUST use `matchedNodes.neighborhood('node')` or `matchedNodes.neighborhood()`. Do not use `.connectedNodes()` directly on a node collection, as Cytoscape 3.x returns an empty collection when that method is called on nodes rather than edges.
 - Re-run the `dagre` layout automatically after hiding/showing nodes so the layout reflows and compacts properly: `cy.layout({ name: 'dagre', ... }).run()`.
 
 ### 3. State Preservation during Polling
