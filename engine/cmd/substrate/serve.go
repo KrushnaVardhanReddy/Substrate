@@ -38,7 +38,14 @@ func applyConfig(rep *report.DiffReport, configPath, org, repo string) *report.D
 }
 
 func runOpenAPIDiff(basePath, headPath, configPath, org, repo string) (*report.DiffReport, error) {
-	rep, err := diff.CompareOpenAPI(basePath, headPath, true)
+	var rules []config.CustomRule
+	if configPath != "" {
+		cfg, err := config.LoadConfig(configPath)
+		if err == nil && cfg != nil {
+			rules = cfg.CustomRules
+		}
+	}
+	rep, err := diff.CompareOpenAPI(basePath, headPath, true, rules)
 	if err != nil {
 		return nil, err
 	}

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/compliance"
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/config"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/oasdiff/oasdiff/checker"
@@ -14,7 +15,7 @@ import (
 
 // CompareOpenAPI takes two OpenAPI specification paths, computes their diff using oasdiff,
 // and maps the result to a Substrate DiffReport.
-func CompareOpenAPI(basePath, revisionPath string, flattenAllOf bool) (*report.DiffReport, error) {
+func CompareOpenAPI(basePath, revisionPath string, flattenAllOf bool, customRules []config.CustomRule) (*report.DiffReport, error) {
 	loader := openapi3.NewLoader()
 	loader.IsExternalRefsAllowed = true
 
@@ -109,6 +110,24 @@ func CompareOpenAPI(basePath, revisionPath string, flattenAllOf bool) (*report.D
 			rep.Warnings = append(rep.Warnings, changeObj)
 		case report.ChangeSeveritySafe:
 			rep.SafeChanges = append(rep.SafeChanges, changeObj)
+		}
+	}
+
+	// Evaluate custom CEL rules on the head/revision schema
+	if len(customRules) > 0 {
+		ast, err := MapToAST(revision)
+		if err == nil {
+			customRuleChanges := EvaluateCustomRules(ast, customRules)
+			for _, c := range customRuleChanges {
+				switch c.Severity {
+				case report.ChangeSeverityBreaking:
+					rep.BreakingChanges = append(rep.BreakingChanges, c)
+				case report.ChangeSeverityWarning:
+					rep.Warnings = append(rep.Warnings, c)
+				case report.ChangeSeveritySafe:
+					rep.SafeChanges = append(rep.SafeChanges, c)
+				}
+			}
 		}
 	}
 
