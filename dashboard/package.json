@@ -32,6 +32,12 @@
 		"vitest": "^4.1.10"
 	},
 	"dependencies": {
-		"d3": "^7.9.0"
+		"@types/cytoscape": "^3.21.9",
+		"@types/cytoscape-dagre": "^2.3.4",
+		"@types/dagre": "^0.7.54",
+		"cytoscape": "^3.34.0",
+		"cytoscape-dagre": "^4.0.0",
+		"d3": "^7.9.0",
+		"dagre": "^0.8.5"
 	}
 }
