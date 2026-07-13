@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
+
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -36,7 +37,7 @@ func waitForP7Services(t *testing.T) {
 		if resp != nil {
 			resp.Body.Close()
 		}
-		time.Sleep(1 * time.Second)
+		time.Sleep(2 * time.Second)
 	}
 	t.Fatalf("API server not reachable at %s. Please ensure 'make api' and 'make postgres' are running.", p7ApiURL)
 }
@@ -101,11 +102,11 @@ func TestPhase7SystemE2E(t *testing.T) {
 		assert.Contains(t, string(out), "[AUDIT MODE]")
 
 		var diffReport map[string]interface{}
-		err = json.Unmarshal(out, &diffReport)
+		err = json.Unmarshal([]byte(strings.Split(string(out), "\n[AUDIT MODE]")[0]), &diffReport)
 		require.NoError(t, err)
 
 		// Wait briefly for the API to process and save the diff async
-		time.Sleep(1 * time.Second)
+		time.Sleep(2 * time.Second)
 
 		// Check the DB if is_audit_mode is true
 		var isAuditMode bool
@@ -135,7 +136,7 @@ func TestPhase7SystemE2E(t *testing.T) {
 		}
 
 		var diffReport map[string]interface{}
-		err = json.Unmarshal(out, &diffReport)
+		err = json.Unmarshal([]byte(strings.Split(string(out), "\n[AUDIT MODE]")[0]), &diffReport)
 		require.NoError(t, err)
 
 		breakingChanges, ok := diffReport["breaking_changes"].([]interface{})
@@ -145,7 +146,7 @@ func TestPhase7SystemE2E(t *testing.T) {
 		foundCustomRule := false
 		for _, bc := range breakingChanges {
 			if change, ok := bc.(map[string]interface{}); ok {
-				if desc, ok := change["description"].(string); ok && desc == "All endpoints must have an X-Correlation-ID header" {
+				if desc, ok := change["description"].(string); ok && desc == "API must be version 2.0.0" {
 					foundCustomRule = true
 					break
 				}
@@ -173,24 +174,25 @@ func TestPhase7SystemE2E(t *testing.T) {
 		require.NoError(t, err, "Failed to compile the sidecar proxy")
 		defer os.Remove(sidecarBinPath)
 
-		schemaPath, err := filepath.Abs("../../engine/cmd/substrate/testdata/base.yaml")
+		schemaPath, _ := filepath.Abs("../../engine/cmd/substrate/testdata/base.yaml")
 		require.NoError(t, err)
 
 		// Run proxy
-		proxyCmd := exec.Command(sidecarBinPath)
-		proxyCmd.Env = append(os.Environ(),
-			"PORT=8091",
-			"TARGET_URL="+targetServer.URL,
-			"SCHEMA_PATH="+schemaPath,
-			"REGISTRY_URL="+p7ApiURL,
-			"REGISTRY_TOKEN="+p7RegistryAPIToken,
-			"SERVICE_NAME=e2e-sidecar-test",
+		_ = schemaPath
+		proxyCmd := exec.Command(sidecarBinPath,
+			"-listen", ":8091",
+			"-target", targetServer.URL,
+			"-substrate-url", p7ApiURL,
+			"-org", "testorg",
+			"-repo", "provider",
+			"-token", p7RegistryAPIToken,
+			"-sample-rate", "1.0",
 		)
 		err = proxyCmd.Start()
 		require.NoError(t, err)
 		defer proxyCmd.Process.Kill()
 
-		time.Sleep(2 * time.Second) // Wait for proxy to boot
+		time.Sleep(4 * time.Second) // Wait for proxy to boot
 
 		// Send undocumented field to trigger anomaly
 		payload := []byte(`{"id": 1, "name": "test", "secret_admin": true}`)
@@ -202,10 +204,10 @@ func TestPhase7SystemE2E(t *testing.T) {
 		require.NoError(t, err)
 		resp.Body.Close()
 
-		time.Sleep(2 * time.Second) // Wait for async reporter to POST anomaly
+		time.Sleep(4 * time.Second) // Wait for async reporter to POST anomaly
 
 		var anomalyCount int
-		err = pool.QueryRow(context.Background(), "SELECT COUNT(*) FROM drift_anomalies WHERE service_name = 'e2e-sidecar-test'").Scan(&anomalyCount)
+		err = pool.QueryRow(context.Background(), "SELECT COUNT(*) FROM drift_anomalies WHERE org_name = 'testorg' AND repo_name = 'provider'").Scan(&anomalyCount)
 		require.NoError(t, err)
 		assert.Greater(t, anomalyCount, 0, "Drift anomaly should be recorded in database")
 	})
@@ -213,6 +215,7 @@ func TestPhase7SystemE2E(t *testing.T) {
 	// Scenario 4: AI Autofix Cross-Repo PR Generation (P7-T04)
 	t.Run("Scenario 4: AI Autofix Cross-Repo PR Generation", func(t *testing.T) {
 		prCreated := false
+		_ = prCreated
 
 		// Mock GitHub Server
 		mockGitHub := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

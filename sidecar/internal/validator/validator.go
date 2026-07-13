@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"sync"
 	"time"
+	"encoding/json"
 
 	"github.com/KrushnaVardhanReddy/substrate/sidecar/internal/proxy"
 	"github.com/getkin/kin-openapi/openapi3"
@@ -91,8 +92,16 @@ func (v *Validator) fetchSchema(ctx context.Context) {
 		return
 	}
 
+	var schemaResp struct {
+		Schema string `json:"schema"`
+	}
+	if err := json.Unmarshal(body, &schemaResp); err != nil {
+		log.Printf("failed to unmarshal schema response: %v", err)
+		return
+	}
+
 	loader := openapi3.NewLoader()
-	doc, err := loader.LoadFromData(body)
+	doc, err := loader.LoadFromData([]byte(schemaResp.Schema))
 	if err != nil {
 		log.Printf("failed to parse schema: %v", err)
 		return
