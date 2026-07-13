@@ -14,6 +14,7 @@
 	let protocolFilter = $state('All');
 	let searchQuery = $state('');
 	let includeNeighbors = $state(false);
+	let hideOrphans = $state(true);
 	let focusedNodeId = $state<string | null>(null);
 
 	function selectNode(node: any) {
@@ -33,6 +34,7 @@
 		const _proto = protocolFilter;
 		const _search = searchQuery;
 		const _neighbors = includeNeighbors;
+		const _orphans = hideOrphans;
 		const _focus = focusedNodeId;
 
 		cy.elements().removeClass('hidden dimmed');
@@ -40,6 +42,10 @@
 		if (showOnlyBreaking) {
 			cy.nodes('[status != "BREAKING"]').addClass('hidden');
 			cy.edges('[status != "BREAKING"]').addClass('hidden');
+		}
+
+		if (hideOrphans) {
+			cy.nodes().filter(n => n.degree(false) === 0).addClass('hidden');
 		}
 
 		let toKeepNodes = cy.nodes();
@@ -79,12 +85,12 @@
 		}
 
 		if (focusedNodeId) {
-			// Click to explore overrides Step 1 logic
-			cy.elements().addClass('dimmed');
+			// Blast Radius Focus Mode: Hide everything else completely
+			cy.elements().addClass('hidden');
 			const focusedNode = cy.getElementById(focusedNodeId);
 			if (focusedNode.length > 0) {
-				focusedNode.neighborhood().removeClass('dimmed');
-				focusedNode.removeClass('dimmed');
+				focusedNode.neighborhood().removeClass('hidden');
+				focusedNode.removeClass('hidden');
 			}
 		}
 
@@ -93,8 +99,18 @@
 			rankDir: 'LR',
 			nodeSep: 50,
 			rankSep: 150,
-			fit: false,
+			fit: true,
+			padding: 50,
+			animate: true,
+			animationDuration: 300
 		} as cytoscape.LayoutOptions).run();
+	}
+
+	function getNodeType(id: string) {
+		const lower = id.toLowerCase();
+		if (lower.includes('ui') || lower.includes('web') || lower.includes('frontend') || lower.includes('dashboard') || lower.includes('app')) return 'frontend';
+		if (lower.includes('db') || lower.includes('data') || lower.includes('postgres') || lower.includes('redis') || lower.includes('kafka')) return 'data';
+		return 'backend';
 	}
 	
 	$effect(() => {
@@ -108,11 +124,11 @@
 
 			if (!nodesMap.has(provider)) {
 				nodesMap.set(provider, true);
-				elements.push({ data: { id: provider, label: provider, status: 'SAFE' } });
+				elements.push({ data: { id: provider, label: provider, status: 'SAFE' }, classes: getNodeType(provider) });
 			}
 			if (!nodesMap.has(consumer)) {
 				nodesMap.set(consumer, true);
-				elements.push({ data: { id: consumer, label: consumer, status: 'SAFE' } });
+				elements.push({ data: { id: consumer, label: consumer, status: 'SAFE' }, classes: getNodeType(consumer) });
 			}
 
 			elements.push({
@@ -176,6 +192,24 @@
 					}
 				},
 				{
+					selector: '.frontend',
+					style: {
+						'border-color': '#a855f7'
+					}
+				},
+				{
+					selector: '.data',
+					style: {
+						'border-color': '#22c55e'
+					}
+				},
+				{
+					selector: '.backend',
+					style: {
+						'border-color': '#3b82f6'
+					}
+				},
+				{
 					selector: '.hidden',
 					style: {
 						'display': 'none'
@@ -193,7 +227,7 @@
 				rankDir: 'LR',
 				nodeSep: 50,
 				rankSep: 150,
-				fit: false,
+				fit: true,
 				padding: 50
 			} as cytoscape.LayoutOptions
 		});
@@ -201,8 +235,18 @@
 		cyInstance = cy;
 
 		cy.on('tap', 'node', (evt) => {
-			selectNode({ name: evt.target.id(), version: "v1.0.0", status: evt.target.data('status') || "SAFE" });
-			focusedNodeId = evt.target.id();
+			const node = evt.target;
+			const incoming = node.incomers('node').map((n: any) => n.id());
+			const outgoing = node.outgoers('node').map((n: any) => n.id());
+
+			selectNode({ 
+				name: node.id(), 
+				version: "v1.0.0", 
+				status: node.data('status') || "SAFE",
+				upstream: outgoing,
+				downstream: incoming
+			});
+			focusedNodeId = node.id();
 		});
 
 		cy.on('tap', (evt) => {
@@ -231,11 +275,11 @@
 						const { provider, consumer, status } = edge;
 						if (!nodesMap.has(provider)) {
 							nodesMap.set(provider, true);
-							newElements.push({ data: { id: provider, label: provider, status: 'SAFE' } });
+							newElements.push({ data: { id: provider, label: provider, status: 'SAFE' }, classes: getNodeType(provider) });
 						}
 						if (!nodesMap.has(consumer)) {
 							nodesMap.set(consumer, true);
-							newElements.push({ data: { id: consumer, label: consumer, status: 'SAFE' } });
+							newElements.push({ data: { id: consumer, label: consumer, status: 'SAFE' }, classes: getNodeType(consumer) });
 						}
 						newElements.push({ data: { source: consumer, target: provider, status: status } });
 					}
@@ -280,6 +324,10 @@
 				<label class="filter-label">
 					<input type="checkbox" bind:checked={showOnlyBreaking} />
 					Show Only BREAKING Changes
+				</label>
+				<label class="filter-label">
+					<input type="checkbox" bind:checked={hideOrphans} />
+					Hide Orphaned Nodes
 				</label>
 				<select bind:value={protocolFilter} class="filter-select">
 					<option value="All">All Protocols</option>
@@ -347,6 +395,37 @@
 					<div class="meta-value monospace">MIT</div>
 					<div class="meta-label">Status</div>
 					<div class="meta-value {selectedNode.status === 'BREAKING' ? 'error-text' : ''}">{selectedNode.status}</div>
+				</div>
+			</section>
+
+			<!-- Impact Analysis -->
+			<section class="detail-section">
+				<h4 class="section-title">Impact Analysis</h4>
+				<div class="impact-lists">
+					<div class="impact-col">
+						<div class="meta-label">Downstream Consumers</div>
+						{#if selectedNode.downstream && selectedNode.downstream.length > 0}
+							<ul class="impact-ul">
+								{#each selectedNode.downstream as p}
+									<li class="meta-value">{p}</li>
+								{/each}
+							</ul>
+						{:else}
+							<div class="meta-value">None</div>
+						{/if}
+					</div>
+					<div class="impact-col" style="margin-top: 12px;">
+						<div class="meta-label">Upstream Providers</div>
+						{#if selectedNode.upstream && selectedNode.upstream.length > 0}
+							<ul class="impact-ul">
+								{#each selectedNode.upstream as p}
+									<li class="meta-value">{p}</li>
+								{/each}
+							</ul>
+						{:else}
+							<div class="meta-value">None</div>
+						{/if}
+					</div>
 				</div>
 			</section>
 		</div>
@@ -597,5 +676,23 @@
 
 	.btn-primary:hover {
 		opacity: 0.9;
+	}
+
+	.impact-ul {
+		list-style: none;
+		padding: 0;
+		margin: 4px 0 0 0;
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+
+	.impact-ul li {
+		font-family: 'JetBrains Mono', monospace;
+		font-size: 11px;
+		background: var(--bg-dark);
+		padding: 4px 8px;
+		border-radius: 4px;
+		border: 1px solid var(--border);
 	}
 </style>
