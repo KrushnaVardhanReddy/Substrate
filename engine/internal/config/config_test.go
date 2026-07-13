@@ -45,12 +45,11 @@ spec_path: openapi.yaml
 			errMsg:  "substrate.yaml: 'service' is required",
 		},
 		{
-			name: "Missing Spec Path",
+			name: "Missing Spec Path Ignored Because Dynamic",
 			yamlContent: `
 service: my-service
 `,
-			wantErr: true,
-			errMsg:  "substrate.yaml: 'spec_path' is required",
+			wantErr: false,
 		},
 		{
 			name: "Missing Spec File",
@@ -135,6 +134,23 @@ schema_type: unknownformat
 			}
 		})
 	}
+
+	t.Run("Zero-Config Fallback", func(t *testing.T) {
+		configPath := filepath.Join(tempDir, "does_not_exist.yaml")
+		config, err := LoadConfig(configPath)
+		if err != nil {
+			t.Fatalf("LoadConfig() error = %v, wantErr %v", err, false)
+		}
+		if config.Version != "1" {
+			t.Errorf("Expected version 1, got %s", config.Version)
+		}
+		if config.Service != "default-service" {
+			t.Errorf("Expected default-service, got %s", config.Service)
+		}
+		if config.Mode != "strict" {
+			t.Errorf("Expected strict mode, got %s", config.Mode)
+		}
+	})
 }
 
 func TestConsumerParsing(t *testing.T) {

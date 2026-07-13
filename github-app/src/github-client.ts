@@ -406,3 +406,29 @@ export async function createPullRequest(
   const data: any = await response.json();
   return data.number;
 }
+
+export async function fetchPRFiles(
+  token: string,
+  owner: string,
+  repo: string,
+  prNumber: number
+): Promise<string[]> {
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}/files?per_page=100`,
+    {
+      headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        'Authorization': `Bearer ${token}`,
+        'User-Agent': 'Substrate-GitHub-App'
+      }
+    }
+  );
+
+  if (!response.ok) {
+    console.error(`Failed to fetch PR files: ${response.status}`);
+    return [];
+  }
+
+  const files: any[] = await response.json();
+  return files.map(f => f.filename);
+}
