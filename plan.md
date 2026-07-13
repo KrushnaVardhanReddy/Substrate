@@ -1,21 +1,17 @@
-1. Add `api/internal/config/config.go` with parsing logic for substrate.yaml:
-   ```go
-   package config
-   import "gopkg.in/yaml.v3"
-   type Discovery struct { MatchPatterns []string `yaml:"match_patterns"` }
-   type SubstrateConfig struct { Discovery *Discovery `yaml:"discovery,omitempty"` }
-   func Parse(content []byte) (*SubstrateConfig, error) { ... }
-   ```
-2. Refactor `api/internal/discovery/env_scanner.go` to accept match patterns dynamically:
-   - Add `type EnvScanner struct { regex *regexp.Regexp }`
-   - Add `func NewEnvScanner(patterns []string) *EnvScanner`
-   - Merge provided patterns with `highSignalRegex` if they are provided, else fallback to `highSignalRegex`
-   - Update `ScanEnvFile`, `ScanDockerCompose`, `ScanKubernetesManifest` to be methods on `EnvScanner`
-3. Update `api/internal/webhook/handler.go` to inject the regex correctly:
-   - Search through files in PushHandler to find `substrate.yaml` file
-   - If found, parse it using `config.Parse`
-   - Extract patterns from the parsed config. If not found, create `NewEnvScanner(nil)`
-   - Call `scanner.ScanKubernetesManifest` instead of `discovery.ScanKubernetesManifest`
-4. Write tests for `api/internal/discovery/env_scanner_test.go` checking custom regex implementation:
-   - `TestEnvScanner_CustomPatterns` passing a custom regex like `.*_ENDPOINT$` and verifying that `PAYMENT_ENDPOINT` is discovered.
-5. Complete pre commit step.
+1. **Remove Binary**: Delete `api/api-server`.
+
+2. **Fix Authorization Middleware**: The `enforce.go` endpoint receives a GitHub OAuth token (`token = localStorage.getItem('github_token')`), but `authMW` expects a system JWT. Use an appropriate middleware or skip it if the token is passed for the GitHub API directly.
+   - I'll change the router configuration in `api/internal/server/router.go` to use `http.HandlerFunc(handlers.EnforceGlobalHandler())` without `authMW`.
+
+3. **Check Admin Scope in UI**: Update `dashboard/src/routes/org/[org]/settings/+page.svelte` to check if the user is an admin.
+   - Assume there's some `user.role === 'admin'` or similar, or I can fetch the user details to check. I will look at how `layout.svelte` handles data. If no role is exposed, I'll add a simple UI check/message based on standard Substrate dashboard patterns.
+
+4. **Verify E2E Flow**:
+   - Restart the vite server.
+   - Run the playwright script again to ensure we don't get the "Not Found" error, as the Vite proxy was configured but the dev server wasn't restarted.
+
+5. **Verify and Submit**:
+   - Run `api` tests.
+   - Run `github-app` tests.
+   - Pre-commit.
+   - Submit.

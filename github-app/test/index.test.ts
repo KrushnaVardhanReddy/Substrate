@@ -8,7 +8,8 @@ vi.mock('../src/github-client.js', () => ({
   generateInstallationToken: vi.fn(),
   fetchFileContent: vi.fn(),
   postPRComment: vi.fn(),
-  setCommitStatus: vi.fn()
+  setCommitStatus: vi.fn(),
+  fetchPRFiles: vi.fn()
 }));
 
 // Mock global fetch for the container service call
@@ -119,7 +120,8 @@ describe('Worker Handler', () => {
       body: payload
     });
 
-    (githubClient.fetchFileContent as any).mockResolvedValueOnce(null);
+    (githubClient.fetchFileContent as any).mockResolvedValueOnce(null); // local config
+    (githubClient.fetchPRFiles as any).mockResolvedValueOnce(['some-random-file.txt']); // PR files
 
     const response = await worker.fetch(request, MOCK_ENV as any, ctx as any);
     expect(response.status).toBe(200);
@@ -130,6 +132,9 @@ describe('Worker Handler', () => {
     );
     expect(githubClient.fetchFileContent).toHaveBeenCalledWith(
       'mock-token', 'owner', 'repo', 'substrate.yaml', 'headsha'
+    );
+    expect(githubClient.fetchPRFiles).toHaveBeenCalledWith(
+      'mock-token', 'owner', 'repo', 1
     );
     expect(githubClient.postPRComment).toHaveBeenCalledWith(
       'mock-token', 'owner', 'repo', 1, expect.stringContaining('substrate init')

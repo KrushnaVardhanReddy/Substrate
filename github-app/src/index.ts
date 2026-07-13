@@ -1,6 +1,6 @@
 import { Env, DiffReport, SyncDependency, CrossRepoCheckRequest, CrossRepoCheckResponse, AIAutofixRequest, AIAutofixResponse } from './types.js';
 import { validateWebhookSignature, parsePREvent, parsePushEvent } from './webhook.js';
-import { generateInstallationToken, fetchFileContent, postPRComment, setCommitStatus } from './github-client.js';
+import { generateInstallationToken, fetchFileContent, postPRComment, setCommitStatus, fetchPRFiles } from './github-client.js';
 import { formatPRComment, formatMissingConfigComment, getCommitStatusState, getCommitStatusDescription, formatCrossRepoImpact } from './formatter.js';
 import { parseConsumersFromYaml, syncToRegistry, crossRepoCheck } from './registry-client.js';
 import { parseInstallationRepositoriesEvent, parseInstallationEvent } from './webhook.js';
@@ -205,7 +205,7 @@ export default {
       );
 
       // Step 6: Fetch substrate.yaml from head commit
-      const configContent = await fetchFileContent(
+      let configContent = await fetchFileContent(
         token,
         event.owner,
         event.repo,
@@ -213,26 +213,83 @@ export default {
         event.headSha
       );
 
-      // Step 7: If no substrate.yaml -> post missing-config comment, set 'pending' status, return 200
-      if (!configContent) {
-        const missingConfigMsg = formatMissingConfigComment();
-        await postPRComment(token, event.owner, event.repo, event.prNumber, missingConfigMsg);
+      let config: any = {};
 
-        // Ensure pending status remains (set neutrally above, spec says neutral/pending)
-        await setCommitStatus(
+      // Step 7: Zero-Config Heuristics if no substrate.yaml
+      if (!configContent) {
+        // First try to fetch org-level config
+        const orgConfigContent = await fetchFileContent(
           token,
           event.owner,
-          event.repo,
-          event.headSha,
-          'pending',
-          'substrate.yaml not found — run `substrate init` to activate'
+          '.github',
+          'substrate-org.yaml',
+          'main'
         );
 
-        return new Response('Missing Config', { status: 200 });
-      }
+        const prFiles = await fetchPRFiles(token, event.owner, event.repo, event.prNumber);
 
-      // Step 8: Parse config, fetch base + head spec files from GitHub API
-      const config = parseYaml(configContent);
+        let matchedSchema = null;
+        let matchedType = null;
+        for (const file of prFiles) {
+          if (file.includes('openapi')) {
+            matchedSchema = file;
+            matchedType = 'openapi';
+            break;
+          } else if (file.includes('schema.graphql')) {
+            matchedSchema = file;
+            matchedType = 'graphql';
+            break;
+          } else if (file.endsWith('.proto')) {
+            matchedSchema = file;
+            matchedType = 'protobuf';
+            break;
+          } else if (file.endsWith('schema.sql')) {
+            matchedSchema = file;
+            matchedType = 'sql';
+            break;
+          }
+        }
+
+        if (orgConfigContent || matchedSchema) {
+          if (orgConfigContent) {
+            configContent = orgConfigContent;
+            config = parseYaml(orgConfigContent);
+
+            // If global config is used, default spec to openapi.yaml
+            if (!config.base_schema && !config.head_schema && !matchedSchema) {
+              matchedSchema = 'openapi.yaml';
+              matchedType = 'openapi';
+            }
+          } else {
+            // Default config content from heuristics
+            configContent = `service: auto-detected\nschema_type: ${matchedType}\nbase_schema: ${matchedSchema}\nhead_schema: ${matchedSchema}\n`;
+            config = parseYaml(configContent);
+          }
+
+          // Merge heuristics
+          if (!config.base_schema) config.base_schema = matchedSchema;
+          if (!config.head_schema) config.head_schema = matchedSchema;
+          if (!config.schema_type) config.schema_type = matchedType;
+        } else {
+          const missingConfigMsg = formatMissingConfigComment();
+          await postPRComment(token, event.owner, event.repo, event.prNumber, missingConfigMsg);
+
+          // Ensure pending status remains (set neutrally above, spec says neutral/pending)
+          await setCommitStatus(
+            token,
+            event.owner,
+            event.repo,
+            event.headSha,
+            'pending',
+            'substrate.yaml not found — run `substrate init` to activate'
+          );
+
+          return new Response('Missing Config', { status: 200 });
+        }
+      } else {
+        // Step 8: Parse config, fetch base + head spec files from GitHub API
+        config = parseYaml(configContent);
+      }
       let baseContent: string | null = null;
       let headContent: string | null = null;
 
@@ -296,7 +353,7 @@ export default {
               org: event.owner,
               provider_repo: event.fullName,
               pr_number: event.prNumber,
-              commit_sha: event.commitSha,
+              commit_sha: event.headSha,
               head_schema_content: headContent,
               schema_type: schemaType,
               config_content: configContent,

@@ -16,7 +16,11 @@
 		{/if}
 		<a href="/playground" class="nav-item {pathname === '/playground' ? 'active' : ''}" style="text-decoration:none;">✨ AI Playground</a>
 		<div class="nav-item">API Keys</div>
-		<div class="nav-item">Settings</div>
+		{#if org}
+			<a href="/org/{org}/settings" class="nav-item {pathname === `/org/${org}/settings` ? 'active' : ''}">Settings</a>
+		{:else}
+			<div class="nav-item">Settings</div>
+		{/if}
 
 		{#if repos && repos.length > 0}
 		<div class="repo-list">

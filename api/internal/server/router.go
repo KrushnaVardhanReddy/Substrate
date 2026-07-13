@@ -69,6 +69,10 @@ func NewRouter(store db.Store, authConfig handlers.AuthConfig, registryApiToken,
 	r.Method("POST", "/api/v1/telemetry/traces", serviceTokenMW(http.HandlerFunc(handlers.TelemetryHandler(store))))
 	r.Method("POST", "/api/v1/telemetry/drift", serviceTokenMW(http.HandlerFunc(handlers.DriftTelemetryHandler(store))))
 
+	// Route uses GitHub OAuth token directly, not the internal JWT, so we skip authMW.
+	// The endpoint validates the token by making a call to GitHub.
+	r.Method("POST", "/api/v1/org/{org}/enforce", http.HandlerFunc(handlers.EnforceGlobalHandler()))
+
 	// AI routes (public — no auth required, BYOK model)
 	r.Post("/api/v1/ai/analyze", handlers.AIAnalyzeHandler())
 	r.Post("/api/v1/ai/autofix", handlers.AIAutofixHandler())

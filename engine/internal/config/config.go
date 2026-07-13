@@ -228,7 +228,13 @@ func LoadConfig(path string) (*SubstrateConfig, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return nil, err // Let caller handle if they want defaults
+			// Zero-Config Fallback
+			return &SubstrateConfig{
+				Version: "1",
+				Service: "default-service",
+				Mode:    "strict",
+				// The spec path will be dynamically injected by the GitHub App if heuristics match
+			}, nil
 		}
 		return nil, fmt.Errorf("failed to read config: %w", err)
 	}
@@ -251,9 +257,6 @@ func LoadConfig(path string) (*SubstrateConfig, error) {
 	// Validation
 	if config.Service == "" {
 		return nil, fmt.Errorf("substrate.yaml: 'service' is required")
-	}
-	if config.SpecPath == "" {
-		return nil, fmt.Errorf("substrate.yaml: 'spec_path' is required")
 	}
 
 	// Removed os.Stat check for absSpecPath because the engine runs in a stateless HTTP context
