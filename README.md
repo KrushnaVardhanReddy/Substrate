@@ -2,7 +2,7 @@
 
 ## The Living Map of Your Engineering Ecosystem
 
-> **Status:** v0.2.0 🚀 — [OpenAPI Contract Guard](https://github.com/marketplace/actions/substrate-api-contract-guard) live on GitHub Marketplace. **Phase 6.5 Complete: Dynamic Cytoscape.js UI & 1-Hour Chaos Endurance Mode Live.**
+> **Status:** v0.2.0 🚀 — [OpenAPI Contract Guard](https://github.com/marketplace/actions/substrate-api-contract-guard) live on GitHub Marketplace. **Building Phase 6.5: Enterprise UI Filtering & Navigation.**
 
 Substrate is a CI/CD-integrated data contract and dependency intelligence platform that prevents downstream data failures before they reach production.
 
