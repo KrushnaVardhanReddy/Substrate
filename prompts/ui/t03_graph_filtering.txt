@@ -1,0 +1,15 @@
+TASK: UI-T03 — Graph Filtering & Navigation
+
+I need you to implement the Graph Filtering & Navigation features for the Substrate Cytoscape dashboard. As our graph scales past 100 nodes, it becomes visually overwhelming, so we need filtering controls.
+
+Please follow the specification strictly:
+`docs/specs/ui/ui-t03-graph-filtering.md`
+
+Your tasks:
+1. Update `dashboard/src/routes/org/[org]/graph/+page.svelte`.
+2. Add a UI overlay for toggling "Show Only BREAKING Changes", a protocol filter dropdown, and a search input.
+3. Update the cytoscape `style` array to support `.hidden` and `.dimmed` classes.
+4. Implement the filtering logic to dynamically hide/dim nodes and edges, and re-run the `dagre` layout when filters change.
+5. Ensure the filtering state is respected inside the 5-second polling loop so new nodes don't suddenly appear and violate the active filters.
+
+Please run `npm run check` inside the `dashboard` directory before finalizing to ensure types remain valid. We are using Svelte 5 runes (`$state`, `$effect`).
