@@ -144,7 +144,10 @@
 			}
 
 			if (protocolFilter !== 'All') {
-				cy.nodes().filter(ele => !ele.id().includes(protocolFilter)).addClass('hidden');
+				const query = protocolFilter.toLowerCase();
+				const matchedProviders = cy.nodes().filter(n => n.id().toLowerCase().includes(query));
+				const toKeep = matchedProviders.union(matchedProviders.connectedNodes());
+				cy.nodes().difference(toKeep).addClass('hidden');
 			}
 
 			if (searchQuery.trim() !== '') {
@@ -202,7 +205,10 @@
 					}
 
 					if (protocolFilter !== 'All') {
-						cy.nodes().filter(ele => !ele.id().includes(protocolFilter)).addClass('hidden');
+						const query = protocolFilter.toLowerCase();
+						const matchedProviders = cy.nodes().filter(n => n.id().toLowerCase().includes(query));
+						const toKeep = matchedProviders.union(matchedProviders.connectedNodes());
+						cy.nodes().difference(toKeep).addClass('hidden');
 					}
 
 					if (searchQuery.trim() !== '') {

@@ -9,7 +9,7 @@ As the dependency graph scales to enterprise proportions (100+ nodes), a full un
 - **Location:** Update `dashboard/src/routes/org/[org]/graph/+page.svelte` to add a new "Filter Panel" inside the `.graph-controls` or as a sticky sidebar overlay.
 - **Controls Needed:**
   - **Status Toggle:** A checkbox or toggle button to "Show Only BREAKING Changes". When active, this hides any consumer or provider node that is strictly `SAFE`.
-  - **Protocol Filter:** A select dropdown to filter by protocol (e.g., `OpenAPI`, `GraphQL`, `Avro`). Note: Since node names start with `service-openapi` in the mock, we can just do substring matching for the MVP.
+  - **Protocol Filter:** A select dropdown to filter by protocol (e.g., `OpenAPI`, `GraphQL`, `Avro`). Note: When filtering for a specific protocol, the UI **must** retain not only the matched provider nodes but also all of their connected consumer nodes so that the edges remain visible.
   - **Search Input:** A text box allowing the user to type a repository name. Nodes matching the substring should be highlighted, and non-matching nodes should be dimmed (`opacity: 0.2`).
 
 ### 2. Cytoscape Filtering Logic

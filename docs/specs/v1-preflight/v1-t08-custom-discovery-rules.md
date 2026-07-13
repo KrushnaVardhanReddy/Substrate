@@ -26,3 +26,8 @@ The current dependency discovery engine hardcodes a `highSignalRegex` that only 
 
 ### 4. Tests
 - Add a unit test to `env_scanner_test.go` that explicitly passes a custom regex like `.*_ENDPOINT$` and verifies that an environment variable like `PAYMENT_ENDPOINT` is successfully extracted as a dependency edge.
+
+### 5. E2E Validation
+- Update `scripts/e2e/scale_generator.go` to explicitly include a `substrate.yaml` file in the generated `PushPayload` with `discovery.match_patterns` defined (e.g., `.*_CUSTOM_ENDPOINT$`).
+- Modify the `getMockContent` function to output `_CUSTOM_ENDPOINT` instead of the legacy `_API_URL` to prove that the webhook handler correctly parses the incoming config and instantiates the `env_scanner` with the custom overrides.
+- Fix the JSON unmarshalling in `runAssertionAndReporting` to correctly expect an array of `DependencyEdge` structs, rather than an object containing `nodes` and `edges`, to ensure accurate E2E reporting.

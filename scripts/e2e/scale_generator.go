@@ -227,6 +227,14 @@ func fireRealWebhook(id int, protocol string, isPoison bool, action string) {
 				"path": "schema.yaml",
 				"content": getMockContent(protocol, isPoison),
 			},
+			{
+				"path": "substrate.yaml",
+				"content": `
+discovery:
+  match_patterns:
+    - '.*_CUSTOM_ENDPOINT$'
+`,
+			},
 		},
 	}
 
@@ -276,7 +284,7 @@ spec:
       containers:
         - name: app
           env:
-            - name: %s_API_URL
+            - name: %s_CUSTOM_ENDPOINT
               value: "%s"
 %s`, strings.ToUpper(protocol), url, strings.Repeat("  # recursive garbage\n", 5000))
 	}
@@ -290,7 +298,7 @@ spec:
       containers:
         - name: app
           env:
-            - name: %s_API_URL
+            - name: %s_CUSTOM_ENDPOINT
               value: "%s"
 `, strings.ToUpper(protocol), url)
 }
@@ -336,15 +344,16 @@ func runAssertionAndReporting(totalDuration time.Duration) {
 	    defer resp.Body.Close()
 	    bodyBytes, _ := io.ReadAll(resp.Body)
 
-	    var graph struct {
-	        Nodes []interface{} `json:"nodes"`
-	        Edges []interface{} `json:"edges"`
+	    var graph []struct {
+	        Consumer string `json:"consumer"`
+	        Provider string `json:"provider"`
+	        Status   string `json:"status"`
 	    }
 
 	    if err := json.Unmarshal(bodyBytes, &graph); err != nil {
 	        accuracy = fmt.Sprintf("Failed to parse graph JSON (err: %v)", err)
-	    } else if len(graph.Nodes) == 0 {
-	        accuracy = "Failed (0 nodes in graph)"
+	    } else if len(graph) == 0 {
+	        accuracy = "Failed (0 edges in graph)"
 	    }
 	}
 
