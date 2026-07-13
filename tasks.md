@@ -85,6 +85,8 @@
 | **P8-T05** | 🔵 P4 | **Distributed Tracing (OpenTelemetry)** — Add OpenTelemetry to trace requests across the GitHub Worker, Go API, and diff engine for waterfall debugging. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P8-T06** | ⚪ P5 | **Management ROI Dashboard** — A specialized view that calculates the literal engineering hours and monetary value saved by Substrate preventing downstream outages this month. | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
 | **P8-T07** | 🔴 P1 | **Billing & Subscription Engine (Paywall Pause)** — Add `trial_ends_at` to the DB, update the GitHub App to enforce Audit Mode during the 90-day trial, and gracefully pause analysis when the trial expires until Stripe checkout. | Unassigned | 💡 Backlog | `docs/specs/go-to-market-strategy.md` |
+| **P8-T08** | 🔴 P1 | **Single Binary VPC Deployment** — Implement `//go:embed` with SvelteKit `adapter-static` to compile the frontend and backend into a single executable for zero-dependency on-prem deployment. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P8-T09** | 🔴 P1 | **Docker & Helm Enterprise Delivery** — Create a production-ready `Dockerfile` and Helm chart containing the compiled Go API and Svelte frontend for enterprise Kubernetes clusters. | Unassigned | 💡 Backlog | `(Pending)` |
 
 ---
 
@@ -100,6 +102,10 @@
 | **P9-T04** | 🔵 P4 | **Quality Gates (SonarQube-style)** — Allow setting different failure thresholds based on service tier (e.g., Tier 1 allows 0 warnings, Beta allows breakages). | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
 | **P9-T05** | ⚪ P5 | **Hexagonal Architecture & `sqlc` Refactor** — Formally isolate engines from HTTP transports, migrate raw `pgx` queries to `sqlc` for type-safe DB layer generation. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T06** | ⚪ P6 | **Configuration Management (Viper)** — Migrate `os.Getenv` calls to Viper for robust `.env`, CLI flag, and YAML configuration loading. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P9-T07** | 🔴 P1 | **AI Migration Planner** — Upgrade AI Autofix to generate safe, multi-step migration plans for complex schema/database changes with minimal downtime. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P9-T08** | 🟡 P2 | **Deployment Risk Scoring** — Synthesize breaking change data, infrastructure changes, and downstream blast radius into a holistic "Deployment Risk Score". | Unassigned | 💡 Backlog | `(Pending)` |
+| **P9-T09** | 🟢 P3 | **AI Impact Analysis Summaries** — Pass cross-repo blast radius checks to the AI handler to generate a plain-English impact summary on PRs. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P9-T10** | 🔵 P4 | **Live Documentation Generator** — Auto-generate live developer portals and Mermaid architecture diagrams from Substrate's live schema/graph metadata. | Unassigned | 💡 Backlog | `(Pending)` |
 
 ---
 
