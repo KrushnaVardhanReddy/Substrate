@@ -505,6 +505,15 @@ func substrateDocsContent() string {
       provider_branch: main               # Branch to track (default: main)
   ` + "```" + `
 
+  ### Discovery Configuration
+  ` + "```yaml" + `
+  discovery:
+    # Allow teams to override or append to the default regex for environment variables
+    match_patterns:
+      - '.*_ENDPOINT$'
+      - '.*_HOST$'
+  ` + "```" + `
+
   ### Breaking Change Overrides
   ` + "```yaml" + `
   overrides:

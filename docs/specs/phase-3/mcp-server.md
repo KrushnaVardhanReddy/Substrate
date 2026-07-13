@@ -120,7 +120,7 @@ This architecture provides the best of both worlds:
   "properties": {}
 }
 ```
-**Output:** A string containing the markdown documentation for `substrate.yaml`.
+**Output:** A string containing the markdown documentation for `substrate.yaml`, including configurations for providers, consumers, breaking change overrides, and the newly added `discovery.match_patterns` settings.
 
 ---
 
