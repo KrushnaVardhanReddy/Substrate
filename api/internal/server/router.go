@@ -65,6 +65,7 @@ func NewRouter(store db.Store, authConfig handlers.AuthConfig, registryApiToken,
 	r.Method("GET", "/api/v1/schema/{owner}/{repo}", authMW(http.HandlerFunc(handlers.SchemaHandler(store))))
 	r.Method("GET", "/api/v1/history/{org}/{repo}", authMW(http.HandlerFunc(handlers.HistoryGetHandler(store))))
 	r.Method("POST", "/api/v1/telemetry/traces", serviceTokenMW(http.HandlerFunc(handlers.TelemetryHandler(store))))
+	r.Method("POST", "/api/v1/telemetry/drift", serviceTokenMW(http.HandlerFunc(handlers.DriftTelemetryHandler(store))))
 
 	// AI routes (public — no auth required, BYOK model)
 	r.Post("/api/v1/ai/analyze", handlers.AIAnalyzeHandler())

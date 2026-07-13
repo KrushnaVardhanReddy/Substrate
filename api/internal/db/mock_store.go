@@ -8,6 +8,8 @@ import (
 )
 
 type MockStore struct {
+	RecordDriftAnomalyFunc             func(ctx context.Context, anomaly DriftAnomaly) error
+	GetDriftAnomaliesFunc              func(ctx context.Context, orgName, repoName string) ([]DriftAnomaly, error)
 	UpsertOrgFunc                      func(ctx context.Context, installationID int64, orgName string) (uuid.UUID, error)
 	UpsertRepoFunc                     func(ctx context.Context, orgID uuid.UUID, githubRepoID int64, name, fullName string) (uuid.UUID, error)
 	UpsertContractFunc                 func(ctx context.Context, repoID uuid.UUID, schemaType, specPath, branch, commitSHA, rawContent string) (uuid.UUID, error)
@@ -121,4 +123,20 @@ func (m *MockStore) SaveDiffReport(ctx context.Context, diffReport json.RawMessa
 
 func (m *MockStore) GetDiffReport(ctx context.Context, id uuid.UUID) (json.RawMessage, error) {
 	return json.RawMessage(`{}`), nil
+}
+
+func (m *MockStore) RecordDriftAnomaly(ctx context.Context, anomaly DriftAnomaly) error {
+	if m.RecordDriftAnomalyFunc != nil {
+		return m.RecordDriftAnomalyFunc(ctx, anomaly)
+	}
+	return nil
+
+}
+
+func (m *MockStore) GetDriftAnomalies(ctx context.Context, orgName, repoName string) ([]DriftAnomaly, error) {
+	if m.GetDriftAnomaliesFunc != nil {
+		return m.GetDriftAnomaliesFunc(ctx, orgName, repoName)
+	}
+	return nil, nil
+
 }

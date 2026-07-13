@@ -365,3 +365,36 @@ func GetDiffReport(ctx context.Context, pool *pgxpool.Pool, id uuid.UUID) (json.
 	`, id).Scan(&reportData)
 	return reportData, err
 }
+
+func (s *PGStore) RecordDriftAnomaly(ctx context.Context, anomaly DriftAnomaly) error {
+	query := `
+		INSERT INTO drift_anomalies (org_name, repo_name, method, path, error_message)
+		VALUES ($1, $2, $3, $4, $5)
+	`
+	_, err := s.pool.Exec(ctx, query, anomaly.OrgName, anomaly.RepoName, anomaly.Method, anomaly.Path, anomaly.ErrorMessage)
+	return err
+}
+
+func (s *PGStore) GetDriftAnomalies(ctx context.Context, orgName, repoName string) ([]DriftAnomaly, error) {
+	query := `
+		SELECT id, org_name, repo_name, method, path, error_message, timestamp
+		FROM drift_anomalies
+		WHERE org_name = $1 AND repo_name = $2
+		ORDER BY timestamp DESC
+	`
+	rows, err := s.pool.Query(ctx, query, orgName, repoName)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var anomalies []DriftAnomaly
+	for rows.Next() {
+		var a DriftAnomaly
+		if err := rows.Scan(&a.ID, &a.OrgName, &a.RepoName, &a.Method, &a.Path, &a.ErrorMessage, &a.Timestamp); err != nil {
+			return nil, err
+		}
+		anomalies = append(anomalies, a)
+	}
+	return anomalies, nil
+}
