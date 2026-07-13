@@ -460,11 +460,6 @@ TASKS = {
         "phase": "phase-7-enterprise",
         "prompt": _load_prompt("prompts/phase-7-enterprise/t01_webhook_egress.txt"),
     },
-    82: {
-        "name": "P7-T02 — Targeted Notifications (Slack/Teams)",
-        "phase": "phase-7-enterprise",
-        "prompt": _load_prompt("prompts/phase-7-enterprise/t02_targeted_notifications.txt"),
-    },
     83: {
         "name": "P7-T03 — Custom Rules Engine (CEL)",
         "phase": "phase-7-enterprise",

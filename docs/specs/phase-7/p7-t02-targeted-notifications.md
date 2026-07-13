@@ -1,5 +1,7 @@
 # P7-T02: Targeted Notifications (Slack/Teams)
 
+> **⚠️ STATUS: CANCELLED**
+> **Reason:** This feature was deemed redundant and an anti-pattern for Enterprise clients. Large organizations experience "alert fatigue" when rogue applications ping Slack directly. Instead of building hardcoded Slack Block Kit / MS Teams integrations into Substrate, Enterprises prefer to use the **Webhook Egress (P7-T01)** to pipe the raw JSON event into their centralized incident management tools (Datadog, Splunk, PagerDuty), which then handle the Slack routing natively. This prevents scope creep and keeps the Substrate API lean.
 ## Objective
 When a breaking change is merged or attempted, the specific downstream teams that are impacted must be notified immediately in their collaboration tools. Instead of noisy global channels, Substrate must send targeted alerts to specific Slack channels or MS Teams webhooks based on the `CODEOWNERS` mapping.
 
