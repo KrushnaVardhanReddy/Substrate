@@ -448,6 +448,43 @@ TASKS = {
         "phase": "v1-preflight",
         "prompt": _load_prompt("prompts/v1-preflight/t08_custom_discovery_rules.txt"),
     },
+
+    # ── Phase 7: Enterprise Integrations & ITSM ──────────────────────────────
+    80: {
+        "name": "P7-T00 — Zero-Config Org Rollout",
+        "phase": "phase-7-enterprise",
+        "prompt": _load_prompt("prompts/phase-7-enterprise/t00_zero_config_org_rollout.txt"),
+    },
+    81: {
+        "name": "P7-T01 — Enterprise Webhook & Event Egress",
+        "phase": "phase-7-enterprise",
+        "prompt": _load_prompt("prompts/phase-7-enterprise/t01_webhook_egress.txt"),
+    },
+    82: {
+        "name": "P7-T02 — Targeted Notifications (Slack/Teams)",
+        "phase": "phase-7-enterprise",
+        "prompt": _load_prompt("prompts/phase-7-enterprise/t02_targeted_notifications.txt"),
+    },
+    83: {
+        "name": "P7-T03 — Custom Rules Engine (CEL)",
+        "phase": "phase-7-enterprise",
+        "prompt": _load_prompt("prompts/phase-7-enterprise/t03_custom_rules_engine.txt"),
+    },
+    84: {
+        "name": "P7-T04 — Cross-Repo Auto-Fix PRs",
+        "phase": "phase-7-enterprise",
+        "prompt": _load_prompt("prompts/phase-7-enterprise/t04_cross_repo_autofix.txt"),
+    },
+    85: {
+        "name": "P7-T05 — Runtime Drift Detection (Sidecar)",
+        "phase": "phase-7-enterprise",
+        "prompt": _load_prompt("prompts/phase-7-enterprise/t05_runtime_drift_detection.txt"),
+    },
+    86: {
+        "name": "P7-T06 — Audit Mode (Shadow Mode)",
+        "phase": "phase-7-enterprise",
+        "prompt": _load_prompt("prompts/phase-7-enterprise/t06_audit_mode_rollout.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
