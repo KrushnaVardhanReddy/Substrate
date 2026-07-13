@@ -23,6 +23,8 @@ type MockStore struct {
 	CountDownstreamDependenciesFunc    func(ctx context.Context, providerFullName string) (int, error)
 	RecordBreakingChangeFunc           func(ctx context.Context, repoID uuid.UUID, orgName, repoName, gitSHA string, breakingChanges json.RawMessage) error
 	GetBreakingChangeHistoryFunc       func(ctx context.Context, orgName, repoName string, limit int) ([]BreakingChangeRecord, error)
+	RegisterWebhookFunc                func(ctx context.Context, config WebhookConfig) error
+	GetWebhooksFunc                    func(ctx context.Context, org string) ([]WebhookConfig, error)
 }
 
 func (m *MockStore) UpsertOrg(ctx context.Context, installationID int64, orgName string) (uuid.UUID, error) {
@@ -138,5 +140,18 @@ func (m *MockStore) GetDriftAnomalies(ctx context.Context, orgName, repoName str
 		return m.GetDriftAnomaliesFunc(ctx, orgName, repoName)
 	}
 	return nil, nil
+}
 
+func (m *MockStore) RegisterWebhook(ctx context.Context, config WebhookConfig) error {
+	if m.RegisterWebhookFunc != nil {
+		return m.RegisterWebhookFunc(ctx, config)
+	}
+	return nil
+}
+
+func (m *MockStore) GetWebhooks(ctx context.Context, org string) ([]WebhookConfig, error) {
+	if m.GetWebhooksFunc != nil {
+		return m.GetWebhooksFunc(ctx, org)
+	}
+	return nil, nil
 }

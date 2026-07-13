@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/google/uuid"
 )
 
 func TestSaveDiffHandler(t *testing.T) {
@@ -26,6 +26,7 @@ func TestSaveDiffHandler(t *testing.T) {
 				"diff_report": map[string]interface{}{
 					"status": "diff found",
 				},
+				"org": "test-org",
 			},
 			expectedStatus: http.StatusCreated,
 		},
@@ -35,8 +36,8 @@ func TestSaveDiffHandler(t *testing.T) {
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			name: "Missing diff_report",
-			body: map[string]interface{}{},
+			name:           "Missing diff_report",
+			body:           map[string]interface{}{},
 			expectedStatus: http.StatusBadRequest,
 		},
 	}

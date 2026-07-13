@@ -7,9 +7,25 @@ import (
 	"net/http"
 )
 
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/egress"
+)
+
 type SaveDiffRequest struct {
-	DiffReport  json.RawMessage `json:"diff_report"`
-	IsAuditMode bool            `json:"is_audit_mode"`
+	DiffReport        json.RawMessage `json:"diff_report"`
+	IsAuditMode       bool            `json:"is_audit_mode"`
+	Org               string          `json:"org"`
+	ProviderRepo      string          `json:"provider_repo"`
+	PRNumber          int             `json:"pr_number"`
+	CommitSHA         string          `json:"commit_sha"`
+	HeadSchemaContent string          `json:"head_schema_content"`
+	SchemaType        string          `json:"schema_type"`
+	ConfigContent     string          `json:"config_content"`
+	InstallationID    int64           `json:"installation_id"`
 }
 
 type SaveDiffResponse struct {
@@ -34,6 +50,63 @@ func SaveDiffHandler(store db.Store) http.HandlerFunc {
 		if err != nil {
 			http.Error(w, "internal server error", http.StatusInternalServerError)
 			return
+		}
+
+		// Check for breaking changes and dispatch webhook
+		var diffReport DiffReport
+		if err := json.Unmarshal(req.DiffReport, &diffReport); err == nil {
+			if diffReport.Summary.BreakingCount > 0 && req.Org != "" {
+				// We need to trigger webhook asynchronously
+				go func(diffId string, diffReq SaveDiffRequest) {
+					// Use a new context with timeout for background task
+					bgCtx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+					defer cancel()
+
+					var brokenConsumers []egress.BrokenConsumer
+					// Perform cross-repo check if provider info is present
+					if diffReq.ProviderRepo != "" {
+						crReq := CrossRepoCheckRequest{
+							InstallationID:    diffReq.InstallationID,
+							Org:               diffReq.Org,
+							ProviderRepo:      diffReq.ProviderRepo,
+							HeadSchemaContent: diffReq.HeadSchemaContent,
+							SchemaType:        diffReq.SchemaType,
+							ConfigContent:     diffReq.ConfigContent,
+						}
+
+						crResp, err := PerformCrossRepoCheck(bgCtx, store, crReq)
+						if err == nil {
+							for _, res := range crResp.Results {
+								if res.Status == "breaking" {
+									brokenConsumers = append(brokenConsumers, egress.BrokenConsumer{
+										Repo:       res.ConsumerRepo,
+										Codeowners: []string{}, // Add codeowners if we had a way to resolve it
+									})
+								}
+							}
+						}
+					}
+
+					eventID := fmt.Sprintf("evt_%s_%d", diffId, time.Now().UnixNano())
+					event := egress.BreakingChangeEvent{
+						EventID:   eventID,
+						EventType: "substrate.breaking_change.detected",
+						Timestamp: time.Now().UTC().Format(time.RFC3339),
+						Data: egress.EventData{
+							Organization:    diffReq.Org,
+							ProviderRepo:    diffReq.ProviderRepo,
+							PRNumber:        diffReq.PRNumber,
+							CommitSHA:       diffReq.CommitSHA,
+							BreakingCount:   diffReport.Summary.BreakingCount,
+							BrokenConsumers: brokenConsumers,
+							DiffURL:         fmt.Sprintf("https://substrate.%s/diff/%s", diffReq.Org, diffId), // Mock url for now
+						},
+					}
+
+					egress.DispatchEvent(bgCtx, store, event)
+
+				}(id.String(), req)
+			}
 		}
 
 		w.Header().Set("Content-Type", "application/json")

@@ -168,7 +168,7 @@ describe('Worker Handler', () => {
       'mock-token', 'owner', 'repo', 'headsha', 'success', expect.stringContaining('First-time setup detected')
     );
     expect(githubClient.postPRComment).toHaveBeenCalledWith(
-      'mock-token', 'owner', 'repo', 1, expect.stringContaining('Welcome to Substrate')
+      'mock-token', 'owner', 'repo', 1, expect.stringContaining('Welcome to Substrate!')
     );
   });
 
