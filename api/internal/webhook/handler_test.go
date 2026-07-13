@@ -8,12 +8,18 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/github"
 	"github.com/google/uuid"
+	"os"
 )
 
 func TestPushHandler(t *testing.T) {
+	contractID := uuid.New()
+	consumerRepoID := uuid.New()
+
 	mockStore := &db.MockStore{
 		UpsertOrgFunc: func(ctx context.Context, installationID int64, orgName string) (uuid.UUID, error) {
 			return uuid.New(), nil
@@ -27,6 +33,23 @@ func TestPushHandler(t *testing.T) {
 		UpsertDependencyFunc: func(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, confidenceScore int) error {
 			return nil
 		},
+		GetContractsByProviderFullNameFunc: func(ctx context.Context, providerFullName string) ([]db.Contract, error) {
+			return []db.Contract{
+				{
+					ID:         contractID,
+					SpecPath:   "openapi.yaml",
+					RawContent: "old schema",
+				},
+			}, nil
+		},
+		GetConsumersByProviderContractFunc: func(ctx context.Context, providerContractID uuid.UUID) ([]db.ConsumerDependency, error) {
+			return []db.ConsumerDependency{
+				{
+					ConsumerRepoID:   consumerRepoID,
+					ConsumerFullName: "consumer-org/consumer-repo",
+				},
+			}, nil
+		},
 	}
 
 	payload := PushPayload{
@@ -37,11 +60,8 @@ func TestPushHandler(t *testing.T) {
 		CommitSHA:      "abcdef",
 		Files: []File{
 			{
-				Path: ".env.example",
-				Content: `USERS_API_URL=https://users.myorg.com
-PAYMENTS_ENDPOINT="https://api.payments.myorg.com"
-DB_URL=postgres://localhost
-SECRET_KEY=123`,
+				Path:    "openapi.yaml",
+				Content: "new schema",
 			},
 		},
 	}
@@ -50,19 +70,50 @@ SECRET_KEY=123`,
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/webhook", bytes.NewReader(body))
 	w := httptest.NewRecorder()
 
-	PushHandler(mockStore).ServeHTTP(w, req)
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{
+			"summary": {"breaking_count": 1},
+			"breaking_changes": [{"severity": "BREAKING", "description": "test breaking change", "rule_id": "test-rule", "path": "test-path"}]
+		}`))
+	}))
+	defer ts.Close()
+	os.Setenv("DIFF_ENGINE_URL", ts.URL)
+	defer os.Unsetenv("DIFF_ENGINE_URL")
+
+	prCreated := make(chan bool, 1)
+
+	mockGHClient := &github.MockClient{
+		CreateDraftPRFunc: func(ctx context.Context, owner, repo, branch, patch, title, body string) (string, error) {
+			if owner != "consumer-org" || repo != "consumer-repo" {
+				t.Errorf("expected PR for consumer-org/consumer-repo, got %s/%s", owner, repo)
+			}
+			if title != "chore(substrate): Auto-fix breaking change from upstream [myorg/frontend]" {
+				t.Errorf("unexpected PR title: %s", title)
+			}
+			prCreated <- true
+			return "https://github.com/mock/pull/1", nil
+		},
+		SearchCodeFunc: func(ctx context.Context, owner, repo, query string) (string, error) {
+			return "src/index.ts", nil
+		},
+		GetFileContentFunc: func(ctx context.Context, owner, repo, path string) (string, error) {
+			return "const x = 1;", nil
+		},
+	}
+
+	PushHandler(mockStore, mockGHClient).ServeHTTP(w, req)
 
 	if w.Code != http.StatusOK {
 		t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
 	}
 
-	var res map[string]int
-	if err := json.NewDecoder(w.Body).Decode(&res); err != nil {
-		t.Errorf("failed to decode response: %v", err)
-	}
-
-	if res["discovered"] != 2 {
-		t.Errorf("expected 2 discovered dependencies, got %d", res["discovered"])
+	select {
+	case <-prCreated:
+		// success
+	case <-time.After(2 * time.Second):
+		t.Error("expected CreateDraftPR to be called but it wasn't")
 	}
 }
 
