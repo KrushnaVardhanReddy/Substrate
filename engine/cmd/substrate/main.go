@@ -113,7 +113,11 @@ func main() {
 					os.Exit(3)
 				}
 			default:
-				rep, err = diff.CompareOpenAPI(basePath, revisionPath, flattenAllOf)
+				var rules []config.CustomRule
+				if cfg != nil {
+					rules = cfg.CustomRules
+				}
+				rep, err = diff.CompareOpenAPI(basePath, revisionPath, flattenAllOf, rules)
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 					os.Exit(3)

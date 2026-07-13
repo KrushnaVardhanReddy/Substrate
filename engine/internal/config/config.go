@@ -51,17 +51,25 @@ type TrafficConfig struct {
 	DowngradeThreshold int64  `yaml:"downgrade_threshold" json:"downgrade_threshold"`
 }
 
+type CustomRule struct {
+	ID          string `yaml:"id" json:"id"`
+	Description string `yaml:"description" json:"description"`
+	Severity    string `yaml:"severity" json:"severity"`
+	Match       string `yaml:"match" json:"match"`
+}
+
 type SubstrateConfig struct {
-	Version    string               `yaml:"version"`
-	Service    string               `yaml:"service"`
-	SchemaType string               `yaml:"schema_type,omitempty"`
-	Mode       string               `yaml:"mode,omitempty"`
-	SpecPath   string               `yaml:"spec_path"`
-	Owners     []Owner              `yaml:"owners,omitempty"`
-	Overrides  []Override           `yaml:"overrides,omitempty"`
-	Consumers  []ConsumerDependency `yaml:"consumers,omitempty"`
-	Avro       *AvroConfig          `yaml:"avro,omitempty"`
-	Traffic    TrafficConfig        `yaml:"traffic,omitempty"`
+	Version     string               `yaml:"version"`
+	Service     string               `yaml:"service"`
+	SchemaType  string               `yaml:"schema_type,omitempty"`
+	Mode        string               `yaml:"mode,omitempty"`
+	SpecPath    string               `yaml:"spec_path"`
+	Owners      []Owner              `yaml:"owners,omitempty"`
+	Overrides   []Override           `yaml:"overrides,omitempty"`
+	Consumers   []ConsumerDependency `yaml:"consumers,omitempty"`
+	Avro        *AvroConfig          `yaml:"avro,omitempty"`
+	Traffic     TrafficConfig        `yaml:"traffic,omitempty"`
+	CustomRules []CustomRule         `yaml:"custom_rules,omitempty" json:"custom_rules,omitempty"`
 }
 
 func (c *SubstrateConfig) HasConsumers() bool {

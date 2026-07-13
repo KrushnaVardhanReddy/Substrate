@@ -168,7 +168,7 @@ func main() {
 					return nil, err
 				}
 			default:
-				rep, err = diff.CompareOpenAPI(baseFile.Name(), headFile.Name(), true)
+				rep, err = diff.CompareOpenAPI(baseFile.Name(), headFile.Name(), true, nil)
 				if err != nil {
 					return nil, err
 				}

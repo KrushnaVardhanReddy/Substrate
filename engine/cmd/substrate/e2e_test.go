@@ -84,6 +84,12 @@ func TestE2ECli(t *testing.T) {
 			expectedCode:   2,
 			expectedOutput: []string{`"overall_severity": "BREAKING"`, `"AIML_INPUT_REMOVED"`},
 		},
+		{
+			name:           "Custom rule failure -> Expect exit code 2",
+			args:           []string{"diff", "testdata/base.yaml", "testdata/rev_custom_rule_fail.yaml", "--config=testdata/substrate_custom_rules.yaml", "--format=json"},
+			expectedCode:   2,
+			expectedOutput: []string{`"rule_id": "REQUIRE_API_VERSION_2"`, `"overall_severity": "BREAKING"`},
+		},
 	}
 
 	for _, tt := range tests {

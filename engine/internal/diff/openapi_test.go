@@ -106,7 +106,7 @@ func TestCompareOpenAPI(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rep, err := CompareOpenAPI(tt.baseFile, tt.revisionFile, true)
+			rep, err := CompareOpenAPI(tt.baseFile, tt.revisionFile, true, nil)
 			if tt.expectError {
 				if err == nil {
 					t.Fatalf("Expected error for invalid spec, but got nil")

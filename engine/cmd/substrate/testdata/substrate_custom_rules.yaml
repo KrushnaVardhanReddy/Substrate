@@ -1,0 +1,8 @@
+service: mock-service
+schema_type: openapi
+spec_path: base.yaml
+custom_rules:
+  - id: REQUIRE_API_VERSION_2
+    description: "API must be version 2.0.0"
+    severity: BREAKING
+    match: "info.version == '2.0.0'"
