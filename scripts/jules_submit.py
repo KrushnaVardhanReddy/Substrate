@@ -356,6 +356,11 @@ TASKS = {
         "phase": "ui",
         "prompt": _load_prompt("prompts/e2e/t01_endurance_mode.txt"),
     },
+    106: {
+        "name": "UI-T03 — Graph Filtering & Navigation",
+        "phase": "ui",
+        "prompt": _load_prompt("prompts/ui/t03_graph_filtering.txt"),
+    },
     56: {
         "name": "P5-T06 — Phase 5 E2E Tests",
         "phase": "phase-5-discovery",
