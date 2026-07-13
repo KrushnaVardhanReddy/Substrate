@@ -51,7 +51,7 @@ help:
 	@echo "See the Makefile source for the full 5-terminal architecture setup."
 
 postgres:
-	podman run --replace --name substrate-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=substrate -p 5432:5432 -d docker.io/library/postgres:15
+	docker rm -f substrate-postgres || true && docker run --name substrate-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=substrate -p 5432:5432 -d docker.io/library/postgres:15
 
 api:
 	cd api && \
@@ -124,7 +124,7 @@ stop-bg:
 	@-fuser -k 8090/tcp 2>/dev/null || true
 	@-fuser -k 5173/tcp 2>/dev/null || true
 	@rm -f api.pid engine.pid worker.pid dashboard.pid ngrok.pid api.log engine.log worker.log dashboard.log ngrok.log
-	@podman stop substrate-postgres || true
+	@docker stop substrate-postgres || true
 
 # Ensure GITHUB_TOKEN is set before running these
 check-token:
