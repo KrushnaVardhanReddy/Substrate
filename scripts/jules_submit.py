@@ -485,6 +485,11 @@ TASKS = {
         "phase": "phase-7-enterprise",
         "prompt": _load_prompt("prompts/phase-7-enterprise/t06_audit_mode_rollout.txt"),
     },
+    87: {
+        "name": "P7-T07 — Phase 7 E2E Testing",
+        "phase": "phase-7-enterprise",
+        "prompt": _load_prompt("prompts/phase-7-enterprise/t07_e2e_tests.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────

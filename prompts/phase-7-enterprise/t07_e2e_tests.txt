@@ -1,0 +1,46 @@
+TASK: P7-T07 — Phase 7 E2E Testing (Real Components, No Mocks)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Write the final End-to-End (E2E) test suite for the Phase 7 Enterprise features. 
+Unlike previous phases, this test suite MUST NOT mock the core Substrate components. 
+You must test against the real Go API, the real PostgreSQL database, the real Diff 
+Engine CLI, and the real Proxy Sidecar.
+
+You have been provided with a foundational scaffold in `scripts/e2e/phase7_e2e_test.go`. Your job is to take this foundation and ensure it perfectly executes without errors.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-7/e2e-spec.md
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. COMPLETE AND FIX: scripts/e2e/phase7_e2e_test.go
+   - Review the provided scaffolding carefully.
+   - Run the E2E test locally using `cd scripts/e2e && go test -v -run TestPhase7SystemE2E`.
+   - Iteratively fix any test failures until the entire suite passes green.
+
+2. DETAILED SCENARIO IMPLEMENTATION:
+   - Scenario 1 (Audit Mode): Verify that `substrate diff --mode audit` exits with 0 and correctly inserts a record with `is_audit_mode=true` into the real PostgreSQL database. Ensure your assertions wait or poll if the API processes this asynchronously.
+   - Scenario 2 (Custom CEL Rules): Verify that running `substrate diff` with a configuration containing a CEL rule (`substrate_custom_rules.yaml`) successfully triggers a breaking change violation and exits with code 2.
+   - Scenario 3 (Runtime Drift): Start the compiled `substrate-proxy` sidecar, configure it to proxy traffic to a local `httptest.NewServer`, send a payload with an undocumented field, and verify that the sidecar asynchronously POSTs the anomaly to the Substrate API, landing in the `drift_anomalies` table.
+   - Scenario 4 (AI Autofix - Cross-Repo PRs):
+     * This is the hardest part. You must verify the cross-repo autofix feature.
+     * Use a local `httptest.NewServer` to mock the GitHub API and OpenAI responses (since we cannot use real credentials in CI).
+     * You MUST figure out how to inject the mock server URLs into the Substrate API so that when you trigger `CrossRepoCheckHandler`, the real Substrate Go API communicates with your mock GitHub server to generate the cross-repo draft PR.
+     * Assert that the mock GitHub server receives the expected POST request to create the Draft PR.
+
+3. MAKEFILE INTEGRATION:
+   - Ensure there is a working Makefile target (e.g., `make test-e2e-phase7`) that runs these tests correctly. Modify the Makefile if necessary.
+
+═══════════════════════════════════════════════════════════════
+IMPORTANT CONSTRAINTS
+═══════════════════════════════════════════════════════════════
+- DO NOT MOCK internal components (Engine, API, Database, Sidecar).
+- ONLY MOCK external third-party services (GitHub API, OpenAI API, Slack/Teams APIs).
+- If the current codebase doesn't support overriding the GitHub Base URL (for testing Scenario 4), you are permitted to modify the GitHub App or Go API client to respect a `GITHUB_API_BASE_URL` environment variable.
+
+Commit: "test: P7-T07 implement real E2E tests for Phase 7 Enterprise features"
+Target branch: feature/dev
