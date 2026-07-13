@@ -152,7 +152,10 @@
 
 			if (searchQuery.trim() !== '') {
 				const query = searchQuery.trim().toLowerCase();
-				cy.nodes().filter(ele => !ele.id().toLowerCase().includes(query)).addClass('dimmed');
+				const matchedNodes = cy.nodes().filter(n => n.id().toLowerCase().includes(query));
+				const toKeep = matchedNodes.union(matchedNodes.connectedNodes());
+				cy.nodes().difference(toKeep).addClass('dimmed');
+				cy.edges().difference(matchedNodes.connectedEdges()).addClass('dimmed');
 			}
 
 			cy.layout({
@@ -213,7 +216,10 @@
 
 					if (searchQuery.trim() !== '') {
 						const query = searchQuery.trim().toLowerCase();
-						cy.nodes().filter(ele => !ele.id().toLowerCase().includes(query)).addClass('dimmed');
+						const matchedNodes = cy.nodes().filter(n => n.id().toLowerCase().includes(query));
+						const toKeep = matchedNodes.union(matchedNodes.connectedNodes());
+						cy.nodes().difference(toKeep).addClass('dimmed');
+						cy.edges().difference(matchedNodes.connectedEdges()).addClass('dimmed');
 					}
 
 					cy.layout({
