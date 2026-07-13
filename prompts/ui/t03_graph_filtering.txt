@@ -1,15 +1,33 @@
-TASK: UI-T03 — Graph Filtering & Navigation
+TASK: UI-T03 — Enterprise Graph Filtering & Navigation
 
-I need you to implement the Graph Filtering & Navigation features for the Substrate Cytoscape dashboard. As our graph scales past 100 nodes, it becomes visually overwhelming, so we need filtering controls.
+I need your help implementing a critical Enterprise feature for the Substrate Svelte Dashboard. As our chaos testing generates 100+ dependency nodes across 10 protocol clusters, the Cytoscape graph becomes visually overwhelming. We need you to implement a robust filtering UI.
 
-Please follow the specification strictly:
+Please strictly follow the architectural guidelines in:
 `docs/specs/ui/ui-t03-graph-filtering.md`
 
-Your tasks:
-1. Update `dashboard/src/routes/org/[org]/graph/+page.svelte`.
-2. Add a UI overlay for toggling "Show Only BREAKING Changes", a protocol filter dropdown, and a search input.
-3. Update the cytoscape `style` array to support `.hidden` and `.dimmed` classes.
-4. Implement the filtering logic to dynamically hide/dim nodes and edges, and re-run the `dagre` layout when filters change.
-5. Ensure the filtering state is respected inside the 5-second polling loop so new nodes don't suddenly appear and violate the active filters.
+### Implementation Details:
+1. **Target File**: `dashboard/src/routes/org/[org]/graph/+page.svelte`
+2. **UI Controls Overlay**:
+   - Add a new "Filter Panel" to the UI (you can place it inside `.graph-controls` or as a new `.filter-panel` sidebar overlay).
+   - **Status Toggle:** A checkbox/toggle labeled "Show Only BREAKING Changes".
+   - **Protocol Dropdown:** A `<select>` to filter nodes by Protocol (e.g., All, OpenAPI, GraphQL, Protobuf). Note: Since the mock generator prefixes provider names (e.g., `service-openapi`), you can filter by checking if `node.id().includes('openapi')`.
+   - **Search Input:** A text input to search for a repository name. 
 
-Please run `npm run check` inside the `dashboard` directory before finalizing to ensure types remain valid. We are using Svelte 5 runes (`$state`, `$effect`).
+3. **Cytoscape Filtering Logic**:
+   - Do **NOT** destroy the `cy` instance when filters change. We want a smooth, client-side UX.
+   - You must update the `style` array in the `cytoscape({...})` initialization to include two new dynamic classes: 
+     - `.hidden` `{ 'display': 'none' }`
+     - `.dimmed` `{ 'opacity': 0.2 }`
+   - When a filter state changes, use `cy.nodes().removeClass('hidden dimmed')` to reset, then selectively apply `.hidden` to nodes/edges that don't match the Protocol/Status filter, and `.dimmed` to nodes that don't match the search text.
+   - **CRITICAL**: After applying classes, you MUST re-run the layout (`cy.layout({ name: 'dagre', ... }).run()`) so the remaining visible nodes collapse cleanly into the freed space.
+
+4. **Integration with the 5-Second Polling Loop**:
+   - The file currently has a `setInterval` that fetches from `/api/v1/graph` every 5 seconds.
+   - When new nodes/edges are added inside this interval (`cy.add(newElements)`), ensure they immediately inherit the currently active filters before the layout re-runs.
+
+### Validation:
+- We are using Svelte 5 (`$state`, `$effect`). Please ensure your reactive variables are declared correctly.
+- Do not install large third-party UI libraries (use vanilla HTML inputs styled consistently with our dark theme).
+- Run `npm run check` in the `dashboard/` directory to verify TypeScript interfaces before you finalize.
+
+Take a deep breath and let's make this dependency graph usable at enterprise scale!
