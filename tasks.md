@@ -91,6 +91,10 @@
 | **P9-T02** | 🟡 P2 | **Spotify Backstage Plugin** — Pipe the dependency graph, schema health scores, and API docs directly into Backstage.io developer portals. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T03** | 🟢 P3 | **API Gateway Auto-Sync** — Automatically push validated OpenAPI schemas to AWS API Gateway, Kong, or Cloudflare API Shield on merge to `main`. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T04** | 🔵 P4 | **Hexagonal Architecture & `sqlc` Refactor** — Formally isolate engines from HTTP transports, migrate raw `pgx` queries to `sqlc` for type-safe database layer generation, and allow pluggable graph databases (Neo4j). | Unassigned | 💡 Backlog | `(Pending)` |
+| **P9-T05** | ⚪ P5 | **Distributed Tracing (OpenTelemetry)** — Add OpenTelemetry to trace requests across the GitHub Worker, Go API, and diff engine for waterfall debugging. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P9-T06** | ⚪ P6 | **Job Queue (Asynq/Temporal)** — Offload synchronous webhook diffing and database inserts to Redis-backed background workers to prevent GitHub timeouts at scale. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P9-T07** | ⚪ P7 | **Configuration Management (Viper)** — Migrate `os.Getenv` calls to Viper for robust `.env`, CLI flag, and YAML configuration loading. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P9-T08** | ⚪ P8 | **Enterprise Authz (Casbin/OpenFGA)** — Implement a Google Zanzibar-style Role-Based Access Control (RBAC) engine for enterprise graph permissions. | Unassigned | 💡 Backlog | `(Pending)` |
 
 ---
 
