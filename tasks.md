@@ -51,6 +51,7 @@
 | **V1-T07** | 🔴 P1 | **V1.0 System E2E Tests** — Prove the final V1.0 pipeline works as a seamless end-to-end flow using the real local PostgreSQL database. | Jules | ✅ Complete | `docs/specs/v1-preflight/v1-e2e-spec.md` |
 | **V1-T08** | 🔴 P1 | **Custom Discovery Rules via YAML** — Expose dependency matching rules via `substrate.yaml` to allow enterprises to define custom regex (e.g., `_ENDPOINT`) for the Kubernetes manifest scanner. | Jules | ✅ Complete | `docs/specs/v1-preflight/v1-t08-custom-discovery-rules.md` |
 | **V1-T09** | 🔴 P1 | **True Dogfooding via OpenAPI** — Formalize the internal Substrate API into a valid `openapi.yaml` specification so the engine can monitor and block its own breaking changes. | Antigravity | ✅ Complete | `docs/specs/v1-preflight/v1-t09-dogfooding-openapi.md` |
+| **V1-T10** | 🔴 P1 | **GitHub App First-Time Setup** — Ensure the GitHub App detects when a user is uploading a schema for the first time, avoids a baseline fetch error, and returns a friendly "Welcome to Substrate" PR status. | Antigravity | ✅ Complete | `docs/specs/v1-preflight/v1-t10-github-app-first-time-setup.md` |
 
 ---
 
