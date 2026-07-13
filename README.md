@@ -2,7 +2,7 @@
 
 ## The Living Map of Your Engineering Ecosystem
 
-> **Status:** V1.0 Pre-Flight 🚀 — **Finalizing System E2E Tests.** Substrate has evolved into a full-stack Dependency Intelligence Platform with a live Graph Dashboard, MCP IDE integration, and enterprise-grade deployment safety gates.
+> **Status:** Phase 7 🏢 — **Enterprise Integrations & ITSM.** Substrate is now integrating with ServiceNow, Jira, and Slack to bring dynamic CABs and shadow-mode rollouts to enterprise workflows.
 
 Substrate is a CI/CD-integrated data contract and dependency intelligence platform that prevents downstream data failures before they reach production.
 
