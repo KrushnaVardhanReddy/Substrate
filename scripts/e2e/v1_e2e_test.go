@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -44,20 +45,17 @@ func setupDatabase(t *testing.T) *pgxpool.Pool {
 	pool, err := pgxpool.New(ctx, dbURL)
 	require.NoError(t, err, "Failed to connect to real PostgreSQL")
 
-	_, err = pool.Exec(ctx, "DELETE FROM history")
+	_, err = pool.Exec(ctx, "DELETE FROM breaking_change_history")
 	require.NoError(t, err)
-	_, err = pool.Exec(ctx, "DELETE FROM diffs")
+	_, err = pool.Exec(ctx, "DELETE FROM diff_reports")
 	require.NoError(t, err)
 	_, err = pool.Exec(ctx, "DELETE FROM dependencies")
 	require.NoError(t, err)
-	_, err = pool.Exec(ctx, "DELETE FROM consumers")
-	require.NoError(t, err)
 	_, err = pool.Exec(ctx, "DELETE FROM contracts")
 	require.NoError(t, err)
-	_, err = pool.Exec(ctx, "DELETE FROM repos")
+	_, err = pool.Exec(ctx, "DELETE FROM repositories")
 	require.NoError(t, err)
-
-	_, err = pool.Exec(ctx, "DELETE FROM orgs")
+	_, err = pool.Exec(ctx, "DELETE FROM organizations")
 	require.NoError(t, err)
 
 	return pool
@@ -91,8 +89,8 @@ func TestV1SystemE2E(t *testing.T) {
 			"commit_sha":      "abcdef123456",
 			"files": []map[string]interface{}{
 				{
-					"path":    ".env",
-					"content": "API_URL=http://testprovider:8080",
+					"path":    ".env.example",
+					"content": "TEST_API_URL=http://testprovider:8080",
 				},
 			},
 		}
@@ -126,17 +124,20 @@ func TestV1SystemE2E(t *testing.T) {
 		mockOpenAI := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "/chat/completions", r.URL.Path)
 
+			w.Header().Set("Content-Type", "text/event-stream")
+			
 			resp := map[string]interface{}{
 				"choices": []map[string]interface{}{
 					{
-						"message": map[string]interface{}{
+						"delta": map[string]interface{}{
 							"content": "```yaml\nopenapi: 3.0.0\ninfo:\n  title: Example API\n  version: 1.0.0\npaths:\n  /users:\n    get:\n      responses:\n        '200':\n          description: OK\n```",
 						},
 					},
 				},
 			}
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(resp)
+			respBytes, _ := json.Marshal(resp)
+			fmt.Fprintf(w, "data: %s\n\n", string(respBytes))
+			fmt.Fprintf(w, "data: [DONE]\n\n")
 		}))
 		defer mockOpenAI.Close()
 
@@ -212,7 +213,7 @@ func TestV1SystemE2E(t *testing.T) {
 		require.NoError(t, err)
 		defer resp.Body.Close()
 
-		require.Equal(t, http.StatusOK, resp.StatusCode)
+		require.Equal(t, http.StatusCreated, resp.StatusCode)
 
 		var respData map[string]interface{}
 		err = json.NewDecoder(resp.Body).Decode(&respData)
@@ -257,31 +258,31 @@ func TestV1SystemE2E(t *testing.T) {
 		ctx := context.Background()
 
 		// 1. Insert Org
-		var orgID int64
-		err := pool.QueryRow(ctx, "INSERT INTO orgs (github_installation_id, name) VALUES ($1, $2) RETURNING id", 10001, "testorg-deploy").Scan(&orgID)
+		var orgID string
+		err := pool.QueryRow(ctx, "INSERT INTO organizations (github_installation_id, github_org_name) VALUES ($1, $2) RETURNING id", 10001, "testorg-deploy").Scan(&orgID)
 		require.NoError(t, err)
 
 		// 2. Insert Provider Repo
-		var providerRepoID int64
-		err = pool.QueryRow(ctx, "INSERT INTO repos (org_id, github_repo_id, name, full_name) VALUES ($1, $2, $3, $4) RETURNING id", orgID, 20001, "backend-api", "testorg-deploy/backend-api").Scan(&providerRepoID)
+		var providerRepoID string
+		err = pool.QueryRow(ctx, "INSERT INTO repositories (org_id, github_repo_id, name, full_name) VALUES ($1, $2, $3, $4) RETURNING id", orgID, 20001, "backend-api", "testorg-deploy/backend-api").Scan(&providerRepoID)
 		require.NoError(t, err)
 
 		// 3. Insert Consumer Repo
-		var consumerRepoID int64
-		err = pool.QueryRow(ctx, "INSERT INTO repos (org_id, github_repo_id, name, full_name) VALUES ($1, $2, $3, $4) RETURNING id", orgID, 20002, "frontend", "testorg-deploy/frontend").Scan(&consumerRepoID)
+		var consumerRepoID string
+		err = pool.QueryRow(ctx, "INSERT INTO repositories (org_id, github_repo_id, name, full_name) VALUES ($1, $2, $3, $4) RETURNING id", orgID, 20002, "frontend", "testorg-deploy/frontend").Scan(&consumerRepoID)
 		require.NoError(t, err)
 
 		// 4. Insert Contract for Provider
-		var contractID int64
-		err = pool.QueryRow(ctx, "INSERT INTO contracts (repo_id, schema_type, source_file, current_commit, previous_commit, production_url) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id", providerRepoID, "openapi", "openapi.yaml", "provider-hash-old", "provider-hash-old", "http://backend-api").Scan(&contractID)
+		var contractID string
+		err = pool.QueryRow(ctx, "INSERT INTO contracts (repo_id, schema_type, spec_path, latest_commit_sha, raw_content) VALUES ($1, $2, $3, $4, $5) RETURNING id", providerRepoID, "openapi", "openapi.yaml", "provider-hash-old", "mock-content").Scan(&contractID)
 		require.NoError(t, err)
 
 		// 5. Map Consumer to Contract
-		_, err = pool.Exec(ctx, "INSERT INTO dependencies (consumer_repo_id, contract_id, confidence_score, status) VALUES ($1, $2, $3, $4)", consumerRepoID, contractID, 100, "active")
+		_, err = pool.Exec(ctx, "INSERT INTO dependencies (consumer_repo_id, provider_contract_id, status) VALUES ($1, $2, $3)", consumerRepoID, contractID, "active")
 		require.NoError(t, err)
 
 		// 6. Insert a history entry representing the new breaking deployment
-		_, err = pool.Exec(ctx, "INSERT INTO history (contract_id, commit_sha, breaking_changes_count, is_safe) VALUES ($1, $2, $3, $4)", contractID, "provider-hash-new", 1, false)
+		_, err = pool.Exec(ctx, "INSERT INTO breaking_change_history (repo_id, org_name, repo_name, git_sha, breaking_changes) VALUES ($1, $2, $3, $4, $5)", providerRepoID, "testorg-deploy", "backend-api", "provider-hash-new", `{"breaking_count": 1}`)
 		require.NoError(t, err)
 
 		// Run check-deploy

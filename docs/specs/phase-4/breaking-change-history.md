@@ -10,16 +10,14 @@ Create a new migration `api/migrations/0002_breaking_change_history.up.sql` and 
 **`0002_breaking_change_history.up.sql`**:
 ```sql
 CREATE TABLE breaking_change_history (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  repo_id UUID REFERENCES repositories(id) ON DELETE CASCADE,
-  commit_sha TEXT NOT NULL,
-  schema_type TEXT NOT NULL,
-  breaking_rules_count INT NOT NULL DEFAULT 0,
-  diff_report JSONB NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW()
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    repo_id UUID REFERENCES repositories(id) ON DELETE CASCADE,
+    org_name TEXT NOT NULL,
+    repo_name TEXT NOT NULL,
+    git_sha TEXT NOT NULL,
+    timestamp TIMESTAMPTZ DEFAULT NOW(),
+    breaking_changes JSONB NOT NULL
 );
-
-CREATE INDEX idx_breaking_change_history_repo_id ON breaking_change_history(repo_id);
 ```
 
 **`0002_breaking_change_history.down.sql`**:
