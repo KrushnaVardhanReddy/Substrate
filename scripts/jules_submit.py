@@ -443,6 +443,11 @@ TASKS = {
         "phase": "v1-preflight",
         "prompt": _load_prompt("prompts/v1-preflight/t07_system_e2e.txt"),
     },
+    78: {
+        "name": "V1-T08 — Custom Discovery Rules via YAML",
+        "phase": "v1-preflight",
+        "prompt": _load_prompt("prompts/v1-preflight/t08_custom_discovery_rules.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
