@@ -68,7 +68,7 @@
 | **P7-T04** | 🔵 P4 | **Cross-Repo Auto-Fix PRs** — Use an LLM to automatically generate a draft PR in the downstream consumer repo to fix the breaking dependency. | Jules | ✅ Complete | `docs/specs/phase-7/p7-t04-cross-repo-autofix.md` |
 | **P7-T05** | ⚪ P5 | **Runtime Drift Detection (eBPF/Envoy)** — Deploy a sidecar to sample 1% of live API traffic and compare it against the Substrate registry to detect un-documented payloads. | Jules | ✅ Complete | `docs/specs/phase-7/p7-t05-runtime-drift-detection.md` |
 | **P7-T06** | 🔴 P1 | **Audit Mode (Shadow Mode)** — Allow enterprises to deploy Substrate without blocking PRs. Substrate comments on PRs and logs cross-repo breaks to the dashboard, providing proof of ROI before switching to blocking mode. | Jules | ✅ Complete | `docs/specs/phase-7/audit-mode-rollout.md` |
-| **P7-T07** | 🔴 P1 | **Phase 7 E2E Testing** — Strictly "No Mocks" E2E tests for the enterprise features running against real DB and Go API instances. | Unassigned | ⏳ Ready | `docs/specs/phase-7/e2e-spec.md` |
+| **P7-T07** | 🔴 P1 | **Phase 7 E2E Testing** — Strictly "No Mocks" E2E tests for the enterprise features running against real DB and Go API instances. | Jules | 🔄 In Progress (`3797108567620671748`) | `docs/specs/phase-7/e2e-spec.md` |
 
 ---
 
