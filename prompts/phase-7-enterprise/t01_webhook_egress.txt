@@ -84,8 +84,9 @@ DELIVERABLES
    Map `POST /api/v1/org/{org}/webhooks` to the new `RegisterWebhookHandler` (protected by AuthMiddleware).
 
 5. MODIFY: api/internal/handlers/diff.go
-   In `SaveDiffHandler`, if the diff has breaking changes, you should trigger `webhook.DispatchEvent` asynchronously (in a goroutine). 
-   *Note: Since the GitHub App currently does the cross-repo check separately, for this iteration, pass an empty list for `BrokenConsumers`. We will refactor the cross-repo check to the API side in a subsequent task.*
+   In `SaveDiffHandler`, if the diff has breaking changes, you should trigger `webhook.DispatchEvent` asynchronously (in a goroutine).
+   *CRITICAL REFACTOR:* To populate the `BrokenConsumers` array in the webhook payload, you must move the Cross-Repo check logic (currently exposed via `CrossRepoCheckHandler`) into an internal service function. 
+   Inside `SaveDiffHandler`, after saving the diff, invoke this internal cross-repo check function to determine the blast radius, and include those results in the `BreakingChangeEvent` payload before dispatching it.
 
 ═══════════════════════════════════════════════════════════════
 FILES LIST
