@@ -2,7 +2,7 @@
 
 ## The Living Map of Your Engineering Ecosystem
 
-> **Status:** v0.2.0 🚀 — [OpenAPI Contract Guard](https://github.com/marketplace/actions/substrate-api-contract-guard) live on GitHub Marketplace. **Building Phase 6.5: Enterprise UI Filtering & Navigation.**
+> **Status:** V1.0 Pre-Flight 🚀 — **Finalizing System E2E Tests.** Substrate has evolved into a full-stack Dependency Intelligence Platform with a live Graph Dashboard, MCP IDE integration, and enterprise-grade deployment safety gates.
 
 Substrate is a CI/CD-integrated data contract and dependency intelligence platform that prevents downstream data failures before they reach production.
 
