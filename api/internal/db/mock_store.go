@@ -114,7 +114,7 @@ func (m *MockStore) UpdateDependencyConfidence(ctx context.Context, consumerFull
 	return nil
 }
 
-func (m *MockStore) SaveDiffReport(ctx context.Context, diffReport json.RawMessage) (uuid.UUID, error) {
+func (m *MockStore) SaveDiffReport(ctx context.Context, diffReport json.RawMessage, isAuditMode bool) (uuid.UUID, error) {
 	id := uuid.New()
 	return id, nil
 }

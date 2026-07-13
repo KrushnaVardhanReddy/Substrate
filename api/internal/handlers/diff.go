@@ -8,7 +8,8 @@ import (
 )
 
 type SaveDiffRequest struct {
-	DiffReport json.RawMessage `json:"diff_report"`
+	DiffReport  json.RawMessage `json:"diff_report"`
+	IsAuditMode bool            `json:"is_audit_mode"`
 }
 
 type SaveDiffResponse struct {
@@ -29,7 +30,7 @@ func SaveDiffHandler(store db.Store) http.HandlerFunc {
 		}
 
 		ctx := r.Context()
-		id, err := store.SaveDiffReport(ctx, req.DiffReport)
+		id, err := store.SaveDiffReport(ctx, req.DiffReport, req.IsAuditMode)
 		if err != nil {
 			http.Error(w, "internal server error", http.StatusInternalServerError)
 			return

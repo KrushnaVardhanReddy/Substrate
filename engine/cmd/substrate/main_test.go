@@ -34,6 +34,12 @@ func TestExecutionModes(t *testing.T) {
 			expectedCode:   0,
 			expectedOutput: []string{"⚠️ LEGACY MODE: Breaking changes detected, but merge is not blocked."},
 		},
+		{
+			name:           "Audit mode with breaking change -> Expect exit code 0 and audit message",
+			args:           []string{"diff", "testdata/base.yaml", "testdata/rev_breaking.yaml", "--mode=audit"},
+			expectedCode:   0,
+			expectedOutput: []string{"[AUDIT MODE] Breaking changes detected, but exiting with 0 to allow merge."},
+		},
 	}
 
 	for _, tt := range tests {

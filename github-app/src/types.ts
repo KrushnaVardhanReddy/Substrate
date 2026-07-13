@@ -29,6 +29,7 @@ export interface SubstrateConfig {
   on_breaking_change?: 'block' | 'warn';
   base_schema?: string;
   head_schema?: string;
+  mode?: 'strict' | 'legacy' | 'audit';
 }
 
 export interface Env {

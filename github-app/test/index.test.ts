@@ -139,7 +139,7 @@ describe('Worker Handler', () => {
     );
   });
 
-  it('7. Valid signature, pull_request.opened, substrate.yaml present, base missing -> config error', async () => {
+  it('7. Valid signature, pull_request.opened, substrate.yaml present, base missing -> first time setup', async () => {
     const payload = JSON.stringify({
       action: 'opened',
       installation: { id: 1 },
@@ -165,10 +165,10 @@ describe('Worker Handler', () => {
     expect(response.status).toBe(200);
 
     expect(githubClient.setCommitStatus).toHaveBeenCalledWith(
-      'mock-token', 'owner', 'repo', 'headsha', 'failure', expect.stringContaining('config error')
+      'mock-token', 'owner', 'repo', 'headsha', 'success', expect.stringContaining('First-time setup detected')
     );
     expect(githubClient.postPRComment).toHaveBeenCalledWith(
-      'mock-token', 'owner', 'repo', 1, expect.stringContaining('Config Error')
+      'mock-token', 'owner', 'repo', 1, expect.stringContaining('Welcome to Substrate')
     );
   });
 

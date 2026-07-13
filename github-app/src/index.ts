@@ -289,7 +289,7 @@ export default {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${env.REGISTRY_API_TOKEN}`
             },
-            body: JSON.stringify({ diff_report: diffReport })
+            body: JSON.stringify({ diff_report: diffReport, is_audit_mode: config.mode === 'audit' })
           });
           if (saveRes.ok) {
             const saveData = await saveRes.json() as any;
@@ -366,7 +366,7 @@ export default {
 
       // Step 11: Set final commit status
       const statusState = getCommitStatusState(diffReport, config, crossRepoResponse);
-      const statusDescription = getCommitStatusDescription(diffReport, crossRepoResponse);
+      const statusDescription = getCommitStatusDescription(diffReport, crossRepoResponse, config);
       await setCommitStatus(
         token,
         event.owner,
