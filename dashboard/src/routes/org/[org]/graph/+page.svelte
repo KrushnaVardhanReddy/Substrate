@@ -8,9 +8,17 @@
 	let { data } = $props();
 	let selectedNode = $state<any>(null);
 	let cyContainer: HTMLDivElement;
+	let cyInstance = $state<cytoscape.Core | null>(null);
 
 	function selectNode(node: any) {
 		selectedNode = node;
+	}
+
+	function zoomIn() {
+		if (cyInstance) cyInstance.zoom(cyInstance.zoom() * 1.2);
+	}
+	function zoomOut() {
+		if (cyInstance) cyInstance.zoom(cyInstance.zoom() * 0.8);
 	}
 	
 	$effect(() => {
@@ -97,16 +105,66 @@
 				rankDir: 'LR',
 				nodeSep: 50,
 				rankSep: 150,
-				fit: true,
+				fit: false,
 				padding: 50
 			} as cytoscape.LayoutOptions
 		});
+
+		cyInstance = cy;
 
 		cy.on('tap', 'node', (evt) => {
 			selectNode({ name: evt.target.id(), version: "v1.0.0", status: evt.target.data('status') || "SAFE" });
 		});
 
+		const interval = setInterval(async () => {
+			try {
+				const res = await fetch(`http://localhost:8090/api/v1/graph/${$page.params.org}`, {
+					headers: { "Authorization": "Bearer local-dev-token" }
+				});
+				const edges = await res.json();
+				if (Array.isArray(edges)) {
+					const nodesMap = new Map();
+					const newElements: cytoscape.ElementDefinition[] = [];
+
+					for (const edge of edges) {
+						const { provider, consumer, status } = edge;
+						if (!nodesMap.has(provider)) {
+							nodesMap.set(provider, true);
+							newElements.push({ data: { id: provider, label: provider, status: 'SAFE' } });
+						}
+						if (!nodesMap.has(consumer)) {
+							nodesMap.set(consumer, true);
+							newElements.push({ data: { id: consumer, label: consumer, status: 'SAFE' } });
+						}
+						newElements.push({ data: { source: consumer, target: provider, status: status } });
+					}
+
+					for (const edge of edges) {
+						if (edge.status === 'BREAKING') {
+							const providerNode = newElements.find(e => e.data.id === edge.provider);
+							if (providerNode) {
+								providerNode.data.status = 'BREAKING';
+							}
+						}
+					}
+
+					cy.elements().remove();
+					cy.add(newElements);
+					cy.layout({
+						name: 'dagre',
+						rankDir: 'LR',
+						nodeSep: 50,
+						rankSep: 150,
+						fit: false,
+					} as cytoscape.LayoutOptions).run();
+				}
+			} catch (err) {
+				console.error("Polling error", err);
+			}
+		}, 5000);
+
 		return () => {
+			clearInterval(interval);
 			cy.destroy();
 		};
 	});
@@ -121,11 +179,11 @@
 		</div>
 
 		<!-- Graph Controls overlay -->
-		<div class="graph-controls">
-			<button class="icon-btn" aria-label="Refresh">
+		<div class="graph-controls" style="z-index: 20;">
+			<button class="icon-btn" aria-label="Zoom In" onclick={zoomIn}>
 				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
 			</button>
-			<button class="icon-btn" aria-label="Zoom Out">
+			<button class="icon-btn" aria-label="Zoom Out" onclick={zoomOut}>
 				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
 			</button>
 		</div>

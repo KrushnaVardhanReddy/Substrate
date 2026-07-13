@@ -27,6 +27,7 @@ import (
 type Config struct {
 	Scale       int
 	Concurrency int
+	Duration    time.Duration
 }
 
 var (
@@ -38,6 +39,7 @@ var (
 func main() {
 	scaleFlag := flag.Int("scale", 100, "Number of mock repositories to generate")
 	concurrencyFlag := flag.Int("concurrency", 50, "Concurrency level for the flood")
+	durationFlag := flag.Duration("duration", 1*time.Hour, "Duration of the endurance test")
 	flag.Parse()
 
 	token := os.Getenv("GITHUB_TOKEN")
@@ -61,54 +63,79 @@ func main() {
 	config := Config{
 		Scale:       *scaleFlag,
 		Concurrency: *concurrencyFlag,
+		Duration:    *durationFlag,
 	}
 
 	RunScaleSimulation(ctx, client, owner, config)
 }
 
 func RunScaleSimulation(ctx context.Context, client *github.Client, owner string, config Config) {
-	fmt.Printf("Starting Scale Simulation: Scale=%d, Concurrency=%d\n", config.Scale, config.Concurrency)
+	fmt.Printf("Starting Scale Simulation: Scale=%d, Concurrency=%d, Duration=%v\n", config.Scale, config.Concurrency, config.Duration)
 
 	startFlood := time.Now()
-	runFlood(ctx, client, owner, config)
-	floodDuration := time.Since(startFlood)
+	timeoutCtx, cancel := context.WithTimeout(ctx, config.Duration)
+	defer cancel()
 
-	runMutation(ctx, client, owner)
+	runEnduranceLoop(timeoutCtx, client, owner, config)
+
+	floodDuration := time.Since(startFlood)
 	runAssertionAndReporting(floodDuration)
 }
 
-func runFlood(ctx context.Context, client *github.Client, owner string, config Config) {
-	fmt.Println("Phase 1: The Flood")
+func runEnduranceLoop(ctx context.Context, client *github.Client, owner string, config Config) {
+	fmt.Println("Phase 1 & 2: The Endurance Flood & Mutation Loop")
 
 	var wg sync.WaitGroup
 	semaphore := make(chan struct{}, config.Concurrency)
 
-	for i := 0; i < config.Scale; i++ {
+	ticker := time.NewTicker(1 * time.Minute)
+	defer ticker.Stop()
+
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				fmt.Printf("[Observability] Caught Panics: %d\n", atomic.LoadInt32(&caughtPanics))
+			}
+		}
+	}()
+
+	for i := 0; i < config.Concurrency; i++ {
 		wg.Add(1)
-		go func(id int) {
+		go func(workerID int) {
 			defer wg.Done()
-			semaphore <- struct{}{}
-			defer func() { <-semaphore }()
-
-			// Simulate jitter
-			time.Sleep(time.Duration(rand.Intn(100)) * time.Microsecond)
-
-			isPoisonPill := id < int(float64(config.Scale)*0.6) // 60% noise/poison
-
-			startReq := time.Now()
-			var protocolName string
-
-			if isPoisonPill {
-				protocolName = generatePoisonPill(id, client, owner)
-			} else {
-				protocolName = generateProtocolCluster(id, client, owner)
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				default:
+					semaphore <- struct{}{}
+					
+					id := rand.Intn(config.Scale)
+					isPoisonPill := id < int(float64(config.Scale)*0.6)
+					
+					if rand.Float32() < 0.10 {
+						fireRealWebhook(id, "Mutation", false, "deleted")
+					} else {
+						startReq := time.Now()
+						var protocolName string
+						if isPoisonPill {
+							protocolName = generatePoisonPill(id, client, owner)
+						} else {
+							protocolName = generateProtocolCluster(id, client, owner)
+						}
+						latency := time.Since(startReq).Milliseconds()
+						if protocolName != "" {
+							updateLatency(protocolName, latency)
+						}
+					}
+					
+					<-semaphore
+					time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
+				}
 			}
-
-			latency := time.Since(startReq).Milliseconds()
-			if protocolName != "" {
-				updateLatency(protocolName, latency)
-			}
-
 		}(i)
 	}
 
@@ -268,17 +295,7 @@ spec:
 `, strings.ToUpper(protocol), url)
 }
 
-func runMutation(ctx context.Context, client *github.Client, owner string) {
-	fmt.Println("Phase 2: The Mutation")
-
-	for i := 0; i < 5; i++ {
-	    fireRealWebhook(i, "Mutation", false, "deleted")
-	}
-
-	for i := 5; i < 10; i++ {
-	    fireRealWebhook(i, "Renamed-Protocol", false, "push")
-	}
-}
+// runMutation is removed as it is now part of runEnduranceLoop
 
 func runAssertionAndReporting(totalDuration time.Duration) {
 	fmt.Println("Phase 3: Assertion & Reporting Matrix")
