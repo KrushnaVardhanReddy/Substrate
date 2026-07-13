@@ -555,6 +555,9 @@ func substrateDocsContent() string {
   CLI (local diff):
   ` + "```bash" + `
   substrate diff --base openapi-old.yaml --head openapi-new.yaml --schema-type openapi
+  
+  # To run in Audit Mode (non-blocking, exits with 0 even on breaking changes):
+  substrate diff --base openapi-old.yaml --head openapi-new.yaml --mode audit
   ` + "```" + `
 
   MCP Server (for Cursor / Claude Desktop):
