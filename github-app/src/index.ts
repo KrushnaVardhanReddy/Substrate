@@ -241,10 +241,24 @@ export default {
         headContent = await fetchFileContent(token, event.owner, event.repo, config.head_schema, event.headSha);
       }
 
-      if (!config.base_schema || !config.head_schema || baseContent === null || headContent === null) {
-        const configErrorMsg = "## ⚠️ Substrate — Config Error\n\nCould not fetch spec files. Check `base_schema` and `head_schema` in your `substrate.yaml`.\n\n*Powered by [Substrate](https://github.com/KrushnaVardhanReddy/Substrate)*";
+      if (!config.base_schema || !config.head_schema) {
+        const configErrorMsg = "## ⚠️ Substrate — Config Error\n\nCould not parse `base_schema` and `head_schema` from your `substrate.yaml`.\n\n*Powered by [Substrate](https://github.com/KrushnaVardhanReddy/Substrate)*";
         await postPRComment(token, event.owner, event.repo, event.prNumber, configErrorMsg);
         await setCommitStatus(token, event.owner, event.repo, event.headSha, 'failure', 'Substrate config error — check substrate.yaml');
+        return new Response('Config Error', { status: 200 });
+      }
+
+      if (baseContent === null && headContent !== null) {
+        const welcomeMsg = "## 🎉 Welcome to Substrate!\n\nWe detected your new schema file. Since this is your first time adding it, there is no previous baseline to compare against.\n\nOnce this PR is merged, Substrate will begin monitoring all future pull requests for breaking changes!\n\n*Powered by [Substrate](https://github.com/KrushnaVardhanReddy/Substrate)*";
+        await postPRComment(token, event.owner, event.repo, event.prNumber, welcomeMsg);
+        await setCommitStatus(token, event.owner, event.repo, event.headSha, 'success', 'First-time setup detected — Ready to merge!');
+        return new Response('First Time Setup', { status: 200 });
+      }
+
+      if (baseContent === null || headContent === null) {
+        const configErrorMsg = "## ⚠️ Substrate — Fetch Error\n\nCould not fetch spec files from GitHub. Check that the paths match your repository structure.\n\n*Powered by [Substrate](https://github.com/KrushnaVardhanReddy/Substrate)*";
+        await postPRComment(token, event.owner, event.repo, event.prNumber, configErrorMsg);
+        await setCommitStatus(token, event.owner, event.repo, event.headSha, 'failure', 'Substrate fetch error — check file paths');
         return new Response('Config Error', { status: 200 });
       }
 
