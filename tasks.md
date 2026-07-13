@@ -37,7 +37,7 @@
 |---|---|---|---|---|---|
 | **UI-T01** | 🔴 P1 | **Dynamic Cytoscape Rendering** — Integrate `cytoscape.js` into the Svelte frontend to dynamically render the 100+ dependency nodes and edges returned by the `GET /api/v1/graph` endpoint. | Jules | ✅ Complete | `docs/specs/ui/ui-t01-dynamic-graph.md` |
 | **E2E-T01** | 🔴 P1 | **1-Hour Chaos Endurance & UI Polling** — Upgrade `scale_generator.go` to a continuous 1-hour loop and update the Svelte UI to poll and animate the graph changes in real-time. | Jules | ✅ Complete | `docs/specs/e2e/e2e-t01-endurance-mode.md` |
-| **UI-T03** | 🟡 P2 | **Graph Filtering & Navigation** — Add a status filter (Show only BREAKING) and protocol filter to the Cytoscape visualization to handle enterprise-scale graphs. | Jules | 🤖 In Progress (`2522520351791071517`) | `docs/specs/ui/ui-t03-graph-filtering.md` |
+| **UI-T03** | 🟡 P2 | **Graph Filtering & Navigation** — Add a status filter (Show only BREAKING) and protocol filter to the Cytoscape visualization to handle enterprise-scale graphs. | Jules | ✅ Complete | `docs/specs/ui/ui-t03-graph-filtering.md` |
 
 ---
 
@@ -47,7 +47,7 @@
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **V1-T07** | 🔴 P1 | **V1.0 System E2E Tests** — Prove the final V1.0 pipeline works as a seamless end-to-end flow using the real local PostgreSQL database. | Jules | 🟡 In Progress | `docs/specs/v1-preflight/v1-e2e-spec.md` |
+| **V1-T07** | 🔴 P1 | **V1.0 System E2E Tests** — Prove the final V1.0 pipeline works as a seamless end-to-end flow using the real local PostgreSQL database. | Jules | ✅ Complete | `docs/specs/v1-preflight/v1-e2e-spec.md` |
 | **V1-T08** | 🔴 P1 | **Custom Discovery Rules via YAML** — Expose dependency matching rules via `substrate.yaml` to allow enterprises to define custom regex (e.g., `_ENDPOINT`) for the Kubernetes manifest scanner. | Jules | ✅ Complete | `docs/specs/v1-preflight/v1-t08-custom-discovery-rules.md` |
 
 ---
