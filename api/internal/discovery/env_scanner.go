@@ -9,7 +9,8 @@ import (
 var (
 	// High-signal patterns from the spec
 	// *_API_URL, *_SERVICE_URL, *_ENDPOINT, *_BASE_URL, *_HOST (when value is a URL), *_API_BASE, *_GATEWAY_URL
-	highSignalRegex = regexp.MustCompile(`(?i)_API_URL$|_SERVICE_URL$|_ENDPOINT$|_BASE_URL$|_HOST$|_API_BASE$|_GATEWAY_URL$`)
+	highSignalRegexStr = `(?i)_API_URL$|_SERVICE_URL$|_ENDPOINT$|_BASE_URL$|_HOST$|_API_BASE$|_GATEWAY_URL$`
+	highSignalRegex = regexp.MustCompile(highSignalRegexStr)
 
 	// Ensure we exclude secrets
 	secretRegex = regexp.MustCompile(`(?i)SECRET|KEY|TOKEN|PASSWORD`)
@@ -25,7 +26,26 @@ type DiscoveredDependency struct {
 	ConfidenceScore int
 }
 
-func parseEnvLine(line string) *DiscoveredDependency {
+type EnvScanner struct {
+	regex *regexp.Regexp
+}
+
+func NewEnvScanner(patterns []string) *EnvScanner {
+	if len(patterns) == 0 {
+		return &EnvScanner{regex: highSignalRegex}
+	}
+
+	patternStr := strings.Join(patterns, "|")
+
+	mergedRegex, err := regexp.Compile(highSignalRegexStr + "|" + patternStr)
+	if err != nil {
+		return &EnvScanner{regex: highSignalRegex}
+	}
+
+	return &EnvScanner{regex: mergedRegex}
+}
+
+func (s *EnvScanner) parseEnvLine(line string) *DiscoveredDependency {
 	parts := strings.SplitN(line, "=", 2)
 	if len(parts) != 2 {
 		return nil
@@ -37,7 +57,7 @@ func parseEnvLine(line string) *DiscoveredDependency {
 		return nil
 	}
 
-	if highSignalRegex.MatchString(name) {
+	if s.regex.MatchString(name) {
 		score := 15 // Base score for name pattern match
 
 		// If it has a parsable URL, we might want to check the registry.
@@ -54,7 +74,7 @@ func parseEnvLine(line string) *DiscoveredDependency {
 	return nil
 }
 
-func ScanEnvFile(content string) []DiscoveredDependency {
+func (s *EnvScanner) ScanEnvFile(content string) []DiscoveredDependency {
 	var deps []DiscoveredDependency
 	scanner := bufio.NewScanner(strings.NewReader(content))
 	for scanner.Scan() {
@@ -63,14 +83,19 @@ func ScanEnvFile(content string) []DiscoveredDependency {
 			continue
 		}
 
-		if dep := parseEnvLine(line); dep != nil {
+		if dep := s.parseEnvLine(line); dep != nil {
 			deps = append(deps, *dep)
 		}
 	}
 	return deps
 }
 
-func ScanDockerCompose(content string) []DiscoveredDependency {
+// Global functions for backward compatibility where patterns are nil
+func ScanEnvFile(content string) []DiscoveredDependency {
+	return NewEnvScanner(nil).ScanEnvFile(content)
+}
+
+func (s *EnvScanner) ScanDockerCompose(content string) []DiscoveredDependency {
 	// A rudimentary scanner. A real one might use go-yaml, but regex is acceptable for string extraction
 	// In docker compose, env variables are under "environment:" list or dict.
 	var deps []DiscoveredDependency
@@ -84,7 +109,7 @@ func ScanDockerCompose(content string) []DiscoveredDependency {
 
 		// list format: - VAR=value
 		if strings.HasPrefix(line, "- ") {
-			if dep := parseEnvLine(line[2:]); dep != nil {
+			if dep := s.parseEnvLine(line[2:]); dep != nil {
 				deps = append(deps, *dep)
 			}
 		} else if strings.Contains(line, ": ") {
@@ -98,7 +123,7 @@ func ScanDockerCompose(content string) []DiscoveredDependency {
 					continue
 				}
 
-				if highSignalRegex.MatchString(name) {
+				if s.regex.MatchString(name) {
 					deps = append(deps, DiscoveredDependency{
 						VarName:         name,
 						VarValue:        value,
@@ -111,7 +136,11 @@ func ScanDockerCompose(content string) []DiscoveredDependency {
 	return deps
 }
 
-func ScanKubernetesManifest(content string) []DiscoveredDependency {
+func ScanDockerCompose(content string) []DiscoveredDependency {
+	return NewEnvScanner(nil).ScanDockerCompose(content)
+}
+
+func (s *EnvScanner) ScanKubernetesManifest(content string) []DiscoveredDependency {
 	var deps []DiscoveredDependency
 	scanner := bufio.NewScanner(strings.NewReader(content))
 
@@ -132,7 +161,7 @@ func ScanKubernetesManifest(content string) []DiscoveredDependency {
 		} else if strings.HasPrefix(line, "value: ") && currentName != "" {
 			value := strings.Trim(strings.TrimSpace(line[7:]), "\"'")
 
-			if !secretRegex.MatchString(currentName) && highSignalRegex.MatchString(currentName) {
+			if !secretRegex.MatchString(currentName) && s.regex.MatchString(currentName) {
 				deps = append(deps, DiscoveredDependency{
 					VarName:         currentName,
 					VarValue:        value,
@@ -148,5 +177,6 @@ func ScanKubernetesManifest(content string) []DiscoveredDependency {
 	return deps
 }
 
-// Registry URL Lookup could be added here or in the handler
-// If matched, +30 for exact URL resolve or +20 for k8s service
+func ScanKubernetesManifest(content string) []DiscoveredDependency {
+	return NewEnvScanner(nil).ScanKubernetesManifest(content)
+}

@@ -1,6 +1,21 @@
-1.  **Implement `Aggregator` (`api/internal/discovery/aggregator.go`)**: Create a centralized struct to collect `DependencyEdge` objects. Implement deduplication logic so that if multiple signals link the same source to the same target, their confidence scores are additive (capped at 100), and file sources are aggregated.
-2.  **Implement `PackageScanner` (`api/internal/discovery/package_scanner.go`)**: Read `package.json` and `go.mod` files to find explicitly defined dependencies on `@org/*` or `github.com/org/*`. Add edges with confidence score +40 for found internal SDK dependencies based on phase-5 specs.
-3.  **Implement `OpenAPIScanner` (`api/internal/discovery/openapi_scanner.go`)**: Read `openapi-generator-config.yaml` and `openapitools.json` to find explicitly defined generator specs. Add edges with confidence score +50 for found direct OpenAPI links based on phase-5 specs. Look also in `package.json` scripts if they explicitly call openapi generators.
-4.  **Write Tests (`api/internal/discovery/*_test.go`)**: Validate `Aggregator`, `PackageScanner`, and `OpenAPIScanner` implementation using table-driven tests. Achieve a minimum test coverage of 80% per phase-5 rules.
-5.  **Pre-commit steps**: Run the `pre_commit_instructions` tool to run the pre-commit checklist.
-6.  **Submit PR**: Commit the changes and execute `submit` to create a PR.
+1. Add `api/internal/config/config.go` with parsing logic for substrate.yaml:
+   ```go
+   package config
+   import "gopkg.in/yaml.v3"
+   type Discovery struct { MatchPatterns []string `yaml:"match_patterns"` }
+   type SubstrateConfig struct { Discovery *Discovery `yaml:"discovery,omitempty"` }
+   func Parse(content []byte) (*SubstrateConfig, error) { ... }
+   ```
+2. Refactor `api/internal/discovery/env_scanner.go` to accept match patterns dynamically:
+   - Add `type EnvScanner struct { regex *regexp.Regexp }`
+   - Add `func NewEnvScanner(patterns []string) *EnvScanner`
+   - Merge provided patterns with `highSignalRegex` if they are provided, else fallback to `highSignalRegex`
+   - Update `ScanEnvFile`, `ScanDockerCompose`, `ScanKubernetesManifest` to be methods on `EnvScanner`
+3. Update `api/internal/webhook/handler.go` to inject the regex correctly:
+   - Search through files in PushHandler to find `substrate.yaml` file
+   - If found, parse it using `config.Parse`
+   - Extract patterns from the parsed config. If not found, create `NewEnvScanner(nil)`
+   - Call `scanner.ScanKubernetesManifest` instead of `discovery.ScanKubernetesManifest`
+4. Write tests for `api/internal/discovery/env_scanner_test.go` checking custom regex implementation:
+   - `TestEnvScanner_CustomPatterns` passing a custom regex like `.*_ENDPOINT$` and verifying that `PAYMENT_ENDPOINT` is discovered.
+5. Complete pre commit step.
