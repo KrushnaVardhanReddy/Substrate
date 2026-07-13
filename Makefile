@@ -97,6 +97,8 @@ build-mcp:
 
 start-bg: postgres
 	@echo "Starting backend services in background..."
+	@rm -f *.log
+	@rm -f *.pid
 	@make api > api.log 2>&1 & echo $$! > api.pid
 	@make engine > engine.log 2>&1 & echo $$! > engine.pid
 	@make worker > worker.log 2>&1 & echo $$! > worker.pid

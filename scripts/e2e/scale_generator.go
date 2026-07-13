@@ -212,6 +212,7 @@ func fireRealWebhook(id int, protocol string, isPoison bool, action string) {
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-GitHub-Event", "push")
+	req.Header.Set("Authorization", "Bearer local-dev-token")
 
 	// Optional: add signature if required by the API
 	mac := hmac.New(sha256.New, []byte("local-jwt-secret")) // or whatever the webhook secret is
@@ -235,23 +236,36 @@ func fireRealWebhook(id int, protocol string, isPoison bool, action string) {
 }
 
 func getMockContent(protocol string, isPoison bool) string {
+	provider := fmt.Sprintf("service-%s", protocol)
+	url := fmt.Sprintf("http://%s.chaos-org.svc.cluster.local", provider)
+
 	if isPoison {
-		if strings.Contains(protocol, "50k") {
-			return strings.Repeat("type Query { hello: String }\n", 50000)
-		} else if strings.Contains(protocol, "loop") {
-			return `openapi: 3.0.0
-components:
-  schemas:
-    Node:
-      type: object
-      properties:
-        child:
-          $ref: '#/components/schemas/Node'`
-		} else {
-			return "PK\x03\x04\x14\x00\x00\x00\x08" // Corrupted binary mock
-		}
+		return fmt.Sprintf(`
+apiVersion: apps/v1
+kind: Deployment
+spec:
+  template:
+    spec:
+      containers:
+        - name: app
+          env:
+            - name: %s_API_URL
+              value: "%s"
+%s`, strings.ToUpper(protocol), url, strings.Repeat("  # recursive garbage\n", 5000))
 	}
-	return "valid content for " + protocol
+
+	return fmt.Sprintf(`
+apiVersion: apps/v1
+kind: Deployment
+spec:
+  template:
+    spec:
+      containers:
+        - name: app
+          env:
+            - name: %s_API_URL
+              value: "%s"
+`, strings.ToUpper(protocol), url)
 }
 
 func runMutation(ctx context.Context, client *github.Client, owner string) {

@@ -27,6 +27,8 @@ ngrok.log
 ngrok.pid
 worker.log
 worker.pid
+dashboard.log
+dashboard.pid
 
 engine/substrate
 coverage.out
