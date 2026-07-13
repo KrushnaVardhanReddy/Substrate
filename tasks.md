@@ -47,6 +47,7 @@
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
+| **V1-T07** | 🔴 P1 | **V1.0 System E2E Tests** — Prove the final V1.0 pipeline works as a seamless end-to-end flow using the real local PostgreSQL database. | Jules | 🟡 In Progress | `docs/specs/v1-preflight/v1-e2e-spec.md` |
 | **V1-T08** | 🔴 P1 | **Custom Discovery Rules via YAML** — Expose dependency matching rules via `substrate.yaml` to allow enterprises to define custom regex (e.g., `_ENDPOINT`) for the Kubernetes manifest scanner. | Jules | 🟡 In Progress | `docs/specs/v1-preflight/v1-t08-custom-discovery-rules.md` |
 
 ---
