@@ -70,3 +70,10 @@ While Substrate can auto-generate specs for legacy projects, its ultimate goal i
   ```
 - **Enforcement:** Substrate enforces that the actual code implementation matches the design contract.
 - **The Result:** If we position Substrate as the standard tool for designing new APIs, it becomes the default starting point for every new microservice globally. Teams will start using Substrate on Day 1 of a new project, rather than waiting until they have a production outage.
+
+## 6. Sales & Demo Motion: The Real-World OSS Sandbox
+When demonstrating Substrate to prospective Enterprise clients, we must avoid contrived "FooBar API" toy examples. The standard operating procedure for all sales demos and V1.0 validation testing is the **Real-World OSS Sandbox Strategy**:
+- **The Setup:** Create a demo GitHub organization and fork a recognizable open-source architecture (e.g., Google's "Online Boutique" microservices demo or Stripe's OpenAPI schema) into two distinct repositories (Upstream Provider and Downstream Consumer).
+- **The Execution:** Install the Substrate GitHub App on the organization to demonstrate the frictionless "Zero-Config" setup. 
+- **The "Aha" Moment:** Open a PR in the Upstream Provider that makes a realistic breaking change (e.g., deleting a payment field). 
+- **The Value:** Substrate will instantly analyze the PR, block it, drop an AI Autofix comment in the real GitHub UI, and illuminate the exact blast radius on the Svelte dashboard. This proves to Enterprise Engineering Managers that the tool handles real webhooks, real GitHub API rate limits, and real cross-repo dependencies flawlessly in the wild.
