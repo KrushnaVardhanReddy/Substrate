@@ -1,16 +1,22 @@
 package webhook
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"hash/crc32"
+	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/config"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/discovery"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/github"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/handlers"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/integrations/postman"
 )
 
@@ -29,7 +35,7 @@ type File struct {
 }
 
 // PushHandler handles the GitHub push webhook payload forwarded from the GitHub App
-func PushHandler(store db.Store) http.HandlerFunc {
+func PushHandler(store db.Store, ghClient github.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req PushPayload
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -109,6 +115,108 @@ func PushHandler(store db.Store) http.HandlerFunc {
 				err = store.UpsertDependency(ctx, consumerRepoID, contractID, dep.ConfidenceScore)
 				if err == nil {
 					discoveredCount++
+				}
+			}
+		}
+
+		// Cross-Repo Autofix Logic
+		providerContracts, _ := store.GetContractsByProviderFullName(ctx, req.Repo)
+		diffEngineURL := os.Getenv("DIFF_ENGINE_URL")
+		if diffEngineURL == "" {
+			diffEngineURL = "http://localhost:8080"
+		}
+
+		for _, contract := range providerContracts {
+			for _, file := range req.Files {
+				if file.Path == contract.SpecPath {
+					diffReq := handlers.DiffEngineRequest{
+						BaseSchema: contract.RawContent,
+						HeadSchema: file.Content,
+						SchemaType: contract.SchemaType,
+					}
+					diffReqBytes, err := json.Marshal(diffReq)
+					if err != nil {
+						continue
+					}
+
+					diffResp, err := http.Post(diffEngineURL+"/diff", "application/json", bytes.NewBuffer(diffReqBytes))
+					if err != nil || diffResp.StatusCode != http.StatusOK {
+						if diffResp != nil {
+							diffResp.Body.Close()
+						}
+						continue
+					}
+
+					var diffReport handlers.DiffReport
+					if err := json.NewDecoder(diffResp.Body).Decode(&diffReport); err != nil {
+						diffResp.Body.Close()
+						continue
+					}
+					diffResp.Body.Close()
+
+					if diffReport.Summary.BreakingCount > 0 {
+						var breakingChanges []handlers.BreakingChange
+						for _, b := range diffReport.Breaking {
+							if bcMap, ok := b.(map[string]interface{}); ok {
+								bc := handlers.BreakingChange{
+									RuleID:      fmt.Sprint(bcMap["rule_id"]),
+									Path:        fmt.Sprint(bcMap["path"]),
+									Description: fmt.Sprint(bcMap["description"]),
+									Severity:    fmt.Sprint(bcMap["severity"]),
+								}
+								breakingChanges = append(breakingChanges, bc)
+							}
+						}
+
+						consumers, _ := store.GetConsumersByProviderContract(ctx, contract.ID)
+						for _, consumer := range consumers {
+							go func(c db.ConsumerDependency, changes []handlers.BreakingChange, currentSchema, proposedSchema, providerRepo, schemaType string) {
+								bgCtx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+								defer cancel()
+
+								parts := strings.Split(c.ConsumerFullName, "/")
+								if len(parts) != 2 {
+									return
+								}
+								owner, repo := parts[0], parts[1]
+
+								consumerFilePath, err := ghClient.SearchCode(bgCtx, owner, repo, providerRepo)
+								if err != nil {
+									log.Printf("Failed to find file referencing %s in %s: %v", providerRepo, c.ConsumerFullName, err)
+									return
+								}
+
+								consumerSourceCode, err := ghClient.GetFileContent(bgCtx, owner, repo, consumerFilePath)
+								if err != nil {
+									log.Printf("Failed to get file content: %v", err)
+									return
+								}
+
+								autofixReq := handlers.AIAutofixRequest{
+									ProviderRepo:       providerRepo,
+									SchemaType:         schemaType,
+									CurrentSchema:      currentSchema,
+									ProposedSchema:     proposedSchema,
+									BreakingChanges:    changes,
+									ConsumerSourceCode: consumerSourceCode,
+								}
+
+								autofixResp, err := handlers.GenerateAutofixPatch(autofixReq)
+								if err != nil {
+									log.Printf("Failed to generate autofix patch: %v", err)
+									return
+								}
+
+								title := fmt.Sprintf("chore(substrate): Auto-fix breaking change from upstream [%s]", providerRepo)
+								prBody := fmt.Sprintf("Substrate AI detected a breaking change in %s and generated this patch to fix it.\n\n**Reasoning:**\n%s", providerRepo, autofixResp.Explanation)
+
+								_, err = ghClient.CreateDraftPR(bgCtx, owner, repo, "substrate-autofix-"+fmt.Sprint(time.Now().Unix()), autofixResp.SafePatch, title, prBody)
+								if err != nil {
+									log.Printf("Failed to create draft PR: %v", err)
+								}
+							}(consumer, breakingChanges, contract.RawContent, file.Content, req.Repo, contract.SchemaType)
+						}
+					}
 				}
 			}
 		}
