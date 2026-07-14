@@ -61,7 +61,8 @@ func NewRouter(store db.Store, authConfig handlers.AuthConfig, registryApiToken,
 
 	// Protected routes (Service Token OR JWT)
 	authMW := AuthMiddleware(registryApiToken, jwtSecret)
-	r.Method("POST", "/api/v1/org/{org}/webhooks", authMW(http.HandlerFunc(handlers.RegisterWebhookHandler(store))))
+	authzMW := AuthzMiddleware(registryApiToken, jwtSecret)
+	r.Method("POST", "/api/v1/org/{org}/webhooks", authzMW(http.HandlerFunc(handlers.RegisterWebhookHandler(store))))
 	r.Method("GET", "/api/v1/graph/{org}", authMW(http.HandlerFunc(handlers.GraphHandler(store))))
 	r.Method("GET", "/api/v1/repos/{org}", authMW(http.HandlerFunc(handlers.ReposHandler(store))))
 	r.Method("GET", "/api/v1/schema/{owner}/{repo}", authMW(http.HandlerFunc(handlers.SchemaHandler(store))))
@@ -71,7 +72,7 @@ func NewRouter(store db.Store, authConfig handlers.AuthConfig, registryApiToken,
 
 	// Route uses GitHub OAuth token directly, not the internal JWT, so we skip authMW.
 	// The endpoint validates the token by making a call to GitHub.
-	r.Method("POST", "/api/v1/org/{org}/enforce", http.HandlerFunc(handlers.EnforceGlobalHandler()))
+	r.Method("POST", "/api/v1/org/{org}/enforce", authzMW(http.HandlerFunc(handlers.EnforceGlobalHandler())))
 
 	// AI routes (public — no auth required, BYOK model)
 	r.Post("/api/v1/ai/analyze", handlers.AIAnalyzeHandler())

@@ -18,14 +18,14 @@ func TestAuthMiddleware(t *testing.T) {
 
 	// Generate a valid JWT token
 	validToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"orgs": []string{"allowed-org"},
+		"orgs": map[string]string{"allowed-org": "member"},
 		"exp":  time.Now().Add(time.Hour).Unix(),
 	})
 	validTokenString, _ := validToken.SignedString([]byte(jwtSecret))
 
 	// Generate a valid JWT token but expired
 	expiredToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"orgs": []string{"allowed-org"},
+		"orgs": map[string]string{"allowed-org": "member"},
 		"exp":  time.Now().Add(-time.Hour).Unix(),
 	})
 	expiredTokenString, _ := expiredToken.SignedString([]byte(jwtSecret))
@@ -138,4 +138,95 @@ func extractOrgFromPath(path string) string {
 		return parts[4]
 	}
 	return ""
+}
+
+func TestAuthzMiddleware(t *testing.T) {
+	registryToken := "test-registry-token"
+	jwtSecret := "test-jwt-secret"
+
+	// Generate a valid JWT token with admin role
+	adminToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"orgs": map[string]string{"allowed-org": "admin"},
+		"exp":  time.Now().Add(time.Hour).Unix(),
+	})
+	adminTokenString, _ := adminToken.SignedString([]byte(jwtSecret))
+
+	// Generate a valid JWT token with member role
+	memberToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"orgs": map[string]string{"allowed-org": "member"},
+		"exp":  time.Now().Add(time.Hour).Unix(),
+	})
+	memberTokenString, _ := memberToken.SignedString([]byte(jwtSecret))
+
+	handler := AuthzMiddleware(registryToken, jwtSecret)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	tests := []struct {
+		name           string
+		method         string
+		path           string
+		authHeader     string
+		expectedStatus int
+	}{
+		{
+			name:           "missing authorization header",
+			method:         "POST",
+			path:           "/api/v1/org/allowed-org/enforce",
+			authHeader:     "",
+			expectedStatus: http.StatusUnauthorized,
+		},
+		{
+			name:           "service token success",
+			method:         "POST",
+			path:           "/api/v1/org/allowed-org/enforce",
+			authHeader:     "Bearer " + registryToken,
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name:           "jwt admin success",
+			method:         "POST",
+			path:           "/api/v1/org/allowed-org/enforce",
+			authHeader:     "Bearer " + adminTokenString,
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name:           "jwt member forbidden",
+			method:         "POST",
+			path:           "/api/v1/org/allowed-org/enforce",
+			authHeader:     "Bearer " + memberTokenString,
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			name:           "jwt admin unallowed org",
+			method:         "POST",
+			path:           "/api/v1/org/unallowed-org/enforce",
+			authHeader:     "Bearer " + adminTokenString,
+			expectedStatus: http.StatusForbidden,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req, err := http.NewRequest(tt.method, tt.path, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			rctx := chi.NewRouteContext()
+			rctx.URLParams.Add("org", extractOrgFromPath(tt.path))
+			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+
+			if tt.authHeader != "" {
+				req.Header.Set("Authorization", tt.authHeader)
+			}
+
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+
+			if rr.Code != tt.expectedStatus {
+				t.Errorf("expected status %v, got %v", tt.expectedStatus, rr.Code)
+			}
+		})
+	}
 }

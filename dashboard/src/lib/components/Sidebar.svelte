@@ -1,5 +1,5 @@
 <script lang="ts">
-	let { repos = [], org = '', pathname = '' }: { repos?: { id: string; name: string; full_name: string }[], org?: string, pathname?: string } = $props();
+	let { repos = [], org = '', pathname = '', isAdmin = true }: { repos?: { id: string; name: string; full_name: string }[], org?: string, pathname?: string, isAdmin?: boolean } = $props();
 </script>
 
 <div class="sidebar">
@@ -16,10 +16,12 @@
 		{/if}
 		<a href="/playground" class="nav-item {pathname === '/playground' ? 'active' : ''}" style="text-decoration:none;">✨ AI Playground</a>
 		<div class="nav-item">API Keys</div>
-		{#if org}
-			<a href="/org/{org}/settings" class="nav-item {pathname === `/org/${org}/settings` ? 'active' : ''}">Settings</a>
-		{:else}
-			<div class="nav-item">Settings</div>
+		{#if isAdmin}
+			{#if org}
+				<a href="/org/{org}/settings" class="nav-item {pathname === `/org/${org}/settings` ? 'active' : ''}">Settings</a>
+			{:else}
+				<div class="nav-item">Settings</div>
+			{/if}
 		{/if}
 
 		{#if repos && repos.length > 0}

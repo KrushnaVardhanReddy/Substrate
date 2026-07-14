@@ -1,0 +1,18 @@
+
+> dashboard@0.0.1 dev
+> vite dev
+
+12:28:36 AM [vite] (client) Forced re-optimization of dependencies
+
+  VITE v8.1.4  ready in 1951 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+
+[1;31m[404] GET /org/undefined/api/v1/repos/undefined[0m
+
+[1;31m[404] GET /ATTRIBUTIONS.md[0m
+
+[1;31m[404] GET /org/undefined/api/v1/repos/undefined[0m
+
+[1;31m[404] GET /ATTRIBUTIONS.md[0m
