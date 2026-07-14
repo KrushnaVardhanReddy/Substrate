@@ -193,7 +193,7 @@ func TestPhase7SystemE2E(t *testing.T) {
 		err = pool.QueryRow(context.Background(), "INSERT INTO organizations (github_installation_id, github_org_name) VALUES (9999, 'testorg') ON CONFLICT (github_installation_id) DO UPDATE SET github_org_name='testorg' RETURNING id").Scan(&orgId)
 		require.NoError(t, err)
 
-		err = pool.QueryRow(context.Background(), "INSERT INTO repositories (org_id, github_repo_id, name, full_name) VALUES ($1, 8888, 'testrepo', 'testorg/testrepo') ON CONFLICT (github_repo_id) DO UPDATE SET full_name='testorg/testrepo' RETURNING id", orgId).Scan(&repoId)
+		err = pool.QueryRow(context.Background(), "INSERT INTO repositories (org_id, github_repo_id, name, full_name) VALUES ($1, 8888, 'provider', 'testorg/provider') ON CONFLICT (github_repo_id) DO UPDATE SET full_name='testorg/provider' RETURNING id", orgId).Scan(&repoId)
 		require.NoError(t, err)
 
 		_, err = pool.Exec(context.Background(), "INSERT INTO contracts (repo_id, schema_type, spec_path, branch, raw_content) VALUES ($1, 'openapi', 'openapi.yaml', 'main', $2) ON CONFLICT DO NOTHING", repoId, string(schemaBytes))
