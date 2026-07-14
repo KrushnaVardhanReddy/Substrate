@@ -1,0 +1,46 @@
+TASK: P8-T02 — Enterprise Authz (Casbin/OpenFGA)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement strict Role-Based Access Control (RBAC) to ensure users can only view or mutate data for GitHub organizations where they possess Admin or Member rights.
+
+Spec (READ ONLY):
+  docs/specs/phase-8/p8-t02-enterprise-authz.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Implement robust middleware for the Go API.
+- Update the Svelte Dashboard UI to hide "Settings" and "Webhooks" from non-admins.
+- Since this touches both UI and Backend, the submission script instructions will direct this appropriately.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES (BACKEND)
+═══════════════════════════════════════════════════════════════
+1. MODIFY: api/internal/server/middleware.go
+   Create `AuthzMiddleware` that intercepts requests to `/api/v1/org/{org}/*` and verifies the user JWT contains the required RBAC role.
+   
+2. MODIFY: api/internal/handlers/auth.go
+   Update the GitHub OAuth callback to fetch the user's organization memberships and embed their roles into the issued JWT.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES (FRONTEND)
+═══════════════════════════════════════════════════════════════
+1. MODIFY: dashboard/src/routes/[org]/+layout.svelte
+   Check the decoded JWT role. If the user is not an `Admin`, conditionally hide the `Settings` and `Webhooks` navigation tabs.
+
+2. MODIFY: dashboard/src/routes/[org]/settings/+page.svelte
+   Add an onMount check to redirect to `/` or display a 403 screen if the user navigates directly to the URL without `Admin` rights.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO MODIFY:
+- api/internal/server/middleware.go
+- api/internal/handlers/auth.go
+- dashboard/src/routes/[org]/+layout.svelte
+- dashboard/src/routes/[org]/settings/+page.svelte
+
+Commit: "feat: P8-T02 implement full-stack RBAC for organizations"
+Target branch: feature/dev

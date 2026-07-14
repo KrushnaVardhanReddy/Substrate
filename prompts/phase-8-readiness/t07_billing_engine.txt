@@ -1,0 +1,50 @@
+TASK: P8-T07 — Billing & Subscription Engine (Paywall Pause)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Enforce a 90-day trial for new organizations. If the trial expires without an active Stripe subscription, gracefully pause API protection by returning a neutral GitHub check run, rather than failing the PR.
+
+Spec (READ ONLY):
+  docs/specs/phase-8/p8-t07-billing-engine.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Do NOT block PRs with exit code 1 or 2 when the trial is expired. We do not want to hold customer CI pipelines hostage.
+- Use `stripe-go` for webhook signature verification.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILES: api/migrations/0009_billing_fields.up.sql / down.sql
+   Add `trial_ends_at` (TIMESTAMPTZ) and `stripe_customer_id` (TEXT) to the `organizations` table.
+
+2. MODIFY: api/internal/db/pgstore.go
+   Update organization creation logic to automatically set `trial_ends_at = NOW() + INTERVAL '90 days'`.
+   Add `UpdateStripeCustomerID(ctx, orgID, stripeID)`.
+
+3. FILE: api/internal/handlers/stripe.go (CREATE NEW)
+   Implement the Stripe Webhook handler to parse `checkout.session.completed` events and map the `stripe_customer_id` to the appropriate Substrate organization.
+
+4. MODIFY: api/internal/webhook/push.go
+   Before triggering the diff engine, check `trial_ends_at` and `stripe_customer_id`.
+   If the trial is expired and there is no Stripe ID, immediately create a GitHub Check Run with a `neutral` or `action_required` conclusion and a markdown message linking to the billing dashboard. Skip the diff analysis entirely.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO CREATE:
+- api/migrations/0009_billing_fields.up.sql
+- api/migrations/0009_billing_fields.down.sql
+- api/internal/handlers/stripe.go
+
+FILES TO MODIFY:
+- api/internal/db/store.go
+- api/internal/db/pgstore.go
+- api/internal/server/router.go
+- api/internal/webhook/push.go
+- go.mod
+
+Commit: "feat: P8-T07 implement 90-day trial and stripe billing engine"
+Target branch: feature/dev

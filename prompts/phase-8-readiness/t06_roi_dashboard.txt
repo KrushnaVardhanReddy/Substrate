@@ -1,0 +1,54 @@
+TASK: P8-T06 — Management ROI Dashboard
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Create the Executive Summary dashboard view to prove Substrate's value to enterprise engineering leaders by calculating the engineering hours and dollar value saved through prevented outages.
+
+Spec (READ ONLY):
+  docs/specs/phase-8/p8-t06-roi-dashboard.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Assume every blocked cross-repo breaking change saves 4 engineering hours.
+- Assume $100/hr for the cost calculation.
+- Aggregate telemetry for the last 30 days.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES (BACKEND)
+═══════════════════════════════════════════════════════════════
+1. MODIFY: api/internal/db/pgstore.go
+   Add `GetROIMetrics(ctx context.Context, orgID string) (ROIMetrics, error)`.
+   Query the `webhook_events` (where `is_audit_mode=true` or status is blocked) and `drift_anomalies` tables to calculate total prevented outages and total undocumented endpoints.
+
+2. FILE: api/internal/handlers/roi.go (CREATE NEW)
+   Implement `GET /api/v1/telemetry/roi/{org}` to serve the JSON calculated metrics.
+   
+3. MODIFY: api/internal/server/router.go
+   Expose the route protected by `AuthzMiddleware`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES (FRONTEND)
+═══════════════════════════════════════════════════════════════
+1. FILE: dashboard/src/lib/components/ROIWidget.svelte (CREATE NEW)
+   Create the visual widget that displays the Outages Prevented, Engineering Hours Saved, and Drift Anomalies Detected in a clean, executive-friendly Tailwind card layout.
+
+2. MODIFY: dashboard/src/routes/[org]/+page.svelte
+   Import and render the `<ROIWidget />` component at the top of the organization overview page, fetching data from `/api/v1/telemetry/roi/{org}`.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO CREATE:
+- api/internal/handlers/roi.go
+- dashboard/src/lib/components/ROIWidget.svelte
+
+FILES TO MODIFY:
+- api/internal/db/store.go
+- api/internal/db/pgstore.go
+- api/internal/server/router.go
+- dashboard/src/routes/[org]/+page.svelte
+
+Commit: "feat: P8-T06 implement executive ROI dashboard widget"
+Target branch: feature/dev
