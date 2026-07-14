@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/services"
 	"github.com/google/uuid"
 )
 
@@ -70,8 +71,8 @@ func TestCanRollbackHandler_SafeRollback(t *testing.T) {
 	}
 
 	diffEngine := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		resp := DiffReport{
-			Summary: DiffReportSummary{BreakingCount: 0},
+		resp := services.DiffReport{
+			Summary: services.DiffReportSummary{BreakingCount: 0},
 		}
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp)
