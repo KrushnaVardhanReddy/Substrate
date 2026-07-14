@@ -13,6 +13,7 @@ import (
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/handlers"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/server"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/telemetry"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -52,6 +53,18 @@ func main() {
 		log.Fatalf("failed to apply migrations: %v", err)
 	}
 	fmt.Println("[substrate-api] migrations applied successfully")
+
+	tp, err := telemetry.InitTracer(context.Background(), "substrate-api")
+	if err != nil {
+		log.Printf("[substrate-api] failed to init tracer: %v\n", err)
+	} else if tp != nil {
+		defer func() {
+			if err := tp.Shutdown(context.Background()); err != nil {
+				log.Printf("[substrate-api] error shutting down tracer provider: %v", err)
+			}
+		}()
+		fmt.Println("[substrate-api] OpenTelemetry tracing initialized")
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

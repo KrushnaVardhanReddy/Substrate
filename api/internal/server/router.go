@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/github"
@@ -81,5 +82,5 @@ func NewRouter(store db.Store, authConfig handlers.AuthConfig, registryApiToken,
 	r.Get("/api/v1/diff/{id}", handlers.GetDiffHandler(store))
 
 	// Webhook for Postman integrations
-	return r
+	return otelhttp.NewHandler(r, "substrate-api")
 }
