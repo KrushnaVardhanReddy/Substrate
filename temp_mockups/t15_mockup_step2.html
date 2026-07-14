@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Nexus Enterprise - Scanning</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface": "#ffffff",
+                        "on-surface": "#1e1e1e",
+                        "surface-container-low": "#f8f9fa",
+                        "on-surface-variant": "#49454f",
+                        "primary": "#0056b3",
+                        "primary-fixed": "#004085",
+                        "primary-fixed-dim": "#002752",
+                        "outline-variant": "#e0e0e0",
+                        "success": "#28a745"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    fontFamily: {
+                        "headline": ["Public Sans", "sans-serif"],
+                        "display": ["Public Sans", "sans-serif"],
+                        "body": ["Public Sans", "sans-serif"],
+                        "label": ["Public Sans", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        @keyframes pulse-bar {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .animate-progress {
+            background: linear-gradient(90deg, #0056b3 25%, #4da3ff 50%, #0056b3 75%);
+            background-size: 200% 100%;
+            animation: pulse-bar 2s infinite linear;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body h-screen overflow-hidden flex">
+<!-- SideNavBar (from JSON) -->
+<nav class="w-[240px] h-screen fixed left-0 top-0 border-r border-outline-variant bg-surface-container-low flex flex-col py-8 px-4 gap-6 z-20">
+<!-- Header -->
+<div class="flex items-center gap-3 px-2 mb-4">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary overflow-hidden">
+<img alt="Nexus Enterprise Logo" class="object-cover w-full h-full" data-alt="A clean, modern, minimalist logo design for an enterprise software platform called Nexus. The logo features abstract geometric shapes in sharp primary blue colors, conveying precision, speed, and advanced technology. The background is pure white." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCi5IUbGT6J0g7tevpF1wxabuywlh9-CLn17Nh-6yysABncd4jqGESny_1YuyDvG00SeaAx-NIhnKPkqjPty-RF2IU6jyJY1HW5alfluGNc8_HO8bwnKUNKISCFOgG0iQ9bssniUl63eU8QZ2v9L-xoYhYRfemO5f4Bf98an27BF242sJKg7aog4J3MaE7-Gakl9UABHnbS8-SqALihTyoZqbQOx4xC3wdrgH6lxZPn0HSuF4IWL9Y2h30ZbilK1mf3yWmXp6nsb7M"/>
+</div>
+<div>
+<h1 class="font-headline text-lg font-bold tracking-tighter text-primary-fixed">NEXUS</h1>
+<p class="font-body text-xs text-on-surface-variant">Enterprise Setup</p>
+</div>
+</div>
+<!-- Navigation Links -->
+<div class="flex flex-col gap-2 w-full">
+<!-- Step 1: Connection (Completed) -->
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg text-success font-medium hover:bg-surface-container-highest transition-colors duration-200">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-label text-sm">Connection</span>
+</div>
+<!-- Step 2: Scanning (Active) -->
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg text-primary font-bold border-r-2 border-primary bg-primary/5 opacity-80 scale-[0.99] transition-all">
+<span class="material-symbols-outlined">radar</span>
+<span class="font-label text-sm">Scanning</span>
+</div>
+<!-- Step 3: Completion (Inactive) -->
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant font-medium hover:bg-surface-container-highest transition-colors duration-200">
+<span class="material-symbols-outlined">check_circle</span>
+<span class="font-label text-sm">Completion</span>
+</div>
+</div>
+</nav>
+<!-- TopAppBar (from JSON) -->
+<header class="fixed w-[calc(100%-240px)] ml-[240px] top-0 h-16 bg-surface border-b border-outline-variant flex justify-between items-center px-8 z-10">
+<div class="font-headline text-base font-bold text-primary-fixed">
+            Nexus Enterprise
+        </div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary-fixed-dim transition-colors p-2 rounded-full">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary-fixed-dim transition-colors p-2 rounded-full">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-outline-variant overflow-hidden">
+<img alt="User Avatar" class="object-cover w-full h-full" data-alt="A professional headshot of a software engineer or tech executive. The person is smiling warmly, looking directly at the camera, set against a bright, modern office background with soft lighting. High quality corporate portrait photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9Gx3Mu4a4NLw6IN9T6H-qVdSb8h9ou5FEymk-Apn8fc_Su7exBrcoMPvDlM65V_N1ZTuGZj29_aNBeTVc3-rA1ESWkXGPQWo7oTYNnEZtJYNAH6EZBgBQyn0IR9sMTYcBBSuSF3_fnFG84-xgYLrB7hcYKWSSM-nbjajci8yEtcOL9gfHguVhKgVMiaYOeBfxoEGRafz3HfezwFChKNOFvBTWbOUZRlRo1NITZYuKBlGJ4ZQI95o888q7yapw2SIAWcj5SZC37Nw"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-[240px] mt-16 w-[calc(100%-240px)] h-[calc(100vh-64px)] flex items-center justify-center p-8 bg-surface">
+<!-- Centered Card -->
+<div class="max-w-xl w-full bg-surface-container-low rounded-2xl shadow-sm border border-outline-variant p-10 flex flex-col items-center text-center">
+<!-- Icon/Visual Anchor -->
+<div class="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6 text-primary">
+<span class="material-symbols-outlined text-4xl animate-spin" style="animation-duration: 3s;">radar</span>
+</div>
+<!-- Typography -->
+<h2 class="font-headline text-2xl font-bold text-on-surface mb-3 tracking-tight">Scanning your Repositories</h2>
+<p class="font-body text-base text-on-surface-variant mb-10 max-w-md mx-auto leading-relaxed">
+                We're analyzing your codebases to prepare your enterprise dashboard. This will only take a moment.
+            </p>
+<!-- Progress Bar Area -->
+<div class="w-full max-w-md mb-4">
+<div class="flex justify-between items-end mb-2">
+<span class="font-label text-sm font-medium text-on-surface-variant">Progress</span>
+<span class="font-label text-sm font-bold text-primary">65%</span>
+</div>
+<!-- The Bar -->
+<div class="h-3 w-full bg-outline-variant rounded-full overflow-hidden">
+<div class="h-full w-[65%] rounded-full animate-progress transition-all duration-500 ease-out"></div>
+</div>
+</div>
+<!-- Status Text -->
+<div class="flex items-center gap-2 text-on-surface-variant font-body text-sm mt-2">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">folder_open</span>
+<span>Found 12 repositories...</span>
+</div>
+</div>
+</main>
+</body></html>
