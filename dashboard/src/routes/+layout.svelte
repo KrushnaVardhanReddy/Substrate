@@ -3,6 +3,7 @@
 	import Sidebar from '$lib/components/Sidebar.svelte';
 	import TopNav from '$lib/components/TopNav.svelte';
 	import Footer from '$lib/components/Footer.svelte';
+	import CommandPalette from '$lib/components/CommandPalette.svelte';
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 
@@ -25,6 +26,8 @@
 		}
 	});
 </script>
+
+<CommandPalette repos={data.repos} />
 
 <!-- Sidebar -->
 <Sidebar repos={data.repos} org={$page.params.org} pathname={$page.url.pathname} isAdmin={isAdmin} />
