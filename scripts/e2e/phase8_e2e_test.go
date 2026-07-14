@@ -47,26 +47,14 @@ func setupPostgresContainer(ctx context.Context, t *testing.T) (string, func()) 
 	require.NoError(t, err)
 
 	// Apply migrations
-	migrationsDir, err := filepath.Abs("../../api/migrations")
-	require.NoError(t, err)
 
 	pool, err := pgxpool.New(ctx, connStr)
 	require.NoError(t, err)
 	defer pool.Close()
 
-	// Since we can't easily use golang-migrate in a generic way without pulling in all drivers,
-	// we just read all the .up.sql files and execute them directly via pgxpool
-	files, err := os.ReadDir(migrationsDir)
-	require.NoError(t, err)
+	// The API server automatically applies migrations on startup via golang-migrate, 
+	// so we don't need to manually execute the .up.sql files here.
 
-	for _, file := range files {
-		if strings.HasSuffix(file.Name(), ".up.sql") {
-			content, err := os.ReadFile(filepath.Join(migrationsDir, file.Name()))
-			require.NoError(t, err)
-			_, err = pool.Exec(ctx, string(content))
-			require.NoError(t, err, "Failed applying migration: "+file.Name())
-		}
-	}
 
 	cleanup := func() {
 		if err := pgContainer.Terminate(ctx); err != nil {
@@ -183,7 +171,7 @@ func TestPhase8SystemE2E(t *testing.T) {
 		defer targetServer.Close()
 
 		// Register webhook directly into database since we can't import internal/db easily
-		_, err = pool.Exec(ctx, "INSERT INTO webhooks (org_name, url, secret) VALUES ($1, $2, $3)", "acme", targetServer.URL, "my-webhook-secret")
+		_, err = pool.Exec(ctx, "INSERT INTO org_webhooks (org, url, secret) VALUES ($1, $2, $3)", "acme", targetServer.URL, "my-webhook-secret")
 		require.NoError(t, err)
 
 		// Submit a breaking change diff to trigger the event
@@ -276,7 +264,7 @@ info:
   version: 1.0.0
 paths: {}
 `
-		_, err = pool.Exec(ctx, "INSERT INTO contracts (repo_id, schema_type, spec_path, branch, latest_commit_sha, raw_content) VALUES ($1, 'openapi', 'openapi.yaml', 'main', 'v1-sha', $2)", billingApiRepoID, contractV1Content)
+		_, err = pool.Exec(ctx, "INSERT INTO contracts (repo_id, schema_type, spec_path, branch, latest_commit_sha, raw_content) VALUES ($1, 'openapi', 'openapi.yaml', 'v1-branch', 'v1-sha', $2)", billingApiRepoID, contractV1Content)
 		require.NoError(t, err)
 
 		cmd := exec.Command(binPath, "check-rollback", "--repo", "acme/billing-api", "--target-sha", "v1-sha")
