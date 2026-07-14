@@ -8,10 +8,19 @@
 	let isAdmin = $state(true); // Default true for mock/testing, but could be set to false if we strictly enforce check
 
 	onMount(() => {
-		// Mock logic: check for admin role in localStorage or derived from token scopes.
-		const role = localStorage.getItem('github_role');
-		// In a real application, you would verify OAuth Admin Scopes securely.
-		if (role && role !== 'admin') {
+		const token = localStorage.getItem('github_token');
+		if (token) {
+			try {
+				const payload = JSON.parse(atob(token.split('.')[1]));
+				const orgs = payload.orgs || {};
+				const org = $page.params.org;
+				if (orgs[org] !== 'admin') {
+					isAdmin = false;
+				}
+			} catch (e) {
+				isAdmin = false;
+			}
+		} else {
 			isAdmin = false;
 		}
 	});
