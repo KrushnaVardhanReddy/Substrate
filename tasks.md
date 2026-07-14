@@ -78,7 +78,7 @@
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **P8-T01** | 🔴 P1 | **PostgreSQL Job Queue (River)** — Offload synchronous diffing, DB inserts, and outbound Webhook Egress delivery (replacing goroutines) to a durable Postgres-backed queue. Prevents timeouts and guarantees event delivery. | Unassigned | ⏳ Ready to Start | `docs/specs/phase-8/p8-t01-postgres-job-queue.md` |
+| **P8-T01** | 🔴 P1 | **PostgreSQL Job Queue (River)** — Offload synchronous diffing, DB inserts, and outbound Webhook Egress delivery (replacing goroutines) to a durable Postgres-backed queue. Prevents timeouts and guarantees event delivery. | Jules | 🔄 In Progress (`6779856054854926330`) | `docs/specs/phase-8/p8-t01-postgres-job-queue.md` |
 | **P8-T02** | 🔴 P1 | **Enterprise Authz (Casbin/OpenFGA)** — Implement strict Role-Based Access Control (RBAC) engine for dashboard and API permissions. | Jules | 🔄 In Progress (`16860328072022987809`) | `docs/specs/phase-8/p8-t02-enterprise-authz.md` |
 | **P8-T03** | 🟡 P2 | **CI/CD Cascading Rollback Gate** — `check-rollback` CLI command to block a provider from rolling back in production if a consumer has already deployed code requiring the newer schema. | Jules | 🔄 In Progress (`10161760435714797360`) | `docs/specs/phase-8/p8-master-plan.md` |
 | **P8-T04** | 🟢 P3 | **Spotify Backstage Plugin** — Pipe the dependency graph, schema health scores, and API docs directly into Backstage.io developer portals. | Jules | 🔄 In Progress (`11086423291438481445`) | `docs/specs/phase-8/p8-master-plan.md` |

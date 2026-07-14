@@ -12,7 +12,7 @@
 ## Currently In Progress (Running Asynchronously)
 The following PRs are currently being built by Jules. When you return tomorrow, you should check GitHub to review and merge them into `feature/dev`:
 
-- **P8-T01** | Postgres Job Queue (`2249153567913552821`)
+- **P8-T01** | Postgres Job Queue (`6779856054854926330`) *(Restarted to fix cyclic imports & add Egress)*
 - **P8-T02** | Enterprise Authz (`16860328072022987809`)
 - **P8-T03** | CI/CD Cascading Rollback Gate (`10161760435714797360`)
 - **P8-T04** | Spotify Backstage Plugin (`11086423291438481445`)
