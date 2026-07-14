@@ -16,11 +16,19 @@ CONSTRAINTS & RULES
 - Ensure migrations cleanly create the riverqueue tables.
 
 ═══════════════════════════════════════════════════════════════
-CONTEXT — EXISTING REPO LAYOUT
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
 ═══════════════════════════════════════════════════════════════
 The Registry API lives in `api/`.
 Handlers are in `api/internal/handlers/` and `api/internal/webhook/`.
 Server initialization is in `api/internal/server/`.
+
+⚠️ CRITICAL CONTEXT: CYCLIC IMPORT DANGER ⚠️
+In previous attempts, a cyclic import occurred because `handlers` imported `workers` (to enqueue jobs), and `workers` imported `handlers` (to execute the actual business logic like `PerformCrossRepoCheck` or `GenerateAutofixPatch`).
+To solve this, you MUST extract the core business logic from `handlers` and `webhook` into a newly created `api/internal/services` package.
+- `services` executes the logic. It imports ONLY models, db, and types.
+- `workers` imports `services` to execute jobs.
+- `handlers` imports `workers` to enqueue jobs, OR imports `services` for synchronous tasks.
+Never let `workers` import `handlers`.
 
 ═══════════════════════════════════════════════════════════════
 DELIVERABLES
@@ -32,19 +40,26 @@ DELIVERABLES
 2. FILES: api/migrations/0008_river_queue.up.sql / down.sql
    Add the standard River schema migrations.
 
-3. FILE: api/internal/workers/workers.go (CREATE NEW)
+3. FILE: api/internal/services/ (CREATE NEW PACKAGE)
+   Extract all shared business logic out of `handlers` and into a new `services` package (e.g., `services/cross_repo.go`, `services/sync.go`).
+   Methods to extract include `PerformCrossRepoCheck`, `GenerateAutofixPatch`, and the core logic for webhook push processing.
+   Update the function signatures to accept dependencies (like `context.Context`, `db.Store`, etc.) rather than relying on HTTP request/response objects.
+   **CRITICAL**: Both `handlers` and `workers` must call logic from `services`. Do not allow `workers` to import `handlers`.
+
+4. FILE: api/internal/workers/workers.go (CREATE NEW)
    Define job arguments structs and worker implementations for:
    - `SyncWebhookJob`
    - `PushWebhookJob`
    - `CrossRepoCheckJob`
+   - `EgressWebhookJob`
 
-4. MODIFY: api/internal/server/server.go
+5. MODIFY: api/internal/server/server.go
    Initialize the River client with the `pgxpool`.
    Register the workers on startup.
    Start the River worker pool and ensure graceful shutdown.
 
-5. MODIFY: api/internal/handlers/sync.go & api/internal/webhook/push.go
-   Refactor handlers to insert the corresponding job into River using `riverClient.InsertTx` or `Insert`, and return `202 Accepted` immediately instead of processing synchronously.
+6. MODIFY: api/internal/handlers/sync.go, push.go & api/internal/egress/egress.go
+   Refactor handlers and the egress dispatcher to insert the corresponding job into River using `riverClient.InsertTx` or `Insert`, and return immediately instead of processing synchronously via `go func()`.
 
 ═══════════════════════════════════════════════════════════════
 FILES LIST
@@ -54,6 +69,7 @@ FILES TO CREATE:
 - api/migrations/0008_river_queue.up.sql
 - api/migrations/0008_river_queue.down.sql
 - api/internal/workers/workers.go
+- api/internal/services/*.go (New shared logic package)
 
 FILES TO MODIFY:
 - go.mod
@@ -62,6 +78,7 @@ FILES TO MODIFY:
 - api/internal/handlers/sync.go
 - api/internal/webhook/push.go
 - api/internal/handlers/cross_repo.go
+- api/internal/egress/egress.go
 
 Commit: "feat: P8-T01 implement postgres job queue via river"
 Target branch: feature/dev

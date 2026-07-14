@@ -16,10 +16,11 @@ Create the following worker definitions in `api/internal/workers/`:
 1. **SyncWebhookWorker**: Handles the repository schema sync processing (currently in `SyncHandler`).
 2. **PushWebhookWorker**: Handles GitHub Push events (currently in `webhook.PushHandler`).
 3. **CrossRepoCheckWorker**: Offloads the AI LLM diffing and PR generation to a background task.
+4. **EgressWebhookWorker**: Offloads outbound JSON webhook deliveries, replacing the simple `go func()` in `api/internal/egress`.
 
-### 2.3 API Refactoring
-- Refactor the current HTTP handlers (`SyncHandler`, `PushHandler`, `CrossRepoCheckHandler`) to quickly insert a job into River and return `202 Accepted`.
-- The webhook responder should return immediately, while the workers process the tasks asynchronously.
+### 2.3 API Refactoring & Cyclic Import Prevention
+- **Shared Services Package:** Extract shared business logic (e.g., `PerformCrossRepoCheck`, `GenerateAutofixPatch`) into a new `api/internal/services` package. Both `handlers` and `workers` must import `services` to execute logic. This strictly prevents cyclic import errors where `handlers` imports `workers` to enqueue, and `workers` imports `handlers` to run business logic.
+- **Async Handlers:** Refactor HTTP handlers (`SyncHandler`, `PushHandler`, `CrossRepoCheckHandler`) and the egress dispatcher (`api/internal/egress`) to insert a job into River and return immediately.
 
 ## 3. Implementation Steps
 1. Add `riverqueue` dependencies to `go.mod`.
