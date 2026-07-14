@@ -51,6 +51,9 @@ func NewRouter(store db.Store, riverClient workers.JobEnqueuer, authConfig handl
 	r.Get("/api/v1/auth/github/login", handlers.HandleGitHubLogin(authConfig))
 	r.Get("/api/v1/auth/github/callback", handlers.HandleGitHubCallback(authConfig))
 
+	// Stripe Webhook (unprotected, validates Stripe signature internally)
+	r.Method("POST", "/api/v1/webhooks/stripe", http.HandlerFunc(handlers.StripeWebhookHandler(store)))
+
 	// Protected routes (Service Token only)
 	serviceTokenMW := ServiceTokenMiddleware(registryApiToken)
 	limitsMW := TierLimitsMiddleware(store)

@@ -96,4 +96,6 @@ type Store interface {
 	RegisterWebhook(ctx context.Context, config WebhookConfig) error
 	GetWebhooks(ctx context.Context, org string) ([]WebhookConfig, error)
 	GetROIMetrics(ctx context.Context, orgID string) (ROIMetrics, error)
+	UpdateStripeCustomerID(ctx context.Context, orgID uuid.UUID, stripeID string) error
+	GetBillingStatus(ctx context.Context, orgName string) (time.Time, *string, error)
 }
