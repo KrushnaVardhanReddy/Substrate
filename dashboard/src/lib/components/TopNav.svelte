@@ -2,12 +2,12 @@
 	import { env } from '$env/dynamic/public';
 </script>
 
-<div class="topnav">
+<header class="top-nav">
 	<div class="breadcrumbs">
 		Dashboard / Overview
 	</div>
 	<div class="user-profile">
-		<span>{env.PUBLIC_ORG_NAME}</span>
+		<span style="font-size: 0.9rem; color: var(--text-muted);">{env.PUBLIC_ORG_NAME || 'Demo Org'}</span>
 		<div class="avatar">{env.PUBLIC_ORG_NAME ? env.PUBLIC_ORG_NAME.charAt(0).toUpperCase() : 'M'}</div>
 	</div>
-</div>
+</header>
