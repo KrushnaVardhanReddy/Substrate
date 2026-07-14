@@ -144,3 +144,4 @@
 | **P11-T04** | 🔵 P4 | **Historical Volatility Heatmap** — Add a toggle to color-code the graph by historical breaking changes (Red = frequent breakers, Blue = stable core services). | Unassigned | 💡 Backlog | `(Pending)` |
 | **P11-T05** | ⚪ P5 | **Bird's Eye Mini-Map** — Introduce a Cytoscape navigator widget in the bottom-left corner for maintaining context when zoomed into a localized blast radius on 100+ repo graphs. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P11-T07** | 🚀 P1 | **Visual API Design Studio** — Drag-and-drop OpenAPI designer built directly into the Substrate UI to empower PMs and Architects to design before coding. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P11-T08** | 🤯 P1 | **Substrate WASM Engine (In-Browser Diffing)** — Compile the Go Diff Engine to WebAssembly (`GOOS=js GOARCH=wasm`) so users can test schema breakages instantly in the Svelte dashboard with zero backend latency. | Unassigned | 💡 Backlog | `(Pending)` |
