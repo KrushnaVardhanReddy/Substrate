@@ -78,15 +78,16 @@
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **P8-T01** | 🔴 P1 | **PostgreSQL Job Queue (River)** — Offload synchronous webhook diffing and DB inserts to background workers using a Postgres-backed queue (e.g. `riverqueue/river`). Prevents webhook timeouts while requiring zero extra infrastructure (no Redis). | Unassigned | 💡 Backlog | `(Pending)` |
-| **P8-T02** | 🔴 P1 | **Enterprise Authz (Casbin/OpenFGA)** — Implement strict Role-Based Access Control (RBAC) engine for dashboard and API permissions. | Unassigned | 💡 Backlog | `(Pending)` |
-| **P8-T03** | 🟡 P2 | **CI/CD Cascading Rollback Gate** — `check-rollback` CLI command to block a provider from rolling back in production if a consumer has already deployed code requiring the newer schema. | Unassigned | 💡 Backlog | `(Pending)` |
-| **P8-T04** | 🟢 P3 | **Spotify Backstage Plugin** — Pipe the dependency graph, schema health scores, and API docs directly into Backstage.io developer portals. | Unassigned | 💡 Backlog | `(Pending)` |
-| **P8-T05** | 🔵 P4 | **Distributed Tracing (OpenTelemetry)** — Add OpenTelemetry to trace requests across the GitHub Worker, Go API, and diff engine for waterfall debugging. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P8-T01** | 🔴 P1 | **PostgreSQL Job Queue (River)** — Offload synchronous webhook diffing and DB inserts to background workers using a Postgres-backed queue (e.g. `riverqueue/river`). Prevents webhook timeouts while requiring zero extra infrastructure (no Redis). | Jules | 🔄 In Progress (`2249153567913552821`) | `docs/specs/phase-8/p8-t01-postgres-job-queue.md` |
+| **P8-T02** | 🔴 P1 | **Enterprise Authz (Casbin/OpenFGA)** — Implement strict Role-Based Access Control (RBAC) engine for dashboard and API permissions. | Jules | 🔄 In Progress (`16860328072022987809`) | `docs/specs/phase-8/p8-t02-enterprise-authz.md` |
+| **P8-T03** | 🟡 P2 | **CI/CD Cascading Rollback Gate** — `check-rollback` CLI command to block a provider from rolling back in production if a consumer has already deployed code requiring the newer schema. | Jules | 🔄 In Progress (`10161760435714797360`) | `docs/specs/phase-8/p8-master-plan.md` |
+| **P8-T04** | 🟢 P3 | **Spotify Backstage Plugin** — Pipe the dependency graph, schema health scores, and API docs directly into Backstage.io developer portals. | Jules | 🔄 In Progress (`11086423291438481445`) | `docs/specs/phase-8/p8-master-plan.md` |
+| **P8-T05** | 🔵 P4 | **Distributed Tracing (OpenTelemetry)** — Add OpenTelemetry to trace requests across the GitHub Worker, Go API, and diff engine for waterfall debugging. | Jules | 🔄 In Progress (`13098310404157605532`) | `docs/specs/phase-8/p8-master-plan.md` |
 | **P8-T06** | ⚪ P5 | **Management ROI Dashboard** — A specialized view that calculates the literal engineering hours and monetary value saved by Substrate preventing downstream outages this month. | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
 | **P8-T07** | 🔴 P1 | **Billing & Subscription Engine (Paywall Pause)** — Add `trial_ends_at` to the DB, update the GitHub App to enforce Audit Mode during the 90-day trial, and gracefully pause analysis when the trial expires until Stripe checkout. | Unassigned | 💡 Backlog | `docs/specs/go-to-market-strategy.md` |
-| **P8-T08** | 🔴 P1 | **Single Binary VPC Deployment** — Implement `//go:embed` with SvelteKit `adapter-static` to compile the frontend and backend into a single executable for zero-dependency on-prem deployment. | Unassigned | 💡 Backlog | `(Pending)` |
-| **P8-T09** | 🔴 P1 | **Docker & Helm Enterprise Delivery** — Create a production-ready `Dockerfile` and Helm chart containing the compiled Go API and Svelte frontend for enterprise Kubernetes clusters. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P8-T08** | 🔴 P1 | **Single Binary VPC Deployment** — Implement `//go:embed` with SvelteKit `adapter-static` to compile the frontend and backend into a single executable for zero-dependency on-prem deployment. | Jules | 🔄 In Progress (`8173022098281811460`) | `docs/specs/phase-8/p8-master-plan.md` |
+| **P8-T09** | 🔴 P1 | **Docker & Helm Enterprise Delivery** — Create a production-ready `Dockerfile` and Helm chart containing the compiled Go API and Svelte frontend for enterprise Kubernetes clusters. | Jules | 🔄 In Progress (`3196925160518577806`) | `docs/specs/phase-8/p8-master-plan.md` |
+| **P8-T10** | 🔴 P1 | **Phase 8 E2E Testing** — Test the enterprise readiness components (Job Queue, Authz, Cascading Rollback, Billing) against the real database schema. | Unassigned | 💡 Backlog | `docs/specs/phase-8/p8-t10-e2e-tests.md` |
 
 ---
 

@@ -1,0 +1,28 @@
+TASK: P8-T09 — Docker & Helm Enterprise Delivery
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Provide standard Kubernetes deployment packaging for enterprise self-hosted customers.
+
+Spec (READ ONLY):
+  docs/specs/phase-8/p8-master-plan.md
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: Dockerfile (CREATE NEW in repo root)
+   Multi-stage build:
+   - Stage 1 (Node): Build the SvelteKit dashboard.
+   - Stage 2 (Go): Copy dashboard build output into Go source and build the single binary.
+   - Stage 3 (Alpine/Distroless): Final image containing only the compiled Go binary.
+
+2. DIRECTORY: charts/substrate/ (CREATE NEW)
+   Create a basic Helm chart with:
+   - `deployment.yaml` (Substrate API)
+   - `service.yaml`
+   - `ingress.yaml`
+   - `values.yaml` (Expose SUBSTRATE_DB_URL and GitHub App credentials)
+
+Commit: "feat: P8-T09 author dockerfile and helm chart"
+Target branch: feature/dev

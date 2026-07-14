@@ -1,0 +1,28 @@
+TASK: P8-T08 — Single Binary VPC Deployment
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Enable air-gapped enterprise deployments by compiling the SvelteKit frontend and Go backend into a single executable binary using `//go:embed`.
+
+Spec (READ ONLY):
+  docs/specs/phase-8/p8-master-plan.md
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. MODIFY: dashboard/svelte.config.js
+   Change the adapter to `@sveltejs/adapter-static` so it builds a pure HTML/JS bundle into `dashboard/build`.
+
+2. FILE: api/internal/server/static.go (CREATE NEW)
+   Use `//go:embed ../../../dashboard/build/*` to embed the frontend build output.
+   Create an HTTP handler that serves these static files for any route that doesn't start with `/api/`.
+
+3. MODIFY: api/internal/server/router.go
+   Mount the static file handler at `/` to serve the dashboard.
+
+4. MODIFY: Makefile
+   Update `make build` to run `cd dashboard && npm run build` before running `go build`.
+
+Commit: "feat: P8-T08 embed svelte dashboard into go binary"
+Target branch: feature/dev

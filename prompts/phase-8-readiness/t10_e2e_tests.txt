@@ -1,0 +1,55 @@
+TASK: P8-T10 — Phase 8 E2E Testing
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement a comprehensive E2E test suite for Phase 8 to validate the Enterprise Readiness infrastructure components (River Job Queue, Casbin/OpenFGA Authz, Cascading Rollback Gate, and Billing Engine).
+
+Spec (READ ONLY):
+  docs/specs/phase-8/p8-t10-e2e-tests.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Do NOT use mocks for the database or API. Test against real Postgres database schemas.
+- Ensure the tests can run locally via `make e2e-phase8`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: scripts/e2e/phase8_e2e_test.go (CREATE NEW)
+   Write robust, self-contained tests for the Phase 8 features. 
+   
+   *CRITICAL REQUIREMENT:* Do NOT use generic mock servers. Insert real fixtures directly into the local PostgreSQL database using the `pgx` pool, just like we did in `phase7_e2e_test.go`. Ensure you import `"encoding/json"`.
+
+   Write the following specific test scenarios:
+   
+   **Test 1: Enterprise Authz (RBAC)**
+   - Create a test user JWT with `role: "Read-Only"`.
+   - Issue a `GET /api/v1/org/{org}/webhooks` request with the JWT in the `Authorization: Bearer` header.
+   - Assert the HTTP response is `403 Forbidden`.
+   - Re-issue with `role: "Admin"` and assert `200 OK`.
+
+   **Test 2: Cascading Rollback Gate**
+   - Insert a mock provider and consumer into the DB where the consumer relies on the provider's v2 schema.
+   - Issue a `GET /api/v1/registry/can-rollback?org=Acme&repo=provider&target_sha=v1-old-sha`.
+   - Assert the response is `200 OK` and unmarshals to `{"can_rollback": false, "blocking_consumers": [{"repo": "consumer", "codeowners": ["@team"]}]}`.
+
+   **Test 3: Billing Paywall Pause (Graceful Degradation)**
+   - Insert an organization into the DB where `trial_ends_at` is heavily in the past (e.g., `NOW() - INTERVAL '10 days'`) and `stripe_customer_id` is NULL.
+   - Send a GitHub Push event payload to `POST /api/v1/webhook/push`.
+   - Assert the HTTP response is `202 Accepted` (or similar graceful exit code).
+   - Query the mock GitHub Check Run API (or internal state) to verify that a `neutral` or `action_required` check run was created containing the text "trial has expired", rather than returning a hard `500` or `Exit Code 2`.
+
+   **Test 4: Postgres Job Queue (River)**
+   - Send a valid Push webhook to `POST /api/v1/webhook/push` for an active, paid org.
+   - Assert the response is `202 Accepted`.
+   - Immediately query the `river_job` table using `SELECT state, args FROM river_job WHERE queue = 'default'`.
+   - Assert that a `PushWebhookJob` exists in the table and its `args` contain the correct repository name from the webhook payload.
+
+2. MODIFY: Makefile
+   Add an `e2e-phase8` target that executes:
+   `cd scripts/e2e && go test -v phase8_e2e_test.go`
+
+Commit: "test: P8-T10 implement phase 8 enterprise E2E tests"
+Target branch: feature/dev

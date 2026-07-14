@@ -485,6 +485,58 @@ TASKS = {
         "phase": "phase-7-enterprise",
         "prompt": _load_prompt("prompts/phase-7-enterprise/t07_e2e_tests.txt"),
     },
+
+    # ── Phase 8: Enterprise Readiness & Scale ────────────────────────────────
+    91: {
+        "name": "P8-T01 — PostgreSQL Job Queue (River)",
+        "phase": "phase-8-readiness",
+        "prompt": _load_prompt("prompts/phase-8-readiness/t01_postgres_job_queue.txt"),
+    },
+    92: {
+        "name": "P8-T02 — Enterprise Authz (Casbin/OpenFGA) [Backend]",
+        "phase": "phase-8-readiness",
+        "prompt": _load_prompt("prompts/phase-8-readiness/t02_enterprise_authz.txt"),
+    },
+    96: {
+        "name": "P8-T06 — Management ROI Dashboard [Backend]",
+        "phase": "phase-8-readiness",
+        "prompt": _load_prompt("prompts/phase-8-readiness/t06_roi_dashboard.txt"),
+    },
+    97: {
+        "name": "P8-T07 — Billing & Subscription Engine (Paywall Pause)",
+        "phase": "phase-8-readiness",
+        "prompt": _load_prompt("prompts/phase-8-readiness/t07_billing_engine.txt"),
+    },
+    93: {
+        "name": "P8-T03 — CI/CD Cascading Rollback Gate",
+        "phase": "phase-8-readiness",
+        "prompt": _load_prompt("prompts/phase-8-readiness/t03_cascading_rollback.txt"),
+    },
+    94: {
+        "name": "P8-T04 — Spotify Backstage Plugin",
+        "phase": "phase-8-readiness",
+        "prompt": _load_prompt("prompts/phase-8-readiness/t04_backstage_plugin.txt"),
+    },
+    95: {
+        "name": "P8-T05 — Distributed Tracing (OpenTelemetry)",
+        "phase": "phase-8-readiness",
+        "prompt": _load_prompt("prompts/phase-8-readiness/t05_opentelemetry.txt"),
+    },
+    98: {
+        "name": "P8-T08 — Single Binary VPC Deployment",
+        "phase": "phase-8-readiness",
+        "prompt": _load_prompt("prompts/phase-8-readiness/t08_single_binary.txt"),
+    },
+    99: {
+        "name": "P8-T09 — Docker & Helm Enterprise Delivery",
+        "phase": "phase-8-readiness",
+        "prompt": _load_prompt("prompts/phase-8-readiness/t09_docker_helm.txt"),
+    },
+    100: {
+        "name": "P8-T10 — Phase 8 E2E Testing",
+        "phase": "phase-8-readiness",
+        "prompt": _load_prompt("prompts/phase-8-readiness/t10_e2e_tests.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
