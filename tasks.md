@@ -111,6 +111,8 @@
 | **P9-T10** | 🚀 P1 | **MCP Server WASI Distribution** — Compile the `substrate-mcp` server using `GOOS=wasip1 GOARCH=wasm` to allow secure, sandboxed execution of the MCP server in Claude Desktop or Cursor via Wasmtime/Node.js. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T11** | 🚀 P1 | **Automated Deprecation Campaigns** — Track sunsetting endpoints, auto-open issues in downstream consumer repos, and nag them until 0% usage is reached. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T12** | 🚀 P1 | **Embedded SQLite (LibSQL) Local Caching** — Embed SQLite directly into the CLI and MCP Server to pull background graph updates, enabling sub-millisecond, zero-latency local schema diffs. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P9-T13** | 🟡 P2 | **Embedded Mermaid Blast Radius** — Upgrade the GitHub PR comment bot to render a visual Mermaid.js flowchart of the exact blast radius directly inside the PR, eliminating the need to click away. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P9-T14** | 🟢 P3 | **Ephemeral API Preview URLs** — Generate temporary, shareable Substrate dashboard URLs for PRs so engineers can share proposed schema changes and interactive diffs with frontend teams before merging. | Unassigned | 💡 Backlog | `(Pending)` |
 
 ---
 
@@ -132,6 +134,7 @@
 | **P10-T10** | 🚀 P1 | **Consumer-Driven Contract Manifests** — Allow frontend apps to upload `.substrate-consumer.yaml` declaring required fields, directly competing with PactFlow. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P10-T11** | 🚀 P1 | **Official Terraform Provider** — Build `terraform-provider-substrate` so DevOps teams can manage webhooks, rules, and RBAC policies entirely via Infrastructure-as-Code. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P10-T12** | 🚀 P1 | **Tree-sitter Deterministic Impact Analysis** — Parse downstream consumer repositories using Tree-sitter AST to deterministically pinpoint exactly *which lines of code* are broken by an upstream API change. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P10-T13** | 🔴 P1 | **Integrated API Documentation Catalog** — Evolve the registry into an internal Developer Portal by embedding interactive API reference viewers (like Stoplight Elements or ReDoc) directly into the dashboard. | Unassigned | 💡 Backlog | `(Pending)` |
 
 ---
 
@@ -154,3 +157,4 @@
 | **P11-T12** | 🟡 P2 | **Rich Side-by-Side Diff Viewer** — Build an interactive, syntax-highlighted side-by-side YAML diff viewer in the dashboard to review exact line deletions, mirroring the GitHub PR experience. | Stitch | 💡 Backlog | `(Pending)` |
 | **P11-T13** | 🟢 P3 | **Time-Travel Graph Replay** — Add a timeline scrubber to the bottom of the graph to view the architectural dependencies of the enterprise exactly as they existed on any historical date. | Stitch | 💡 Backlog | `(Pending)` |
 | **P11-T14** | 🔴 P1 | **Premium Aesthetics System** — Overhaul the UI with a strict focus on Enterprise SaaS aesthetics: Deep Dark Mode, Glassmorphism modals, curated HSL color palettes, and edge-flow micro-animations. | Stitch | ⏳ Ready to Start | `(Pending)` |
+| **P11-T15** | 🔴 P1 | **Zero-to-One Onboarding Wizard** — Create a frictionless, animated onboarding wizard (Connect GitHub → Scan Repos → Build Graph) to guarantee a flawless 5-minute enterprise onboarding experience. | Stitch | ⏳ Ready to Start | `(Pending)` |
