@@ -11,7 +11,7 @@ Spec (READ ONLY):
 ═══════════════════════════════════════════════════════════════
 CONSTRAINTS & RULES
 ═══════════════════════════════════════════════════════════════
-- Do NOT use mocks for the database or API. Test against real Postgres database schemas.
+- Do NOT use mocks for the database or API. Test against real Postgres database schemas using `testcontainers-go`.
 - Ensure the tests can run locally via `make e2e-phase8`.
 
 ═══════════════════════════════════════════════════════════════
@@ -20,7 +20,7 @@ DELIVERABLES
 1. FILE: scripts/e2e/phase8_e2e_test.go (CREATE NEW)
    Write robust, self-contained tests for the Phase 8 features. 
    
-   *CRITICAL REQUIREMENT:* Do NOT use generic mock servers. Insert real fixtures directly into the local PostgreSQL database using the `pgx` pool, just like we did in `phase7_e2e_test.go`. Ensure you import `"encoding/json"`.
+   *CRITICAL REQUIREMENT:* Do NOT use generic mock servers for the Substrate Go API or PostgreSQL. You MUST use `testcontainers-go` to spin up a real Postgres DB, initialize the Go API, and initialize the River worker pool on dynamic local ports. Insert real fixtures directly into the DB using `pgx`.
 
    Write the following specific test scenarios:
    
@@ -32,8 +32,8 @@ DELIVERABLES
 
    **Test 2: Cascading Rollback Gate**
    - Insert a mock provider and consumer into the DB where the consumer relies on the provider's v2 schema.
-   - Issue a `GET /api/v1/registry/can-rollback?org=Acme&repo=provider&target_sha=v1-old-sha`.
-   - Assert the response is `200 OK` and unmarshals to `{"can_rollback": false, "blocking_consumers": [{"repo": "consumer", "codeowners": ["@team"]}]}`.
+   - Execute the `substrate check-rollback` CLI command (or the equivalent Go API `GET /api/v1/registry/can-rollback` endpoint).
+   - Assert the response fails/blocks the deployment, returning the list of active consumers using the v2 schema.
 
    **Test 3: Billing Paywall Pause (Graceful Degradation)**
    - Insert an organization into the DB where `trial_ends_at` is heavily in the past (e.g., `NOW() - INTERVAL '10 days'`) and `stripe_customer_id` is NULL.
@@ -41,11 +41,12 @@ DELIVERABLES
    - Assert the HTTP response is `202 Accepted` (or similar graceful exit code).
    - Query the mock GitHub Check Run API (or internal state) to verify that a `neutral` or `action_required` check run was created containing the text "trial has expired", rather than returning a hard `500` or `Exit Code 2`.
 
-   **Test 4: Postgres Job Queue (River)**
-   - Send a valid Push webhook to `POST /api/v1/webhook/push` for an active, paid org.
-   - Assert the response is `202 Accepted`.
-   - Immediately query the `river_job` table using `SELECT state, args FROM river_job WHERE queue = 'default'`.
-   - Assert that a `PushWebhookJob` exists in the table and its `args` contain the correct repository name from the webhook payload.
+   **Test 4: Postgres Job Queue (River) & Webhook Egress**
+   - Spin up a fast local HTTP server in the test to act as a target for the Webhook Egress.
+   - Send a breaking change payload to `POST /api/v1/diff`.
+   - Assert the response is `202 Accepted` immediately.
+   - Wait for the River background worker to process the job. Query `river_job` to ensure `EgressWebhookJob` completed.
+   - Assert that your local HTTP server received the JSON payload with a valid `X-Hub-Signature-256` HMAC.
 
 2. MODIFY: Makefile
    Add an `e2e-phase8` target that executes:
