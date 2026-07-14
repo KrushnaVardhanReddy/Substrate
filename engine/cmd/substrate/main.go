@@ -335,6 +335,7 @@ func main() {
 	rootCmd.AddCommand(generateTestsCmd)
 	rootCmd.AddCommand(mockCmd)
 	rootCmd.AddCommand(checkDeployCmd)
+	rootCmd.AddCommand(checkRollbackCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
