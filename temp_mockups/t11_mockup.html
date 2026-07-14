@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Command Palette</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-tertiary-fixed-variant": "#414756",
+                      "secondary": "#c3c6d5",
+                      "primary-fixed": "#68fadd",
+                      "on-primary-fixed": "#00201a",
+                      "surface-tint": "#44ddc1",
+                      "surface-container": "#1e1f26",
+                      "secondary-fixed-dim": "#c3c6d5",
+                      "on-primary-fixed-variant": "#005145",
+                      "surface-container-high": "#282a30",
+                      "on-background": "#e2e2eb",
+                      "surface-bright": "#373940",
+                      "tertiary-fixed": "#dde2f6",
+                      "primary": "#44ddc1",
+                      "outline-variant": "#3c4a46",
+                      "surface-container-low": "#191b22",
+                      "surface": "#111319",
+                      "surface-dim": "#111319",
+                      "on-primary": "#00382f",
+                      "surface-variant": "#33343b",
+                      "on-surface": "#e2e2eb",
+                      "on-secondary": "#2c303c",
+                      "on-tertiary-container": "#383e4d",
+                      "background": "#111319",
+                      "tertiary": "#c1c6d9",
+                      "on-secondary-fixed": "#171b26",
+                      "on-error": "#690005",
+                      "on-tertiary-fixed": "#151b29",
+                      "primary-container": "#00bfa5",
+                      "on-secondary-container": "#b1b4c3",
+                      "primary-fixed-dim": "#44ddc1",
+                      "tertiary-container": "#a4a9bc",
+                      "surface-container-highest": "#33343b",
+                      "secondary-container": "#434653",
+                      "error-container": "#93000a",
+                      "on-tertiary": "#2a303f",
+                      "on-surface-variant": "#bbcac4",
+                      "on-primary-container": "#00473c",
+                      "inverse-surface": "#e2e2eb",
+                      "on-error-container": "#ffdad6",
+                      "outline": "#85948f",
+                      "error": "#ffb4ab",
+                      "tertiary-fixed-dim": "#c1c6d9",
+                      "on-secondary-fixed-variant": "#434653",
+                      "inverse-primary": "#006b5c",
+                      "surface-container-lowest": "#0c0e14",
+                      "secondary-fixed": "#dfe2f1",
+                      "inverse-on-surface": "#2e3037"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "stack-xs": "4px",
+                      "stack-md": "16px",
+                      "stack-lg": "24px",
+                      "stack-sm": "8px",
+                      "sidebar-width": "260px",
+                      "header-height": "64px",
+                      "margin-desktop": "32px",
+                      "gutter": "24px",
+                      "margin-mobile": "16px"
+              },
+              "fontFamily": {
+                      "display": [
+                              "Inter"
+                      ],
+                      "headline-lg-mobile": [
+                              "Inter"
+                      ],
+                      "title-lg": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "title-md": [
+                              "Inter"
+                      ],
+                      "headline-lg": [
+                              "Inter"
+                      ],
+                      "label-md": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "code": [
+                              "JetBrains Mono"
+                      ],
+                      "headline-md": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "display": [
+                              "48px",
+                              {
+                                      "lineHeight": "56px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "title-lg": [
+                              "20px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "title-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-md": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "body-lg": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "code": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24
+        }
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #33343b; /* surface-variant */
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen relative overflow-hidden flex items-center justify-center p-4">
+<!-- Synthetic Background for context (pretend app underneath) -->
+<div class="absolute inset-0 z-0 bg-surface flex flex-col p-8 opacity-40">
+<div class="h-8 w-48 bg-surface-container rounded-lg mb-8"></div>
+<div class="grid grid-cols-3 gap-6">
+<div class="h-64 bg-surface-container rounded-xl"></div>
+<div class="h-64 bg-surface-container rounded-xl"></div>
+<div class="h-64 bg-surface-container rounded-xl"></div>
+</div>
+</div>
+<!-- Modal Overlay Backdrop -->
+<div class="fixed inset-0 z-40 bg-surface/80 backdrop-blur-md transition-opacity"></div>
+<!-- Command Palette Modal -->
+<div class="relative z-50 w-full max-w-2xl bg-[#252A37] border border-outline-variant rounded-xl overflow-hidden shadow-[0_0_60px_-15px_rgba(0,191,165,0.05),0_20px_40px_-20px_rgba(0,0,0,0.5)] flex flex-col h-[500px]">
+<!-- Search Input Area -->
+<div class="flex items-center px-6 py-4 border-b border-outline-variant bg-[#252A37]">
+<span class="material-symbols-outlined text-on-surface-variant mr-3 text-[24px]">search</span>
+<input autofocus="" class="flex-1 bg-transparent border-none outline-none text-on-surface font-title-md text-title-md placeholder-on-surface-variant/50 focus:ring-0 p-0" placeholder="Search for commands or files..." type="text"/>
+</div>
+<!-- Scrollable Results List -->
+<div class="flex-1 overflow-y-auto p-2">
+<!-- Section: Recent -->
+<div class="px-4 py-2 mt-2">
+<h3 class="text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">Recent</h3>
+</div>
+<div class="space-y-1">
+<!-- Highlighted Result (Active) -->
+<div class="flex items-center justify-between px-4 py-3 rounded-lg bg-primary-container/10 border-l-2 border-primary cursor-pointer group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-[20px]" style="font-variation-settings: 'FILL' 1;">folder_open</span>
+<span class="text-primary font-body-md text-body-md font-medium">Open Project</span>
+</div>
+<div class="flex items-center gap-1">
+<kbd class="px-2 py-1 bg-surface-container-high rounded text-on-surface-variant font-code text-[11px] shadow-sm border border-outline-variant/30 group-hover:border-primary/30 group-hover:text-primary transition-colors">⌘</kbd>
+<kbd class="px-2 py-1 bg-surface-container-high rounded text-on-surface-variant font-code text-[11px] shadow-sm border border-outline-variant/30 group-hover:border-primary/30 group-hover:text-primary transition-colors">O</kbd>
+</div>
+</div>
+<!-- Normal Result 1 -->
+<div class="flex items-center justify-between px-4 py-3 rounded-lg hover:bg-surface-bright/50 cursor-pointer border-l-2 border-transparent transition-colors group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px] group-hover:text-on-surface">add_circle</span>
+<span class="text-on-surface font-body-md text-body-md group-hover:text-on-surface transition-colors">Create New Node</span>
+</div>
+<div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<kbd class="px-2 py-1 bg-surface-container rounded text-on-surface-variant font-code text-[11px] border border-outline-variant/30">⌘</kbd>
+<kbd class="px-2 py-1 bg-surface-container rounded text-on-surface-variant font-code text-[11px] border border-outline-variant/30">N</kbd>
+</div>
+</div>
+</div>
+<!-- Section: Actions -->
+<div class="px-4 py-2 mt-4">
+<h3 class="text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">Actions</h3>
+</div>
+<div class="space-y-1">
+<!-- Normal Result 2 -->
+<div class="flex items-center justify-between px-4 py-3 rounded-lg hover:bg-surface-bright/50 cursor-pointer border-l-2 border-transparent transition-colors group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px] group-hover:text-on-surface">insights</span>
+<span class="text-on-surface font-body-md text-body-md group-hover:text-on-surface transition-colors">View Analytics</span>
+</div>
+<div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<kbd class="px-2 py-1 bg-surface-container rounded text-on-surface-variant font-code text-[11px] border border-outline-variant/30">⇧</kbd>
+<kbd class="px-2 py-1 bg-surface-container rounded text-on-surface-variant font-code text-[11px] border border-outline-variant/30">A</kbd>
+</div>
+</div>
+<!-- Normal Result 3 -->
+<div class="flex items-center justify-between px-4 py-3 rounded-lg hover:bg-surface-bright/50 cursor-pointer border-l-2 border-transparent transition-colors group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px] group-hover:text-on-surface">settings</span>
+<span class="text-on-surface font-body-md text-body-md group-hover:text-on-surface transition-colors">System Settings</span>
+</div>
+<div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<kbd class="px-2 py-1 bg-surface-container rounded text-on-surface-variant font-code text-[11px] border border-outline-variant/30">⌘</kbd>
+<kbd class="px-2 py-1 bg-surface-container rounded text-on-surface-variant font-code text-[11px] border border-outline-variant/30">,</kbd>
+</div>
+</div>
+<!-- Normal Result 4 -->
+<div class="flex items-center justify-between px-4 py-3 rounded-lg hover:bg-surface-bright/50 cursor-pointer border-l-2 border-transparent transition-colors group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px] group-hover:text-on-surface">group</span>
+<span class="text-on-surface font-body-md text-body-md group-hover:text-on-surface transition-colors">Manage Team</span>
+</div>
+</div>
+</div>
+<!-- Section: Files -->
+<div class="px-4 py-2 mt-4">
+<h3 class="text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">Files</h3>
+</div>
+<div class="space-y-1 mb-4">
+<!-- Normal Result 5 -->
+<div class="flex items-center justify-between px-4 py-3 rounded-lg hover:bg-surface-bright/50 cursor-pointer border-l-2 border-transparent transition-colors group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px] group-hover:text-on-surface">description</span>
+<span class="text-on-surface font-body-md text-body-md group-hover:text-on-surface transition-colors">Q3_Report_Final.pdf</span>
+</div>
+<span class="text-on-surface-variant font-label-md text-label-md opacity-0 group-hover:opacity-100 transition-opacity">PDF</span>
+</div>
+<!-- Normal Result 6 -->
+<div class="flex items-center justify-between px-4 py-3 rounded-lg hover:bg-surface-bright/50 cursor-pointer border-l-2 border-transparent transition-colors group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px] group-hover:text-on-surface">image</span>
+<span class="text-on-surface font-body-md text-body-md group-hover:text-on-surface transition-colors">Hero_Asset_v2.png</span>
+</div>
+<span class="text-on-surface-variant font-label-md text-label-md opacity-0 group-hover:opacity-100 transition-opacity">PNG</span>
+</div>
+</div>
+</div>
+<!-- Footer -->
+<div class="flex items-center justify-between px-4 py-3 border-t border-outline-variant bg-[#1E222D]">
+<div class="text-on-surface-variant font-label-md text-label-md">
+                12 Results
+            </div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2">
+<kbd class="px-1.5 py-0.5 bg-surface-container rounded text-on-surface-variant font-code text-[10px] border border-outline-variant/30">↑</kbd>
+<kbd class="px-1.5 py-0.5 bg-surface-container rounded text-on-surface-variant font-code text-[10px] border border-outline-variant/30">↓</kbd>
+<span class="text-on-surface-variant font-label-md text-[10px]">Navigate</span>
+</div>
+<div class="flex items-center gap-2">
+<kbd class="px-2 py-0.5 bg-surface-container rounded text-on-surface-variant font-code text-[10px] border border-outline-variant/30">↵</kbd>
+<span class="text-on-surface-variant font-label-md text-[10px]">Select</span>
+</div>
+<div class="flex items-center gap-2">
+<kbd class="px-2 py-0.5 bg-surface-container rounded text-on-surface-variant font-code text-[10px] border border-outline-variant/30">esc</kbd>
+<span class="text-on-surface-variant font-label-md text-[10px]">Close</span>
+</div>
+</div>
+</div>
+</div>
+</body></html>
