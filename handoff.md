@@ -22,8 +22,5 @@ The following PRs are currently being built by Jules. When you return tomorrow, 
 
 ## Next Steps for Tomorrow
 1. **Review & Merge:** Check the generated PRs for the tasks listed above. Merge the successful ones and resolve any potential merge conflicts (specifically between the backend tasks).
-2. **Trigger Batch 2:** Once the Authz (T02) and Job Queue (T01) tasks are merged, we can trigger the final two Phase 8 tasks which depend on them:
-   - `python3 scripts/jules_submit.py --task 96` (P8-T06 - ROI Dashboard)
-   - `python3 scripts/jules_submit.py --task 97` (P8-T07 - Billing Engine)
-   - `python3 scripts/jules_submit.py --task 100` (P8-T10 - Phase 8 E2E Testing)
+2. **Trigger Batch 2:** Authz (T02) and Job Queue (T01) tasks are merged. The final Phase 8 tasks (P8-T06, P8-T07, P8-T10) have now also been successfully validated and merged!
 3. **UI Implementation:** Start allocating the frontend components (like the ROI Dashboard Widget and the Backstage plugin visualization) to the Stitch agent using `stitch_submit.py`.
