@@ -247,7 +247,7 @@ func main() {
 				os.Exit(0)
 			} else if finalMode == "audit" {
 				if rep.Summary.BreakingCount > 0 {
-					fmt.Println("[AUDIT MODE] Breaking changes detected, but exiting with 0 to allow merge.")
+					fmt.Fprintln(os.Stderr, "[AUDIT MODE] Breaking changes detected, but exiting with 0 to allow merge.")
 				}
 				os.Exit(0)
 			} else {

@@ -3,6 +3,7 @@ package validator
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -91,8 +92,17 @@ func (v *Validator) fetchSchema(ctx context.Context) {
 		return
 	}
 
+	type schemaResponse struct {
+		Schema string `json:"schema"`
+	}
+	var sr schemaResponse
+	if err := json.Unmarshal(body, &sr); err != nil {
+		log.Printf("failed to unmarshal schema response: %v", err)
+		return
+	}
+
 	loader := openapi3.NewLoader()
-	doc, err := loader.LoadFromData(body)
+	doc, err := loader.LoadFromData([]byte(sr.Schema))
 	if err != nil {
 		log.Printf("failed to parse schema: %v", err)
 		return

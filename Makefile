@@ -257,3 +257,7 @@ e2e-scale: check-token
 e2e-v1: check-token
 	@echo "Running V1.0 System E2E Tests..."
 	cd scripts/e2e && go test -v v1_e2e_test.go
+
+e2e-phase7: check-token
+	@echo "Running Phase 7 Enterprise E2E Tests..."
+	cd scripts/e2e && go test -v phase7_e2e_test.go
