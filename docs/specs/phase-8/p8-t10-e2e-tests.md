@@ -3,7 +3,7 @@
 ## Overview
 Phase 8 introduces complex backend infrastructure required for Enterprise Scale: a Postgres-backed Job Queue, strict RBAC authorization, and critical deployment safety gates. Similar to Phase 7, this E2E suite enforces a **"No Mocks"** policy for core services.
 
-This test suite spins up the real Substrate Go API, the real PostgreSQL database, and the real River Job Queue workers via `testcontainers-go` to guarantee that all enterprise infrastructure components function seamlessly together in a production-like environment.
+This test suite runs against the real Substrate Go API and the real PostgreSQL database running locally via `make start-bg`. It intentionally avoids `testcontainers-go` (matching Phase 7) to prevent local Docker/Podman daemon socket issues across diverse developer environments.
 
 ## Test Scenarios
 
@@ -39,11 +39,11 @@ This test suite spins up the real Substrate Go API, the real PostgreSQL database
 **Steps:**
 1. Manually update the database fixture for `acme-corp` to set `trial_ends_at` to a date in the past (e.g., 2020-01-01).
 2. Submit a destructive breaking change schema for an API owned by `acme-corp`.
-3. **Assert:** The Diff Engine bypasses blocking rules and returns `0` (Success).
-4. **Assert:** The payload response or HTTP header includes a clear warning: `Trial Expired - Substrate is running in Audit Mode`.
+3. **Assert:** The Diff Engine bypasses blocking rules and returns `202 Accepted`.
+4. **Assert:** The payload response is a JSON object with `{"status": "paused_due_to_billing"}`, gracefully pausing execution.
 
 ## Execution Protocol
-- **Infrastructure:** The test framework must use `testcontainers-go` or local Docker to spin up a real PostgreSQL instance (with River tables applied).
-- **Service Lifecycles:** The Go API and River worker pool must be initialized together and bound to dynamic local ports.
+- **Infrastructure:** The test framework relies on the background services being spun up natively via `make start-bg` (or `make postgres` and `make api`).
+- **Service Lifecycles:** The tests connect to `localhost:5432` for the database and `localhost:8090` for the API, verifying `/health` before proceeding.
 - **Database Teardown:** The database must be cleanly truncated or destroyed between test scenarios to prevent state pollution.
 - **Execution Command:** The entire phase 8 E2E suite can be executed via `make e2e-phase8`.

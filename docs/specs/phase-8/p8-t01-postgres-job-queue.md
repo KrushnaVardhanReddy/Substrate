@@ -27,4 +27,4 @@ Create the following worker definitions in `api/internal/workers/`:
 2. Generate and apply River Postgres migrations.
 3. Implement `workers.go` to register all River job structs and workers.
 4. Refactor API endpoints to enqueue jobs instead of synchronous execution.
-5. Update `cmd/substrate-api/main.go` to start the River worker pool alongside the HTTP server.
+5. Update `cmd/substrate-api/main.go` to start the River worker pool alongside the HTTP server. **CRITICAL:** You must pass an infinite context (e.g., `context.Background()`) to `riverClient.Start()`. Do NOT pass a startup timeout context, as River ties the worker lifecycle to this context and will silently terminate all workers when the timeout expires.
