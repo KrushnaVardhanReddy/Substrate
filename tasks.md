@@ -97,6 +97,7 @@
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
+| **P9-T00** | 🚀 P1 | **GitHub Marketplace Launch (Public Wrapper)** — Create the `substrate-action` public wrapper repository, write the marketing README, and officially publish to the GitHub Marketplace. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T01** | 🔴 P1 | **Shift-Left IDE Plugins** — VSCode/IntelliJ extensions powered by the MCP server to underline breaking changes as the developer types. | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
 | **P9-T02** | 🟡 P2 | **Continuous AI Sync (`watch`)** — Background daemon that monitors code changes in the IDE and updates the local OpenAPI spec in real-time. | Unassigned | 💡 Backlog | `docs/specs/go-to-market-strategy.md` |
 | **P9-T03** | 🟢 P3 | **Compliance Mapping** — Auto-tag schemas with SOC2/GDPR/HIPAA warnings when fields like `ssn` or `medical_history` are detected. | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
@@ -106,7 +107,6 @@
 | **P9-T07** | 🔴 P1 | **AI Migration Planner** — Upgrade AI Autofix to generate safe, multi-step migration plans for complex schema/database changes with minimal downtime. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T08** | 🟡 P2 | **Deployment Risk Scoring** — Synthesize breaking change data, infrastructure changes, and downstream blast radius into a holistic "Deployment Risk Score". | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T09** | 🟢 P3 | **AI Impact Analysis Summaries** — Pass cross-repo blast radius checks to the AI handler to generate a plain-English impact summary on PRs. | Unassigned | 💡 Backlog | `(Pending)` |
-| **P9-T10** | 🔵 P4 | **Live Documentation Generator** — Auto-generate live developer portals and Mermaid architecture diagrams from Substrate's live schema/graph metadata. | Unassigned | 💡 Backlog | `(Pending)` |
 
 ---
 
@@ -123,6 +123,7 @@
 | **P10-T05** | ⚪ P5 | **Auto-SDK Generator PRs** — Automatically generate TypeScript/Swift/Go clients via OpenAPI Generator when a schema is merged, opening PRs directly in the downstream consumer repos. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P10-T06** | ⚪ P6 | **Traffic-Aware Pruning (Zombies)** — Correlate schema endpoints with live Datadog/OTel metrics to detect unused "zombie" APIs and auto-generate PRs to delete the dead code. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P10-T07** | 🟣 P1 | **MCP Runtime Diffing** — Spin up Model Context Protocol (MCP) servers in a sandbox during CI/CD to dynamically diff `tools/list` and block AI agent breaking changes. | Unassigned | 💡 Backlog | `docs/specs/phase-10/p10-t06-mcp-diffing.md` |
+| **P10-T08** | 🔵 P4 | **Live Documentation Generator** — Auto-generate live developer portals and Mermaid architecture diagrams from Substrate's live schema/graph metadata. | Unassigned | 💡 Backlog | `(Pending)` |
 
 ---
 
@@ -137,4 +138,3 @@
 | **P11-T03** | 🟢 P3 | **Interactive Edge Tooltips** — Hovering over a dependency edge reveals a tooltip showing exactly which endpoints/contracts are being consumed (e.g., `GET /api/v1/customers`). | Unassigned | 💡 Backlog | `(Pending)` |
 | **P11-T04** | 🔵 P4 | **Historical Volatility Heatmap** — Add a toggle to color-code the graph by historical breaking changes (Red = frequent breakers, Blue = stable core services). | Unassigned | 💡 Backlog | `(Pending)` |
 | **P11-T05** | ⚪ P5 | **Bird's Eye Mini-Map** — Introduce a Cytoscape navigator widget in the bottom-left corner for maintaining context when zoomed into a localized blast radius on 100+ repo graphs. | Unassigned | 💡 Backlog | `(Pending)` |
-| **P11-T06** | 🚀 P1 | **GitHub Marketplace Launch (Public Wrapper)** — Create the `substrate-action` public wrapper repository, write the marketing README, and officially publish to the GitHub Marketplace. | Unassigned | 💡 Backlog | `(Pending)` |
