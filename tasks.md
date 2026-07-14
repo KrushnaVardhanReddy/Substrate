@@ -64,9 +64,9 @@
 | **P7-T00** | 🔴 P1 | **Zero-Config Org Rollout** — Run engine without `substrate.yaml`, read global `substrate-org.yaml` from `.github` repo, and globally enforce via Dashboard. | Jules | ✅ Complete | `docs/specs/phase-7/zero-config-org-rollout.md` |
 | **P7-T01** | 🔴 P1 | **Enterprise Webhook & Event Egress** — Emit a standardized JSON event whenever a contract is broken to trigger enterprise ITSM workflows (ServiceNow, AWS EventBridge, etc.). | Jules | ✅ Complete | `docs/specs/phase-7/p7-t01-webhook-egress.md` |
 | **P7-T02** | 🟡 P2 | **Targeted Notifications (Slack/Teams)** — *CANCELLED:* Redundant. Enterprises prefer using the Webhook Egress (T01) to pipe alerts into Datadog/PagerDuty rather than rogue Slack apps. | Unassigned | ❌ Cancelled | `(Removed)` |
-| **P7-T03** | 🟢 P3 | **Custom Rules Engine (CEL/OPA)** — Let enterprises define custom schema rules (e.g., "All APIs must have an X-Correlation-ID header") in `substrate.yaml`. | Jules | ✅ Complete | `docs/specs/phase-7/p7-t03-custom-rules-engine.md` |
+| **P7-T03** | 🟢 P3 | **WASM Custom Rules Engine (Wazero)** — Let enterprises define custom schema diffing and governance rules in any language (Rust/Go/TS), compiled to WebAssembly and executed securely via Wazero. | Unassigned | 💡 Backlog | `docs/specs/phase-7/p7-t03-custom-rules-engine.md` |
 | **P7-T04** | 🔵 P4 | **Cross-Repo Auto-Fix PRs** — Use an LLM to automatically generate a draft PR in the downstream consumer repo to fix the breaking dependency. | Jules | ✅ Complete | `docs/specs/phase-7/p7-t04-cross-repo-autofix.md` |
-| **P7-T05** | ⚪ P5 | **Runtime Drift Detection (eBPF/Envoy)** — Deploy a sidecar to sample 1% of live API traffic and compare it against the Substrate registry to detect un-documented payloads. | Jules | ✅ Complete | `docs/specs/phase-7/p7-t05-runtime-drift-detection.md` |
+| **P7-T05** | ⚪ P5 | **Zero-Instrumentation Drift Detection (eBPF)** — Deploy a lightweight eBPF probe (via `cilium/ebpf`) to passively monitor kernel-level HTTP traffic and detect undocumented schema payloads with near-zero overhead. | Unassigned | 💡 Backlog | `docs/specs/phase-7/p7-t05-runtime-drift-detection.md` |
 | **P7-T06** | 🔴 P1 | **Audit Mode (Shadow Mode)** — Allow enterprises to deploy Substrate without blocking PRs. Substrate comments on PRs and logs cross-repo breaks to the dashboard, providing proof of ROI before switching to blocking mode. | Jules | ✅ Complete | `docs/specs/phase-7/audit-mode-rollout.md` |
 | **P7-T07** | 🔴 P1 | **Phase 7 E2E Testing** — Strictly "No Mocks" E2E tests for the enterprise features running against real DB and Go API instances. | Jules | ✅ Complete | `docs/specs/phase-7/e2e-spec.md` |
 
@@ -110,6 +110,7 @@
 | **P9-T09** | 🟢 P3 | **AI Impact Analysis Summaries** — Pass cross-repo blast radius checks to the AI handler to generate a plain-English impact summary on PRs. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T10** | 🚀 P1 | **MCP Server WASI Distribution** — Compile the `substrate-mcp` server using `GOOS=wasip1 GOARCH=wasm` to allow secure, sandboxed execution of the MCP server in Claude Desktop or Cursor via Wasmtime/Node.js. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T11** | 🚀 P1 | **Automated Deprecation Campaigns** — Track sunsetting endpoints, auto-open issues in downstream consumer repos, and nag them until 0% usage is reached. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P9-T12** | 🚀 P1 | **Embedded SQLite (LibSQL) Local Caching** — Embed SQLite directly into the CLI and MCP Server to pull background graph updates, enabling sub-millisecond, zero-latency local schema diffs. | Unassigned | 💡 Backlog | `(Pending)` |
 
 ---
 
@@ -130,6 +131,7 @@
 | **P10-T09** | 🚀 P1 | **Protobuf & gRPC Schema Registry** — Add native support for parsing, diffing, and visualizing Protobufs to capture backend-to-backend enterprise microservices. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P10-T10** | 🚀 P1 | **Consumer-Driven Contract Manifests** — Allow frontend apps to upload `.substrate-consumer.yaml` declaring required fields, directly competing with PactFlow. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P10-T11** | 🚀 P1 | **Official Terraform Provider** — Build `terraform-provider-substrate` so DevOps teams can manage webhooks, rules, and RBAC policies entirely via Infrastructure-as-Code. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P10-T12** | 🚀 P1 | **Tree-sitter Deterministic Impact Analysis** — Parse downstream consumer repositories using Tree-sitter AST to deterministically pinpoint exactly *which lines of code* are broken by an upstream API change. | Unassigned | 💡 Backlog | `(Pending)` |
 
 ---
 
@@ -146,3 +148,4 @@
 | **P11-T05** | ⚪ P5 | **Bird's Eye Mini-Map** — Introduce a Cytoscape navigator widget in the bottom-left corner for maintaining context when zoomed into a localized blast radius on 100+ repo graphs. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P11-T07** | 🚀 P1 | **Visual API Design Studio** — Drag-and-drop OpenAPI designer built directly into the Substrate UI to empower PMs and Architects to design before coding. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P11-T08** | 🤯 P1 | **Substrate WASM Engine (In-Browser Diffing)** — Compile the Go Diff Engine to WebAssembly (`GOOS=js GOARCH=wasm`) so users can test schema breakages instantly in the Svelte dashboard with zero backend latency. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P11-T09** | 🚀 P1 | **Server-Sent Events (SSE) Real-Time UI** — Stream real-time cross-repo diff results from the River queue directly to the Cytoscape dashboard via SSE and Go channels, eliminating UI polling. | Unassigned | 💡 Backlog | `(Pending)` |
