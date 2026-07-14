@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/services"
 )
 
 type CanRollbackResponse struct {
@@ -66,7 +67,7 @@ func CanRollbackHandler(store db.Store) http.HandlerFunc {
 			return
 		}
 
-		req := CrossRepoCheckRequest{
+		req := services.CrossRepoCheckRequest{
 			InstallationID:    0,
 			Org:               org,
 			ProviderRepo:      providerFullName,
@@ -74,7 +75,7 @@ func CanRollbackHandler(store db.Store) http.HandlerFunc {
 			SchemaType:        targetSchemaType,
 		}
 
-		checkResponse, err := PerformCrossRepoCheck(ctx, store, req)
+		checkResponse, err := services.PerformCrossRepoCheck(ctx, store, req)
 		if err != nil {
 			sendRollbackJSONError(w, "failed to perform cross repo check", http.StatusInternalServerError)
 			return

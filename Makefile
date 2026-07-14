@@ -54,7 +54,7 @@ postgres:
 	docker rm -f substrate-postgres || true && docker run --name substrate-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=substrate -p 5432:5432 -d docker.io/library/postgres:15
 
 build:
-	cd dashboard && npm run build
+	cd dashboard && npm install && npm run build
 	rm -rf api/internal/server/dashboard_build
 	cp -r dashboard/build api/internal/server/dashboard_build
 
@@ -266,3 +266,7 @@ e2e-v1: check-token
 e2e-phase7: check-token
 	@echo "Running Phase 7 Enterprise E2E Tests..."
 	cd scripts/e2e && go test -v phase7_e2e_test.go
+
+e2e-phase8: check-token
+	@echo "Running Phase 8 Enterprise Readiness Tests..."
+	cd scripts/e2e && go test -v phase8_e2e_test.go
