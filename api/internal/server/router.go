@@ -81,5 +81,7 @@ func NewRouter(store db.Store, authConfig handlers.AuthConfig, registryApiToken,
 	r.Get("/api/v1/diff/{id}", handlers.GetDiffHandler(store))
 
 	// Webhook for Postman integrations
+
+	ServeDashboard(r)
 	return r
 }
