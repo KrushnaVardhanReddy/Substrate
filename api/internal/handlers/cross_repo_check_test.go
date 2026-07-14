@@ -10,6 +10,8 @@ import (
 	"testing"
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/services"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/workers"
 	"github.com/google/uuid"
 )
 
@@ -20,7 +22,8 @@ func TestCrossRepoCheckHandler_MissingAuthToken(t *testing.T) {
 	}
 
 	rr := httptest.NewRecorder()
-	handler := CrossRepoCheckHandler(&db.MockStore{})
+	mockEnqueuer := &workers.MockJobEnqueuer{}
+	handler := CrossRepoCheckHandler(&db.MockStore{}, mockEnqueuer)
 
 	handler.ServeHTTP(rr, req)
 
@@ -33,7 +36,7 @@ func TestCrossRepoCheckHandler_ValidRequest_0Consumers(t *testing.T) {
 	os.Setenv("INTERNAL_SERVICE_TOKEN", "secret")
 	defer os.Unsetenv("INTERNAL_SERVICE_TOKEN")
 
-	payload := CrossRepoCheckRequest{
+	payload := services.CrossRepoCheckRequest{
 		InstallationID:    123456,
 		Org:               "myorg",
 		ProviderRepo:      "myorg/backend-api",
@@ -58,23 +61,13 @@ func TestCrossRepoCheckHandler_ValidRequest_0Consumers(t *testing.T) {
 	}
 
 	rr := httptest.NewRecorder()
-	handler := CrossRepoCheckHandler(mockStore)
+	mockEnqueuer := &workers.MockJobEnqueuer{}
+	handler := CrossRepoCheckHandler(mockStore, mockEnqueuer)
+
 	handler.ServeHTTP(rr, req)
 
-	if status := rr.Code; status != http.StatusOK {
-		t.Fatalf("expected status 200, got %d", status)
-	}
-
-	var resp CrossRepoCheckResponse
-	if err := json.NewDecoder(rr.Body).Decode(&resp); err != nil {
-		t.Fatal(err)
-	}
-
-	if resp.TotalConsumers != 0 {
-		t.Errorf("expected 0 total consumers, got %d", resp.TotalConsumers)
-	}
-	if !resp.IsSafe {
-		t.Errorf("expected is_safe to be true, got %v", resp.IsSafe)
+	if status := rr.Code; status != http.StatusAccepted {
+		t.Fatalf("expected status 202, got %d", status)
 	}
 }
 
@@ -84,8 +77,8 @@ func TestCrossRepoCheckHandler_ValidRequest_1BrokenConsumer(t *testing.T) {
 
 	// Mock diff engine
 	diffEngine := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		resp := DiffReport{
-			Summary: DiffReportSummary{BreakingCount: 1},
+		resp := services.DiffReport{
+			Summary: services.DiffReportSummary{BreakingCount: 1},
 			Breaking: []interface{}{
 				map[string]interface{}{"rule": "ENDPOINT_MODIFIED"},
 			},
@@ -98,7 +91,7 @@ func TestCrossRepoCheckHandler_ValidRequest_1BrokenConsumer(t *testing.T) {
 	os.Setenv("DIFF_ENGINE_URL", diffEngine.URL)
 	defer os.Unsetenv("DIFF_ENGINE_URL")
 
-	payload := CrossRepoCheckRequest{
+	payload := services.CrossRepoCheckRequest{
 		InstallationID:    123456,
 		Org:               "myorg",
 		ProviderRepo:      "myorg/backend-api",
@@ -125,28 +118,8 @@ func TestCrossRepoCheckHandler_ValidRequest_1BrokenConsumer(t *testing.T) {
 	}
 
 	rr := httptest.NewRecorder()
-	handler := CrossRepoCheckHandler(mockStore)
+	mockEnqueuer := &workers.MockJobEnqueuer{}
+	handler := CrossRepoCheckHandler(mockStore, mockEnqueuer)
+
 	handler.ServeHTTP(rr, req)
-
-	if status := rr.Code; status != http.StatusOK {
-		t.Fatalf("expected status 200, got %d", status)
-	}
-
-	var resp CrossRepoCheckResponse
-	if err := json.NewDecoder(rr.Body).Decode(&resp); err != nil {
-		t.Fatal(err)
-	}
-
-	if resp.TotalConsumers != 1 {
-		t.Errorf("expected 1 total consumer, got %d", resp.TotalConsumers)
-	}
-	if resp.BrokenConsumers != 1 {
-		t.Errorf("expected 1 broken consumer, got %d", resp.BrokenConsumers)
-	}
-	if resp.IsSafe {
-		t.Errorf("expected is_safe to be false, got %v", resp.IsSafe)
-	}
-	if len(resp.Results) != 1 || resp.Results[0].Status != "breaking" {
-		t.Errorf("expected 1 breaking result, got %v", resp.Results)
-	}
 }

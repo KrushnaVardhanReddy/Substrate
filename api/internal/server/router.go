@@ -11,7 +11,9 @@ import (
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/github"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/handlers"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/services"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/webhook"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/workers"
 )
 
 func ServiceTokenMiddleware(registryApiToken string) func(http.Handler) http.Handler {
@@ -28,7 +30,7 @@ func ServiceTokenMiddleware(registryApiToken string) func(http.Handler) http.Han
 }
 
 // NewRouter creates a new router with all the routes registered.
-func NewRouter(store db.Store, authConfig handlers.AuthConfig, registryApiToken, jwtSecret string) http.Handler {
+func NewRouter(store db.Store, riverClient workers.JobEnqueuer, authConfig handlers.AuthConfig, registryApiToken, jwtSecret string) http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -52,12 +54,12 @@ func NewRouter(store db.Store, authConfig handlers.AuthConfig, registryApiToken,
 	serviceTokenMW := ServiceTokenMiddleware(registryApiToken)
 	limitsMW := TierLimitsMiddleware(store)
 
-	r.Method("POST", "/api/v1/sync", serviceTokenMW(limitsMW(http.HandlerFunc(handlers.SyncHandler(store)))))
-	r.Method("POST", "/api/v1/webhook", serviceTokenMW(http.HandlerFunc(webhook.PushHandler(store, github.NewRESTClient()))))
-	r.Method("POST", "/api/v1/cross-repo-check", serviceTokenMW(limitsMW(http.HandlerFunc(handlers.CrossRepoCheckHandler(store)))))
+	r.Method("POST", "/api/v1/sync", serviceTokenMW(limitsMW(http.HandlerFunc(handlers.SyncHandler(store, riverClient)))))
+	r.Method("POST", "/api/v1/webhook", serviceTokenMW(http.HandlerFunc(webhook.PushHandler(store, github.NewRESTClient(), riverClient))))
+	r.Method("POST", "/api/v1/cross-repo-check", serviceTokenMW(limitsMW(http.HandlerFunc(handlers.CrossRepoCheckHandler(store, riverClient)))))
 	r.Method("POST", "/api/v1/history", serviceTokenMW(http.HandlerFunc(handlers.HistoryHandler(store))))
 	r.Method("GET", "/api/v1/registry/can-deploy", serviceTokenMW(http.HandlerFunc(handlers.CanDeployHandler(store))))
-	r.Method("POST", "/api/v1/diff", serviceTokenMW(http.HandlerFunc(handlers.SaveDiffHandler(store))))
+	r.Method("POST", "/api/v1/diff", serviceTokenMW(http.HandlerFunc(handlers.SaveDiffHandler(store, riverClient))))
 
 	// Protected routes (Service Token OR JWT)
 	authMW := AuthMiddleware(registryApiToken, jwtSecret)
@@ -74,8 +76,8 @@ func NewRouter(store db.Store, authConfig handlers.AuthConfig, registryApiToken,
 	r.Method("POST", "/api/v1/org/{org}/enforce", http.HandlerFunc(handlers.EnforceGlobalHandler()))
 
 	// AI routes (public — no auth required, BYOK model)
-	r.Post("/api/v1/ai/analyze", handlers.AIAnalyzeHandler())
-	r.Post("/api/v1/ai/autofix", handlers.AIAutofixHandler())
+	r.Post("/api/v1/ai/analyze", services.AIAnalyzeHandler())
+	r.Post("/api/v1/ai/autofix", services.AIAutofixHandler())
 
 	// Public routes
 	r.Get("/api/v1/diff/{id}", handlers.GetDiffHandler(store))

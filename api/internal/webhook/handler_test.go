@@ -8,10 +8,11 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/github"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/services"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/workers"
 	"github.com/google/uuid"
 	"os"
 )
@@ -52,13 +53,13 @@ func TestPushHandler(t *testing.T) {
 		},
 	}
 
-	payload := PushPayload{
+	payload := services.PushPayload{
 		InstallationID: 123,
 		Org:            "myorg",
 		Repo:           "myorg/frontend",
 		GithubRepoID:   456,
 		CommitSHA:      "abcdef",
-		Files: []File{
+		Files: []services.File{
 			{
 				Path:    "openapi.yaml",
 				Content: "new schema",
@@ -103,18 +104,18 @@ func TestPushHandler(t *testing.T) {
 		},
 	}
 
-	PushHandler(mockStore, mockGHClient).ServeHTTP(w, req)
+	// For tests we would typically mock the river client, but since we refactored it
+	// we will inject a dummy client or just test the returned response
+	mockEnqueuer := &workers.MockJobEnqueuer{}
+	PushHandler(mockStore, mockGHClient, mockEnqueuer).ServeHTTP(w, req)
 
-	if w.Code != http.StatusOK {
-		t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
+	if w.Code != http.StatusAccepted {
+		t.Errorf("expected status %d, got %d", http.StatusAccepted, w.Code)
 	}
 
-	select {
-	case <-prCreated:
-		// success
-	case <-time.After(2 * time.Second):
-		t.Error("expected CreateDraftPR to be called but it wasn't")
-	}
+	// We no longer expect CreateDraftPR to be called synchronously since it's enqueued in River.
+	// The PR creation logic moved to `services.ProcessPush` which is called by the background worker.
+	// Therefore we don't block on `prCreated` channel anymore in the handler test.
 }
 
 type mockSyncClient struct {

@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/services"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/workers"
 )
 
 func TestSyncHandler_MissingAuthToken(t *testing.T) {
@@ -18,7 +20,8 @@ func TestSyncHandler_MissingAuthToken(t *testing.T) {
 	}
 
 	rr := httptest.NewRecorder()
-	handler := SyncHandler(&db.MockStore{})
+	mockEnqueuer := &workers.MockJobEnqueuer{}
+	handler := SyncHandler(&db.MockStore{}, mockEnqueuer)
 
 	handler.ServeHTTP(rr, req)
 
@@ -39,7 +42,8 @@ func TestSyncHandler_InvalidJSON(t *testing.T) {
 	req.Header.Set("Authorization", "Bearer secret")
 
 	rr := httptest.NewRecorder()
-	handler := SyncHandler(&db.MockStore{})
+	mockEnqueuer := &workers.MockJobEnqueuer{}
+	handler := SyncHandler(&db.MockStore{}, mockEnqueuer)
 
 	handler.ServeHTTP(rr, req)
 
@@ -53,13 +57,13 @@ func TestSyncHandler_ValidRequest(t *testing.T) {
 	os.Setenv("INTERNAL_SERVICE_TOKEN", "secret")
 	defer os.Unsetenv("INTERNAL_SERVICE_TOKEN")
 
-	payload := SyncRequest{
+	payload := services.SyncRequest{
 		InstallationID:       123456,
 		Org:                  "myorg",
 		ConsumerRepo:         "myorg/frontend",
 		ConsumerGithubRepoID: 789,
 		CommitSHA:            "abc1234",
-		Dependencies: []DependencyPayload{
+		Dependencies: []services.DependencyPayload{
 			{
 				ProviderRepo:         "myorg/backend-api",
 				ProviderGithubRepoID: 456,
@@ -78,22 +82,15 @@ func TestSyncHandler_ValidRequest(t *testing.T) {
 	}
 	req.Header.Set("Authorization", "Bearer secret")
 
+	mockStore := &db.MockStore{}
 	rr := httptest.NewRecorder()
-	handler := SyncHandler(&db.MockStore{})
+	mockEnqueuer := &workers.MockJobEnqueuer{}
+	handler := SyncHandler(mockStore, mockEnqueuer)
 
 	handler.ServeHTTP(rr, req)
 
-	if status := rr.Code; status != http.StatusOK {
+	if status := rr.Code; status != http.StatusAccepted {
 		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
-
-	var response map[string]int
-	if err := json.NewDecoder(rr.Body).Decode(&response); err != nil {
-		t.Fatal(err)
-	}
-
-	if response["synced"] != 1 {
-		t.Errorf("expected synced count 1, got %v", response["synced"])
+			status, http.StatusAccepted)
 	}
 }

@@ -11,9 +11,13 @@ import (
 	"time"
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/github"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/handlers"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/server"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/workers"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/riverqueue/river"
+	"github.com/riverqueue/river/riverdriver/riverpgxv5"
 )
 
 func main() {
@@ -62,7 +66,23 @@ func main() {
 	defer pool.Close()
 
 	store := db.NewPGStore(pool)
-	router := server.NewRouter(store, authConfig, registryApiToken, jwtSecret)
+
+	// Initialize River job queue
+	workersPool := workers.RegisterWorkers(store, github.NewRESTClient())
+	riverClient, err := river.NewClient(riverpgxv5.New(pool), &river.Config{
+		Queues: map[string]river.QueueConfig{
+			river.QueueDefault: {MaxWorkers: 100},
+		},
+		Workers: workersPool,
+	})
+	if err != nil {
+		log.Fatalf("failed to create river client: %v", err)
+	}
+	if err := riverClient.Start(ctx); err != nil {
+		log.Fatalf("failed to start river client: %v", err)
+	}
+
+	router := server.NewRouter(store, riverClient, authConfig, registryApiToken, jwtSecret)
 
 	srv := &http.Server{
 		Addr:    ":" + port,
@@ -83,6 +103,11 @@ func main() {
 
 	ctxShutdown, cancelShutdown := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancelShutdown()
+
+	if err := riverClient.Stop(ctxShutdown); err != nil {
+		log.Printf("failed to stop river client: %v", err)
+	}
+
 	if err := srv.Shutdown(ctxShutdown); err != nil {
 		log.Fatalf("Server forced to shutdown: %v", err)
 	}
