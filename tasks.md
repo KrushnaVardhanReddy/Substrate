@@ -88,6 +88,7 @@
 | **P8-T08** | 🔴 P1 | **Single Binary VPC Deployment** — Implement `//go:embed` with SvelteKit `adapter-static` to compile the frontend and backend into a single executable for zero-dependency on-prem deployment. | Jules | 🔄 In Progress (`8173022098281811460`) | `docs/specs/phase-8/p8-master-plan.md` |
 | **P8-T09** | 🔴 P1 | **Docker & Helm Enterprise Delivery** — Create a production-ready `Dockerfile` and Helm chart containing the compiled Go API and Svelte frontend for enterprise Kubernetes clusters. | Jules | 🔄 In Progress (`3196925160518577806`) | `docs/specs/phase-8/p8-master-plan.md` |
 | **P8-T10** | 🔴 P1 | **Phase 8 E2E Testing** — Test the enterprise readiness components (Job Queue, Authz, Cascading Rollback, Billing) against the real database schema. | Unassigned | 💡 Backlog | `docs/specs/phase-8/p8-t10-e2e-tests.md` |
+| **P8-T11** | 🚀 P1 | **Enterprise SSO (SAML/OIDC)** — Integrate Okta, Azure AD, and Google Workspace SSO into the Authz layer so massive enterprises don't have to manage local user accounts. | Unassigned | 💡 Backlog | `(Pending)` |
 
 ---
 
@@ -107,6 +108,7 @@
 | **P9-T07** | 🔴 P1 | **AI Migration Planner** — Upgrade AI Autofix to generate safe, multi-step migration plans for complex schema/database changes with minimal downtime. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T08** | 🟡 P2 | **Deployment Risk Scoring** — Synthesize breaking change data, infrastructure changes, and downstream blast radius into a holistic "Deployment Risk Score". | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T09** | 🟢 P3 | **AI Impact Analysis Summaries** — Pass cross-repo blast radius checks to the AI handler to generate a plain-English impact summary on PRs. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P9-T11** | 🚀 P1 | **Automated Deprecation Campaigns** — Track sunsetting endpoints, auto-open issues in downstream consumer repos, and nag them until 0% usage is reached. | Unassigned | 💡 Backlog | `(Pending)` |
 
 ---
 
@@ -124,6 +126,9 @@
 | **P10-T06** | ⚪ P6 | **Traffic-Aware Pruning (Zombies)** — Correlate schema endpoints with live Datadog/OTel metrics to detect unused "zombie" APIs and auto-generate PRs to delete the dead code. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P10-T07** | 🟣 P1 | **MCP Runtime Diffing** — Spin up Model Context Protocol (MCP) servers in a sandbox during CI/CD to dynamically diff `tools/list` and block AI agent breaking changes. | Unassigned | 💡 Backlog | `docs/specs/phase-10/p10-t06-mcp-diffing.md` |
 | **P10-T08** | 🔵 P4 | **Live Documentation Generator** — Auto-generate live developer portals and Mermaid architecture diagrams from Substrate's live schema/graph metadata. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P10-T09** | 🚀 P1 | **Protobuf & gRPC Schema Registry** — Add native support for parsing, diffing, and visualizing Protobufs to capture backend-to-backend enterprise microservices. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P10-T10** | 🚀 P1 | **Consumer-Driven Contract Manifests** — Allow frontend apps to upload `.substrate-consumer.yaml` declaring required fields, directly competing with PactFlow. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P10-T11** | 🚀 P1 | **Official Terraform Provider** — Build `terraform-provider-substrate` so DevOps teams can manage webhooks, rules, and RBAC policies entirely via Infrastructure-as-Code. | Unassigned | 💡 Backlog | `(Pending)` |
 
 ---
 
@@ -138,3 +143,4 @@
 | **P11-T03** | 🟢 P3 | **Interactive Edge Tooltips** — Hovering over a dependency edge reveals a tooltip showing exactly which endpoints/contracts are being consumed (e.g., `GET /api/v1/customers`). | Unassigned | 💡 Backlog | `(Pending)` |
 | **P11-T04** | 🔵 P4 | **Historical Volatility Heatmap** — Add a toggle to color-code the graph by historical breaking changes (Red = frequent breakers, Blue = stable core services). | Unassigned | 💡 Backlog | `(Pending)` |
 | **P11-T05** | ⚪ P5 | **Bird's Eye Mini-Map** — Introduce a Cytoscape navigator widget in the bottom-left corner for maintaining context when zoomed into a localized blast radius on 100+ repo graphs. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P11-T07** | 🚀 P1 | **Visual API Design Studio** — Drag-and-drop OpenAPI designer built directly into the Substrate UI to empower PMs and Architects to design before coding. | Unassigned | 💡 Backlog | `(Pending)` |
