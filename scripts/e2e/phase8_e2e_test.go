@@ -17,52 +17,51 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/modules/postgres"
-	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 const (
 	p8RegistryAPIToken = "local-dev-token"
 	p8JWTSecret        = "local-jwt-secret"
 	p8ApiURL           = "http://localhost:8090"
+	p8DbURL            = "postgres://postgres:postgres@localhost:5432/substrate?sslmode=disable"
 )
 
-// setupPostgresContainer starts a Postgres 15 testcontainer and applies the schema from api/migrations
-func setupPostgresContainer(ctx context.Context, t *testing.T) (string, func()) {
-	// Start Postgres 15
-	pgContainer, err := postgres.RunContainer(ctx,
-		testcontainers.WithImage("postgres:15-alpine"),
-		postgres.WithDatabase("substrate_test"),
-		postgres.WithUsername("postgres"),
-		postgres.WithPassword("postgres"),
-		testcontainers.WithWaitStrategy(
-			wait.ForLog("database system is ready to accept connections").
-				WithOccurrence(2).
-				WithStartupTimeout(20*time.Second)),
-	)
-	require.NoError(t, err)
-
-	connStr, err := pgContainer.ConnectionString(ctx, "sslmode=disable")
-	require.NoError(t, err)
-
-	// Apply migrations
-
-	pool, err := pgxpool.New(ctx, connStr)
-	require.NoError(t, err)
-	defer pool.Close()
-
-	// The API server automatically applies migrations on startup via golang-migrate, 
-	// so we don't need to manually execute the .up.sql files here.
-
-
-	cleanup := func() {
-		if err := pgContainer.Terminate(ctx); err != nil {
-			t.Fatalf("failed to terminate container: %s", err)
+func waitForP8Services(t *testing.T) {
+	client := http.Client{Timeout: 2 * time.Second}
+	for i := 0; i < 5; i++ {
+		resp, err := client.Get(p8ApiURL + "/health")
+		if err == nil && resp.StatusCode == 200 {
+			resp.Body.Close()
+			return
 		}
+		if resp != nil {
+			resp.Body.Close()
+		}
+		time.Sleep(2 * time.Second)
 	}
+	t.Fatalf("API server not reachable at %s. Please ensure 'make api' and 'make postgres' are running.", p8ApiURL)
+}
 
-	return connStr, cleanup
+func setupP8Database(t *testing.T) *pgxpool.Pool {
+	ctx := context.Background()
+	pool, err := pgxpool.New(ctx, p8DbURL)
+	require.NoError(t, err, "Failed to connect to real PostgreSQL")
+
+	// Clean up tables relevant to Phase 8
+	_, err = pool.Exec(ctx, "DELETE FROM river_job")
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, "DELETE FROM org_webhooks")
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, "DELETE FROM dependencies")
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, "DELETE FROM contracts")
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, "DELETE FROM repositories")
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, "DELETE FROM organizations")
+	require.NoError(t, err)
+
+	return pool
 }
 
 func createJWT(org, role string) string {
@@ -84,55 +83,9 @@ func TestPhase8SystemE2E(t *testing.T) {
 
 	ctx := context.Background()
 
-	// 1. Start testcontainer DB
-	dbURL, cleanup := setupPostgresContainer(ctx, t)
-	defer cleanup()
+	waitForP8Services(t)
 
-	// 2. Start the API Server as a child process using the testcontainer DB URL
-	apiDir, err := filepath.Abs("../../api")
-	require.NoError(t, err)
-
-	apiCmd := exec.Command("go", "run", "./cmd/server/main.go")
-	apiCmd.Dir = apiDir
-	apiCmd.Env = append(os.Environ(),
-		"DATABASE_URL="+dbURL,
-		"REGISTRY_API_TOKEN="+p8RegistryAPIToken,
-		"JWT_SECRET="+p8JWTSecret,
-		"GITHUB_CLIENT_ID=mock",
-		"GITHUB_CLIENT_SECRET=mock",
-		"DASHBOARD_URL=http://localhost:5173",
-		"PORT=8090",
-	)
-	var apiOut bytes.Buffer
-	apiCmd.Stdout = &apiOut
-	apiCmd.Stderr = &apiOut
-
-	err = apiCmd.Start()
-	require.NoError(t, err, "Failed to start API server")
-	defer func() {
-		if apiCmd.Process != nil {
-			apiCmd.Process.Kill()
-		}
-	}()
-
-	// Wait for API to be ready
-	client := http.Client{Timeout: 2 * time.Second}
-	apiReady := false
-	for i := 0; i < 15; i++ {
-		resp, err := client.Get(p8ApiURL + "/health")
-		if err == nil && resp.StatusCode == 200 {
-			resp.Body.Close()
-			apiReady = true
-			break
-		}
-		if resp != nil {
-			resp.Body.Close()
-		}
-		time.Sleep(2 * time.Second)
-	}
-	require.True(t, apiReady, "API server failed to start: %s", apiOut.String())
-
-	// 5. Build the CLI binary
+	// Build the CLI binary
 	engineDir, err := filepath.Abs("../../engine")
 	require.NoError(t, err)
 	binPath := filepath.Join(engineDir, "substrate_p8_test_bin")
@@ -142,8 +95,7 @@ func TestPhase8SystemE2E(t *testing.T) {
 	defer os.Remove(binPath) // Cleanup
 
 	// Database operations for setup
-	pool, err := pgxpool.New(ctx, dbURL)
-	require.NoError(t, err)
+	pool := setupP8Database(t)
 	defer pool.Close()
 
 	var orgID string
@@ -207,7 +159,7 @@ func TestPhase8SystemE2E(t *testing.T) {
 			// Check river_job table to see if it failed
 			var state, errs string
 			pool.QueryRow(ctx, "SELECT state, errors FROM river_job WHERE kind = 'egress_webhook'").Scan(&state, &errs)
-			t.Fatalf("Timeout waiting for Webhook Egress worker. River job state: %s, errors: %s, API Logs: %s", state, errs, apiOut.String())
+			t.Fatalf("Timeout waiting for Webhook Egress worker. River job state: %s, errors: %s", state, errs)
 		}
 	})
 

@@ -91,7 +91,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to create river client: %v", err)
 	}
-	if err := riverClient.Start(ctx); err != nil {
+	if err := riverClient.Start(context.Background()); err != nil {
 		log.Fatalf("failed to start river client: %v", err)
 	}
 
