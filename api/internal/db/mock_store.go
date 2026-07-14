@@ -87,8 +87,6 @@ func (m *MockStore) GetBillingStatus(ctx context.Context, orgName string) (time.
 	importTime := time.Now().Add(24 * time.Hour)
 	return importTime, nil, nil
 }
-}
-
 func (m *MockStore) CountReposByOrg(ctx context.Context, orgName string) (int, error) {
 	if m.CountReposByOrgFunc != nil {
 		return m.CountReposByOrgFunc(ctx, orgName)
