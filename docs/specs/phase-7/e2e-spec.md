@@ -46,3 +46,4 @@ This test suite spins up the real Substrate Go API, the real PostgreSQL database
 - **Infrastructure:** The test framework must use `testcontainers-go` or local Docker to spin up a real PostgreSQL instance.
 - **Service Lifecycles:** The Go API and Sidecar Proxy must be started on local dynamic ports.
 - **Database Teardown:** The database must be cleanly truncated or destroyed between test scenarios to prevent state pollution.
+- **Execution Command:** The entire phase 7 E2E suite can be executed via `make e2e-phase7`. Ensure the background services are running (`make start-bg`) and a mock GitHub token is exported (`export GITHUB_TOKEN=mock`) before executing.

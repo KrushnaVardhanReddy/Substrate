@@ -12,6 +12,7 @@ Substrate will provide a lightweight Envoy/eBPF sidecar that samples live produc
 
 ### 2. Real-time Schema Validation
 - The Sidecar fetches the latest schema from the Substrate Registry (`GET /api/v1/schema/{org}/{repo}`).
+- The response is a JSON payload containing the raw schema (`{"schema": "..."}`). The proxy must unmarshal this JSON to extract the raw schema string before loading it into the validator.
 - It asynchronously samples 1-5% of incoming HTTP requests and responses.
 - It compares the JSON payloads against the OpenAPI definitions.
 
