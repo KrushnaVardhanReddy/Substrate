@@ -15,6 +15,7 @@ type Client interface {
 	CreateDraftPR(ctx context.Context, owner, repo, branch, patch, title, body string) (url string, err error)
 	SearchCode(ctx context.Context, owner, repo, query string) (path string, err error)
 	GetFileContent(ctx context.Context, owner, repo, path string) (string, error)
+	CreateCheckRun(ctx context.Context, owner, repo, commitSHA, name, title, summary string) error
 }
 
 type RESTClient struct {
@@ -302,6 +303,41 @@ func (c *RESTClient) CreateDraftPR(ctx context.Context, owner, repo, branch, pat
 	return result.HTMLURL, nil
 }
 
+
+func (c *RESTClient) CreateCheckRun(ctx context.Context, owner, repo, commitSHA, name, title, summary string) error {
+	url := fmt.Sprintf("%s/repos/%s/%s/check-runs", c.apiURL, owner, repo)
+
+	payload := map[string]interface{}{
+		"name":       name,
+		"head_sha":   commitSHA,
+		"status":     "completed",
+		"conclusion": "neutral",
+		"output": map[string]string{
+			"title":   title,
+			"summary": summary,
+		},
+	}
+
+	payloadBytes, _ := json.Marshal(payload)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		return err
+	}
+	c.addHeaders(req)
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("create check run failed with status: %d, body: %s", resp.StatusCode, string(bodyBytes))
+	}
+	return nil
+}
+
 func (c *RESTClient) addHeaders(req *http.Request) {
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
 	if c.token != "" {
@@ -313,6 +349,7 @@ type MockClient struct {
 	CreateDraftPRFunc  func(ctx context.Context, owner, repo, branch, patch, title, body string) (string, error)
 	SearchCodeFunc     func(ctx context.Context, owner, repo, query string) (string, error)
 	GetFileContentFunc func(ctx context.Context, owner, repo, path string) (string, error)
+	CreateCheckRunFunc func(ctx context.Context, owner, repo, commitSHA, name, title, summary string) error
 }
 
 func (m *MockClient) CreateDraftPR(ctx context.Context, owner, repo, branch, patch, title, body string) (string, error) {
@@ -327,6 +364,13 @@ func (m *MockClient) SearchCode(ctx context.Context, owner, repo, query string) 
 		return m.SearchCodeFunc(ctx, owner, repo, query)
 	}
 	return "src/consumer.go", nil
+}
+
+func (m *MockClient) CreateCheckRun(ctx context.Context, owner, repo, commitSHA, name, title, summary string) error {
+	if m.CreateCheckRunFunc != nil {
+		return m.CreateCheckRunFunc(ctx, owner, repo, commitSHA, name, title, summary)
+	}
+	return nil
 }
 
 func (m *MockClient) GetFileContent(ctx context.Context, owner, repo, path string) (string, error) {

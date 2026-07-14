@@ -88,4 +88,6 @@ type Store interface {
 	GetDriftAnomalies(ctx context.Context, orgName, repoName string) ([]DriftAnomaly, error)
 	RegisterWebhook(ctx context.Context, config WebhookConfig) error
 	GetWebhooks(ctx context.Context, org string) ([]WebhookConfig, error)
+	UpdateStripeCustomerID(ctx context.Context, orgID uuid.UUID, stripeID string) error
+	GetBillingStatus(ctx context.Context, orgName string) (time.Time, *string, error)
 }

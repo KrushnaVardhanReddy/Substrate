@@ -28,8 +28,8 @@ func (s *PGStore) UpsertOrg(ctx context.Context, installationID int64, orgName s
 func UpsertOrg(ctx context.Context, pool *pgxpool.Pool, installationID int64, orgName string) (uuid.UUID, error) {
 	var id uuid.UUID
 	err := pool.QueryRow(ctx, `
-		INSERT INTO organizations (github_installation_id, github_org_name)
-		VALUES ($1, $2)
+		INSERT INTO organizations (github_installation_id, github_org_name, trial_ends_at)
+		VALUES ($1, $2, NOW() + INTERVAL '90 days')
 		ON CONFLICT (github_installation_id) DO UPDATE
 		SET github_org_name = EXCLUDED.github_org_name
 		RETURNING id
@@ -38,6 +38,34 @@ func UpsertOrg(ctx context.Context, pool *pgxpool.Pool, installationID int64, or
 		return uuid.Nil, fmt.Errorf("failed to upsert org: %w", err)
 	}
 	return id, nil
+}
+
+func (s *PGStore) UpdateStripeCustomerID(ctx context.Context, orgID uuid.UUID, stripeID string) error {
+	return UpdateStripeCustomerID(ctx, s.pool, orgID, stripeID)
+}
+
+func UpdateStripeCustomerID(ctx context.Context, pool *pgxpool.Pool, orgID uuid.UUID, stripeID string) error {
+	_, err := pool.Exec(ctx, `
+		UPDATE organizations
+		SET stripe_customer_id = $1
+		WHERE id = $2
+	`, stripeID, orgID)
+	return err
+}
+
+func (s *PGStore) GetBillingStatus(ctx context.Context, orgName string) (time.Time, *string, error) {
+	return GetBillingStatus(ctx, s.pool, orgName)
+}
+
+func GetBillingStatus(ctx context.Context, pool *pgxpool.Pool, orgName string) (time.Time, *string, error) {
+	var trialEndsAt time.Time
+	var stripeCustomerID *string
+	err := pool.QueryRow(ctx, `
+		SELECT trial_ends_at, stripe_customer_id
+		FROM organizations
+		WHERE github_org_name = $1
+	`, orgName).Scan(&trialEndsAt, &stripeCustomerID)
+	return trialEndsAt, stripeCustomerID, err
 }
 
 // UpsertRepo finds or creates a repository by github_repo_id.

@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -25,6 +26,8 @@ type MockStore struct {
 	GetBreakingChangeHistoryFunc       func(ctx context.Context, orgName, repoName string, limit int) ([]BreakingChangeRecord, error)
 	RegisterWebhookFunc                func(ctx context.Context, config WebhookConfig) error
 	GetWebhooksFunc                    func(ctx context.Context, org string) ([]WebhookConfig, error)
+	UpdateStripeCustomerIDFunc         func(ctx context.Context, orgID uuid.UUID, stripeID string) error
+	GetBillingStatusFunc               func(ctx context.Context, orgName string) (time.Time, *string, error)
 }
 
 func (m *MockStore) UpsertOrg(ctx context.Context, installationID int64, orgName string) (uuid.UUID, error) {
@@ -60,6 +63,21 @@ func (m *MockStore) GetContractsByProviderFullName(ctx context.Context, provider
 		return m.GetContractsByProviderFullNameFunc(ctx, providerFullName)
 	}
 	return nil, nil
+}
+
+func (m *MockStore) UpdateStripeCustomerID(ctx context.Context, orgID uuid.UUID, stripeID string) error {
+	if m.UpdateStripeCustomerIDFunc != nil {
+		return m.UpdateStripeCustomerIDFunc(ctx, orgID, stripeID)
+	}
+	return nil
+}
+
+func (m *MockStore) GetBillingStatus(ctx context.Context, orgName string) (time.Time, *string, error) {
+	if m.GetBillingStatusFunc != nil {
+		return m.GetBillingStatusFunc(ctx, orgName)
+	}
+	importTime := time.Now().Add(24 * time.Hour)
+	return importTime, nil, nil
 }
 
 func (m *MockStore) CountReposByOrg(ctx context.Context, orgName string) (int, error) {
