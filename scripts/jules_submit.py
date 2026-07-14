@@ -537,6 +537,28 @@ TASKS = {
         "phase": "phase-8-readiness",
         "prompt": _load_prompt("prompts/phase-8-readiness/t10_e2e_tests.txt"),
     },
+
+    # ── Phase 11: Advanced Graph Visualization (V2.0 UX) ─────────────────────
+    110: {
+        "name": "P11-T10 — Svelte Flow Migration",
+        "phase": "phase-11-ui",
+        "prompt": _load_prompt("prompts/phase-11/t10_svelte_flow.txt"),
+    },
+    111: {
+        "name": "P11-T11 — Global Command Palette (Cmd+K)",
+        "phase": "phase-11-ui",
+        "prompt": _load_prompt("prompts/phase-11/t11_command_palette.txt"),
+    },
+    114: {
+        "name": "P11-T14 — Premium Aesthetics System",
+        "phase": "phase-11-ui",
+        "prompt": _load_prompt("prompts/phase-11/t14_premium_aesthetics.txt"),
+    },
+    115: {
+        "name": "P11-T15 — Zero-to-One Onboarding Wizard",
+        "phase": "phase-11-ui",
+        "prompt": _load_prompt("prompts/phase-11/t15_onboarding_wizard.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
