@@ -68,6 +68,13 @@ type WebhookConfig struct {
 	CreatedAt time.Time
 }
 
+type ROIMetrics struct {
+	TotalPreventedOutages      int `json:"total_prevented_outages"`
+	TotalUndocumentedEndpoints int `json:"total_undocumented_endpoints"`
+	HoursSaved                 int `json:"hours_saved"`
+	EstimatedDollarValueSaved  int `json:"estimated_dollar_value_saved"`
+}
+
 type Store interface {
 	UpsertOrg(ctx context.Context, installationID int64, orgName string) (uuid.UUID, error)
 	UpsertRepo(ctx context.Context, orgID uuid.UUID, githubRepoID int64, name, fullName string) (uuid.UUID, error)
@@ -88,4 +95,5 @@ type Store interface {
 	GetDriftAnomalies(ctx context.Context, orgName, repoName string) ([]DriftAnomaly, error)
 	RegisterWebhook(ctx context.Context, config WebhookConfig) error
 	GetWebhooks(ctx context.Context, org string) ([]WebhookConfig, error)
+	GetROIMetrics(ctx context.Context, orgID string) (ROIMetrics, error)
 }

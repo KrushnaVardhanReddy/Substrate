@@ -25,6 +25,7 @@ type MockStore struct {
 	GetBreakingChangeHistoryFunc       func(ctx context.Context, orgName, repoName string, limit int) ([]BreakingChangeRecord, error)
 	RegisterWebhookFunc                func(ctx context.Context, config WebhookConfig) error
 	GetWebhooksFunc                    func(ctx context.Context, org string) ([]WebhookConfig, error)
+	GetROIMetricsFunc                  func(ctx context.Context, orgID string) (ROIMetrics, error)
 }
 
 func (m *MockStore) UpsertOrg(ctx context.Context, installationID int64, orgName string) (uuid.UUID, error) {
@@ -60,6 +61,13 @@ func (m *MockStore) GetContractsByProviderFullName(ctx context.Context, provider
 		return m.GetContractsByProviderFullNameFunc(ctx, providerFullName)
 	}
 	return nil, nil
+}
+
+func (m *MockStore) GetROIMetrics(ctx context.Context, orgID string) (ROIMetrics, error) {
+	if m.GetROIMetricsFunc != nil {
+		return m.GetROIMetricsFunc(ctx, orgID)
+	}
+	return ROIMetrics{}, nil
 }
 
 func (m *MockStore) CountReposByOrg(ctx context.Context, orgName string) (int, error) {
