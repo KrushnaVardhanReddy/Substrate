@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -10,13 +11,26 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/checker"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/diff"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/mcp"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 	sqlpkg "github.com/KrushnaVardhanReddy/substrate/engine/internal/sql"
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/telemetry"
 )
 
 func main() {
+	tp, err := telemetry.InitTracer(context.Background(), "substrate-mcp")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[substrate-mcp] failed to init tracer: %v\n", err)
+	} else if tp != nil {
+		defer func() {
+			if err := tp.Shutdown(context.Background()); err != nil {
+				fmt.Fprintf(os.Stderr, "[substrate-mcp] error shutting down tracer provider: %v\n", err)
+			}
+		}()
+	}
+
 	server := mcp.NewServer()
 
 	// Tool 1: get_dependency_graph
@@ -128,47 +142,90 @@ func main() {
 			var rep *report.DiffReport
 			switch args.SchemaType {
 			case "sql":
-				base, err := sqlpkg.ParseSchema(baseFile.Name())
+				var base, head *sqlpkg.SQLSchema
+				err = checker.ParseSchema(context.Background(), func() error {
+					var err error
+					base, err = sqlpkg.ParseSchema(baseFile.Name())
+					return err
+				})
 				if err != nil {
 					return nil, err
 				}
-				head, err := sqlpkg.ParseSchema(headFile.Name())
+				err = checker.ParseSchema(context.Background(), func() error {
+					var err error
+					head, err = sqlpkg.ParseSchema(headFile.Name())
+					return err
+				})
 				if err != nil {
 					return nil, err
 				}
-				rep = sqlpkg.DiffSchemas(base, head)
+				err = checker.CalculateDiff(context.Background(), func() error {
+					rep = sqlpkg.DiffSchemas(base, head)
+					return nil
+				})
+				if err != nil {
+					return nil, err
+				}
 			case "graphql":
-				rep, err = diff.CompareGraphQL(baseFile.Name(), headFile.Name())
+				err = checker.CalculateDiff(context.Background(), func() error {
+					var err error
+					rep, err = diff.CompareGraphQL(baseFile.Name(), headFile.Name())
+					return err
+				})
 				if err != nil {
 					return nil, err
 				}
 			case "asyncapi":
-				rep, err = diff.CompareAsyncAPI(baseFile.Name(), headFile.Name())
+				err = checker.CalculateDiff(context.Background(), func() error {
+					var err error
+					rep, err = diff.CompareAsyncAPI(baseFile.Name(), headFile.Name())
+					return err
+				})
 				if err != nil {
 					return nil, err
 				}
 			case "protobuf", "proto":
-				rep, err = diff.CompareProto(baseFile.Name(), headFile.Name())
+				err = checker.CalculateDiff(context.Background(), func() error {
+					var err error
+					rep, err = diff.CompareProto(baseFile.Name(), headFile.Name())
+					return err
+				})
 				if err != nil {
 					return nil, err
 				}
 			case "terraform-plan":
-				rep, err = diff.CompareTerraformPlan(headFile.Name())
+				err = checker.CalculateDiff(context.Background(), func() error {
+					var err error
+					rep, err = diff.CompareTerraformPlan(headFile.Name())
+					return err
+				})
 				if err != nil {
 					return nil, err
 				}
 			case "ai-model":
-				rep, err = diff.CompareAIML(baseFile.Name(), headFile.Name())
+				err = checker.CalculateDiff(context.Background(), func() error {
+					var err error
+					rep, err = diff.CompareAIML(baseFile.Name(), headFile.Name())
+					return err
+				})
 				if err != nil {
 					return nil, err
 				}
 			case "avro":
-				rep, err = diff.CompareAvro(baseFile.Name(), headFile.Name(), nil)
+				err = checker.CalculateDiff(context.Background(), func() error {
+					var err error
+					rep, err = diff.CompareAvro(baseFile.Name(), headFile.Name(), nil)
+					return err
+				})
 				if err != nil {
 					return nil, err
 				}
 			default:
-				rep, err = diff.CompareOpenAPI(baseFile.Name(), headFile.Name(), true, nil)
+				err = checker.CalculateDiff(context.Background(), func() error {
+					var err error
+					rep, err = diff.CompareOpenAPI(baseFile.Name(), headFile.Name(), true, nil)
+					return err
+				})
 				if err != nil {
 					return nil, err
 				}

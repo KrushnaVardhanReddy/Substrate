@@ -1,20 +1,23 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/checker"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/config"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/diff"
 	initcmd "github.com/KrushnaVardhanReddy/substrate/engine/internal/init"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 	sqlpkg "github.com/KrushnaVardhanReddy/substrate/engine/internal/sql"
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/telemetry"
 	"github.com/KrushnaVardhanReddy/substrate/engine/pkg/ai"
 	"github.com/spf13/cobra"
-	"path/filepath"
 )
 
 var flattenAllOf bool
@@ -24,6 +27,17 @@ var schemaType string
 var modeFlag string
 
 func main() {
+	tp, err := telemetry.InitTracer(context.Background(), "substrate-engine")
+	if err != nil {
+		log.Printf("[substrate-engine] failed to init tracer: %v\n", err)
+	} else if tp != nil {
+		defer func() {
+			if err := tp.Shutdown(context.Background()); err != nil {
+				log.Printf("[substrate-engine] error shutting down tracer provider: %v", err)
+			}
+		}()
+	}
+
 	var rootCmd = &cobra.Command{
 		Use:   "substrate",
 		Short: "Substrate Diff Engine",
@@ -65,49 +79,89 @@ func main() {
 
 			switch finalSchemaType {
 			case "sql":
-				base, err := sqlpkg.ParseSchema(basePath)
+				var base, head *sqlpkg.SQLSchema
+				err = checker.ParseSchema(context.Background(), func() error {
+					var err error
+					base, err = sqlpkg.ParseSchema(basePath)
+					return err
+				})
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 					os.Exit(3)
 				}
-				head, err := sqlpkg.ParseSchema(revisionPath)
+				err = checker.ParseSchema(context.Background(), func() error {
+					var err error
+					head, err = sqlpkg.ParseSchema(revisionPath)
+					return err
+				})
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 					os.Exit(3)
 				}
-				rep = sqlpkg.DiffSchemas(base, head)
+				err = checker.CalculateDiff(context.Background(), func() error {
+					rep = sqlpkg.DiffSchemas(base, head)
+					return nil
+				})
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+					os.Exit(3)
+				}
 			case "graphql":
-				rep, err = diff.CompareGraphQL(basePath, revisionPath)
+				err = checker.CalculateDiff(context.Background(), func() error {
+					var err error
+					rep, err = diff.CompareGraphQL(basePath, revisionPath)
+					return err
+				})
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 					os.Exit(3)
 				}
 			case "asyncapi":
-				rep, err = diff.CompareAsyncAPI(basePath, revisionPath)
+				err = checker.CalculateDiff(context.Background(), func() error {
+					var err error
+					rep, err = diff.CompareAsyncAPI(basePath, revisionPath)
+					return err
+				})
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 					os.Exit(3)
 				}
 			case "protobuf", "proto":
-				rep, err = diff.CompareProto(basePath, revisionPath)
+				err = checker.CalculateDiff(context.Background(), func() error {
+					var err error
+					rep, err = diff.CompareProto(basePath, revisionPath)
+					return err
+				})
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 					os.Exit(3)
 				}
 			case "terraform-plan":
-				rep, err = diff.CompareTerraformPlan(revisionPath)
+				err = checker.CalculateDiff(context.Background(), func() error {
+					var err error
+					rep, err = diff.CompareTerraformPlan(revisionPath)
+					return err
+				})
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 					os.Exit(3)
 				}
 			case "ai-model":
-				rep, err = diff.CompareAIML(basePath, revisionPath)
+				err = checker.CalculateDiff(context.Background(), func() error {
+					var err error
+					rep, err = diff.CompareAIML(basePath, revisionPath)
+					return err
+				})
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 					os.Exit(3)
 				}
 			case "avro":
-				rep, err = diff.CompareAvro(basePath, revisionPath, cfg)
+				err = checker.CalculateDiff(context.Background(), func() error {
+					var err error
+					rep, err = diff.CompareAvro(basePath, revisionPath, cfg)
+					return err
+				})
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 					os.Exit(3)
@@ -117,7 +171,11 @@ func main() {
 				if cfg != nil {
 					rules = cfg.CustomRules
 				}
-				rep, err = diff.CompareOpenAPI(basePath, revisionPath, flattenAllOf, rules)
+				err = checker.CalculateDiff(context.Background(), func() error {
+					var err error
+					rep, err = diff.CompareOpenAPI(basePath, revisionPath, flattenAllOf, rules)
+					return err
+				})
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 					os.Exit(3)
