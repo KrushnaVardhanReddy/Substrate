@@ -5,13 +5,14 @@ import (
 	"context"
 	"encoding/json"
 
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
