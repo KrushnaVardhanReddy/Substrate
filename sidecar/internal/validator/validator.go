@@ -92,17 +92,16 @@ func (v *Validator) fetchSchema(ctx context.Context) {
 		return
 	}
 
-	type schemaResponse struct {
+	var schemaResp struct {
 		Schema string `json:"schema"`
 	}
-	var sr schemaResponse
-	if err := json.Unmarshal(body, &sr); err != nil {
+	if err := json.Unmarshal(body, &schemaResp); err != nil {
 		log.Printf("failed to unmarshal schema response: %v", err)
 		return
 	}
 
 	loader := openapi3.NewLoader()
-	doc, err := loader.LoadFromData([]byte(sr.Schema))
+	doc, err := loader.LoadFromData([]byte(schemaResp.Schema))
 	if err != nil {
 		log.Printf("failed to parse schema: %v", err)
 		return

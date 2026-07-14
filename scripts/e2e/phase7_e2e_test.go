@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
+
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -36,7 +37,7 @@ func waitForP7Services(t *testing.T) {
 		if resp != nil {
 			resp.Body.Close()
 		}
-		time.Sleep(1 * time.Second)
+		time.Sleep(2 * time.Second)
 	}
 	t.Fatalf("API server not reachable at %s. Please ensure 'make api' and 'make postgres' are running.", p7ApiURL)
 }
@@ -104,10 +105,20 @@ func TestPhase7SystemE2E(t *testing.T) {
 		assert.Contains(t, errBuf.String(), "[AUDIT MODE]")
 
 		var diffReport map[string]interface{}
-		err = json.Unmarshal(outBuf.Bytes(), &diffReport)
+		err = json.Unmarshal([]byte(strings.Split(outBuf.String(), "\n[AUDIT MODE]")[0]), &diffReport)
 		require.NoError(t, err, "Failed to parse json. Stderr: %s, Stdout: %s", errBuf.String(), outBuf.String())
 
 		assert.Equal(t, "audit", diffReport["mode"], "mode should be audit in the JSON output")
+
+		// Wait briefly for the API to process and save the diff async
+		time.Sleep(2 * time.Second)
+
+		// Check the DB if is_audit_mode is true
+		var isAuditMode bool
+		// we fetch the latest report
+		err = pool.QueryRow(context.Background(), "SELECT is_audit_mode FROM diff_reports ORDER BY created_at DESC LIMIT 1").Scan(&isAuditMode)
+		require.NoError(t, err, "Failed to fetch diff report from database")
+		assert.True(t, isAuditMode, "is_audit_mode should be true in the database")
 	})
 
 	// Scenario 2: Custom Governance Rules via CEL (P7-T03)
@@ -133,7 +144,7 @@ func TestPhase7SystemE2E(t *testing.T) {
 		}
 
 		var diffReport map[string]interface{}
-		err = json.Unmarshal(outBuf.Bytes(), &diffReport)
+		err = json.Unmarshal([]byte(strings.Split(outBuf.String(), "\n[AUDIT MODE]")[0]), &diffReport)
 		require.NoError(t, err)
 
 		breakingChanges, ok := diffReport["breaking_changes"].([]interface{})
@@ -171,8 +182,6 @@ func TestPhase7SystemE2E(t *testing.T) {
 		require.NoError(t, err, "Failed to compile the sidecar proxy")
 		defer os.Remove(sidecarBinPath)
 
-
-
 		schemaPath, err := filepath.Abs("../../engine/cmd/substrate/testdata/base.yaml")
 		require.NoError(t, err)
 
@@ -195,7 +204,7 @@ func TestPhase7SystemE2E(t *testing.T) {
 			"-target", targetServer.URL,
 			"-substrate-url", p7ApiURL,
 			"-org", "testorg",
-			"-repo", "testrepo",
+			"-repo", "provider",
 			"-token", p7RegistryAPIToken,
 			"-sample-rate", "1.0",
 		)
@@ -214,7 +223,7 @@ func TestPhase7SystemE2E(t *testing.T) {
 			}
 		}()
 
-		time.Sleep(2 * time.Second) // Wait for proxy to boot
+		time.Sleep(4 * time.Second) // Wait for proxy to boot
 
 		// Send undocumented field to trigger anomaly
 		payload := []byte(`{"id": 1, "name": "test", "secret_admin": true}`)
@@ -226,16 +235,18 @@ func TestPhase7SystemE2E(t *testing.T) {
 		require.NoError(t, err)
 		resp.Body.Close()
 
-		time.Sleep(2 * time.Second) // Wait for async reporter to POST anomaly
+		time.Sleep(4 * time.Second) // Wait for async reporter to POST anomaly
 
 		var anomalyCount int
-		err = pool.QueryRow(context.Background(), "SELECT COUNT(*) FROM drift_anomalies WHERE org_name = 'testorg'").Scan(&anomalyCount)
+		err = pool.QueryRow(context.Background(), "SELECT COUNT(*) FROM drift_anomalies WHERE org_name = 'testorg' AND repo_name = 'provider'").Scan(&anomalyCount)
 		require.NoError(t, err)
 		assert.Greater(t, anomalyCount, 0, "Drift anomaly should be recorded in database")
 	})
 
 	// Scenario 4: AI Autofix Cross-Repo PR Generation (P7-T04)
 	t.Run("Scenario 4: AI Autofix Cross-Repo PR Generation", func(t *testing.T) {
+		prCreated := false
+		_ = prCreated
 
 		// Mock GitHub Server
 		mockGitHub := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

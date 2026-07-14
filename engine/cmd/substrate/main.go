@@ -9,7 +9,9 @@ import (
 	"os"
 	"path/filepath"
 
+	"bytes"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/checker"
+	"net/http"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/config"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/diff"
 	initcmd "github.com/KrushnaVardhanReddy/substrate/engine/internal/init"
@@ -199,6 +201,7 @@ func main() {
 			}
 			rep.Mode = finalMode
 
+
 			if format == "json" {
 				output, err := json.MarshalIndent(rep, "", "  ")
 				if err != nil {
@@ -206,6 +209,27 @@ func main() {
 					os.Exit(3)
 				}
 				fmt.Println(string(output))
+
+				// Post to API if configured
+				apiURL := os.Getenv("SUBSTRATE_API_URL")
+				apiToken := os.Getenv("REGISTRY_API_TOKEN")
+				if apiURL != "" && apiToken != "" {
+					payload := map[string]interface{}{
+						"diff_report":   rep,
+						"is_audit_mode": finalMode == "audit",
+					}
+					payloadBytes, _ := json.Marshal(payload)
+
+					req, _ := http.NewRequest("POST", apiURL+"/api/v1/diff", bytes.NewBuffer(payloadBytes))
+					req.Header.Set("Content-Type", "application/json")
+					req.Header.Set("Authorization", "Bearer "+apiToken)
+
+					client := &http.Client{}
+					resp, err := client.Do(req)
+					if err == nil {
+						resp.Body.Close()
+					}
+				}
 			} else if format == "text" {
 				if finalMode == "legacy" && len(rep.BreakingChanges) > 0 {
 					fmt.Println("⚠️ LEGACY MODE: Breaking changes detected, but merge is not blocked.")
