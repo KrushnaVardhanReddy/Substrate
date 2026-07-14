@@ -34,7 +34,7 @@ test.describe('Dependency Graph', () => {
 		await expect(page.locator('.filter-panel')).toBeVisible();
 
 		// Check that the checkbox, select, and input are rendered
-		await expect(page.locator('input[type="checkbox"]')).toBeVisible();
+		await expect(page.locator('input[type="checkbox"]').first()).toBeVisible();
 		await expect(page.locator('select.filter-select')).toBeVisible();
 		await expect(page.locator('input.filter-input')).toBeVisible();
 
