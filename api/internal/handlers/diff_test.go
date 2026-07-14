@@ -8,12 +8,14 @@ import (
 	"testing"
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/workers"
 	"github.com/google/uuid"
 )
 
 func TestSaveDiffHandler(t *testing.T) {
 	store := &db.MockStore{}
-	handler := SaveDiffHandler(store)
+	mockEnqueuer := &workers.MockJobEnqueuer{}
+	handler := SaveDiffHandler(store, mockEnqueuer)
 
 	tests := []struct {
 		name           string

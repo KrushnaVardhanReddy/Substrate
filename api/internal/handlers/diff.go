@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/egress"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/services"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/workers"
 )
 
 type SaveDiffRequest struct {
@@ -32,7 +34,7 @@ type SaveDiffResponse struct {
 	ID string `json:"id"`
 }
 
-func SaveDiffHandler(store db.Store) http.HandlerFunc {
+func SaveDiffHandler(store db.Store, riverClient workers.JobEnqueuer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req SaveDiffRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -53,7 +55,7 @@ func SaveDiffHandler(store db.Store) http.HandlerFunc {
 		}
 
 		// Check for breaking changes and dispatch webhook
-		var diffReport DiffReport
+		var diffReport services.DiffReport
 		if err := json.Unmarshal(req.DiffReport, &diffReport); err == nil {
 			if diffReport.Summary.BreakingCount > 0 && req.Org != "" {
 				// We need to trigger webhook asynchronously
@@ -65,7 +67,7 @@ func SaveDiffHandler(store db.Store) http.HandlerFunc {
 					var brokenConsumers []egress.BrokenConsumer
 					// Perform cross-repo check if provider info is present
 					if diffReq.ProviderRepo != "" {
-						crReq := CrossRepoCheckRequest{
+						crReq := services.CrossRepoCheckRequest{
 							InstallationID:    diffReq.InstallationID,
 							Org:               diffReq.Org,
 							ProviderRepo:      diffReq.ProviderRepo,
@@ -74,7 +76,7 @@ func SaveDiffHandler(store db.Store) http.HandlerFunc {
 							ConfigContent:     diffReq.ConfigContent,
 						}
 
-						crResp, err := PerformCrossRepoCheck(bgCtx, store, crReq)
+						crResp, err := services.PerformCrossRepoCheck(bgCtx, store, crReq)
 						if err == nil {
 							for _, res := range crResp.Results {
 								if res.Status == "breaking" {
@@ -103,7 +105,7 @@ func SaveDiffHandler(store db.Store) http.HandlerFunc {
 						},
 					}
 
-					egress.DispatchEvent(bgCtx, store, event)
+					egress.DispatchEvent(bgCtx, store, riverClient, event)
 
 				}(id.String(), req)
 			}
