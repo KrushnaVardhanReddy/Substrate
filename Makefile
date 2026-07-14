@@ -53,7 +53,12 @@ help:
 postgres:
 	docker rm -f substrate-postgres || true && docker run --name substrate-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=substrate -p 5432:5432 -d docker.io/library/postgres:15
 
-api:
+build:
+	cd dashboard && npm run build
+	rm -rf api/internal/server/dashboard_build
+	cp -r dashboard/build api/internal/server/dashboard_build
+
+api: build
 	cd api && \
 	DATABASE_URL="postgresql://postgres:postgres@localhost:5432/substrate?sslmode=disable" \
 	REGISTRY_API_TOKEN="local-dev-token" \

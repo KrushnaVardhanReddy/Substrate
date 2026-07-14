@@ -86,5 +86,6 @@ func NewRouter(store db.Store, riverClient workers.JobEnqueuer, authConfig handl
 	r.Get("/api/v1/diff/{id}", handlers.GetDiffHandler(store))
 
 	// Webhook for Postman integrations
+	ServeDashboard(r)
 	return otelhttp.NewHandler(r, "substrate-api")
 }
