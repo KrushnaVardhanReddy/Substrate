@@ -69,19 +69,19 @@ func GetBillingStatus(ctx context.Context, pool *pgxpool.Pool, orgName string) (
 }
 
 // UpsertRepo finds or creates a repository by github_repo_id.
-func (s *PGStore) UpsertRepo(ctx context.Context, orgID uuid.UUID, githubRepoID int64, name, fullName string) (uuid.UUID, error) {
-	return UpsertRepo(ctx, s.pool, orgID, githubRepoID, name, fullName)
+func (s *PGStore) UpsertRepo(ctx context.Context, orgID uuid.UUID, githubRepoID int64, name, fullName string, metadata json.RawMessage) (uuid.UUID, error) {
+	return UpsertRepo(ctx, s.pool, orgID, githubRepoID, name, fullName, metadata)
 }
 
-func UpsertRepo(ctx context.Context, pool *pgxpool.Pool, orgID uuid.UUID, githubRepoID int64, name, fullName string) (uuid.UUID, error) {
+func UpsertRepo(ctx context.Context, pool *pgxpool.Pool, orgID uuid.UUID, githubRepoID int64, name, fullName string, metadata json.RawMessage) (uuid.UUID, error) {
 	var id uuid.UUID
 	err := pool.QueryRow(ctx, `
-		INSERT INTO repositories (org_id, github_repo_id, name, full_name)
-		VALUES ($1, $2, $3, $4)
+		INSERT INTO repositories (org_id, github_repo_id, name, full_name, metadata)
+		VALUES ($1, $2, $3, $4, $5)
 		ON CONFLICT (github_repo_id) DO UPDATE
-		SET name = EXCLUDED.name, full_name = EXCLUDED.full_name, org_id = EXCLUDED.org_id
+		SET name = EXCLUDED.name, full_name = EXCLUDED.full_name, org_id = EXCLUDED.org_id, metadata = EXCLUDED.metadata
 		RETURNING id
-	`, orgID, githubRepoID, name, fullName).Scan(&id)
+	`, orgID, githubRepoID, name, fullName, metadata).Scan(&id)
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("failed to upsert repo: %w", err)
 	}
@@ -229,7 +229,7 @@ func (s *PGStore) GetDependencyGraph(ctx context.Context, orgName string) ([]Dep
 
 func GetDependencyGraph(ctx context.Context, pool *pgxpool.Pool, orgName string) ([]DependencyEdge, error) {
 	rows, err := pool.Query(ctx, `
-		SELECT cr.full_name as consumer_full_name, pr.full_name as provider_full_name, d.status
+		SELECT cr.full_name as consumer_full_name, pr.full_name as provider_full_name, d.status, cr.metadata as consumer_metadata, pr.metadata as provider_metadata
 		FROM dependencies d
 		JOIN repositories cr ON d.consumer_repo_id = cr.id
 		JOIN contracts pc ON d.provider_contract_id = pc.id
@@ -245,7 +245,7 @@ func GetDependencyGraph(ctx context.Context, pool *pgxpool.Pool, orgName string)
 	var edges []DependencyEdge
 	for rows.Next() {
 		var e DependencyEdge
-		if err := rows.Scan(&e.ConsumerFullName, &e.ProviderFullName, &e.Status); err != nil {
+		if err := rows.Scan(&e.ConsumerFullName, &e.ProviderFullName, &e.Status, &e.ConsumerMetadata, &e.ProviderMetadata); err != nil {
 			return nil, fmt.Errorf("failed to scan dependency edge: %w", err)
 		}
 		edges = append(edges, e)

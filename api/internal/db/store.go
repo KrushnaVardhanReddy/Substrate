@@ -25,6 +25,7 @@ type Repository struct {
 	GithubRepoID int64
 	Name         string
 	FullName     string
+	Metadata     json.RawMessage
 	CreatedAt    time.Time
 }
 
@@ -35,9 +36,11 @@ type ConsumerDependency struct {
 }
 
 type DependencyEdge struct {
-	ConsumerFullName string `json:"consumer"`
-	ProviderFullName string `json:"provider"`
-	Status           string `json:"status"`
+	ConsumerFullName string          `json:"consumer"`
+	ProviderFullName string          `json:"provider"`
+	Status           string          `json:"status"`
+	ConsumerMetadata json.RawMessage `json:"consumer_metadata,omitempty"`
+	ProviderMetadata json.RawMessage `json:"provider_metadata,omitempty"`
 }
 
 type BreakingChangeRecord struct {
@@ -77,7 +80,7 @@ type ROIMetrics struct {
 
 type Store interface {
 	UpsertOrg(ctx context.Context, installationID int64, orgName string) (uuid.UUID, error)
-	UpsertRepo(ctx context.Context, orgID uuid.UUID, githubRepoID int64, name, fullName string) (uuid.UUID, error)
+	UpsertRepo(ctx context.Context, orgID uuid.UUID, githubRepoID int64, name, fullName string, metadata json.RawMessage) (uuid.UUID, error)
 	UpsertContract(ctx context.Context, repoID uuid.UUID, schemaType, specPath, branch, commitSHA, rawContent string) (uuid.UUID, error)
 	UpsertDependency(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, confidenceScore int) error
 	GetContractsByProviderFullName(ctx context.Context, providerFullName string) ([]Contract, error)

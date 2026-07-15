@@ -44,22 +44,31 @@ func ProcessPush(ctx context.Context, store db.Store, ghClient github.Client, re
 		consumerName = parts[1]
 	}
 
-	consumerRepoID, err := store.UpsertRepo(ctx, orgID, req.GithubRepoID, consumerName, req.Repo)
-	if err != nil {
-		return 0, fmt.Errorf("internal error on UpsertRepo: %w", err)
-	}
-
 	discoveredCount := 0
 
 	var matchPatterns []string
+	var repoMetadata json.RawMessage = json.RawMessage("{}")
 	for _, file := range req.Files {
 		if file.Path == "substrate.yaml" {
 			cfg, err := config.Parse([]byte(file.Content))
-			if err == nil && cfg.Discovery != nil && len(cfg.Discovery.MatchPatterns) > 0 {
-				matchPatterns = cfg.Discovery.MatchPatterns
+			if err == nil {
+				if cfg.Discovery != nil && len(cfg.Discovery.MatchPatterns) > 0 {
+					matchPatterns = cfg.Discovery.MatchPatterns
+				}
+				if cfg.Metadata != nil {
+					metaBytes, err := json.Marshal(cfg.Metadata)
+					if err == nil {
+						repoMetadata = json.RawMessage(metaBytes)
+					}
+				}
 			}
 			break
 		}
+	}
+
+	consumerRepoID, err := store.UpsertRepo(ctx, orgID, req.GithubRepoID, consumerName, req.Repo, repoMetadata)
+	if err != nil {
+		return 0, fmt.Errorf("internal error on UpsertRepo: %w", err)
 	}
 
 	envScanner := discovery.NewEnvScanner(matchPatterns)
@@ -88,7 +97,7 @@ func ProcessPush(ctx context.Context, store db.Store, ghClient github.Client, re
 				pseudoID = -pseudoID
 			}
 
-			providerRepoID, err := store.UpsertRepo(ctx, orgID, pseudoID, providerRepoName, fullName)
+			providerRepoID, err := store.UpsertRepo(ctx, orgID, pseudoID, providerRepoName, fullName, json.RawMessage("{}"))
 			if err != nil {
 				continue
 			}

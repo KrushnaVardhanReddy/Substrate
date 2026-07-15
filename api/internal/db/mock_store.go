@@ -12,7 +12,7 @@ type MockStore struct {
 	RecordDriftAnomalyFunc             func(ctx context.Context, anomaly DriftAnomaly) error
 	GetDriftAnomaliesFunc              func(ctx context.Context, orgName, repoName string) ([]DriftAnomaly, error)
 	UpsertOrgFunc                      func(ctx context.Context, installationID int64, orgName string) (uuid.UUID, error)
-	UpsertRepoFunc                     func(ctx context.Context, orgID uuid.UUID, githubRepoID int64, name, fullName string) (uuid.UUID, error)
+	UpsertRepoFunc                     func(ctx context.Context, orgID uuid.UUID, githubRepoID int64, name, fullName string, metadata json.RawMessage) (uuid.UUID, error)
 	UpsertContractFunc                 func(ctx context.Context, repoID uuid.UUID, schemaType, specPath, branch, commitSHA, rawContent string) (uuid.UUID, error)
 	UpsertDependencyFunc               func(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, confidenceScore int) error
 	GetContractsByProviderFullNameFunc func(ctx context.Context, providerFullName string) ([]Contract, error)
@@ -38,9 +38,9 @@ func (m *MockStore) UpsertOrg(ctx context.Context, installationID int64, orgName
 	return uuid.New(), nil
 }
 
-func (m *MockStore) UpsertRepo(ctx context.Context, orgID uuid.UUID, githubRepoID int64, name, fullName string) (uuid.UUID, error) {
+func (m *MockStore) UpsertRepo(ctx context.Context, orgID uuid.UUID, githubRepoID int64, name, fullName string, metadata json.RawMessage) (uuid.UUID, error) {
 	if m.UpsertRepoFunc != nil {
-		return m.UpsertRepoFunc(ctx, orgID, githubRepoID, name, fullName)
+		return m.UpsertRepoFunc(ctx, orgID, githubRepoID, name, fullName, metadata)
 	}
 	return uuid.New(), nil
 }
