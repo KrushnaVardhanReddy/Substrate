@@ -17,6 +17,7 @@
 	let protocolFilter = $state('All');
 	let searchQuery = $state('');
 	let includeNeighbors = $state(true);
+	let heatmapMode = $state(false);
 
 	let selectedNode: any = $state(null);
 
@@ -107,6 +108,12 @@
 			filteredNodes = filteredNodes.filter(n => connectedIds.has(n.id));
 		}
 
+		// Inject heatmapMode into nodes before layout and passing to Svelte Flow
+		filteredNodes = filteredNodes.map(node => ({
+			...node,
+			data: { ...node.data, heatmapMode }
+		}));
+
 		const layouted = getLayoutedElements(filteredNodes, filteredEdges);
 		nodes = layouted.nodes;
 		edges = layouted.edges;
@@ -134,11 +141,16 @@
 					// Add nodes to map
 					const addNode = (id: string, status: string, type: string) => {
 						if (!newNodesMap.has(id)) {
+							const existingNode = rawNodes.find(n => n.id === id);
+							const volatilityScore = existingNode?.data?.volatilityScore !== undefined
+								? existingNode.data.volatilityScore
+								: Math.floor(Math.random() * 101);
+
 							newNodesMap.set(id, {
 								id,
 								type: 'service',
 								position: { x: 0, y: 0 },
-								data: { label: id, status, type }
+								data: { label: id, status, type, volatilityScore }
 							});
 						} else if (status === 'BREAKING') {
 							const existing = newNodesMap.get(id);
@@ -189,6 +201,10 @@
 		<!-- Graph Controls overlay -->
 		<div class="graph-controls" style="z-index: 20;">
 			<div class="filter-panel">
+				<label class="filter-label" style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; background-color: var(--bg-hover); padding: 6px 12px; border-radius: 4px; border: 1px solid var(--border); margin-bottom: 8px;">
+					<input type="checkbox" bind:checked={heatmapMode} />
+					<span style="font-weight: 500; color: var(--accent);">Heatmap Mode</span>
+				</label>
 				<label class="filter-label">
 					<input type="checkbox" bind:checked={showOnlyBreaking} />
 					Show Only BREAKING Changes

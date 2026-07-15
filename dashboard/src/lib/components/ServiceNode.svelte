@@ -2,9 +2,17 @@
 	import { Handle, Position, type NodeProps } from '@xyflow/svelte';
 
 	let { data }: NodeProps = $props();
+
+	let backgroundColor = $derived(() => {
+		if (!data.heatmapMode) return '#1E222C';
+		const score = data.volatilityScore as number;
+		if (score <= 30) return 'var(--accent)';
+		if (score <= 70) return 'var(--safe)';
+		return 'var(--danger)';
+	});
 </script>
 
-<div class="service-node-card">
+<div class="service-node-card" style="background-color: {backgroundColor()};">
 	<Handle type="target" position={Position.Top} style="background: #555; width: 8px; height: 8px;" />
 
 	<div class="header">
@@ -32,6 +40,7 @@
 		color: white;
 		font-family: 'Inter', sans-serif;
 		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+		transition: background-color 0.3s ease;
 	}
 
 	.header {
