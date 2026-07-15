@@ -1,0 +1,45 @@
+TASK: P12-T02 — Svelte Flow Interaction E2E (Playwright)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Write a Playwright test to verify that the core Svelte Flow canvas interactions (Blast Radius, Heatmap, Tooltips) function without throwing Svelte state exceptions.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-12/p12-master-plan.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- The test must navigate to `/org/demo/graph`.
+- Assert the canvas renders.
+- Simulate a click on a Node to trigger the "Cascading Blast Radius" styling (assert the CSS class updates).
+- Simulate clicking the "Volatility Heatmap" toggle switch.
+- Simulate hovering over an Edge to ensure the Interactive Tooltip element appears.
+
+**EXACT ENDPOINTS & REPOS TO USE:**
+- Frontend URL: `http://localhost:5173`
+- The graph page to navigate to is exactly `http://localhost:5173/org/demo/graph`
+- Mock API requests should point to `http://localhost:8090/api/v1/graph` (NOTE: The E2E backend runs on 8090, not 8080)
+- Do NOT use random external URLs or random ports.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+Playwright tests live in `dashboard/tests/`. You will need to inspect the DOM structure rendered by `@xyflow/svelte` (usually `.svelte-flow__node` and `.svelte-flow__edge`).
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: dashboard/tests/graph-interaction.spec.ts (CREATE NEW)
+   - Implement the Playwright test suite for the Svelte Flow interactions.
+2. Run `npm run test:e2e` inside the dashboard directory to verify.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO CREATE:
+- dashboard/tests/graph-interaction.spec.ts
+
+Commit: "test: P12-T02 add Playwright E2E for graph interactions"
+Target branch: feature/dev
