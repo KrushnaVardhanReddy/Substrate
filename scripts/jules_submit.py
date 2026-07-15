@@ -539,6 +539,41 @@ TASKS = {
     },
 
     # ── Phase 11: Advanced Graph Visualization (V2.0 UX) ─────────────────────
+    1101: {
+        "name": "P11-T01 — Cascading Blast Radius (Nth-Degree)",
+        "phase": "phase-11-ui",
+        "prompt": _load_prompt("prompts/phase-11/t01_blast_radius.txt"),
+    },
+    1102: {
+        "name": "P11-T02 — Team Neighborhoods",
+        "phase": "phase-11-ui",
+        "prompt": _load_prompt("prompts/phase-11/t02_team_neighborhoods.txt"),
+    },
+    1103: {
+        "name": "P11-T03 — Interactive Edge Tooltips",
+        "phase": "phase-11-ui",
+        "prompt": _load_prompt("prompts/phase-11/t03_edge_tooltips.txt"),
+    },
+    1104: {
+        "name": "P11-T04 — Historical Volatility Heatmap",
+        "phase": "phase-11-ui",
+        "prompt": _load_prompt("prompts/phase-11/t04_volatility_heatmap.txt"),
+    },
+    1107: {
+        "name": "P11-T07 — Visual API Design Studio",
+        "phase": "phase-11-ui",
+        "prompt": _load_prompt("prompts/phase-11/t07_visual_api_studio.txt"),
+    },
+    1108: {
+        "name": "P11-T08 — Substrate WASM Engine (In-Browser Diffing)",
+        "phase": "phase-11-ui",
+        "prompt": _load_prompt("prompts/phase-11/t08_wasm_engine.txt"),
+    },
+    1109: {
+        "name": "P11-T09 — Server-Sent Events (SSE) Real-Time UI",
+        "phase": "phase-11-ui",
+        "prompt": _load_prompt("prompts/phase-11/t09_sse_ui.txt"),
+    },
     110: {
         "name": "P11-T10 — Svelte Flow Migration",
         "phase": "phase-11-ui",
@@ -549,15 +584,57 @@ TASKS = {
         "phase": "phase-11-ui",
         "prompt": _load_prompt("prompts/phase-11/t11_command_palette.txt"),
     },
+    112: {
+        "name": "P11-T12 — Rich Side-by-Side Diff Viewer & Sign Out",
+        "phase": "phase-11-ui",
+        "prompt": _load_prompt("prompts/phase-11/t12_diff_viewer.txt"),
+    },
+    113: {
+        "name": "P11-T13 — Time-Travel Graph Replay",
+        "phase": "phase-11-ui",
+        "prompt": _load_prompt("prompts/phase-11/t13_time_travel.txt"),
+    },
     114: {
         "name": "P11-T14 — Premium Aesthetics System",
         "phase": "phase-11-ui",
         "prompt": _load_prompt("prompts/phase-11/t14_premium_aesthetics.txt"),
     },
-    115: {
+    1115: {
         "name": "P11-T15 — Zero-to-One Onboarding Wizard",
         "phase": "phase-11-ui",
         "prompt": _load_prompt("prompts/phase-11/t15_onboarding_wizard.txt"),
+    },
+
+    # ── Phase 12: V2.0 Public Launch & Quality Assurance ─────────────────
+    1201: {
+        "name": "P12-T01 — Zero-to-One Onboarding E2E",
+        "phase": "phase-12-qa",
+        "prompt": _load_prompt("prompts/phase-12/t01_onboarding_e2e.txt"),
+    },
+    1202: {
+        "name": "P12-T02 — Svelte Flow Interaction E2E",
+        "phase": "phase-12-qa",
+        "prompt": _load_prompt("prompts/phase-12/t02_svelte_flow_e2e.txt"),
+    },
+    1203: {
+        "name": "P12-T03 — Visual Studio Resilience Test",
+        "phase": "phase-12-qa",
+        "prompt": _load_prompt("prompts/phase-12/t03_studio_resilience_e2e.txt"),
+    },
+    1204: {
+        "name": "P12-T04 — SSE Connection Resilience Test (Go E2E)",
+        "phase": "phase-12-qa",
+        "prompt": _load_prompt("prompts/phase-12/t04_sse_resilience_e2e.txt"),
+    },
+    1205: {
+        "name": "P12-T05 — WASM Engine Boundary Tests (Go E2E)",
+        "phase": "phase-12-qa",
+        "prompt": _load_prompt("prompts/phase-12/t05_wasm_boundary_e2e.txt"),
+    },
+    1206: {
+        "name": "P12-T06 — 1,000-Node UI Stress Test (Playwright)",
+        "phase": "phase-12-qa",
+        "prompt": _load_prompt("prompts/phase-12/t06_ui_stress_test_e2e.txt"),
     },
 }
 

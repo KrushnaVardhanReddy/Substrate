@@ -1,0 +1,36 @@
+TASK: P11-T08 — Substrate WASM Engine (In-Browser Diffing)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Compile the Go diff engine into WebAssembly to run entirely in the browser.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-11/p11-t08-wasm-engine.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- The Go code must use `syscall/js` to expose a `diffSchemas` function to the global `window` object.
+- The `build-wasm` make target must correctly compile to `dashboard/static/engine.wasm`.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+The core diff engine logic is in `engine/`. You are adding a new entrypoint in `engine/cmd/wasm/`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: engine/cmd/wasm/main.go (CREATE NEW)
+   - Implement the WASM binding.
+2. FILE: Makefile (MODIFY)
+   - Add `build-wasm` target.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO CREATE:
+- engine/cmd/wasm/main.go
+FILES TO MODIFY:
+- Makefile

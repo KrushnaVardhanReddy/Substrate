@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Enterprise Timeline Scrubber</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error": "#690005",
+                        "primary-fixed-dim": "#44ddc1",
+                        "tertiary-container": "#a4a9bc",
+                        "error-container": "#93000a",
+                        "surface-dim": "#111319",
+                        "secondary-fixed-dim": "#c3c6d5",
+                        "primary-container": "#00bfa5",
+                        "on-background": "#e2e2eb",
+                        "secondary-container": "#434653",
+                        "inverse-surface": "#e2e2eb",
+                        "on-secondary-fixed-variant": "#434653",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary-container": "#383e4d",
+                        "surface-container-low": "#191b22",
+                        "inverse-on-surface": "#2e3037",
+                        "on-primary": "#00382f",
+                        "tertiary-fixed": "#dde2f6",
+                        "on-secondary-fixed": "#171b26",
+                        "on-primary-fixed-variant": "#005145",
+                        "on-tertiary-fixed": "#151b29",
+                        "on-surface-variant": "#bbcac4",
+                        "surface-container-highest": "#33343b",
+                        "surface": "#111319",
+                        "on-tertiary-fixed-variant": "#414756",
+                        "on-secondary-container": "#b1b4c3",
+                        "secondary-fixed": "#dfe2f1",
+                        "on-secondary": "#2c303c",
+                        "on-primary-fixed": "#00201a",
+                        "surface-container": "#1e1f26",
+                        "error": "#ffb4ab",
+                        "secondary": "#c3c6d5",
+                        "on-tertiary": "#2a303f",
+                        "inverse-primary": "#006b5c",
+                        "surface-variant": "#33343b",
+                        "surface-bright": "#373940",
+                        "outline-variant": "#3c4a46",
+                        "background": "#111319",
+                        "surface-container-high": "#282a30",
+                        "on-primary-container": "#00473c",
+                        "primary": "#44ddc1",
+                        "on-surface": "#e2e2eb",
+                        "outline": "#85948f",
+                        "tertiary": "#c1c6d9",
+                        "surface-tint": "#44ddc1",
+                        "tertiary-fixed-dim": "#c1c6d9",
+                        "surface-container-lowest": "#0c0e14",
+                        "primary-fixed": "#68fadd"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-desktop": "32px",
+                        "margin-mobile": "16px",
+                        "stack-md": "16px",
+                        "stack-lg": "24px",
+                        "stack-xs": "4px",
+                        "stack-sm": "8px",
+                        "sidebar-width": "260px",
+                        "gutter": "24px",
+                        "header-height": "64px"
+                    },
+                    "fontFamily": {
+                        "title-lg": ["Inter"],
+                        "title-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "code": ["JetBrains Mono"],
+                        "headline-lg": ["Inter"],
+                        "display": ["Inter"],
+                        "headline-lg-mobile": ["Inter"]
+                    },
+                    "fontSize": {
+                        "title-lg": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "title-md": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "code": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "display": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #0F1117; color: #e2e2eb; }
+        .glass-scrubber {
+            background-color: rgba(20, 22, 31, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid #2A2E3D;
+        }
+        
+        /* Custom range slider styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #44ddc1;
+            cursor: pointer;
+            margin-top: -6px;
+            box-shadow: 0 0 10px rgba(68, 221, 193, 0.5);
+            transition: transform 0.1s ease;
+        }
+        
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+        
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #3c4a46;
+            border-radius: 2px;
+        }
+        
+        input[type=range]:focus {
+            outline: none;
+        }
+        
+        .progress-fill {
+            position: absolute;
+            height: 4px;
+            background: #44ddc1;
+            border-radius: 2px;
+            top: 50%;
+            transform: translateY(-50%);
+            left: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md overflow-hidden antialiased">
+<!-- Faux Architecture Dependency Graph Background -->
+<div aria-hidden="true" class="fixed inset-0 z-0 w-full h-full opacity-30">
+<svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<pattern height="40" id="grid" patternunits="userSpaceOnUse" width="40">
+<path d="M 40 0 L 0 0 0 40" fill="none" stroke="#2A2E3D" stroke-width="0.5"></path>
+</pattern>
+<filter id="glow">
+<fegaussianblur result="coloredBlur" stddeviation="2"></fegaussianblur>
+<femerge>
+<femergenode in="coloredBlur"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+</defs>
+<rect fill="url(#grid)" height="100%" width="100%"></rect>
+<!-- Nodes -->
+<circle cx="20%" cy="30%" fill="#44ddc1" filter="url(#glow)" r="8"></circle>
+<circle cx="40%" cy="20%" fill="#c3c6d5" r="6"></circle>
+<circle cx="60%" cy="40%" fill="#44ddc1" filter="url(#glow)" r="10"></circle>
+<circle cx="80%" cy="25%" fill="#c3c6d5" r="6"></circle>
+<circle cx="30%" cy="60%" fill="#44ddc1" filter="url(#glow)" r="8"></circle>
+<circle cx="70%" cy="70%" fill="#c3c6d5" r="6"></circle>
+<circle cx="50%" cy="80%" fill="#44ddc1" r="8"></circle>
+<!-- Connections -->
+<path d="M 20% 30% L 40% 20%" fill="none" stroke="#3c4a46" stroke-width="1.5"></path>
+<path d="M 40% 20% L 60% 40%" fill="none" stroke="#3c4a46" stroke-dasharray="4" stroke-width="1.5"></path>
+<path d="M 60% 40% L 80% 25%" fill="none" stroke="#3c4a46" stroke-width="1.5"></path>
+<path d="M 20% 30% L 30% 60%" fill="none" opacity="0.6" stroke="#44ddc1" stroke-width="2"></path>
+<path d="M 30% 60% L 50% 80%" fill="none" stroke="#3c4a46" stroke-width="1.5"></path>
+<path d="M 60% 40% L 70% 70%" fill="none" opacity="0.6" stroke="#44ddc1" stroke-width="2"></path>
+<path d="M 70% 70% L 50% 80%" fill="none" stroke="#3c4a46" stroke-dasharray="4" stroke-width="1.5"></path>
+<path d="M 60% 40% L 30% 60%" fill="none" stroke="#3c4a46" stroke-width="1.5"></path>
+</svg>
+</div>
+<!-- Main Content Area -->
+<main class="relative z-10 w-full h-screen flex flex-col justify-between p-margin-desktop">
+<!-- Header (Context) -->
+<header class="flex justify-between items-center w-full max-w-7xl mx-auto">
+<div>
+<h1 class="font-headline-md text-headline-md text-on-surface">System Architecture</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-stack-xs">Dependency Graph - Production Cluster</p>
+</div>
+<div class="flex gap-stack-md">
+<button class="flex items-center gap-stack-xs px-stack-md py-stack-sm rounded border border-outline-variant text-on-surface-variant hover:bg-surface-bright hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+<span class="font-label-md text-label-md">FILTER</span>
+</button>
+</div>
+</header>
+<!-- Floating Scrubber Bar -->
+<div class="w-full max-w-4xl mx-auto mb-stack-lg">
+<div class="glass-scrubber rounded-full px-stack-lg py-stack-sm flex items-center gap-stack-lg shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+<!-- Play/Pause Control -->
+<button class="flex-shrink-0 w-10 h-10 rounded-full bg-surface-container flex items-center justify-center border border-outline-variant hover:border-primary transition-colors group">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">play_arrow</span>
+</button>
+<!-- Timeline Scrubber -->
+<div class="flex-grow relative flex flex-col justify-center h-12">
+<!-- Tooltip (Contextual Info) -->
+<div class="absolute -top-8 left-[75%] transform -translate-x-1/2 bg-surface-container-high border border-outline-variant px-3 py-1 rounded shadow-lg pointer-events-none transition-all duration-100 ease-out z-20" id="scrubber-tooltip">
+<span class="font-label-md text-label-md text-primary">Oct 24, 2026</span>
+<!-- Triangle pointer -->
+<div class="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-surface-container-high border-b border-r border-outline-variant rotate-45"></div>
+</div>
+<!-- Slider Container -->
+<div class="relative w-full flex items-center">
+<div class="absolute w-full flex justify-between px-1 pointer-events-none z-0">
+<!-- Tick marks -->
+<div class="w-[2px] h-2 bg-outline-variant"></div>
+<div class="w-[1px] h-1.5 bg-surface-variant"></div>
+<div class="w-[1px] h-1.5 bg-surface-variant"></div>
+<div class="w-[2px] h-2 bg-outline-variant"></div>
+<div class="w-[1px] h-1.5 bg-surface-variant"></div>
+<div class="w-[1px] h-1.5 bg-surface-variant"></div>
+<div class="w-[2px] h-2 bg-outline-variant"></div>
+<div class="w-[1px] h-1.5 bg-surface-variant"></div>
+<div class="w-[1px] h-1.5 bg-surface-variant"></div>
+<div class="w-[2px] h-2 bg-primary"></div>
+</div>
+<!-- The actual slider -->
+<div class="w-full relative z-10">
+<div class="progress-fill w-[75%]"></div>
+<input class="w-full" id="timeline-slider" max="100" min="1" type="range" value="75"/>
+</div>
+</div>
+</div>
+<!-- Status Text -->
+<div class="flex-shrink-0 flex items-center gap-stack-xs border-l border-outline-variant pl-stack-lg py-1">
+<span class="w-2 h-2 rounded-full bg-secondary-fixed-dim"></span>
+<span class="font-label-md text-label-md text-on-surface-variant tracking-wider uppercase">Historical View</span>
+</div>
+</div>
+</div>
+</main>
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const slider = document.getElementById('timeline-slider');
+            const tooltip = document.getElementById('scrubber-tooltip');
+            const tooltipText = tooltip.querySelector('span');
+            const progressFill = document.querySelector('.progress-fill');
+            
+            // Mock dates for demonstration
+            const dates = [
+                "Jan 15, 2026", "Feb 28, 2026", "Mar 10, 2026", "Apr 05, 2026",
+                "May 22, 2026", "Jun 18, 2026", "Jul 30, 2026", "Aug 12, 2026",
+                "Sep 05, 2026", "Oct 24, 2026", "Nov 11, 2026", "Dec 01, 2026"
+            ];
+
+            const updateSlider = () => {
+                const val = slider.value;
+                const min = slider.min ? slider.min : 0;
+                const max = slider.max ? slider.max : 100;
+                const percent = Number(((val - min) * 100) / (max - min));
+                
+                // Update progress bar
+                progressFill.style.width = `${percent}%`;
+                
+                // Update tooltip position
+                // Thumb is 16px wide, need to offset to keep tooltip centered over thumb
+                const thumbOffset = (percent / 100) * 16 - 8;
+                tooltip.style.left = `calc(${percent}% - ${thumbOffset}px)`;
+                
+                // Update text based on percentage
+                const dateIndex = Math.min(Math.floor((percent / 100) * dates.length), dates.length - 1);
+                tooltipText.textContent = dates[dateIndex];
+            };
+
+            slider.addEventListener('input', updateSlider);
+            
+            // Initial call
+            updateSlider();
+        });
+    </script>
+</body></html>

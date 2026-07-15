@@ -1,0 +1,41 @@
+TASK: P11-T04 — Historical Volatility Heatmap
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Create a toggle switch that shifts the graph into "Heatmap Mode". Node colors must transition from safe green to warning red based on their frequency of breaking changes.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-11/p11-t04-volatility-heatmap.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- 0-30: Green (`var(--accent)`)
+- 31-70: Yellow/Orange (`var(--safe)`)
+- 71-100: Red (`var(--danger)`)
+- Smooth CSS transition (`transition: background-color 0.3s`) for the color change.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+You must add the toggle to the main graph canvas UI and pass the heatmap state down to the nodes, or inject the styled colors directly into the nodes array.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: dashboard/src/routes/(app)/org/[org]/graph/+page.svelte (MODIFY)
+   - Add a "Heatmap Mode" toggle button/switch at the top left of the UI.
+   - Inject a random `volatilityScore` (0-100) to each mock node's data.
+   - When toggled ON, map the volatility score to the background color of each node in the Svelte Flow store.
+2. Run `npm run check` before concluding.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO MODIFY:
+- dashboard/src/routes/(app)/org/[org]/graph/+page.svelte
+
+Commit: "feat: P11-T04 implement historical volatility heatmap toggle"
+Target branch: feature/dev

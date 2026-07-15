@@ -1,0 +1,47 @@
+TASK: P11-T03 — Interactive Edge Tooltips
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Hovering over the dependency lines (edges) between services should reveal a tooltip detailing the exact API contract (e.g., HTTP POST, gRPC Method) that connects them.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-11/p11-t03-edge-tooltips.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Create a Custom Edge in Svelte Flow (`InteractiveEdge.svelte`).
+- The edge must react to `onmouseenter` and `onmouseleave`.
+- The floating tooltip must display mock contract details.
+- Tooltip must use dark mode CSS tokens (`var(--bg-card)`, etc).
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+Edges are currently standard Svelte Flow edges. You must replace them by registering a custom edge type in `dashboard/src/routes/(app)/org/[org]/graph/+page.svelte` and implementing the custom edge component.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: dashboard/src/lib/components/InteractiveEdge.svelte (CREATE NEW)
+   - Render a standard Bezier path but attach hover event listeners.
+   - When hovered, visually thicken/glow the edge path.
+   - Render an absolutely positioned floating `div` near the interaction point containing dummy contract data (e.g., "Protocol: gRPC | Method: VerifyToken").
+
+2. FILE: dashboard/src/routes/(app)/org/[org]/graph/+page.svelte (MODIFY)
+   - Register the `InteractiveEdge` component in the `edgeTypes` configuration.
+3. Run `npm run check` before concluding.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- dashboard/src/lib/components/InteractiveEdge.svelte
+
+FILES TO MODIFY:
+- dashboard/src/routes/(app)/org/[org]/graph/+page.svelte
+
+Commit: "feat: P11-T03 implement interactive edge tooltips"
+Target branch: feature/dev
