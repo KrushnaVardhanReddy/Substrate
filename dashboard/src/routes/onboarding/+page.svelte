@@ -1,6 +1,7 @@
 <script lang="ts">
     import { fade } from 'svelte/transition';
     import { goto } from '$app/navigation';
+    import { env } from '$env/dynamic/public';
 
     let step = $state(1);
     let progress = $state(0);
@@ -25,7 +26,8 @@
     }
 
     function enterDashboard() {
-        goto('/');
+        const org = env.PUBLIC_ORG_NAME || 'demo';
+        goto(`/org/${org}/graph`);
     }
 </script>
 

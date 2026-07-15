@@ -8,7 +8,7 @@ Create a frictionless, animated onboarding flow for first-time enterprise users:
 - Step 1: "Connect GitHub" (Displays GitHub App installation link).
 - Step 2: "Scanning Repositories" (Progress bar simulating the background River queue tasks).
 - Step 3: "Building Graph" (Animated graph construction preview).
-- Final Step: "Enter Dashboard" button that redirects to `/`.
+- Final Step: "Enter Dashboard" button that redirects to `/org/[org]/graph`.
 - Smooth cross-fade transitions between steps.
 
 ## 3. Stitch & Jules Workflow
