@@ -1,19 +1,31 @@
 <script lang="ts">
 	import { Handle, Position, type NodeProps } from '@xyflow/svelte';
+	import { AppWindow, Database, Smartphone, Server } from 'lucide-svelte';
 
 	let { data }: NodeProps = $props();
+
+	let nodeType = $derived(data.metadata?.type || data.type || 'service');
 </script>
 
-<div class="service-node-card" class:origin={data.isOrigin} class:affected={data.isAffected} class:faded={data.isFaded}>
+<div class="service-node-card {nodeType}" class:origin={data.isOrigin} class:affected={data.isAffected} class:faded={data.isFaded}>
 	<Handle type="target" position={Position.Top} style="background: #555; width: 8px; height: 8px;" />
 
 	<div class="header">
+		{#if nodeType === 'frontend'}
+			<AppWindow size={16} color="#94A3B8" />
+		{:else if nodeType === 'database'}
+			<Database size={16} color="#94A3B8" />
+		{:else if nodeType === 'mobile'}
+			<Smartphone size={16} color="#94A3B8" />
+		{:else}
+			<Server size={16} color="#94A3B8" />
+		{/if}
 		<div class="status-indicator" class:breaking={data.status === 'BREAKING'} class:safe={data.status !== 'BREAKING'}></div>
 		<span class="service-name">{data.label}</span>
 	</div>
 
 	<div class="badge-container">
-		<span class="badge">{data.type || 'Service'}</span>
+		<span class="badge">{nodeType}</span>
 	</div>
 
 	<Handle type="source" position={Position.Bottom} style="background: #555; width: 8px; height: 8px;" />
