@@ -13,6 +13,6 @@
 3. **TypeScript Fixes:** Resolved missing module declarations for `@xyflow/svelte` and fixed Svelte 5 shorthand component attribute errors for `onnodeclick`.
 4. **Documentation:** Updated `tasks.md` and `README.md` to mark all four UI foundation tasks as ✅ Complete.
 
-## Next Steps for Tomorrow
+## Next Steps
 1. **Review Graph Interaction:** With Svelte Flow now merged, we should launch the dashboard locally and ensure the new nodes render beautifully with the new Premium Aesthetics.
-2. **Phase 11 Planning (Wave 2):** Look at the remaining Phase 11 backlog (e.g., Cascading Blast Radius, Historical Heatmaps) and prepare specs for the next batch of async agents.
+2. **Review Wave 2 Jules PRs:** We successfully prepared specs and launched Jules tasks in parallel for the rest of Phase 11 Wave 2 (T01 Cascading Blast Radius, T02 Team Neighborhoods, T03 Edge Tooltips, T04 Volatility Heatmap, T12 Diff Viewer, and T13 Time-Travel Graph Replay). Wait for these 6 async coding sessions to finish and raise PRs, then review and merge them.
