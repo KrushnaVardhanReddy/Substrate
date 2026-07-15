@@ -27,11 +27,11 @@ export const load: PageLoad = async ({ fetch, params }) => {
 	return {
 		org,
 		graphData: [
-			{ provider: "core/auth", consumer: "api/gateway-service", status: "SAFE" },
-			{ provider: "db/postgres-driver", consumer: "api/gateway-service", status: "SAFE" },
-			{ provider: "utils/logger", consumer: "api/gateway-service", status: "BREAKING" },
-			{ provider: "api/gateway-service", consumer: "frontend/dashboard", status: "SAFE" },
-			{ provider: "api/gateway-service", consumer: "workers/indexer", status: "SAFE" }
+			{ provider: "core/auth", providerTeam: "platform", consumer: "api/gateway-service", consumerTeam: "platform", status: "SAFE" },
+			{ provider: "db/postgres-driver", providerTeam: "database", consumer: "api/gateway-service", consumerTeam: "platform", status: "SAFE" },
+			{ provider: "utils/logger", providerTeam: "platform", consumer: "api/gateway-service", consumerTeam: "platform", status: "BREAKING" },
+			{ provider: "api/gateway-service", providerTeam: "platform", consumer: "frontend/dashboard", consumerTeam: "product", status: "SAFE" },
+			{ provider: "api/gateway-service", providerTeam: "platform", consumer: "workers/indexer", consumerTeam: "data", status: "SAFE" }
 		]
 	};
 };

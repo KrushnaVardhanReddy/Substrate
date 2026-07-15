@@ -5,6 +5,7 @@
 	import '@xyflow/svelte/dist/style.css';
 	import dagre from 'dagre';
 	import ServiceNode from '$lib/components/ServiceNode.svelte';
+	import TeamGroupNode from '$lib/components/TeamGroupNode.svelte';
 
 	let cyContainer: HTMLElement;
 	let rawNodes = $state<Node[]>([]);
@@ -28,21 +29,33 @@
 	);
 
 	const nodeTypes = {
-		service: ServiceNode
+		service: ServiceNode,
+		teamGroup: TeamGroupNode
 	};
 
 	const nodeWidth = 172;
 	const nodeHeight = 60;
 
 	const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => {
-		const dagreGraph = new dagre.graphlib.Graph();
+		const dagreGraph = new dagre.graphlib.Graph({ compound: true });
 		dagreGraph.setDefaultEdgeLabel(() => ({}));
 
 		const isHorizontal = direction === 'LR';
-		dagreGraph.setGraph({ rankdir: direction });
+		// Adding some margin for clusters
+		dagreGraph.setGraph({ rankdir: direction, marginx: 20, marginy: 20 });
 
 		nodes.forEach((node) => {
-			dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+			if (node.type === 'teamGroup') {
+				dagreGraph.setNode(node.id, { label: node.data.label, clusterLabelPos: 'top' });
+			} else {
+				dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+			}
+		});
+
+		nodes.forEach((node) => {
+			if (node.parentId) {
+				dagreGraph.setParent(node.id, node.parentId);
+			}
 		});
 
 		edges.forEach((edge) => {
@@ -53,10 +66,30 @@
 
 		nodes.forEach((node) => {
 			const nodeWithPosition = dagreGraph.node(node.id);
-			node.position = {
-				x: nodeWithPosition.x - nodeWidth / 2,
-				y: nodeWithPosition.y - nodeHeight / 2
-			};
+			if (node.type === 'teamGroup') {
+				node.position = {
+					x: nodeWithPosition.x - nodeWithPosition.width / 2,
+					y: nodeWithPosition.y - nodeWithPosition.height / 2
+				};
+				// Assign width and height to SvelteFlow nodes so they size correctly
+				node.width = nodeWithPosition.width;
+				node.height = nodeWithPosition.height;
+				node.style = `width: ${nodeWithPosition.width}px; height: ${nodeWithPosition.height}px; ${node.style || ''}`;
+			} else {
+				// For children inside parents, SvelteFlow expects positions relative to the parent
+				if (node.parentId) {
+					const parentNodePos = dagreGraph.node(node.parentId);
+					node.position = {
+						x: nodeWithPosition.x - parentNodePos.x + parentNodePos.width / 2 - nodeWidth / 2,
+						y: nodeWithPosition.y - parentNodePos.y + parentNodePos.height / 2 - nodeHeight / 2
+					};
+				} else {
+					node.position = {
+						x: nodeWithPosition.x - nodeWidth / 2,
+						y: nodeWithPosition.y - nodeHeight / 2
+					};
+				}
+			}
 		});
 
 		return { nodes, edges };
@@ -131,26 +164,53 @@
 					let newNodesMap = new Map<string, Node>();
 					let newEdges: Edge[] = [];
 
+					const addTeamNode = (teamName: string) => {
+						if (!teamName) return;
+						const teamId = `team-${teamName}`;
+						if (!newNodesMap.has(teamId)) {
+							newNodesMap.set(teamId, {
+								id: teamId,
+								type: 'teamGroup',
+								position: { x: 0, y: 0 },
+								data: { label: teamName }
+							});
+						}
+					};
+
 					// Add nodes to map
-					const addNode = (id: string, status: string, type: string) => {
+					const addNode = (id: string, status: string, type: string, team?: string) => {
 						if (!newNodesMap.has(id)) {
-							newNodesMap.set(id, {
+							const node: Node = {
 								id,
 								type: 'service',
 								position: { x: 0, y: 0 },
 								data: { label: id, status, type }
-							});
-						} else if (status === 'BREAKING') {
+							};
+							if (team) {
+								node.parentId = `team-${team}`;
+								node.extent = 'parent';
+							}
+							newNodesMap.set(id, node);
+						} else {
 							const existing = newNodesMap.get(id);
 							if (existing) {
-								existing.data.status = 'BREAKING';
+								if (status === 'BREAKING') {
+									existing.data.status = 'BREAKING';
+								}
+								if (team && !existing.parentId) {
+									existing.parentId = `team-${team}`;
+									existing.extent = 'parent';
+								}
 							}
 						}
 					};
 
 					edgesData.forEach((edge: any) => {
-						addNode(edge.provider, edge.status, 'provider');
-						addNode(edge.consumer, 'SAFE', 'consumer');
+						if (edge.providerTeam) addTeamNode(edge.providerTeam);
+						if (edge.consumerTeam) addTeamNode(edge.consumerTeam);
+
+						addNode(edge.provider, edge.status, 'provider', edge.providerTeam);
+						addNode(edge.consumer, 'SAFE', 'consumer', edge.consumerTeam);
 
 						newEdges.push({
 							id: `e-${edge.consumer}-${edge.provider}`,
