@@ -5,6 +5,7 @@
 	import '@xyflow/svelte/dist/style.css';
 	import dagre from 'dagre';
 	import ServiceNode from '$lib/components/ServiceNode.svelte';
+	import TimeTravelScrubber from '$lib/components/TimeTravelScrubber.svelte';
 
 	let cyContainer: HTMLElement;
 	let rawNodes = $state<Node[]>([]);
@@ -223,6 +224,11 @@
 				<MiniMap />
 			</SvelteFlow>
 		</div>
+
+		<!-- Time Travel Scrubber -->
+		<div class="scrubber-wrapper">
+			<TimeTravelScrubber />
+		</div>
 	</main>
 
 	<!-- Side Panel (Detail View) -->
@@ -382,6 +388,18 @@
 		font-size: 13px;
 		width: 100%;
 		box-sizing: border-box;
+	}
+
+	.scrubber-wrapper {
+		position: absolute;
+		bottom: 24px;
+		left: 0;
+		right: 0;
+		z-index: 20;
+		pointer-events: none;
+		display: flex;
+		justify-content: center;
+		padding: 0 24px;
 	}
 
 	/* Detail Panel */
