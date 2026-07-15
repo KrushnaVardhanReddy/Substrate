@@ -91,11 +91,12 @@
 ### Phase 12: V2.0 Public Launch & Quality Assurance
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **P12-T01** | 🔴 P1 | **Zero-to-One Onboarding E2E** — Automate the user journey from GitHub token entry to Graph rendering using Playwright. | Unassigned | 💡 Backlog | `docs/specs/phase-12/p12-master-plan.md` |
-| **P12-T02** | 🔴 P1 | **Svelte Flow Interaction E2E** — Playwright tests for Canvas interactions: clicking nodes (blast radius), toggling heatmaps, hovering edges. | Unassigned | 💡 Backlog | `docs/specs/phase-12/p12-master-plan.md` |
-| **P12-T03** | 🟡 P2 | **Visual Studio Resilience Test** — Verify bidirectional YAML binding and ensure invalid YAML does not crash Svelte state. | Unassigned | 💡 Backlog | `docs/specs/phase-12/p12-master-plan.md` |
-| **P12-T04** | 🔴 P1 | **SSE Connection Resilience Test** — Go tests to simulate 100+ concurrent clients and abrupt disconnects to prevent memory leaks in the broadcast registry. | Unassigned | 💡 Backlog | `docs/specs/phase-12/p12-master-plan.md` |
-| **P12-T05** | 🟡 P2 | **WASM Engine Boundary Tests** — Ensure passing massive/malformed payloads to the WebAssembly diff engine returns safe JS errors instead of panics. | Unassigned | 💡 Backlog | `docs/specs/phase-12/p12-master-plan.md` |
-| **P12-T06** | 🟢 P3 | **1,000-Node UI Stress Test** — Generate a massive mock graph to ensure Dagre layouts under 2s and canvas renders at 60fps. | Unassigned | 💡 Backlog | `docs/specs/phase-12/p12-master-plan.md` |
+| **P12-T01** | 🔴 P1 | **Zero-to-One Onboarding E2E** — Automate the user journey from GitHub token entry to Graph rendering using Playwright. | Jules | ⏳ In Progress | `docs/specs/phase-12/p12-master-plan.md` |
+| **P12-T02** | 🔴 P1 | **Svelte Flow Interaction E2E** — Playwright tests for Canvas interactions: clicking nodes (blast radius), toggling heatmaps, hovering edges. | Jules | ⏳ In Progress | `docs/specs/phase-12/p12-master-plan.md` |
+| **P12-T03** | 🟡 P2 | **Visual Studio Resilience Test** — Verify bidirectional YAML binding and ensure invalid YAML does not crash Svelte state. | Jules | ⏳ In Progress | `docs/specs/phase-12/p12-master-plan.md` |
+| **P12-T04** | 🔴 P1 | **SSE Connection Resilience Test** — Go tests to simulate 100+ concurrent clients and abrupt disconnects to prevent memory leaks in the broadcast registry. | Jules | ⏳ In Progress | `docs/specs/phase-12/p12-master-plan.md` |
+| **P12-T05** | 🟡 P2 | **WASM Engine Boundary Tests** — Ensure passing massive/malformed payloads to the WebAssembly diff engine returns safe JS errors instead of panics. | Jules | ⏳ In Progress | `docs/specs/phase-12/p12-master-plan.md` |
+| **P12-T06** | 🟢 P3 | **1,000-Node UI Stress Test** — Generate a massive mock graph to ensure Dagre layouts under 2s and canvas renders at 60fps. | Jules | ⏳ In Progress | `docs/specs/phase-12/p12-master-plan.md` |
 | **P12-T07** | 🔵 P4 | **Telemetry & Crash Reporting** — Integrate PostHog/Sentry to trace live production errors in the Svelte Flow canvas. | Unassigned | 💡 Backlog | `docs/specs/phase-12/p12-master-plan.md` |
 | **P12-T08** | 🔴 P1 | **V2.0 Production Cutover** — Final pipeline updates to bundle Svelte static assets and WASM binary into the Go single-binary deployment. | Unassigned | 💡 Backlog | `docs/specs/phase-12/p12-master-plan.md` |
+| **P12-T09** | 🟢 P3 | **AI Support Copilot** — A floating AI chat widget in the dashboard that uses our existing Phase 4 Intelligence Layer to answer questions, generate `substrate.yaml` configs, and troubleshoot user graphs in real-time. | Unassigned | 💡 Backlog | `(Pending)` |

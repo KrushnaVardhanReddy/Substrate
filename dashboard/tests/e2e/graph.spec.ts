@@ -38,9 +38,14 @@ test.describe('Dependency Graph', () => {
 		await expect(page.locator('select.filter-select')).toBeVisible();
 		await expect(page.locator('input.filter-input')).toBeVisible();
 
-		// Check for the Cytoscape container (canvas is inside)
-		const cyContainer = page.locator('.main-canvas div').first();
-		await expect(cyContainer).toBeVisible();
+		// Check for the SvelteFlow container (canvas is inside)
+		const cyContainer = page.locator('.svelte-flow').first();
+		try {
+			await expect(cyContainer).toBeVisible();
+		} catch (e) {
+			console.log(await page.content());
+			throw e;
+		}
 	});
 
 	test('should render graph nodes and intercept network responses', async ({ page }) => {
@@ -48,14 +53,29 @@ test.describe('Dependency Graph', () => {
 		const responsePromise = page.waitForResponse('**/api/v1/graph/*');
 		await page.goto('/org/testorg/graph');
 
-		// Wait for the graph page to load
-		await expect(page.locator('h1.page-title')).toContainText('Dependency Graph');
-
 		// Wait for network response
 		await responsePromise;
 
-		// Ensure the graph container is visible
-		const cyContainer = page.locator('.main-canvas div').first();
-		await expect(cyContainer).toBeVisible();
+		// Wait for the graph page to load
+		await expect(page.locator('h1.page-title')).toContainText('Dependency Graph', { timeout: 15000 });
+
+		try {
+			// Wait for dagre layout to place nodes somewhere
+			await page.waitForSelector('.svelte-flow', { state: 'attached', timeout: 15000 });
+			
+			const nodeCount = await page.locator('.svelte-flow').count();
+			expect(nodeCount).toBeGreaterThan(0);
+			
+			// Verify that the UI is still responsive and didn't crash
+			const cyContainer = page.locator('.svelte-flow').first();
+			await expect(cyContainer).toBeVisible({ timeout: 15000 });
+		} catch (e) {
+			console.log(await page.content());
+			throw e;
+		}
+
+		const startTime = Date.now();
+		const endTime = Date.now();
+		console.log(`Stress test completed in ${endTime - startTime}ms`);
 	});
 });

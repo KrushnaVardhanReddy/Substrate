@@ -4,7 +4,7 @@
 	let { data }: NodeProps = $props();
 </script>
 
-<div class="service-node-card" class:blast-radius={data.blastRadius} class:heatmap-active={data.heatmapActive}>
+<div class="service-node-card" class:origin={data.isOrigin} class:affected={data.isAffected} class:faded={data.isFaded}>
 	<Handle type="target" position={Position.Top} style="background: #555; width: 8px; height: 8px;" />
 
 	<div class="header">
@@ -77,13 +77,17 @@
 		font-weight: 500;
 	}
 
-	.blast-radius {
-		box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
-		border-color: #EF4444;
+	.service-node-card.origin {
+		border-color: var(--danger, #EF4444);
+		box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
 	}
 
-	.heatmap-active {
-		/* Apply a warm gradient or similar style for heatmap */
-		background: linear-gradient(135deg, #1E222C 0%, #4c1d95 100%);
+	.service-node-card.affected {
+		border-color: var(--safe, #F59E0B);
+		box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+	}
+
+	.service-node-card.faded {
+		opacity: 0.2;
 	}
 </style>
