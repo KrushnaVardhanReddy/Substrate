@@ -5,7 +5,7 @@ Migrate the primary dependency graph visualization from `cytoscape.js` to `@xyfl
 
 ## 2. Requirements
 - Replace `cytoscape` dependencies with `@xyflow/svelte`.
-- Implement a custom Node component (`ServiceNode.svelte`) that displays the service name, health status, and repository badge.
+- Implement a custom Node component (`ServiceNode.svelte`) that displays the service name, health status, and repository badge. Nodes MUST utilize dynamic Lucide icons (e.g., AppWindow, Database, Smartphone) enclosed in a tinted background wrapper matching the SVG stroke color (Cyan for Database, Purple for Frontend, Rose for Mobile) to create a premium, dynamic aesthetic.
 - Implement an animated Edge component to visualize data flow direction. Fall back to standard `straight` lines when edge count exceeds 150 to preserve GPU performance. **Crucially, graph edges MUST be mapped as `source: Provider` and `target: Consumer`.** This guarantees Dagre's default Bottom-to-Top (`BT`) layout naturally anchors downstream consumers (Frontends) at the top and visually cascades data flow upwards from upstream providers (Databases) at the bottom. A Rotate feature MUST be provided in the UI to cycle through orientations (`BT`, `LR`, `TB`, `RL`).
 - Integrate the Svelte Flow `MiniMap` and `Controls` components.
 - **Search-First Exploration Model:** To handle massive enterprise graphs (200+ nodes), the initial graph state MUST be empty with a prompt for the user to search. 
