@@ -1,0 +1,49 @@
+TASK: P12-T01 — Zero-to-One Onboarding E2E (Playwright)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Automate the Zero-to-One onboarding journey in the Svelte dashboard using Playwright. 
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-12/p12-master-plan.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Use standard Playwright `test` and `expect`.
+- The test should visit `/onboarding`.
+- It must fill in a mock GitHub token.
+- It must click the "Connect" button.
+- It must wait for the simulated "Scanning Repositories" progress bar to complete.
+- It must assert that the URL successfully redirects to `/org/demo/graph`.
+- It must assert that the Svelte Flow canvas container is visible in the DOM.
+
+**EXACT ENDPOINTS & REPOS TO USE:**
+- Frontend URL: `http://localhost:5173`
+- The onboarding page is at `http://localhost:5173/onboarding`
+- Mock GitHub token: `ghp_mock_12345`
+- The expected success redirect is exactly to `http://localhost:5173/org/demo/graph`
+- If you need to mock a repo URL, use `github.com/myorg/demo-repo`
+- Do NOT use random external URLs or random ports.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+Playwright is already configured in the `dashboard` directory. Test files live in `dashboard/tests/`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: dashboard/tests/onboarding.spec.ts (CREATE NEW)
+   - Implement the Playwright test suite for the onboarding flow.
+2. Run `npm run test:e2e` inside the dashboard directory to verify.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO CREATE:
+- dashboard/tests/onboarding.spec.ts
+
+Commit: "test: P12-T01 add Playwright E2E for onboarding flow"
+Target branch: feature/dev

@@ -5,6 +5,8 @@
 	import '@xyflow/svelte/dist/style.css';
 	import dagre from 'dagre';
 	import ServiceNode from '$lib/components/ServiceNode.svelte';
+	import TimeTravelScrubber from '$lib/components/TimeTravelScrubber.svelte';
+	import InteractiveEdge from '$lib/components/InteractiveEdge.svelte';
 
 	let cyContainer: HTMLElement;
 	let rawNodes = $state<Node[]>([]);
@@ -28,8 +30,36 @@
 		selectedNode ? rawEdges.filter(e => e.source === selectedNode.id).map(e => e.target) : []
 	);
 
+	let blastRadius = $derived.by(() => {
+		if (!selectedNode) return { nodes: new Set<string>(), edges: new Set<string>() };
+
+		const affectedNodes = new Set<string>();
+		const affectedEdges = new Set<string>();
+		const queue = [selectedNode.id];
+
+		while (queue.length > 0) {
+			const current = queue.shift()!;
+			// Find all edges where current node is the provider (target)
+			// and consumers are the downstream dependencies (source)
+			for (const edge of rawEdges) {
+				if (edge.target === current) {
+					affectedEdges.add(edge.id);
+					if (!affectedNodes.has(edge.source)) {
+						affectedNodes.add(edge.source);
+						queue.push(edge.source);
+					}
+				}
+			}
+		}
+
+		return { nodes: affectedNodes, edges: affectedEdges };
+	});
+
 	const nodeTypes = {
 		service: ServiceNode
+	};
+	const edgeTypes = {
+		interactive: InteractiveEdge
 	};
 
 	const nodeWidth = 172;
@@ -115,8 +145,32 @@
 		}));
 
 		const layouted = getLayoutedElements(filteredNodes, filteredEdges);
-		nodes = layouted.nodes;
-		edges = layouted.edges;
+
+		// Apply blast radius highlighting and fading
+		if (selectedNode) {
+			nodes = layouted.nodes.map(n => ({
+				...n,
+				data: {
+					...n.data,
+					isOrigin: n.id === selectedNode.id,
+					isAffected: blastRadius.nodes.has(n.id),
+					isFaded: n.id !== selectedNode.id && !blastRadius.nodes.has(n.id)
+				}
+			}));
+
+			edges = layouted.edges.map(e => ({
+				...e,
+				style: (blastRadius.edges.has(e.id) || e.source === selectedNode.id || e.target === selectedNode.id)
+					? e.style
+					: `${e.style || ""}; opacity: 0.2;`
+			}));
+		} else {
+			nodes = layouted.nodes.map(n => ({
+				...n,
+				data: { ...n.data, isOrigin: false, isAffected: false, isFaded: false }
+			}));
+			edges = layouted.edges;
+		}
 	});
 
 	// We'll manage nodes and edges mapping inside onMount
@@ -168,6 +222,7 @@
 							id: `e-${edge.consumer}-${edge.provider}`,
 							source: edge.consumer,
 							target: edge.provider,
+							type: 'interactive',
 							animated: true,
 							style: `stroke: ${edge.status === 'BREAKING' ? '#EF4444' : '#64748b'}; stroke-width: 2px;`
 						});
@@ -226,11 +281,16 @@
 					Highlight connected neighbors
 				</label>
 			</div>
+			{#if selectedNode}
+				<button class="btn-clear-selection" onclick={() => selectedNode = null}>
+					Clear Selection
+				</button>
+			{/if}
 			<!-- Removed zoom controls since SvelteFlow provides its own <Controls /> -->
 		</div>
 
 		<div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 10;">
-			<SvelteFlow {nodes} {edges} {nodeTypes} fitView colorMode="dark"
+			<SvelteFlow {nodes} {edges} {nodeTypes} {edgeTypes} fitView colorMode="dark"
 				onpaneclick={() => selectedNode = null}
 				onnodeclick={((event: any, node: any) => selectedNode = { id: node.id, ...node.data }) as any}
 			>
@@ -238,6 +298,11 @@
 				<Controls />
 				<MiniMap />
 			</SvelteFlow>
+		</div>
+
+		<!-- Time Travel Scrubber -->
+		<div class="scrubber-wrapper">
+			<TimeTravelScrubber />
 		</div>
 	</main>
 
@@ -398,6 +463,34 @@
 		font-size: 13px;
 		width: 100%;
 		box-sizing: border-box;
+	}
+
+	.scrubber-wrapper {
+		position: absolute;
+		bottom: 24px;
+		left: 0;
+		right: 0;
+		z-index: 20;
+		pointer-events: none;
+		display: flex;
+		justify-content: center;
+		padding: 0 24px;
+	}
+	.btn-clear-selection {
+		background-color: var(--bg-card);
+		border: 1px solid var(--border);
+		color: var(--text-main);
+		padding: 8px 16px;
+		border-radius: 4px;
+		cursor: pointer;
+		font-size: 13px;
+		font-weight: 500;
+		box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+		transition: background-color 0.2s;
+	}
+
+	.btn-clear-selection:hover {
+		background-color: var(--bg-hover, #2D3240);
 	}
 
 	/* Detail Panel */
