@@ -6,9 +6,10 @@ Migrate the primary dependency graph visualization from `cytoscape.js` to `@xyfl
 ## 2. Requirements
 - Replace `cytoscape` dependencies with `@xyflow/svelte`.
 - Implement a custom Node component (`ServiceNode.svelte`) that displays the service name, health status, and repository badge.
-- Implement an animated Edge component to visualize data flow direction. Fall back to standard `straight` lines when edge count exceeds 150 to preserve GPU performance.
+- Implement an animated Edge component to visualize data flow direction. Fall back to standard `straight` lines when edge count exceeds 150 to preserve GPU performance. **Crucially, graph edges MUST be mapped as `source: Provider` and `target: Consumer`.** This guarantees Dagre's Top-to-Bottom (`TB`) layout naturally anchors upstream providers at the top and visually cascades data flow downwards to downstream consumers.
 - Integrate the Svelte Flow `MiniMap` and `Controls` components.
 - **Search-First Exploration Model:** To handle massive enterprise graphs (200+ nodes), the initial graph state MUST be empty with a prompt for the user to search. 
+- **Asymmetrical Recursive Filtering:** When generating the sub-graph based on a search or filter, the logic MUST pull in only 1 layer of upstream providers (direct dependencies) to reduce visual noise, but MUST recursively pull in ALL layers of downstream consumers. This guarantees that the entire cascading "Blast Radius" of a breaking change is available on the canvas for highlighting.
 - **Sub-Graph Layout Optimization:** The heavy Dagre layout calculation MUST only run on the filtered subset of nodes (e.g., the searched node + its neighbors). This ensures layout computes in <1ms and prevents massive layout scattering (the "hairball" problem).
 - **Interactive State Separation:** Style updates (e.g., node selection, blast radius highlighting) MUST be separated from the layout algorithm using Svelte 5 `$derived` runes. Clicking a node only applies CSS opacity updates, maintaining 60fps responsiveness.
 - **Reactivity Considerations (Svelte 5):** When implementing debounce functionality for the search input using `$effect`, reactive dependencies (e.g., `searchQuery`) MUST be read synchronously before any async callback (like `setTimeout`). Failure to do so prevents Svelte 5 from tracking the dependency, causing the graph to remain empty.

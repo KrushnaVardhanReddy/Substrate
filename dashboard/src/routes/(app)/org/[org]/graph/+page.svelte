@@ -33,10 +33,10 @@
 	let selectedNode: any = $state(null);
 
 	let selectedDownstream = $derived(
-		selectedNode ? rawEdges.filter(e => e.target === selectedNode.id).map(e => e.source) : []
+		selectedNode ? rawEdges.filter(e => e.source === selectedNode.id).map(e => e.target) : []
 	);
 	let selectedUpstream = $derived(
-		selectedNode ? rawEdges.filter(e => e.source === selectedNode.id).map(e => e.target) : []
+		selectedNode ? rawEdges.filter(e => e.target === selectedNode.id).map(e => e.source) : []
 	);
 
 	let blastRadius = $derived.by(() => {
@@ -47,9 +47,9 @@
 		
 		// 1. Add immediate upstream providers so they are highlighted
 		for (const edge of rawEdges) {
-			if (edge.source === selectedNode.id) {
+			if (edge.target === selectedNode.id) {
 				affectedEdges.add(edge.id);
-				affectedNodes.add(edge.target);
+				affectedNodes.add(edge.source);
 			}
 		}
 
@@ -58,14 +58,14 @@
 
 		while (queue.length > 0) {
 			const current = queue.shift()!;
-			// Find all edges where current node is the provider (target)
-			// and consumers are the downstream dependencies (source)
+			// Find all edges where current node is the provider (source)
+			// and consumers are the downstream dependencies (target)
 			for (const edge of rawEdges) {
-				if (edge.target === current) {
+				if (edge.source === current) {
 					affectedEdges.add(edge.id);
-					if (!affectedNodes.has(edge.source)) {
-						affectedNodes.add(edge.source);
-						queue.push(edge.source);
+					if (!affectedNodes.has(edge.target)) {
+						affectedNodes.add(edge.target);
+						queue.push(edge.target);
 					}
 				}
 			}
@@ -156,10 +156,34 @@
 		let fEdges: Edge[] = [];
 
 		if (includeNeighbors) {
-			fEdges = rawEdges.filter(e => matchedIds.has(e.source) || matchedIds.has(e.target));
-			const neighborIds = new Set<string>();
-			fEdges.forEach(e => { neighborIds.add(e.source); neighborIds.add(e.target); });
-			fNodes = rawNodes.filter(n => neighborIds.has(n.id) || matchedIds.has(n.id));
+			const affectedIds = new Set(matchedIds);
+			
+			// 1. One layer Upstream (Dependencies)
+			// Edge direction: source (provider) -> target (consumer)
+			// If a matched node is a consumer (target), add its direct provider
+			for (const edge of rawEdges) {
+				if (matchedIds.has(edge.target)) {
+					affectedIds.add(edge.source);
+				}
+			}
+
+			// 2. Recursive Downstream (Blast Radius)
+			// If a node is a provider (source), recursively add all its consumers (target)
+			const queue = Array.from(matchedIds);
+			while (queue.length > 0) {
+				const current = queue.shift()!;
+				for (const edge of rawEdges) {
+					if (edge.source === current) {
+						if (!affectedIds.has(edge.target)) {
+							affectedIds.add(edge.target);
+							queue.push(edge.target);
+						}
+					}
+				}
+			}
+
+			fEdges = rawEdges.filter(e => affectedIds.has(e.source) && affectedIds.has(e.target));
+			fNodes = rawNodes.filter(n => affectedIds.has(n.id));
 		} else {
 			fEdges = rawEdges.filter(e => matchedIds.has(e.source) && matchedIds.has(e.target));
 		}
@@ -244,9 +268,9 @@
 				addNode(edge.consumer, 'SAFE', 'consumer');
 
 				newEdges.push({
-					id: `e-${edge.consumer}-${edge.provider}`,
-					source: edge.consumer,
-					target: edge.provider,
+					id: `e-${edge.provider}-${edge.consumer}`,
+					source: edge.provider,
+					target: edge.consumer,
 					type: edgesData.length < 150 ? 'interactive' : 'straight',
 					animated: false,
 					style: `stroke: ${edge.status === 'BREAKING' ? '#EF4444' : '#64748b'}; stroke-width: 2px;`
