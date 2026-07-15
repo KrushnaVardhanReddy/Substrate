@@ -19,7 +19,16 @@
 	let hideOrphans = $state(false);
 	let protocolFilter = $state('All');
 	let searchQuery = $state('');
+	let debouncedSearch = $state('');
 	let includeNeighbors = $state(true);
+
+	$effect(() => {
+		const currentQuery = searchQuery;
+		const timer = setTimeout(() => {
+			debouncedSearch = currentQuery;
+		}, 300);
+		return () => clearTimeout(timer);
+	});
 
 	let selectedNode: any = $state(null);
 
@@ -35,6 +44,16 @@
 
 		const affectedNodes = new Set<string>();
 		const affectedEdges = new Set<string>();
+		
+		// 1. Add immediate upstream providers so they are highlighted
+		for (const edge of rawEdges) {
+			if (edge.source === selectedNode.id) {
+				affectedEdges.add(edge.id);
+				affectedNodes.add(edge.target);
+			}
+		}
+
+		// 2. Add downstream consumers recursively (Blast Radius)
 		const queue = [selectedNode.id];
 
 		while (queue.length > 0) {
@@ -66,11 +85,26 @@
 	const nodeHeight = 60;
 
 	const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => {
+		// Fallback to naive grid layout if there are too many nodes (prevents Dagre freezing)
+		if (nodes.length > 100) {
+			const cols = Math.ceil(Math.sqrt(nodes.length));
+			const layoutedNodes = nodes.map((node, i) => ({
+				...node,
+				width: nodeWidth,
+				height: nodeHeight,
+				position: {
+					x: (i % cols) * (nodeWidth + 20),
+					y: Math.floor(i / cols) * (nodeHeight + 40)
+				}
+			}));
+			return { nodes: layoutedNodes, edges };
+		}
+
 		const dagreGraph = new dagre.graphlib.Graph();
 		dagreGraph.setDefaultEdgeLabel(() => ({}));
 
 		const isHorizontal = direction === 'LR';
-		dagreGraph.setGraph({ rankdir: direction });
+		dagreGraph.setGraph({ rankdir: direction, nodesep: 15, ranksep: 40 });
 
 		nodes.forEach((node) => {
 			dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
@@ -98,62 +132,59 @@
 		return { nodes: layoutedNodes, edges };
 	};
 
-	let filteredData = $derived.by(() => {
-		let filteredNodes = rawNodes;
-		let filteredEdges = rawEdges;
+	let isGraphEmpty = $derived(!debouncedSearch && !showOnlyBreaking && protocolFilter === 'All');
 
+	let subsetData = $derived.by(() => {
+		if (isGraphEmpty) return { nodes: [], edges: [] };
+
+		let fNodes = rawNodes;
+		
 		if (showOnlyBreaking) {
-			filteredNodes = filteredNodes.filter(n => n.data.status === 'BREAKING');
-			// Keep edges that connect to breaking nodes
-			const breakingIds = new Set(filteredNodes.map(n => n.id));
-			filteredEdges = filteredEdges.filter(e => breakingIds.has(e.source) || breakingIds.has(e.target));
-			// Also include nodes connected to these edges
-			const connectedIds = new Set<string>();
-			filteredEdges.forEach(e => { connectedIds.add(e.source); connectedIds.add(e.target); });
-			filteredNodes = rawNodes.filter(n => connectedIds.has(n.id) || n.data.status === 'BREAKING');
+			fNodes = fNodes.filter(n => n.data.status === 'BREAKING');
 		}
 
 		if (protocolFilter !== 'All') {
-			filteredNodes = filteredNodes.filter(n => n.data.type === protocolFilter);
-			const protocolIds = new Set(filteredNodes.map(n => n.id));
-			filteredEdges = filteredEdges.filter(e => protocolIds.has(e.source) && protocolIds.has(e.target));
+			fNodes = fNodes.filter(n => n.data.type === protocolFilter);
 		}
 
-		if (searchQuery) {
-			const query = searchQuery.toLowerCase();
-			const matchedNodes = filteredNodes.filter(n => (n.data.label as string).toLowerCase().includes(query));
+		if (debouncedSearch) {
+			const query = debouncedSearch.toLowerCase();
+			fNodes = fNodes.filter(n => (n.data.label as string).toLowerCase().includes(query));
+		}
 
-			if (includeNeighbors) {
-				const matchedIds = new Set(matchedNodes.map(n => n.id));
-				const neighborEdges = filteredEdges.filter(e => matchedIds.has(e.source) || matchedIds.has(e.target));
-				const neighborIds = new Set<string>();
-				neighborEdges.forEach(e => { neighborIds.add(e.source); neighborIds.add(e.target); });
-				filteredNodes = filteredNodes.filter(n => neighborIds.has(n.id) || matchedIds.has(n.id));
-				filteredEdges = neighborEdges;
-			} else {
-				filteredNodes = matchedNodes;
-				const matchedIds = new Set(matchedNodes.map(n => n.id));
-				filteredEdges = filteredEdges.filter(e => matchedIds.has(e.source) && matchedIds.has(e.target));
-			}
+		const matchedIds = new Set(fNodes.map(n => n.id));
+		let fEdges: Edge[] = [];
+
+		if (includeNeighbors) {
+			fEdges = rawEdges.filter(e => matchedIds.has(e.source) || matchedIds.has(e.target));
+			const neighborIds = new Set<string>();
+			fEdges.forEach(e => { neighborIds.add(e.source); neighborIds.add(e.target); });
+			fNodes = rawNodes.filter(n => neighborIds.has(n.id) || matchedIds.has(n.id));
+		} else {
+			fEdges = rawEdges.filter(e => matchedIds.has(e.source) && matchedIds.has(e.target));
 		}
 
 		if (hideOrphans) {
 			const connectedIds = new Set<string>();
-			filteredEdges.forEach(e => { connectedIds.add(e.source); connectedIds.add(e.target); });
-			filteredNodes = filteredNodes.filter(n => connectedIds.has(n.id));
+			fEdges.forEach(e => { connectedIds.add(e.source); connectedIds.add(e.target); });
+			fNodes = fNodes.filter(n => connectedIds.has(n.id));
 		}
 
-		return { nodes: filteredNodes, edges: filteredEdges };
+		return { nodes: fNodes, edges: fEdges };
 	});
 
 	let layoutedData = $derived.by(() => {
-		return getLayoutedElements(filteredData.nodes, filteredData.edges);
+		if (subsetData.nodes.length === 0) return { nodes: [], edges: [] };
+		return getLayoutedElements(subsetData.nodes, subsetData.edges);
 	});
 
-	$effect(() => {
+	let displayData = $derived.by(() => {
+		let dNodes = layoutedData.nodes;
+		let dEdges = layoutedData.edges;
+
 		// Apply blast radius highlighting and fading
 		if (selectedNode) {
-			nodes = layoutedData.nodes.map(n => ({
+			dNodes = dNodes.map(n => ({
 				...n,
 				data: {
 					...n.data,
@@ -163,19 +194,25 @@
 				}
 			}));
 
-			edges = layoutedData.edges.map(e => ({
+			dEdges = dEdges.map(e => ({
 				...e,
 				style: (blastRadius.edges.has(e.id) || e.source === selectedNode.id || e.target === selectedNode.id)
 					? e.style
 					: `${e.style || ""}; opacity: 0.2;`
 			}));
 		} else {
-			nodes = layoutedData.nodes.map(n => ({
+			dNodes = dNodes.map(n => ({
 				...n,
 				data: { ...n.data, isOrigin: false, isAffected: false, isFaded: false }
 			}));
-			edges = layoutedData.edges;
 		}
+
+		return { nodes: dNodes, edges: dEdges };
+	});
+
+	$effect(() => {
+		nodes = displayData.nodes;
+		edges = displayData.edges;
 	});
 
 	// We'll manage nodes and edges mapping inside onMount
@@ -210,9 +247,8 @@
 					id: `e-${edge.consumer}-${edge.provider}`,
 					source: edge.consumer,
 					target: edge.provider,
-					type: 'interactive',
-					// SVG CSS animation on 600 edges kills the browser GPU
-					animated: edgesData.length < 150,
+					type: edgesData.length < 150 ? 'interactive' : 'straight',
+					animated: false,
 					style: `stroke: ${edge.status === 'BREAKING' ? '#EF4444' : '#64748b'}; stroke-width: 2px;`
 				});
 			});
@@ -296,6 +332,13 @@
 		</div>
 
 		<div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 10;">
+			{#if isGraphEmpty}
+				<div class="empty-state">
+					<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+					<h2>Search to Explore Dependencies</h2>
+					<p>Enter a service name, or check "Show Only BREAKING Changes" to generate the graph.</p>
+				</div>
+			{/if}
 			<SvelteFlow {nodes} {edges} {nodeTypes} {edgeTypes} fitView colorMode="dark"
 				onpaneclick={() => selectedNode = null}
 				onnodeclick={(...args: any[]) => {
@@ -647,5 +690,25 @@
 
 	.error-text {
 		color: #ef4444;
+	}
+
+	.empty-state {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		color: var(--text-muted, #94a3b8);
+		text-align: center;
+		z-index: 15;
+		pointer-events: none;
+	}
+	.empty-state h2 {
+		color: var(--text-main, #f8fafc);
+		margin-top: 16px;
+		margin-bottom: 8px;
+		font-size: 1.2rem;
 	}
 </style>

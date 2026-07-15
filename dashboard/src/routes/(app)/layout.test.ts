@@ -13,7 +13,7 @@ describe('Layout Load Function', () => {
 		// @ts-ignore - Partial LayoutLoadEvent mock
 		const result: any = await load({ fetch: mockFetch });
 
-		expect(mockFetch).toHaveBeenCalledWith('http://localhost:8090/api/v1/repos/myorg', {
+		expect(mockFetch).toHaveBeenCalledWith('/api/v1/repos/myorg', {
 			headers: {
 				Authorization: 'Bearer test-token'
 			}
