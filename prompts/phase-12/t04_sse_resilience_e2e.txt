@@ -1,0 +1,37 @@
+TASK: P12-T04 — SSE Connection Resilience Test (Go E2E)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Write a Go E2E test to simulate 100+ concurrent clients connecting to the SSE endpoint and abruptly disconnecting to ensure no memory leaks occur.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-12/p12-master-plan.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- The test must follow the patterns established in `scripts/e2e/phase8_e2e_test.go`.
+- Use `http://localhost:8090` for the API URL.
+- Use `local-jwt-secret` for JWT creation if needed.
+- Connect 100 concurrent HTTP clients to `/api/v1/events`, cancel their contexts, and assert the server recovers gracefully.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+E2E tests live in `scripts/e2e/`. You can reference `phase8_e2e_test.go` for DB setup and constants.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: scripts/e2e/phase12_sse_test.go (CREATE NEW)
+2. Run `go test ./scripts/e2e/...` to verify.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO CREATE:
+- scripts/e2e/phase12_sse_test.go
+
+Commit: "test: P12-T04 add Go E2E test for SSE resilience"
+Target branch: feature/dev

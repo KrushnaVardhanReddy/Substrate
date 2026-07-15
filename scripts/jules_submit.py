@@ -599,10 +599,42 @@ TASKS = {
         "phase": "phase-11-ui",
         "prompt": _load_prompt("prompts/phase-11/t14_premium_aesthetics.txt"),
     },
-    115: {
+    1115: {
         "name": "P11-T15 — Zero-to-One Onboarding Wizard",
         "phase": "phase-11-ui",
         "prompt": _load_prompt("prompts/phase-11/t15_onboarding_wizard.txt"),
+    },
+
+    # ── Phase 12: V2.0 Public Launch & Quality Assurance ─────────────────
+    1201: {
+        "name": "P12-T01 — Zero-to-One Onboarding E2E",
+        "phase": "phase-12-qa",
+        "prompt": _load_prompt("prompts/phase-12/t01_onboarding_e2e.txt"),
+    },
+    1202: {
+        "name": "P12-T02 — Svelte Flow Interaction E2E",
+        "phase": "phase-12-qa",
+        "prompt": _load_prompt("prompts/phase-12/t02_svelte_flow_e2e.txt"),
+    },
+    1203: {
+        "name": "P12-T03 — Visual Studio Resilience Test",
+        "phase": "phase-12-qa",
+        "prompt": _load_prompt("prompts/phase-12/t03_studio_resilience_e2e.txt"),
+    },
+    1204: {
+        "name": "P12-T04 — SSE Connection Resilience Test (Go E2E)",
+        "phase": "phase-12-qa",
+        "prompt": _load_prompt("prompts/phase-12/t04_sse_resilience_e2e.txt"),
+    },
+    1205: {
+        "name": "P12-T05 — WASM Engine Boundary Tests (Go E2E)",
+        "phase": "phase-12-qa",
+        "prompt": _load_prompt("prompts/phase-12/t05_wasm_boundary_e2e.txt"),
+    },
+    1206: {
+        "name": "P12-T06 — 1,000-Node UI Stress Test (Playwright)",
+        "phase": "phase-12-qa",
+        "prompt": _load_prompt("prompts/phase-12/t06_ui_stress_test_e2e.txt"),
     },
 }
 
