@@ -100,6 +100,9 @@ build-cli:
 build-mcp:
 	cd engine && go build -o substrate-mcp ./cmd/substrate-mcp/main.go
 
+build-wasm:
+	cd engine && GOOS=js GOARCH=wasm go build -o ../dashboard/static/engine.wasm ./cmd/wasm/main.go
+
 start-bg: postgres
 	@echo "Starting backend services in background..."
 	@rm -f *.log
