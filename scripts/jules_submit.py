@@ -549,6 +549,16 @@ TASKS = {
         "phase": "phase-11-ui",
         "prompt": _load_prompt("prompts/phase-11/t11_command_palette.txt"),
     },
+    112: {
+        "name": "P11-T12 — Rich Side-by-Side Diff Viewer & Sign Out",
+        "phase": "phase-11-ui",
+        "prompt": _load_prompt("prompts/phase-11/t12_diff_viewer.txt"),
+    },
+    113: {
+        "name": "P11-T13 — Time-Travel Graph Replay",
+        "phase": "phase-11-ui",
+        "prompt": _load_prompt("prompts/phase-11/t13_time_travel.txt"),
+    },
     114: {
         "name": "P11-T14 — Premium Aesthetics System",
         "phase": "phase-11-ui",
