@@ -5,7 +5,7 @@
 	import '@xyflow/svelte/dist/style.css';
 	import dagre from 'dagre';
 	import { toPng } from 'html-to-image';
-	import { Download } from 'lucide-svelte';
+	import { Download, RotateCw } from 'lucide-svelte';
 	import ServiceNode from '$lib/components/ServiceNode.svelte';
 	import TimeTravelScrubber from '$lib/components/TimeTravelScrubber.svelte';
 	import InteractiveEdge from '$lib/components/InteractiveEdge.svelte';
@@ -23,6 +23,13 @@
 	let searchQuery = $state('');
 	let debouncedSearch = $state('');
 	let includeNeighbors = $state(true);
+	let layoutDirection = $state('BT'); // Bottom-to-Top puts databases at the bottom and frontends at the top
+
+	const toggleLayout = () => {
+		const dirs = ['TB', 'BT', 'LR', 'RL'];
+		const currentIdx = dirs.indexOf(layoutDirection);
+		layoutDirection = dirs[(currentIdx + 1) % dirs.length];
+	};
 
 	$effect(() => {
 		const currentQuery = searchQuery;
@@ -201,7 +208,7 @@
 
 	let layoutedData = $derived.by(() => {
 		if (subsetData.nodes.length === 0) return { nodes: [], edges: [] };
-		return getLayoutedElements(subsetData.nodes, subsetData.edges);
+		return getLayoutedElements(subsetData.nodes, subsetData.edges, layoutDirection);
 	});
 
 	let displayData = $derived.by(() => {
@@ -345,12 +352,17 @@
 		</div>
 
 		<!-- Graph Controls overlay -->
-		<div class="graph-controls" style="z-index: 20;">
+		<div class="graph-controls" style="z-index: 20; display: flex; gap: 8px;">
 			<div class="filter-panel">
-				<button class="btn-export" onclick={exportImage}>
-					<Download size={16} />
-					Export PNG
-				</button>
+				<div style="display: flex; gap: 8px;">
+					<button class="btn-export" onclick={exportImage} title="Export PNG">
+						<Download size={16} />
+						Export
+					</button>
+					<button class="btn-export" onclick={toggleLayout} style="width: auto; padding: 8px;" title="Rotate Layout">
+						<RotateCw size={16} />
+					</button>
+				</div>
 				<label class="filter-label">
 					<input type="checkbox" bind:checked={showOnlyBreaking} />
 					Show Only BREAKING Changes
