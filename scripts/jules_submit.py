@@ -559,6 +559,21 @@ TASKS = {
         "phase": "phase-11-ui",
         "prompt": _load_prompt("prompts/phase-11/t04_volatility_heatmap.txt"),
     },
+    1107: {
+        "name": "P11-T07 — Visual API Design Studio",
+        "phase": "phase-11-ui",
+        "prompt": _load_prompt("prompts/phase-11/t07_visual_api_studio.txt"),
+    },
+    1108: {
+        "name": "P11-T08 — Substrate WASM Engine (In-Browser Diffing)",
+        "phase": "phase-11-ui",
+        "prompt": _load_prompt("prompts/phase-11/t08_wasm_engine.txt"),
+    },
+    1109: {
+        "name": "P11-T09 — Server-Sent Events (SSE) Real-Time UI",
+        "phase": "phase-11-ui",
+        "prompt": _load_prompt("prompts/phase-11/t09_sse_ui.txt"),
+    },
     110: {
         "name": "P11-T10 — Svelte Flow Migration",
         "phase": "phase-11-ui",
