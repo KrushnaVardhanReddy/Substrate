@@ -1,22 +1,21 @@
 # Substrate Handoff — Awaiting Phase 11 & 12 Jules PRs
 
 **Date:** July 15, 2026
-**Current Focus:** Awaiting PRs for Phase 11 (V2.0 UX) and Phase 12 (V2.0 E2E Testing)
+**Current Focus:** Awaiting PRs for Phase 11 (V2.0 UX) and preparing for live CI/CD demo testing.
 
 ## What We Accomplished Today
-1. **Repository Cleanup:** Cleaned up `tasks.md` by archiving all completed tasks from Phase 5 through Phase 8 into `completed_tasks.md` to keep our tracker focused.
-2. **Phase 12 E2E Master Plan:** Formulated the Phase 12 launch roadmap focusing on hardening the backend and frontend. We wrote highly detailed prompts for **P12-T01 through P12-T06**, strictly defining endpoints (e.g., backend at `localhost:8090` and frontend at `localhost:5173`) so the AI doesn't guess URLs.
-3. **E2E Wrapper Pipeline:** Added the `make e2e-phase12` wrapper target to our `Makefile` to orchestrate both the Playwright UI tests and the Go backend tests smoothly in a single CLI command.
-4. **Massive Parallelization:** Successfully triggered 6 async Jules agents for the Phase 12 E2E tests, which will run in parallel alongside the active Jules tasks currently implementing the Phase 11 UI upgrades!
-5. **Phase 11 Jules Dispatches:** Refactored prompts and triggered Jules for Advanced Graph Analytics.
-   - P11-T12 (Diff Viewer): Session `10682893628416163267`
-   - P11-T13 (Time-Travel Scrubber): Session `9937051008420969622`
-
-## Active Jules Tasks (Currently In Flight)
-*   **Phase 11 (UI):** T01, T02, T03, T04, T07, T08, T09, T12, T13
-*   **Phase 12 (E2E):** T01, T02, T03, T04, T05, T06
+1. **P11-T16 & P11-T17 Finalized:** We finished the Taxonomy & Metadata Tagging (tinted Lucide icons) and the Graph Image Export. We also fixed the Playwright E2E strict mode violation errors and aligned the markdown specifications perfectly with the code. These are now marked as complete in `tasks.md`.
+2. **Standardized AI Prompts:** We rewrote and standardized the prompt files for the remaining Phase 11 tasks (`t12_diff_viewer.txt` and `t13_time_travel.txt`) to enforce strict adherence to design tokens and our native vanilla CSS implementation over Tailwind CDNs.
+3. **Dispatched Jules (Phase 11):** We successfully triggered Jules via `jules_submit.py` to implement:
+   - **P11-T12 (Diff Viewer & Sign Out):** Session `10682893628416163267`
+   - **P11-T13 (Time-Travel Scrubber):** Session `9937051008420969622` (Jules has reported finishing this and is in the process of committing/pushing).
+4. **Prepared Live Demo Environments:** We successfully forked three massive open-source repositories directly to the `KrushnaVardhanReddy` GitHub account for future CI/CD stress-testing:
+   - `stripe/openapi`
+   - `GoogleCloudPlatform/microservices-demo`
+   - `gothinkster/realworld`
+   We also ran a background job to clone these locally into the `demo-repos/` directory.
 
 ## Next Steps for the Next Session
-1. **Merge the Wave:** You are currently waiting for 15 Pull Requests from Jules. When you return, check GitHub for PRs targeting the `feature/dev` branch.
-2. **Review & Test:** Review the PRs, merge them in, and run `make e2e-phase12` to validate the test suite and ensure all the new Phase 11 UI features are structurally sound and visually perfect.
-3. **Final Steps:** Once all testing is stable, we can move on to the final two launch tasks (P12-T07 Telemetry & P12-T08 V2.0 Production Cutover).
+1. **Merge Jules PRs:** Wait for Jules to open Pull Requests for P11-T12 and P11-T13. Review, merge into `feature/dev`, and verify the UIs in the dashboard.
+2. **Continue Phase 11/12 Parallelization:** Dispatch Jules for the remaining Phase 11 tasks (Blast Radius, Team Neighborhoods, WASM diffing) or move towards Phase 12 E2E testing if preferred.
+3. **Run the Live Demos:** Once the Phase 11 UI is rock-solid, configure the GitHub Action on our new forks (`KrushnaVardhanReddy/openapi`, etc.) and submit PRs with breaking changes to demonstrate Substrate blocking merges in the wild.
