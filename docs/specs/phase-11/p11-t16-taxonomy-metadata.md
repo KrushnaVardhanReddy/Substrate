@@ -20,19 +20,19 @@ This specification introduces a `metadata` block to the `substrate.yaml` file, a
 - The Go backend logic responsible for inserting/updating repositories (e.g., during the GitHub webhook sync in `push.go`) MUST serialize the parsed `metadata` object and persist it to the database.
 
 ### 2.3 API Modifications
-- The Registry API endpoint responsible for serving the dependency graph (`/api/v1/graph/...`) MUST be updated to include the `metadata` JSON object inside the returned node payload.
+- The Registry API endpoint responsible for serving the dependency graph (`/api/v1/graph/...`) MUST be updated to include `consumer_metadata` and `provider_metadata` JSON objects inside the returned dependency edge payload.
 
 ### 2.4 UI Visualization (Svelte Flow)
-- **Visual Node Icons:** The custom `ServiceNode.svelte` MUST render a distinct SVG icon based on the `metadata.type` property:
-  - `frontend` → Browser Window Icon
-  - `database` → Database Cylinder Icon
-  - `mobile` → Smartphone Icon
-  - `backend` / `service` / default → Server/Cog Icon
-- **Aesthetics:** Node borders or backgrounds should utilize subtle color coding to differentiate types, adhering to the premium dark mode aesthetic.
-- **Manifest Metadata Panel:** When a node is selected, the right-hand Detail Panel (`<aside class="detail-panel">`) MUST dynamically render the taxonomy data:
+- **Visual Node Icons:** The custom `ServiceNode.svelte` MUST render a distinct Lucide SVG icon enclosed in a tinted `.icon-wrapper` based on the `metadata.type` property:
+  - `frontend` → `AppWindow` Icon with Purple tint (`#8B5CF6`)
+  - `database` → `Database` Icon with Cyan tint (`#06B6D4`)
+  - `mobile` → `Smartphone` Icon with Rose tint (`#F43F5E`)
+  - `backend` / `service` / default → `Server` Icon with Indigo tint (`#6366F1`)
+- **Aesthetics:** Icons MUST be placed on a 15% opacity background of the same stroke color to create a dynamic, premium "glow" aesthetic.
+- **Taxonomy Detail Panel:** When a node is selected, the right-hand Detail Panel (`<aside class="detail-panel">`) MUST dynamically render the taxonomy data if present:
   - Display the `team` name.
-  - Display the `type`.
-  - Display the `databases` as a list of stylized badges.
+  - Display the `type` (capitalized).
+  - Display the `databases` as a list of stylized pill badges.
 
 ## 3. Success Criteria
 1. Submitting a `substrate.yaml` with a `metadata` block successfully updates the `repositories` table in PostgreSQL.

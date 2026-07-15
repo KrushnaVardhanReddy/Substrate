@@ -451,22 +451,22 @@
 			</section>
 
 			<!-- Taxonomy Metadata -->
-			{#if selectedNode?.data?.metadata && Object.keys(selectedNode.data.metadata).length > 0}
+			{#if selectedNode?.metadata && Object.keys(selectedNode.metadata).length > 0}
 			<section class="detail-section">
 				<h4 class="section-title">Taxonomy</h4>
 				<div class="metadata-grid">
-					{#if selectedNode.data.metadata.team}
+					{#if selectedNode.metadata.team}
 						<div class="meta-label">Team</div>
-						<div class="meta-value">{selectedNode.data.metadata.team}</div>
+						<div class="meta-value">{selectedNode.metadata.team}</div>
 					{/if}
-					{#if selectedNode.data.metadata.type}
+					{#if selectedNode.metadata.type}
 						<div class="meta-label">Type</div>
-						<div class="meta-value" style="text-transform: capitalize;">{selectedNode.data.metadata.type}</div>
+						<div class="meta-value" style="text-transform: capitalize;">{selectedNode.metadata.type}</div>
 					{/if}
-					{#if selectedNode.data.metadata.databases && selectedNode.data.metadata.databases.length > 0}
+					{#if selectedNode.metadata.databases && selectedNode.metadata.databases.length > 0}
 						<div class="meta-label">Databases</div>
 						<div class="meta-value">
-							{#each selectedNode.data.metadata.databases as db}
+							{#each selectedNode.metadata.databases as db}
 								<span style="background: #2D3240; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-right: 4px;">{db}</span>
 							{/each}
 						</div>

@@ -74,7 +74,7 @@ test.describe('Dependency Graph', () => {
 		const detailPanel = page.locator('.detail-panel');
 		await expect(detailPanel).toBeVisible();
 		await expect(detailPanel.locator('text=Taxonomy')).toBeVisible();
-		await expect(detailPanel.locator('text=Platform')).toBeVisible();
+		await expect(detailPanel.getByText('Platform', { exact: true })).toBeVisible();
 
 		// 5. Verify Deep DX Links
 		const logsLink = page.locator('a:has-text("View Logs")');
