@@ -9,6 +9,7 @@
 	import InteractiveEdge from '$lib/components/InteractiveEdge.svelte';
 
 	let cyContainer: HTMLElement;
+	let { data }: { data: any } = $props();
 	let rawNodes = $state<Node[]>([]);
 	let rawEdges = $state<Edge[]>([]);
 	let nodes = $state<Node[]>([]);
@@ -85,6 +86,8 @@
 			const nodeWithPosition = dagreGraph.node(node.id);
 			return {
 				...node,
+				width: nodeWidth,
+				height: nodeHeight,
 				position: {
 					x: nodeWithPosition.x - nodeWidth / 2,
 					y: nodeWithPosition.y - nodeHeight / 2
@@ -95,7 +98,7 @@
 		return { nodes: layoutedNodes, edges };
 	};
 
-	$effect(() => {
+	let filteredData = $derived.by(() => {
 		let filteredNodes = rawNodes;
 		let filteredEdges = rawEdges;
 
@@ -140,11 +143,17 @@
 			filteredNodes = filteredNodes.filter(n => connectedIds.has(n.id));
 		}
 
-		const layouted = getLayoutedElements(filteredNodes, filteredEdges);
+		return { nodes: filteredNodes, edges: filteredEdges };
+	});
 
+	let layoutedData = $derived.by(() => {
+		return getLayoutedElements(filteredData.nodes, filteredData.edges);
+	});
+
+	$effect(() => {
 		// Apply blast radius highlighting and fading
 		if (selectedNode) {
-			nodes = layouted.nodes.map(n => ({
+			nodes = layoutedData.nodes.map(n => ({
 				...n,
 				data: {
 					...n.data,
@@ -154,18 +163,18 @@
 				}
 			}));
 
-			edges = layouted.edges.map(e => ({
+			edges = layoutedData.edges.map(e => ({
 				...e,
 				style: (blastRadius.edges.has(e.id) || e.source === selectedNode.id || e.target === selectedNode.id)
 					? e.style
 					: `${e.style || ""}; opacity: 0.2;`
 			}));
 		} else {
-			nodes = layouted.nodes.map(n => ({
+			nodes = layoutedData.nodes.map(n => ({
 				...n,
 				data: { ...n.data, isOrigin: false, isAffected: false, isFaded: false }
 			}));
-			edges = layouted.edges;
+			edges = layoutedData.edges;
 		}
 	});
 
@@ -173,7 +182,56 @@
 	onMount(() => {
 		let interval: any;
 
+		const processGraphData = (edgesData: any) => {
+			let newNodesMap = new Map<string, Node>();
+			let newEdges: Edge[] = [];
+
+			const addNode = (id: string, status: string, type: string) => {
+				if (!newNodesMap.has(id)) {
+					newNodesMap.set(id, {
+						id,
+						type: 'service',
+						position: { x: 0, y: 0 },
+						data: { label: id, status, type }
+					});
+				} else if (status === 'BREAKING') {
+					const existing = newNodesMap.get(id);
+					if (existing) {
+						existing.data.status = 'BREAKING';
+					}
+				}
+			};
+
+			edgesData.forEach((edge: any) => {
+				addNode(edge.provider, edge.status, 'provider');
+				addNode(edge.consumer, 'SAFE', 'consumer');
+
+				newEdges.push({
+					id: `e-${edge.consumer}-${edge.provider}`,
+					source: edge.consumer,
+					target: edge.provider,
+					type: 'interactive',
+					// SVG CSS animation on 600 edges kills the browser GPU
+					animated: edgesData.length < 150,
+					style: `stroke: ${edge.status === 'BREAKING' ? '#EF4444' : '#64748b'}; stroke-width: 2px;`
+				});
+			});
+
+			rawNodes = Array.from(newNodesMap.values());
+			rawEdges = newEdges;
+			console.log('processGraphData finished. rawNodes length:', rawNodes.length);
+		};
+
+		console.log('Mounting component. data.graphData length:', data?.graphData?.length);
+		// Run immediately with SSR/fallback data
+		if (data && data.graphData) {
+			processGraphData(data.graphData);
+		}
+
 		const fetchGraph = async () => {
+			// Prevent real backend from overwriting our static 200-node demo
+			if ($page.params.org === 'stress-test') return;
+
 			try {
 				const token = localStorage.getItem('github_token');
 				const headers: Record<string, string> = {};
@@ -182,47 +240,8 @@
 				}
 				const res = await fetch(`/api/v1/graph/${$page.params.org}`, { headers });
 				if (res.ok) {
-					const data = await res.json();
-					const edgesData = Array.isArray(data) ? data : [];
-
-					let newNodesMap = new Map<string, Node>();
-					let newEdges: Edge[] = [];
-
-					// Add nodes to map
-					const addNode = (id: string, status: string, type: string) => {
-						if (!newNodesMap.has(id)) {
-							newNodesMap.set(id, {
-								id,
-								type: 'service',
-								position: { x: 0, y: 0 },
-								data: { label: id, status, type }
-							});
-						} else if (status === 'BREAKING') {
-							const existing = newNodesMap.get(id);
-							if (existing) {
-								existing.data.status = 'BREAKING';
-							}
-						}
-					};
-
-					edgesData.forEach((edge: any) => {
-						addNode(edge.provider, edge.status, 'provider');
-						addNode(edge.consumer, 'SAFE', 'consumer');
-
-						newEdges.push({
-							id: `e-${edge.consumer}-${edge.provider}`,
-							source: edge.consumer,
-							target: edge.provider,
-							type: 'interactive',
-							animated: true,
-							style: `stroke: ${edge.status === 'BREAKING' ? '#EF4444' : '#64748b'}; stroke-width: 2px;`
-						});
-					});
-
-					let nextNodes = Array.from(newNodesMap.values());
-
-					rawNodes = nextNodes;
-					rawEdges = newEdges;
+					const responseData = await res.json();
+					processGraphData(Array.isArray(responseData) ? responseData : []);
 				}
 			} catch (err) {
 				console.error("Polling error", err);
@@ -279,7 +298,11 @@
 		<div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 10;">
 			<SvelteFlow {nodes} {edges} {nodeTypes} {edgeTypes} fitView colorMode="dark"
 				onpaneclick={() => selectedNode = null}
-				onnodeclick={((event: any, node: any) => selectedNode = { id: node.id, ...node.data }) as any}
+				onnodeclick={(...args: any[]) => {
+					// Handle different event shapes between SvelteFlow versions
+					const node = args.length > 1 ? args[1] : (args[0]?.node || args[0]?.detail?.node);
+					if (node) selectedNode = { id: node.id, ...node.data };
+				}}
 			>
 				<Background variant={BackgroundVariant.Dots} />
 				<Controls />

@@ -9,6 +9,7 @@ Migrate the primary dependency graph visualization from `cytoscape.js` to `@xyfl
 - Implement an animated Edge component to visualize data flow direction.
 - Integrate the Svelte Flow `MiniMap` and `Controls` components.
 - Ensure the layout remains performant for 100+ nodes (using Dagre or a similar layout engine for auto-positioning).
+- **Performance Requirement:** The heavy Dagre layout calculation MUST be separated from the interactive state (e.g. node selection, blast radius highlighting) using Svelte 5 `$derived` runes. This ensures that clicking a node does not re-trigger the entire graph layout, maintaining 60fps responsiveness on graphs with >200 nodes.
 
 ## 3. Stitch & Jules Workflow
 - **Stitch:** Generate a static mockup of a "Service Node" card.
