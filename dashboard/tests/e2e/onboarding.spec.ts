@@ -26,9 +26,6 @@ test.describe('Onboarding Wizard E2E', () => {
         await enterBtn.click();
         
         // Ensure redirected back to root path (which might redirect to /playground or /org if unauthenticated, etc. But we check for '/' base redirect action)
-        await page.waitForURL('**/', { timeout: 5000 }).catch(() => page.waitForURL('**/playground', { timeout: 5000 }));
-        
-        // Let's just assume we hit a valid page and the URL changed off of /onboarding
-        expect(page.url()).not.toContain('/onboarding');
+        await expect(page).toHaveURL(/^(?!.*\/onboarding).*$/); // Should navigate away from onboarding
     });
 });

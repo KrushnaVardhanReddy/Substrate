@@ -12,7 +12,8 @@ export default defineConfig({
 		alias: {
 			'$env/dynamic/public': '/src/__mocks__/$env/dynamic/public.ts',
 			'$app/stores': '/src/__mocks__/$app/stores.ts',
-			'$lib': '/src/lib'
+			'$lib': '/src/lib',
+			'$app/navigation': '/src/__mocks__/$app/navigation.ts'
 		}
 	},
 	resolve: {
