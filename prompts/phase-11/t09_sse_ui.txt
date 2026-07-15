@@ -1,0 +1,37 @@
+TASK: P11-T09 — Server-Sent Events (SSE) Real-Time UI
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement an SSE endpoint in the Go API to push real-time events to the frontend.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-11/p11-t09-sse-ui.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Endpoint: `GET /api/v1/events`.
+- Must support `text/event-stream`.
+- Must handle client disconnects (context cancellation) gracefully.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+The API uses `go-chi`. Add the endpoint to `api/handlers/` and register it in `api/routes.go` or `main.go`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: api/handlers/sse.go (CREATE NEW)
+   - Implement the SSE handler.
+2. FILE: api/cmd/server/main.go (MODIFY)
+   - Register the route.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO CREATE:
+- api/handlers/sse.go
+FILES TO MODIFY:
+- api/cmd/server/main.go

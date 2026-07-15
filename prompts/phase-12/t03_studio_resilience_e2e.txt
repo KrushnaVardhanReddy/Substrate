@@ -1,0 +1,45 @@
+TASK: P12-T03 — Visual Studio Resilience Test (Playwright)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Write a Playwright test to verify the bidirectional data binding of the Visual API Studio and ensure malformed YAML inputs do not crash the Svelte application.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-12/p12-master-plan.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- The test must navigate to `/org/demo/studio`.
+- Clear the textarea and type a perfectly valid OpenAPI YAML string. Assert the visual endpoint cards render.
+- Delete half the YAML so it becomes invalid.
+- Assert that an Error Boundary or error message is visible.
+- Assert that the page itself did not crash (white screen of death).
+
+**EXACT ENDPOINTS & REPOS TO USE:**
+- Frontend URL: `http://localhost:5173`
+- The studio page to navigate to is exactly `http://localhost:5173/org/demo/studio`
+- Mock API endpoints should target `http://localhost:8090/api/v1/...` (NOTE: The E2E backend runs on 8090, not 8080)
+- Do NOT use random external URLs or random ports.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+Playwright tests live in `dashboard/tests/`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: dashboard/tests/studio-resilience.spec.ts (CREATE NEW)
+   - Implement the Playwright test suite for the studio view.
+2. Run `npm run test:e2e` inside the dashboard directory to verify.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO CREATE:
+- dashboard/tests/studio-resilience.spec.ts
+
+Commit: "test: P12-T03 add Playwright E2E for studio resilience"
+Target branch: feature/dev

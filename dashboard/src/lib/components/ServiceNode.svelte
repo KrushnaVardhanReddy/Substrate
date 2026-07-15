@@ -4,7 +4,7 @@
 	let { data }: NodeProps = $props();
 </script>
 
-<div class="service-node-card">
+<div class="service-node-card" class:origin={data.isOrigin} class:affected={data.isAffected} class:faded={data.isFaded}>
 	<Handle type="target" position={Position.Top} style="background: #555; width: 8px; height: 8px;" />
 
 	<div class="header">
@@ -75,5 +75,19 @@
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
 		font-weight: 500;
+	}
+
+	.service-node-card.origin {
+		border-color: var(--danger, #EF4444);
+		box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+	}
+
+	.service-node-card.affected {
+		border-color: var(--safe, #F59E0B);
+		box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+	}
+
+	.service-node-card.faded {
+		opacity: 0.2;
 	}
 </style>

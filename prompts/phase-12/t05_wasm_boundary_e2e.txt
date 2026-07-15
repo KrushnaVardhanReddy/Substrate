@@ -1,0 +1,38 @@
+TASK: P12-T05 — WASM Engine Boundary Tests (Go E2E)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Write automated JS-to-WASM bridge tests (using Go's WebAssembly testing tools or simulated environment) to ensure massive malformed strings don't panic the diff engine.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-12/p12-master-plan.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- The test must push large garbage payloads (e.g., 5MB of invalid YAML) to the WASM diff function.
+- Assert that the engine returns a handled error JSON string instead of a fatal panic.
+- Keep the testing framework aligned with standard Go `testing` in WebAssembly mode (`GOOS=js GOARCH=wasm go test`).
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+The WASM entrypoint is at `engine/cmd/wasm/main.go`. Place the test in the same package.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: engine/cmd/wasm/main_test.go (CREATE NEW)
+2. Add a `test-wasm` target to `Makefile` if necessary.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO CREATE:
+- engine/cmd/wasm/main_test.go
+FILES TO MODIFY:
+- Makefile
+
+Commit: "test: P12-T05 add WASM boundary resilience tests"
+Target branch: feature/dev

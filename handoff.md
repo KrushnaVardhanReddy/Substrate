@@ -1,18 +1,19 @@
-# Substrate Handoff — Phase 11 Mid-Point
+# Substrate Handoff — Awaiting Phase 11 & 12 Jules PRs
 
 **Date:** July 15, 2026
-**Current Phase:** Phase 11: Advanced Graph Visualization (V2.0 UX)
+**Current Focus:** Awaiting PRs for Phase 11 (V2.0 UX) and Phase 12 (V2.0 E2E Testing)
 
 ## What We Accomplished Today
-1. **Merged Phase 11 UI Foundation:** We successfully reviewed, resolved conflicts, and merged the 4 parallel frontend PRs raised by Jules:
-   - **T14** (Premium Aesthetics System) — Applied new CSS variables and global layout.
-   - **T11** (Global Command Palette) — Hooked into the new layout system.
-   - **T10** (Svelte Flow Migration) — Replaced Cytoscape.js and integrated Dagre layout.
-   - **T15** (Zero-to-One Onboarding) — Successfully completed the SvelteKit Route Group refactoring, moving all dashboard routes to `(app)/` to ensure the onboarding wizard runs without the global sidebar.
-2. **Conflict Resolution:** Navigated complex git merges across the new Route Group refactoring. Recreated the `(app)/+layout.svelte` which Jules stripped and integrated the Command Palette correctly into it.
-3. **TypeScript Fixes:** Resolved missing module declarations for `@xyflow/svelte` and fixed Svelte 5 shorthand component attribute errors for `onnodeclick`.
-4. **Documentation:** Updated `tasks.md` and `README.md` to mark all four UI foundation tasks as ✅ Complete.
+1. **Repository Cleanup:** Cleaned up `tasks.md` by archiving all completed tasks from Phase 5 through Phase 8 into `completed_tasks.md` to keep our tracker focused.
+2. **Phase 12 E2E Master Plan:** Formulated the Phase 12 launch roadmap focusing on hardening the backend and frontend. We wrote highly detailed prompts for **P12-T01 through P12-T06**, strictly defining endpoints (e.g., backend at `localhost:8090` and frontend at `localhost:5173`) so the AI doesn't guess URLs.
+3. **E2E Wrapper Pipeline:** Added the `make e2e-phase12` wrapper target to our `Makefile` to orchestrate both the Playwright UI tests and the Go backend tests smoothly in a single CLI command.
+4. **Massive Parallelization:** Successfully triggered 6 async Jules agents for the Phase 12 E2E tests, which will run in parallel alongside the 9 active Jules tasks currently implementing the Phase 11 UI upgrades!
 
-## Next Steps for Tomorrow
-1. **Review Graph Interaction:** With Svelte Flow now merged, we should launch the dashboard locally and ensure the new nodes render beautifully with the new Premium Aesthetics.
-2. **Phase 11 Planning (Wave 2):** Look at the remaining Phase 11 backlog (e.g., Cascading Blast Radius, Historical Heatmaps) and prepare specs for the next batch of async agents.
+## Active Jules Tasks (Currently In Flight)
+*   **Phase 11 (UI):** T01, T02, T03, T04, T07, T08, T09, T12, T13
+*   **Phase 12 (E2E):** T01, T02, T03, T04, T05, T06
+
+## Next Steps for the Next Session
+1. **Merge the Wave:** You are currently waiting for 15 Pull Requests from Jules. When you return, check GitHub for PRs targeting the `feature/dev` branch.
+2. **Review & Test:** Review the PRs, merge them in, and run `make e2e-phase12` to validate the test suite and ensure all the new Phase 11 UI features are structurally sound and visually perfect.
+3. **Final Steps:** Once all testing is stable, we can move on to the final two launch tasks (P12-T07 Telemetry & P12-T08 V2.0 Production Cutover).

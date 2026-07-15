@@ -1,0 +1,34 @@
+TASK: P11-T07 — Visual API Design Studio
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Build a Visual API Design Studio in the dashboard where architects can write or visually construct OpenAPI YAML contracts.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-11/p11-t07-visual-api-studio.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- The studio must be a split pane: Left is a text editor (textarea for now), Right is a visual list of endpoints.
+- Editing text must reactively update the visual list.
+- Use `js-yaml` (run `npm install js-yaml` and `npm install -D @types/js-yaml`) to parse the string.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+Create a new route inside the `(app)` group so it inherits the global sidebar.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: dashboard/src/routes/(app)/studio/+page.svelte (CREATE NEW)
+   - Implement the split view Studio.
+2. Run `npm install` and `npm run check` before concluding.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO CREATE:
+- dashboard/src/routes/(app)/studio/+page.svelte
