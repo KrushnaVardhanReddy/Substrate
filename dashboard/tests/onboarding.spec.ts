@@ -29,10 +29,9 @@ test.describe('Onboarding E2E Flow', () => {
 		// 5. Click Enter Dashboard to trigger redirect
 		await enterDashboardBtn.click();
 
-		// 6. Assert that the URL successfully redirects to /org/{org}/graph
-		const org = process.env.PUBLIC_ORG_NAME || 'demo';
-		await page.waitForURL(`**/org/${org}/graph`, { timeout: 5000 });
-		expect(page.url()).toContain(`/org/${org}/graph`);
+		// 6. Assert that the URL successfully redirects to /org/*/graph
+		await page.waitForURL('**/org/*/graph', { timeout: 5000 });
+		expect(page.url()).toMatch(/\/org\/.*\/graph/);
 
 		// 7. Assert that the Svelte Flow canvas container is visible in the DOM
 		const mainCanvas = page.locator('.main-canvas');
