@@ -28,6 +28,6 @@ describe('Graph Page Load Function', () => {
 
 		expect(result.org).toBe('myorg');
 		expect(result.graphData.length).toBeGreaterThan(0);
-		expect(result.graphData[0].provider).toBe('core/auth');
+		expect(result.graphData[0].provider).toBe('demo-org/core-service');
 	});
 });
