@@ -159,3 +159,15 @@
 | **P11-T13** | 🟢 P3 | **Time-Travel Graph Replay** — Add a timeline scrubber to the bottom of the graph to view the architectural dependencies of the enterprise exactly as they existed on any historical date. | Jules | ⏳ In Progress | `docs/specs/phase-11/p11-t13-time-travel.md` |
 | **P11-T14** | 🔴 P1 | **Premium Aesthetics System** — Overhaul the UI with a strict focus on Enterprise SaaS aesthetics: Deep Dark Mode, Glassmorphism modals, curated HSL color palettes, and edge-flow micro-animations. | Stitch | ✅ Complete | `docs/specs/phase-11/p11-t14-premium-aesthetics.md` |
 | **P11-T15** | 🔴 P1 | **Zero-to-One Onboarding Wizard** — Create a frictionless, animated onboarding wizard (Connect GitHub → Scan Repos → Build Graph) to guarantee a flawless 5-minute enterprise onboarding experience. | Stitch | ✅ Complete | `docs/specs/phase-11/p11-t15-onboarding-wizard.md` |
+
+### Phase 12: V2.0 Public Launch & Quality Assurance
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|---|---|---|---|---|---|
+| **P12-T01** | 🔴 P1 | **Zero-to-One Onboarding E2E** — Automate the user journey from GitHub token entry to Graph rendering using Playwright. | Unassigned | 💡 Backlog | `docs/specs/phase-12/p12-master-plan.md` |
+| **P12-T02** | 🔴 P1 | **Svelte Flow Interaction E2E** — Playwright tests for Canvas interactions: clicking nodes (blast radius), toggling heatmaps, hovering edges. | Unassigned | 💡 Backlog | `docs/specs/phase-12/p12-master-plan.md` |
+| **P12-T03** | 🟡 P2 | **Visual Studio Resilience Test** — Verify bidirectional YAML binding and ensure invalid YAML does not crash Svelte state. | Unassigned | 💡 Backlog | `docs/specs/phase-12/p12-master-plan.md` |
+| **P12-T04** | 🔴 P1 | **SSE Connection Resilience Test** — Go tests to simulate 100+ concurrent clients and abrupt disconnects to prevent memory leaks in the broadcast registry. | Unassigned | 💡 Backlog | `docs/specs/phase-12/p12-master-plan.md` |
+| **P12-T05** | 🟡 P2 | **WASM Engine Boundary Tests** — Ensure passing massive/malformed payloads to the WebAssembly diff engine returns safe JS errors instead of panics. | Unassigned | 💡 Backlog | `docs/specs/phase-12/p12-master-plan.md` |
+| **P12-T06** | 🟢 P3 | **1,000-Node UI Stress Test** — Generate a massive mock graph to ensure Dagre layouts under 2s and canvas renders at 60fps. | Unassigned | 💡 Backlog | `docs/specs/phase-12/p12-master-plan.md` |
+| **P12-T07** | 🔵 P4 | **Telemetry & Crash Reporting** — Integrate PostHog/Sentry to trace live production errors in the Svelte Flow canvas. | Unassigned | 💡 Backlog | `docs/specs/phase-12/p12-master-plan.md` |
+| **P12-T08** | 🔴 P1 | **V2.0 Production Cutover** — Final pipeline updates to bundle Svelte static assets and WASM binary into the Go single-binary deployment. | Unassigned | 💡 Backlog | `docs/specs/phase-12/p12-master-plan.md` |
