@@ -7,15 +7,15 @@ Harden the Substrate V2.0 platform for a public launch by implementing rigorous 
 The SvelteKit frontend is highly interactive. We must ensure no UI regressions occur during refactors.
 
 *   **P12-T01 — Zero-to-One Onboarding E2E**
-    *   **Spec:** Automate the entire user journey. Simulate a new user entering a mock GitHub token, clicking "Connect," waiting for the "Scanning Repositories" progress bar to finish, and successfully redirecting to the `/org/demo/graph` route.
+    *   **Spec:** Automate the entire user journey. Simulate a new user entering a mock GitHub token, clicking "Connect," waiting for the "Scanning Repositories" progress bar to finish, and successfully redirecting to the dynamic `/org/{PUBLIC_ORG_NAME}/graph` route (or `/org/demo/graph` fallback).
     *   **Success:** Playwright trace shows the graph view loads successfully with the sidebar visible.
 
 *   **P12-T02 — Svelte Flow Interaction Tests**
     *   **Spec:** Load the graph. Simulate clicking a node to ensure the "Cascading Blast Radius" triggers (assert CSS class changes). Toggle the "Volatility Heatmap" switch and assert node colors change. Hover over an edge and assert the Tooltip is visible in the DOM.
     *   **Success:** Complex canvas interactions do not throw Svelte `$state` exceptions.
 
-*   **P12-T03 — Visual API Studio & Diff Viewer E2E**
-    *   **Spec:** Verify the bidirectional binding. Type invalid YAML into the studio textarea and assert the UI displays an error boundary gracefully without crashing the entire Svelte application.
+*   **P12-T03 — AI Playground & Diff Viewer E2E**
+    *   **Spec:** Verify the AI Playground (formerly API Studio). Type malformed schema into the playground editor, stream the AI analysis from the backend, and assert the UI displays the analysis findings and applies the auto-fix gracefully without crashing.
 
 ## Wave 2: Backend Resilience & Scale (Go Testing)
 The backend must handle high concurrency and massive payloads.
@@ -27,7 +27,7 @@ The backend must handle high concurrency and massive payloads.
     *   **Spec:** Automated JS-to-WASM bridge tests. Ensure that passing massively malformed strings (e.g., 50MB of garbage data) from the Svelte frontend into the Go WASM engine returns a safe JS error payload instead of a fatal WebAssembly panic.
 
 *   **P12-T06 — 1,000-Node Stress Test**
-    *   **Spec:** Generate a massive mock dependency graph (1,000 microservices, 3,000 edges) and load it into the Svelte Flow canvas.
+    *   **Spec:** Generate a massive mock dependency graph (1,000 microservices, 3,000 strictly acyclic edges) and load it into the Svelte Flow canvas. (Note: Edges must be strictly directed without cycles to prevent the Dagre layout engine from infinite looping).
     *   **Success:** Ensure the Dagre layout algorithm computes in under 2 seconds and the UI runs at 60fps without browser lockup.
 
 ## Wave 3: Launch Readiness

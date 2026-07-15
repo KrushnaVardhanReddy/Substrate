@@ -276,8 +276,8 @@ e2e-phase8: check-token
 
 e2e-phase12: check-token
 	@echo "Running Phase 12 Go Backend Tests (SSE Resilience)..."
-	cd scripts/e2e && go test -v phase12_sse_test.go
+	cd scripts/e2e && go test -v . -run=TestPhase12SSEResilience
 	@echo "Running Phase 12 Go WASM Boundary Tests..."
-	cd engine/cmd/wasm && GOOS=js GOARCH=wasm go test -v
+	cd engine/cmd/wasm && PATH="$$PATH:$$(go env GOROOT)/misc/wasm:$$(go env GOROOT)/lib/wasm" GOOS=js GOARCH=wasm go test -v
 	@echo "Running Phase 12 Playwright Frontend E2E Suite..."
 	cd dashboard && npm run test:e2e

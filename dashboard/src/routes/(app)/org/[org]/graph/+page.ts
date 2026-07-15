@@ -6,8 +6,12 @@ export const load: PageLoad = async ({ fetch, params }) => {
 	const apiUrl = env.PUBLIC_API_URL || 'http://localhost:8090';
 	const token = env.PUBLIC_API_TOKEN || '';
 
+	// Use relative URL in browser so Playwright can intercept it easily
+	const isBrowser = typeof window !== 'undefined';
+	const baseUrl = isBrowser ? '' : (env.PUBLIC_API_URL || 'http://localhost:8090');
+	
 	try {
-		const response = await fetch(`${apiUrl}/api/v1/graph/${org}`, {
+		const response = await fetch(`${baseUrl}/api/v1/graph/${org}`, {
 			headers: {
 				Authorization: `Bearer ${token}`
 			}

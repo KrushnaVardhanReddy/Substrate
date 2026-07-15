@@ -25,7 +25,9 @@ test.describe('Dependency Graph', () => {
 
 	test('should render graph container and filter controls', async ({ page }) => {
 		// Navigate directly to the graph page (SSR is disabled in tests)
+		const responsePromise = page.waitForResponse('**/api/v1/graph/*');
 		await page.goto('/org/testorg/graph');
+		await responsePromise;
 
 		// Wait for the graph page to load
 		await expect(page.locator('h1.page-title')).toContainText('Dependency Graph');

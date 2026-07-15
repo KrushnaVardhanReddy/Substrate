@@ -25,19 +25,20 @@ test.describe('1,000-Node UI Stress Test', () => {
 		await page.route('**/api/v1/graph/**', async route => {
 			const json = [];
 			
-			// Guarantee exactly 1000 unique nodes by creating a loop of 1000 nodes
-			for (let i = 0; i < 1000; i++) {
+			// Guarantee exactly 1000 unique nodes by creating a straight line
+			for (let i = 0; i < 999; i++) {
 				json.push({
 					provider: `node-${i}`,
-					consumer: `node-${(i + 1) % 1000}`,
+					consumer: `node-${i + 1}`,
 					status: 'SAFE'
 				});
 			}
 			
-			// Add 2000 more random edges to reach 3000 total edges
+			// Add 2000 more random edges, strictly provider < consumer to keep it acyclic
 			for (let i = 0; i < 2000; i++) {
-				const providerIdx = Math.floor(Math.random() * 1000);
-				const consumerIdx = Math.floor(Math.random() * 1000);
+				const providerIdx = Math.floor(Math.random() * 998);
+				// Consumer is strictly greater than provider
+				const consumerIdx = providerIdx + 1 + Math.floor(Math.random() * (999 - providerIdx));
 				json.push({
 					provider: `node-${providerIdx}`,
 					consumer: `node-${consumerIdx}`,

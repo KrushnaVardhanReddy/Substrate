@@ -12,8 +12,13 @@ test.describe('Dependency Graph Filters', () => {
 			await route.fulfill({ json });
 		});
 
-		await page.goto('/org/myorg/graph');
+		await page.route('**/api/v1/repos/*', async route => {
+			await route.fulfill({ json: [] });
+		});
 
+		const responsePromise = page.waitForResponse('**/api/v1/graph/*');
+		await page.goto('/org/myorg/graph');
+		await responsePromise;
 		// Wait for canvas to load
 		await expect(page.locator('.main-canvas')).toBeVisible();
 

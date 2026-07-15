@@ -8,8 +8,11 @@ export const load: LayoutLoad = async ({ fetch }) => {
 	const orgName = env.PUBLIC_ORG_NAME;
 	const token = env.PUBLIC_API_TOKEN;
 
+	const isBrowser = typeof window !== 'undefined';
+	const baseUrl = isBrowser ? '' : apiUrl;
+
 	try {
-		const response = await fetch(`${apiUrl}/api/v1/repos/${orgName}`, {
+		const response = await fetch(`${baseUrl}/api/v1/repos/${orgName}`, {
 			headers: {
 				Authorization: `Bearer ${token}`
 			}
