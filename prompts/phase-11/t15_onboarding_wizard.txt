@@ -19,24 +19,36 @@ CONSTRAINTS & RULES
 CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
 ═══════════════════════════════════════════════════════════════
 The SvelteKit dashboard lives in `dashboard/`.
-The wizard should be implemented as a completely standalone route (`/onboarding`) so it doesn't clutter the main dashboard view.
+The wizard should be implemented as a completely standalone route (`/onboarding`) so it doesn't clutter the main dashboard view and does NOT inherit the global Sidebar.
+To achieve this idiomatically in SvelteKit, you must refactor the existing routes into a `(app)` or `(dashboard)` route group, moving the root `+layout.svelte` into it, while leaving `onboarding` completely outside of it.
 
 ═══════════════════════════════════════════════════════════════
 DELIVERABLES
 ═══════════════════════════════════════════════════════════════
 
-1. FILE: dashboard/src/routes/onboarding/+page.svelte (CREATE NEW)
+1. REFACTOR: SvelteKit Route Groups
+   Create a new route group folder: `dashboard/src/routes/(app)/`.
+   Move the global `+layout.svelte` (which contains the Sidebar) and all its associated layout files into `(app)/`.
+   Move all existing dashboard pages (e.g., `+page.svelte`, `/graph`, `/settings`, etc.) into the `(app)/` folder.
+   Ensure that all imports and relative paths remain correct after moving.
+
+2. FILE: dashboard/src/routes/onboarding/+page.svelte (CREATE NEW)
    Port the HTML/CSS mockup into a multi-step Svelte component state machine.
    Step 1: "Connect GitHub" (Displays GitHub App installation link).
    Step 2: "Scanning Repositories" (Progress bar simulating the background tasks).
    Step 3: "Building Graph" (Animated graph construction preview).
    Final Step: "Enter Dashboard" button that uses `goto('/')` to redirect the user back to the main dashboard.
 
-2. Ensure transitions between `step = 1`, `step = 2`, and `step = 3` are animated smoothly without layout jumping.
+3. Ensure transitions between `step = 1`, `step = 2`, and `step = 3` are animated smoothly without layout jumping.
 
 ═══════════════════════════════════════════════════════════════
 FILES LIST
 ═══════════════════════════════════════════════════════════════
+
+FILES TO REFACTOR (MOVE):
+- `dashboard/src/routes/+layout.svelte` -> `dashboard/src/routes/(app)/+layout.svelte`
+- `dashboard/src/routes/+page.svelte` -> `dashboard/src/routes/(app)/+page.svelte`
+- (And any other existing routes inside `dashboard/src/routes/` except `onboarding`)
 
 FILES TO CREATE:
 - dashboard/src/routes/onboarding/+page.svelte

@@ -13,8 +13,8 @@
 			try {
 				const payload = JSON.parse(atob(token.split('.')[1]));
 				const orgs = payload.orgs || {};
-				const org = $page.params.org;
-				if (orgs[org] !== 'admin') {
+				const org = $page.params?.org;
+				if (org && orgs[org] !== 'admin') {
 					isAdmin = false;
 				}
 			} catch (e) {
