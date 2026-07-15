@@ -4,4 +4,3 @@
 </script>
 
 {@render children()}
-
