@@ -270,3 +270,7 @@ e2e-phase7: check-token
 e2e-phase8: check-token
 	@echo "Running Phase 8 Enterprise Readiness Tests..."
 	cd scripts/e2e && go test -v phase8_e2e_test.go
+
+test-wasm:
+	@echo "Running WASM Boundary Tests..."
+	export PATH="$$PATH:$$(go env GOROOT)/misc/wasm:$$(go env GOROOT)/lib/wasm" && cd engine && GOOS=js GOARCH=wasm go test ./cmd/wasm -v
