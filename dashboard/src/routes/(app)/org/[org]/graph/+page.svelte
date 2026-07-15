@@ -5,6 +5,7 @@
 	import '@xyflow/svelte/dist/style.css';
 	import dagre from 'dagre';
 	import ServiceNode from '$lib/components/ServiceNode.svelte';
+	import InteractiveEdge from '$lib/components/InteractiveEdge.svelte';
 
 	let cyContainer: HTMLElement;
 	let rawNodes = $state<Node[]>([]);
@@ -29,6 +30,9 @@
 
 	const nodeTypes = {
 		service: ServiceNode
+	};
+	const edgeTypes = {
+		interactive: InteractiveEdge
 	};
 
 	const nodeWidth = 172;
@@ -156,6 +160,7 @@
 							id: `e-${edge.consumer}-${edge.provider}`,
 							source: edge.consumer,
 							target: edge.provider,
+							type: 'interactive',
 							animated: true,
 							style: `stroke: ${edge.status === 'BREAKING' ? '#EF4444' : '#64748b'}; stroke-width: 2px;`
 						});
@@ -214,7 +219,7 @@
 		</div>
 
 		<div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 10;">
-			<SvelteFlow {nodes} {edges} {nodeTypes} fitView colorMode="dark"
+			<SvelteFlow {nodes} {edges} {nodeTypes} {edgeTypes} fitView colorMode="dark"
 				onpaneclick={() => selectedNode = null}
 				onnodeclick={((event: any, node: any) => selectedNode = { id: node.id, ...node.data }) as any}
 			>
