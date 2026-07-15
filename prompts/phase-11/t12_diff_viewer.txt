@@ -1,14 +1,54 @@
-You are Jules, our expert AI frontend engineer.
+TASK: P11-T12 — Rich Side-by-Side Diff Viewer & Sign Out
 
-Your objective is to execute P11-T12: Rich Side-by-Side Diff Viewer & Sign Out.
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement an interactive, side-by-side YAML diff viewer in the dashboard to review exact schema changes, mirroring the GitHub PR experience. Additionally, implement a global Sign Out button in the TopNav.
 
-Here are the requirements:
-1. We need a side-by-side YAML diff viewer mirroring the GitHub PR experience.
-2. Create `dashboard/src/lib/components/DiffViewer.svelte`. It should accept `before` and `after` string props (or an array of diff changes).
-3. It must have line numbers, and correctly highlight added (green) and removed (red) lines. Implement a clean, native CSS approach using our design tokens.
-4. Integrate this into `dashboard/src/routes/(app)/diff/[id]/+page.svelte`. Provide some mock YAML data so we can see it working.
-5. **CRITICAL CHORE:** We forgot to add a Sign Out button! Please update `dashboard/src/lib/components/TopNav.svelte`. Add a "Sign Out" button or icon next to the user profile avatar.
-6. The Sign Out button must call a function that removes `github_token` from `localStorage` and then uses SvelteKit's `goto('/onboarding')` to redirect the user.
-7. Ensure all styling uses our `app.css` vanilla CSS design tokens (e.g., `var(--bg-card)`, `var(--accent)`, `var(--danger)`).
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-11/p11-t12-diff-viewer.md
 
-Please modify the necessary files and ensure the build succeeds. Run `npm run check` in the dashboard directory before concluding.
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- MUST use the `diff` npm package. You need to `npm install diff @types/diff` inside `dashboard/` first.
+- The Diff Viewer must show line numbers and highlight added lines in green (`var(--safe)` or `#10B981` with `rgba(16,185,129,0.15)` background) and removed lines in red (`var(--danger)` or `#EF4444` with `rgba(239,68,68,0.15)` background).
+- The Sign Out button must call `localStorage.removeItem('github_token')` and use SvelteKit's `goto('/onboarding')`.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The TopNav lives in `dashboard/src/lib/components/TopNav.svelte`.
+- The new Diff Viewer page lives at `dashboard/src/routes/(app)/diff/[id]/+page.svelte`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FILE: dashboard/src/lib/components/DiffViewer.svelte (CREATE NEW)
+   - Accept `before` and `after` string props.
+   - Use `diffLines` from `diff` to calculate the side-by-side array and render it natively with CSS.
+
+2. FILE: dashboard/src/routes/(app)/diff/[id]/+page.svelte (MODIFY)
+   - Mount `<DiffViewer>` and pass in realistic mock YAML strings to test the layout.
+
+3. FILE: dashboard/src/lib/components/TopNav.svelte (MODIFY)
+   - Add a "Sign Out" button utilizing the `LogOut` icon from `lucide-svelte`.
+   - Implement the sign out logic.
+
+4. Terminal
+   - Run `cd dashboard && npm run check` to ensure TS build succeeds.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- dashboard/src/lib/components/DiffViewer.svelte
+
+FILES TO MODIFY:
+- dashboard/src/routes/(app)/diff/[id]/+page.svelte
+- dashboard/src/lib/components/TopNav.svelte
+
+Commit: "feat: P11-T12 implement rich diff viewer and sign out"
+Target branch: feature/dev
