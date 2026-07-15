@@ -539,6 +539,26 @@ TASKS = {
     },
 
     # ── Phase 11: Advanced Graph Visualization (V2.0 UX) ─────────────────────
+    1101: {
+        "name": "P11-T01 — Cascading Blast Radius (Nth-Degree)",
+        "phase": "phase-11-ui",
+        "prompt": _load_prompt("prompts/phase-11/t01_blast_radius.txt"),
+    },
+    1102: {
+        "name": "P11-T02 — Team Neighborhoods",
+        "phase": "phase-11-ui",
+        "prompt": _load_prompt("prompts/phase-11/t02_team_neighborhoods.txt"),
+    },
+    1103: {
+        "name": "P11-T03 — Interactive Edge Tooltips",
+        "phase": "phase-11-ui",
+        "prompt": _load_prompt("prompts/phase-11/t03_edge_tooltips.txt"),
+    },
+    1104: {
+        "name": "P11-T04 — Historical Volatility Heatmap",
+        "phase": "phase-11-ui",
+        "prompt": _load_prompt("prompts/phase-11/t04_volatility_heatmap.txt"),
+    },
     110: {
         "name": "P11-T10 — Svelte Flow Migration",
         "phase": "phase-11-ui",
