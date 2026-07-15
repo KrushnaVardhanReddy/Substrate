@@ -81,15 +81,18 @@
 
 		dagre.layout(dagreGraph);
 
-		nodes.forEach((node) => {
+		const layoutedNodes = nodes.map((node) => {
 			const nodeWithPosition = dagreGraph.node(node.id);
-			node.position = {
-				x: nodeWithPosition.x - nodeWidth / 2,
-				y: nodeWithPosition.y - nodeHeight / 2
+			return {
+				...node,
+				position: {
+					x: nodeWithPosition.x - nodeWidth / 2,
+					y: nodeWithPosition.y - nodeHeight / 2
+				}
 			};
 		});
 
-		return { nodes, edges };
+		return { nodes: layoutedNodes, edges };
 	};
 
 	$effect(() => {

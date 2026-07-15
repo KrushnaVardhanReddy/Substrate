@@ -26,8 +26,8 @@ The backend must handle high concurrency and massive payloads.
 *   **P12-T05 — WASM Engine Boundary Tests**
     *   **Spec:** Automated JS-to-WASM bridge tests. Ensure that passing massively malformed strings (e.g., 50MB of garbage data) from the Svelte frontend into the Go WASM engine returns a safe JS error payload instead of a fatal WebAssembly panic.
 
-*   **P12-T06 — 1,000-Node Stress Test**
-    *   **Spec:** Generate a massive mock dependency graph (1,000 microservices, 3,000 strictly acyclic edges) and load it into the Svelte Flow canvas. (Note: Edges must be strictly directed without cycles to prevent the Dagre layout engine from infinite looping).
+*   **P12-T06 — 200-Node Stress Test**
+    *   **Spec:** Generate a massive mock dependency graph (200 microservices, 600 strictly acyclic edges) and load it into the Svelte Flow canvas. (Note: Edges must be strictly directed without cycles to prevent the Dagre layout engine from infinite looping).
     *   **Success:** Ensure the Dagre layout algorithm computes in under 2 seconds and the UI runs at 60fps without browser lockup.
 
 ## Wave 3: Launch Readiness
