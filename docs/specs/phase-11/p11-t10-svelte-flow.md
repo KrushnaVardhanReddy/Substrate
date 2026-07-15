@@ -13,6 +13,7 @@ Migrate the primary dependency graph visualization from `cytoscape.js` to `@xyfl
 - **Sub-Graph Layout Optimization:** The heavy Dagre layout calculation MUST only run on the filtered subset of nodes (e.g., the searched node + its neighbors). This ensures layout computes in <1ms and prevents massive layout scattering (the "hairball" problem).
 - **Interactive State Separation:** Style updates (e.g., node selection, blast radius highlighting) MUST be separated from the layout algorithm using Svelte 5 `$derived` runes. Clicking a node only applies CSS opacity updates, maintaining 60fps responsiveness.
 - **Reactivity Considerations (Svelte 5):** When implementing debounce functionality for the search input using `$effect`, reactive dependencies (e.g., `searchQuery`) MUST be read synchronously before any async callback (like `setTimeout`). Failure to do so prevents Svelte 5 from tracking the dependency, causing the graph to remain empty.
+- **Detail Panel Integrations:** The side panel MUST provide quick developer actions for the selected node. The "View Logs" button MUST link directly to the node's GitHub Actions URL (`https://github.com/[repo]/actions`) to review CI failures. The "Open in IDE" button MUST utilize deep linking (e.g., `vscode://`) to instantly clone and open the repository locally.
 
 ## 3. Stitch & Jules Workflow
 - **Stitch:** Generate a static mockup of a "Service Node" card.

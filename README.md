@@ -584,6 +584,8 @@ Automatically generated:
     Tableau Reports
 ```
 
+*Substrate allows instant export of these architectural visualizations to high-resolution PNGs for use in RFCs, Confluence, and SOC2 Audits.*
+
 ---
 
 # API Documentation

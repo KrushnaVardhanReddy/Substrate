@@ -1,0 +1,27 @@
+# Spec: P11-T17 - Graph Image Export
+
+## Context
+Users want to export their current dependency graph as a PNG image for use in RFCs, Confluence, and SOC2 Audits. We are using Svelte Flow, so we can achieve this easily using the `html-to-image` package.
+
+## Requirements
+
+**1. INSTALL DEPENDENCY**
+- Add `html-to-image` to `dashboard/package.json` dependencies.
+
+**2. UI BUTTON**
+- In `dashboard/src/routes/(app)/org/[org]/graph/+page.svelte`, locate the `<div class="control-panel">`.
+- Add a new button labeled "Export PNG" with a Lucide `Download` icon.
+- Style the button to match the premium dark mode aesthetic.
+
+**3. EXPORT LOGIC**
+- Implement an `exportImage` function in `+page.svelte`.
+- Import `toPng` from `html-to-image`.
+- Target the Svelte Flow viewport node (`document.querySelector('.svelte-flow__viewport')`).
+- Provide `toPng` with options including `backgroundColor: '#0f172a'` so the dark canvas background is preserved.
+- Create an `<a>` element, set the `href` to the resulting data URL, set the `download` attribute to `substrate-graph.png`, and `.click()` it to trigger the download.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+- dashboard/package.json
+- dashboard/src/routes/(app)/org/[org]/graph/+page.svelte

@@ -459,8 +459,8 @@
 		</div>
 
 		<div class="detail-footer">
-			<button class="btn-secondary">View Logs</button>
-			<button class="btn-primary">Open in IDE</button>
+			<a href={`https://github.com/${selectedNode.id}/actions`} target="_blank" rel="noopener noreferrer" class="btn-secondary" style="display: flex; justify-content: center; align-items: center; text-decoration: none;">View Logs</a>
+			<a href={`vscode://vscode.git/clone?url=https://github.com/${selectedNode.id}.git`} class="btn-primary" style="display: flex; justify-content: center; align-items: center; text-decoration: none;">Open in IDE</a>
 		</div>
 	</aside>
 	{/if}

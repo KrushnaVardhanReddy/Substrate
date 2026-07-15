@@ -609,6 +609,11 @@ TASKS = {
         "phase": "phase-11-ui",
         "prompt": _load_prompt("prompts/phase-11/t16_taxonomy_metadata.txt"),
     },
+    1117: {
+        "name": "P11-T17 — Graph Image Export",
+        "phase": "phase-11-ui",
+        "prompt": _load_prompt("prompts/phase-11/t17_graph_export.txt"),
+    },
 
     # ── Phase 12: V2.0 Public Launch & Quality Assurance ─────────────────
     1201: {
