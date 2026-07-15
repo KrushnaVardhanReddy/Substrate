@@ -110,32 +110,6 @@
 			filteredNodes = filteredNodes.filter(n => connectedIds.has(n.id));
 		}
 
-		let blastRadiusIds = new Set<string>();
-		if (selectedNode) {
-			blastRadiusIds.add(selectedNode.id);
-			let added = true;
-			while (added) {
-				added = false;
-				for (const edge of filteredEdges) {
-					// Cascading downstream means if source is in blastRadius, target is affected
-					if (blastRadiusIds.has(edge.source) && !blastRadiusIds.has(edge.target)) {
-						blastRadiusIds.add(edge.target);
-						added = true;
-					}
-				}
-			}
-		}
-
-		// Apply flags to node data
-		filteredNodes = filteredNodes.map(n => ({
-			...n,
-			data: {
-				...n.data,
-				blastRadius: blastRadiusIds.has(n.id),
-				heatmapActive: showVolatilityHeatmap
-			}
-		}));
-
 		const layouted = getLayoutedElements(filteredNodes, filteredEdges);
 		nodes = layouted.nodes;
 		edges = layouted.edges;
@@ -273,7 +247,7 @@
 				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
 			</button>
 		</header>
-		
+
 		<div class="detail-content">
 			<!-- Schema Definition -->
 			<section class="detail-section">
