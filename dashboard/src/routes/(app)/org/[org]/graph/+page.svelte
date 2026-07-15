@@ -5,6 +5,7 @@
 	import '@xyflow/svelte/dist/style.css';
 	import dagre from 'dagre';
 	import ServiceNode from '$lib/components/ServiceNode.svelte';
+	import TimeTravelScrubber from '$lib/components/TimeTravelScrubber.svelte';
 	import InteractiveEdge from '$lib/components/InteractiveEdge.svelte';
 
 	let cyContainer: HTMLElement;
@@ -282,6 +283,11 @@
 				<MiniMap />
 			</SvelteFlow>
 		</div>
+
+		<!-- Time Travel Scrubber -->
+		<div class="scrubber-wrapper">
+			<TimeTravelScrubber />
+		</div>
 	</main>
 
 	<!-- Side Panel (Detail View) -->
@@ -443,6 +449,17 @@
 		box-sizing: border-box;
 	}
 
+	.scrubber-wrapper {
+		position: absolute;
+		bottom: 24px;
+		left: 0;
+		right: 0;
+		z-index: 20;
+		pointer-events: none;
+		display: flex;
+		justify-content: center;
+		padding: 0 24px;
+	}
 	.btn-clear-selection {
 		background-color: var(--bg-card);
 		border: 1px solid var(--border);
