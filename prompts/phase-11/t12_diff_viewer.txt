@@ -1,0 +1,14 @@
+You are Jules, our expert AI frontend engineer.
+
+Your objective is to execute P11-T12: Rich Side-by-Side Diff Viewer & Sign Out.
+
+Here are the requirements:
+1. We need a side-by-side YAML diff viewer mirroring the GitHub PR experience.
+2. Create `dashboard/src/lib/components/DiffViewer.svelte`. It should accept `before` and `after` string props (or an array of diff changes).
+3. It must have line numbers, and correctly highlight added (green) and removed (red) lines. Implement a clean, native CSS approach using our design tokens.
+4. Integrate this into `dashboard/src/routes/(app)/diff/[id]/+page.svelte`. Provide some mock YAML data so we can see it working.
+5. **CRITICAL CHORE:** We forgot to add a Sign Out button! Please update `dashboard/src/lib/components/TopNav.svelte`. Add a "Sign Out" button or icon next to the user profile avatar.
+6. The Sign Out button must call a function that removes `github_token` from `localStorage` and then uses SvelteKit's `goto('/onboarding')` to redirect the user.
+7. Ensure all styling uses our `app.css` vanilla CSS design tokens (e.g., `var(--bg-card)`, `var(--accent)`, `var(--danger)`).
+
+Please modify the necessary files and ensure the build succeeds. Run `npm run check` in the dashboard directory before concluding.
