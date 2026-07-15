@@ -99,3 +99,4 @@
 | **P12-T06** | 🟢 P3 | **1,000-Node UI Stress Test** — Generate a massive mock graph to ensure Dagre layouts under 2s and canvas renders at 60fps. | Jules | ⏳ In Progress | `docs/specs/phase-12/p12-master-plan.md` |
 | **P12-T07** | 🔵 P4 | **Telemetry & Crash Reporting** — Integrate PostHog/Sentry to trace live production errors in the Svelte Flow canvas. | Unassigned | 💡 Backlog | `docs/specs/phase-12/p12-master-plan.md` |
 | **P12-T08** | 🔴 P1 | **V2.0 Production Cutover** — Final pipeline updates to bundle Svelte static assets and WASM binary into the Go single-binary deployment. | Unassigned | 💡 Backlog | `docs/specs/phase-12/p12-master-plan.md` |
+| **P12-T09** | 🟢 P3 | **Support Search Widget (Non-AI)** — A floating help widget in the dashboard that provides instant keyword-based search across the Astro Starlight documentation to deflect support tickets. | Unassigned | 💡 Backlog | `(Pending)` |
