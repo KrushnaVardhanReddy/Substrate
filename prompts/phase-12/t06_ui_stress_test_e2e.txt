@@ -1,0 +1,36 @@
+TASK: P12-T06 — 1,000-Node UI Stress Test (Playwright)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Create a Playwright stress test that intercepts the API request and injects a 1,000-node mock dependency graph into the Svelte Flow UI.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-12/p12-master-plan.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Use Playwright's `page.route` to intercept `http://localhost:8090/api/v1/graph`.
+- Inject a massive JSON graph (1,000 nodes, 3,000 edges) programmatically.
+- Wait for the canvas to render and assert the performance/layout logic completes within a reasonable timeout.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+Playwright tests live in `dashboard/tests/`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: dashboard/tests/stress-test.spec.ts (CREATE NEW)
+2. Run `npm run test:e2e` inside the dashboard directory to verify.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+FILES TO CREATE:
+- dashboard/tests/stress-test.spec.ts
+
+Commit: "test: P12-T06 add Playwright stress test for graph rendering"
+Target branch: feature/dev
