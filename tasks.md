@@ -87,6 +87,7 @@
 | **P11-T13** | 🟢 P3 | **Time-Travel Graph Replay** — Add a timeline scrubber to the bottom of the graph to view the architectural dependencies of the enterprise exactly as they existed on any historical date. | Jules | ⏳ In Progress | `docs/specs/phase-11/p11-t13-time-travel.md` |
 | **P11-T14** | 🔴 P1 | **Premium Aesthetics System** — Overhaul the UI with a strict focus on Enterprise SaaS aesthetics: Deep Dark Mode, Glassmorphism modals, curated HSL color palettes, and edge-flow micro-animations. | Stitch | ✅ Complete | `docs/specs/phase-11/p11-t14-premium-aesthetics.md` |
 | **P11-T15** | 🔴 P1 | **Zero-to-One Onboarding Wizard** — Create a frictionless, animated onboarding wizard (Connect GitHub → Scan Repos → Build Graph) to guarantee a flawless 5-minute enterprise onboarding experience. | Stitch | ✅ Complete | `docs/specs/phase-11/p11-t15-onboarding-wizard.md` |
+| **P11-T16** | 🔴 P1 | **Taxonomy & Metadata Tagging** — Extend `substrate.yaml` with a `metadata` block (type, team, databases). Update the database with a JSONB column, pass it via the API, and render visually distinct SVG icons (frontend, database, mobile) in the Svelte Flow graph. | Jules | ⏳ In Progress | `docs/specs/phase-11/p11-t16-taxonomy-metadata.md` |
 
 ### Phase 12: V2.0 Public Launch & Quality Assurance
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |

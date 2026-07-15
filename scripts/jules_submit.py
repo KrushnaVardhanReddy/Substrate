@@ -604,6 +604,11 @@ TASKS = {
         "phase": "phase-11-ui",
         "prompt": _load_prompt("prompts/phase-11/t15_onboarding_wizard.txt"),
     },
+    1116: {
+        "name": "P11-T16 — Taxonomy & Metadata Tagging",
+        "phase": "phase-11-ui",
+        "prompt": _load_prompt("prompts/phase-11/t16_taxonomy_metadata.txt"),
+    },
 
     # ── Phase 12: V2.0 Public Launch & Quality Assurance ─────────────────
     1201: {
