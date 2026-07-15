@@ -1,6 +1,6 @@
 # Substrate — Task Tracker
 
-> Last updated: 2026-07-14 (Phase 11 🎨 UI/UX Overhaul in progress. 4 async Jules agents triggered.)
+> Last updated: 2026-07-15 (Phase 11 🎨 Core UI/UX Overhaul tasks T10, T11, T14, T15 merged ✅)
 > Tracking all development phases, tasks, and their current status.
 
 ---
@@ -153,9 +153,9 @@
 | **P11-T07** | 🚀 P1 | **Visual API Design Studio** — Drag-and-drop OpenAPI designer built directly into the Substrate UI to empower PMs and Architects to design before coding. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P11-T08** | 🤯 P1 | **Substrate WASM Engine (In-Browser Diffing)** — Compile the Go Diff Engine to WebAssembly (`GOOS=js GOARCH=wasm`) so users can test schema breakages instantly in the Svelte dashboard with zero backend latency. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P11-T09** | 🚀 P1 | **Server-Sent Events (SSE) Real-Time UI** — Stream real-time cross-repo diff results from the River queue directly to the dashboard via SSE and Go channels, eliminating UI polling. | Unassigned | 💡 Backlog | `(Pending)` |
-| **P11-T10** | 🔴 P1 | **Svelte Flow Migration** — Migrate the entire graph visualization from Cytoscape.js to `Svelte Flow` for native reactivity, gorgeous HTML custom nodes, and built-in minimap support. | Stitch | 🔄 In Progress | `docs/specs/phase-11/p11-t10-svelte-flow.md` |
-| **P11-T11** | 🔴 P1 | **Global Command Palette (Cmd+K)** — Implement a Raycast-style command palette for instant global search across 100+ microservices, allowing users to jump directly to specific nodes. | Stitch | 🔄 In Progress | `docs/specs/phase-11/p11-t11-command-palette.md` |
+| **P11-T10** | 🔴 P1 | **Svelte Flow Migration** — Migrate the entire graph visualization from Cytoscape.js to `Svelte Flow` for native reactivity, gorgeous HTML custom nodes, and built-in minimap support. | Stitch | ✅ Complete | `docs/specs/phase-11/p11-t10-svelte-flow.md` |
+| **P11-T11** | 🔴 P1 | **Global Command Palette (Cmd+K)** — Implement a Raycast-style command palette for instant global search across 100+ microservices, allowing users to jump directly to specific nodes. | Stitch | ✅ Complete | `docs/specs/phase-11/p11-t11-command-palette.md` |
 | **P11-T12** | 🟡 P2 | **Rich Side-by-Side Diff Viewer** — Build an interactive, syntax-highlighted side-by-side YAML diff viewer in the dashboard to review exact line deletions, mirroring the GitHub PR experience. | Stitch | 💡 Backlog | `(Pending)` |
 | **P11-T13** | 🟢 P3 | **Time-Travel Graph Replay** — Add a timeline scrubber to the bottom of the graph to view the architectural dependencies of the enterprise exactly as they existed on any historical date. | Stitch | 💡 Backlog | `(Pending)` |
-| **P11-T14** | 🔴 P1 | **Premium Aesthetics System** — Overhaul the UI with a strict focus on Enterprise SaaS aesthetics: Deep Dark Mode, Glassmorphism modals, curated HSL color palettes, and edge-flow micro-animations. | Stitch | 🔄 In Progress | `docs/specs/phase-11/p11-t14-premium-aesthetics.md` |
-| **P11-T15** | 🔴 P1 | **Zero-to-One Onboarding Wizard** — Create a frictionless, animated onboarding wizard (Connect GitHub → Scan Repos → Build Graph) to guarantee a flawless 5-minute enterprise onboarding experience. | Stitch | 🔄 In Progress | `docs/specs/phase-11/p11-t15-onboarding-wizard.md` |
+| **P11-T14** | 🔴 P1 | **Premium Aesthetics System** — Overhaul the UI with a strict focus on Enterprise SaaS aesthetics: Deep Dark Mode, Glassmorphism modals, curated HSL color palettes, and edge-flow micro-animations. | Stitch | ✅ Complete | `docs/specs/phase-11/p11-t14-premium-aesthetics.md` |
+| **P11-T15** | 🔴 P1 | **Zero-to-One Onboarding Wizard** — Create a frictionless, animated onboarding wizard (Connect GitHub → Scan Repos → Build Graph) to guarantee a flawless 5-minute enterprise onboarding experience. | Stitch | ✅ Complete | `docs/specs/phase-11/p11-t15-onboarding-wizard.md` |
