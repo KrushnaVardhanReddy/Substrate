@@ -4,6 +4,8 @@
 	import { SvelteFlow, MiniMap, Controls, Background, BackgroundVariant, type Node, type Edge, useSvelteFlow } from '@xyflow/svelte';
 	import '@xyflow/svelte/dist/style.css';
 	import dagre from 'dagre';
+	import { toPng } from 'html-to-image';
+	import Download from '@lucide/svelte/icons/download';
 	import ServiceNode from '$lib/components/ServiceNode.svelte';
 	import TimeTravelScrubber from '$lib/components/TimeTravelScrubber.svelte';
 	import InteractiveEdge from '$lib/components/InteractiveEdge.svelte';
@@ -239,6 +241,22 @@
 		edges = displayData.edges;
 	});
 
+	const exportImage = () => {
+		const viewportNode = document.querySelector('.svelte-flow__viewport') as HTMLElement;
+		if (!viewportNode) return;
+
+		toPng(viewportNode, { backgroundColor: '#0f172a' })
+			.then((dataUrl) => {
+				const link = document.createElement('a');
+				link.download = 'substrate-graph.png';
+				link.href = dataUrl;
+				link.click();
+			})
+			.catch((err) => {
+				console.error('Failed to export PNG', err);
+			});
+	};
+
 	// We'll manage nodes and edges mapping inside onMount
 	onMount(() => {
 		let interval: any;
@@ -326,6 +344,10 @@
 		<!-- Graph Controls overlay -->
 		<div class="graph-controls" style="z-index: 20;">
 			<div class="filter-panel">
+				<button class="btn-export" onclick={exportImage}>
+					<Download size={16} />
+					Export PNG
+				</button>
 				<label class="filter-label">
 					<input type="checkbox" bind:checked={showOnlyBreaking} />
 					Show Only BREAKING Changes
@@ -567,6 +589,28 @@
 	}
 
 	.btn-clear-selection:hover {
+		background-color: var(--bg-hover, #2D3240);
+	}
+
+	.btn-export {
+		background-color: var(--bg-card);
+		border: 1px solid var(--border);
+		color: var(--text-main);
+		padding: 8px 16px;
+		border-radius: 4px;
+		cursor: pointer;
+		font-size: 13px;
+		font-weight: 500;
+		box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+		transition: background-color 0.2s;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		width: 100%;
+	}
+
+	.btn-export:hover {
 		background-color: var(--bg-hover, #2D3240);
 	}
 

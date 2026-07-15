@@ -40,6 +40,10 @@ test.describe('Dependency Graph', () => {
 		await expect(page.locator('select.filter-select')).toBeVisible();
 		await expect(page.locator('input.filter-input')).toBeVisible();
 
+		// Check that Export PNG button is rendered
+		await expect(page.locator('.btn-export')).toBeVisible();
+		await expect(page.locator('.btn-export')).toContainText('Export PNG');
+
 		// Check for the SvelteFlow container (canvas is inside)
 		const cyContainer = page.locator('.svelte-flow').first();
 		try {
