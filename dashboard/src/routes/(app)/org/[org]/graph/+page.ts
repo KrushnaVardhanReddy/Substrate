@@ -45,11 +45,34 @@ export const load: PageLoad = async ({ fetch, params }) => {
 	return {
 		org,
 		graphData: [
-			{ provider: "core/auth", consumer: "api/gateway-service", status: "SAFE" },
-			{ provider: "db/postgres-driver", consumer: "api/gateway-service", status: "SAFE" },
-			{ provider: "utils/logger", consumer: "api/gateway-service", status: "BREAKING" },
-			{ provider: "api/gateway-service", consumer: "frontend/dashboard", status: "SAFE" },
-			{ provider: "api/gateway-service", consumer: "workers/indexer", status: "SAFE" }
+			{ 
+				provider: "demo-org/core-service", 
+				consumer: "demo-org/gateway-service", 
+				status: "SAFE",
+				provider_metadata: { type: "backend", team: "Platform", databases: ["postgres", "redis"] },
+				consumer_metadata: { type: "service", team: "Infrastructure" }
+			},
+			{ 
+				provider: "demo-org/postgres-driver", 
+				consumer: "demo-org/core-service", 
+				status: "SAFE",
+				provider_metadata: { type: "database", team: "DataEng", databases: ["postgres"] },
+				consumer_metadata: { type: "backend", team: "Platform", databases: ["postgres", "redis"] }
+			},
+			{ 
+				provider: "demo-org/gateway-service", 
+				consumer: "demo-org/frontend-dashboard", 
+				status: "SAFE",
+				provider_metadata: { type: "service", team: "Infrastructure" },
+				consumer_metadata: { type: "frontend", team: "Product" }
+			},
+			{ 
+				provider: "demo-org/gateway-service", 
+				consumer: "demo-org/mobile-ios", 
+				status: "BREAKING",
+				provider_metadata: { type: "service", team: "Infrastructure" },
+				consumer_metadata: { type: "mobile", team: "Mobile" }
+			}
 		]
 	};
 };
