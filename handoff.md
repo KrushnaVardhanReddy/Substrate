@@ -7,7 +7,10 @@
 1. **Repository Cleanup:** Cleaned up `tasks.md` by archiving all completed tasks from Phase 5 through Phase 8 into `completed_tasks.md` to keep our tracker focused.
 2. **Phase 12 E2E Master Plan:** Formulated the Phase 12 launch roadmap focusing on hardening the backend and frontend. We wrote highly detailed prompts for **P12-T01 through P12-T06**, strictly defining endpoints (e.g., backend at `localhost:8090` and frontend at `localhost:5173`) so the AI doesn't guess URLs.
 3. **E2E Wrapper Pipeline:** Added the `make e2e-phase12` wrapper target to our `Makefile` to orchestrate both the Playwright UI tests and the Go backend tests smoothly in a single CLI command.
-4. **Massive Parallelization:** Successfully triggered 6 async Jules agents for the Phase 12 E2E tests, which will run in parallel alongside the 9 active Jules tasks currently implementing the Phase 11 UI upgrades!
+4. **Massive Parallelization:** Successfully triggered 6 async Jules agents for the Phase 12 E2E tests, which will run in parallel alongside the active Jules tasks currently implementing the Phase 11 UI upgrades!
+5. **Phase 11 Jules Dispatches:** Refactored prompts and triggered Jules for Advanced Graph Analytics.
+   - P11-T12 (Diff Viewer): Session `10682893628416163267`
+   - P11-T13 (Time-Travel Scrubber): Session `9937051008420969622`
 
 ## Active Jules Tasks (Currently In Flight)
 *   **Phase 11 (UI):** T01, T02, T03, T04, T07, T08, T09, T12, T13
