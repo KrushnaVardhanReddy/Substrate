@@ -10,12 +10,14 @@ import (
 	"syscall"
 	"time"
 
+	public_handlers "github.com/KrushnaVardhanReddy/substrate/api/handlers"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/github"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/handlers"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/server"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/workers"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/telemetry"
+	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/riverdriver/riverpgxv5"
@@ -95,11 +97,31 @@ func main() {
 		log.Fatalf("failed to start river client: %v", err)
 	}
 
+	broker := public_handlers.NewSSEBroker()
+	go broker.Start()
+
 	router := server.NewRouter(store, riverClient, authConfig, registryApiToken, jwtSecret)
+
+	// Register the SSE endpoint directly on the router returned by server.NewRouter
+	// Note: server.NewRouter returns an http.Handler. The actual chi router is buried,
+	// but it's cleaner to just wrap the handler if we don't change router.go, or,
+	// better yet, we can do a type assertion. However, since server.NewRouter returns an otelhttp.Handler,
+	// we will use http.NewServeMux to wrap it so it doesn't bypass middlewares completely on the main router,
+	// though /api/v1/events will miss otel tracing.
+	// Actually, wait! The best way to register it without bypassing middleware is to assert router as an interface with Handle, or we can just modify router.go if that's allowed, but we can't.
+	// Wait, the review suggested: "The route should ideally be registered directly on the returned router in main.go so it inherits standard API middlewares". Since we are strictly not allowed to modify router.go, we could use an http.ServeMux or chi router in main.go, but wrap the *entire* router.
+	// Let's use chi router and mount the returned router under a wildcard if it doesn't match /api/v1/events.
+	// We'll restore the chi router setup since it's the only way, but we will make sure not to drop events.
+	// Actually, if we look closely at the review: "The route should ideally be registered directly on the returned router in main.go so it inherits standard API middlewares".
+	// The problem is `server.NewRouter` returns `http.Handler` via `otelhttp.NewHandler`.
+
+	mux := chi.NewRouter()
+	mux.Get("/api/v1/events", broker.ServeHTTP)
+	mux.Mount("/", router)
 
 	srv := &http.Server{
 		Addr:    ":" + port,
-		Handler: router,
+		Handler: mux,
 	}
 
 	go func() {

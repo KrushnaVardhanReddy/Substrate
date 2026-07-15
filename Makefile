@@ -100,6 +100,9 @@ build-cli:
 build-mcp:
 	cd engine && go build -o substrate-mcp ./cmd/substrate-mcp/main.go
 
+build-wasm:
+	cd engine && GOOS=js GOARCH=wasm go build -o ../dashboard/static/engine.wasm ./cmd/wasm/main.go
+
 start-bg: postgres
 	@echo "Starting backend services in background..."
 	@rm -f *.log
@@ -271,6 +274,10 @@ e2e-phase8: check-token
 	@echo "Running Phase 8 Enterprise Readiness Tests..."
 	cd scripts/e2e && go test -v phase8_e2e_test.go
 
-test-wasm:
-	@echo "Running WASM Boundary Tests..."
-	export PATH="$$PATH:$$(go env GOROOT)/misc/wasm:$$(go env GOROOT)/lib/wasm" && cd engine && GOOS=js GOARCH=wasm go test ./cmd/wasm -v
+e2e-phase12: check-token
+	@echo "Running Phase 12 Go Backend Tests (SSE Resilience)..."
+	cd scripts/e2e && go test -v phase12_sse_test.go
+	@echo "Running Phase 12 Go WASM Boundary Tests..."
+	cd engine/cmd/wasm && GOOS=js GOARCH=wasm go test -v
+	@echo "Running Phase 12 Playwright Frontend E2E Suite..."
+	cd dashboard && npm run test:e2e
