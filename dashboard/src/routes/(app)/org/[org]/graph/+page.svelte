@@ -396,57 +396,8 @@
 				}
 				const res = await fetch(`/api/v1/graph/${$page.params.org}`, { headers });
 				if (res.ok) {
-<<<<<<< HEAD
 					const responseData = await res.json();
 					processGraphData(Array.isArray(responseData) ? responseData : []);
-=======
-					const data = await res.json();
-					const edgesData = Array.isArray(data) ? data : [];
-
-					let newNodesMap = new Map<string, Node>();
-					let newEdges: Edge[] = [];
-
-					// Add nodes to map
-					const addNode = (id: string, status: string, type: string) => {
-						if (!newNodesMap.has(id)) {
-							const existingNode = rawNodes.find(n => n.id === id);
-							const volatilityScore = existingNode?.data?.volatilityScore !== undefined
-								? existingNode.data.volatilityScore
-								: Math.floor(Math.random() * 101);
-
-							newNodesMap.set(id, {
-								id,
-								type: 'service',
-								position: { x: 0, y: 0 },
-								data: { label: id, status, type, volatilityScore }
-							});
-						} else if (status === 'BREAKING') {
-							const existing = newNodesMap.get(id);
-							if (existing) {
-								existing.data.status = 'BREAKING';
-							}
-						}
-					};
-
-					edgesData.forEach((edge: any) => {
-						addNode(edge.provider, edge.status, 'provider');
-						addNode(edge.consumer, 'SAFE', 'consumer');
-
-						newEdges.push({
-							id: `e-${edge.consumer}-${edge.provider}`,
-							source: edge.consumer,
-							target: edge.provider,
-							type: 'interactive',
-							animated: true,
-							style: `stroke: ${edge.status === 'BREAKING' ? '#EF4444' : '#64748b'}; stroke-width: 2px;`
-						});
-					});
-
-					let nextNodes = Array.from(newNodesMap.values());
-
-					rawNodes = nextNodes;
-					rawEdges = newEdges;
->>>>>>> origin/feature-dev-10898726506726288114
 				}
 			} catch (err) {
 				console.error("Polling error", err);
