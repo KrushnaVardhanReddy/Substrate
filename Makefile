@@ -134,6 +134,21 @@ stop-bg:
 	@rm -f api.pid engine.pid worker.pid dashboard.pid ngrok.pid api.log engine.log worker.log dashboard.log ngrok.log
 	@docker stop substrate-postgres || true
 
+reset-demo:
+	@echo "🧹 Wiping demo database clean..."
+	@docker rm -f substrate-postgres || true
+	@echo "🌱 Starting fresh database..."
+	@make postgres
+	@echo "⏳ Waiting for database to initialize..."
+	@sleep 3
+	@echo "✅ Demo environment reset! You can now start the backend with a 100% clean slate."
+
+clean-containers:
+	@echo "🧹 Pruning old docker/podman containers, networks, and volumes..."
+	@docker system prune -a -f --volumes || true
+	@podman system prune -a -f --volumes || true
+	@echo "✅ Cleanup complete!"
+
 # Ensure GITHUB_TOKEN is set before running these
 check-token:
 	@if [ -z "$(GITHUB_TOKEN)" ]; then \
