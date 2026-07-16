@@ -34,10 +34,12 @@
 
 ## 🌅 Pending for Tomorrow
 
-1. **Verify the Final Webhook locally:**
-   - Restart the Go API terminal (`make api`) to pick up the new `ENVIRONMENT=development` flag.
-   - Click "Redeliver" on the `pull_request` payload in the GitHub App Settings (or run the synthetic payload again).
-   - Ensure the final PR comment fully renders the Cross-Repo Impact table showing all 4 broken downstream microservices.
+1. **Verify the Final Webhook locally (Bypassing GitHub using OpenCode):**
+   - *Database Reset Note:* The old Postgres container was deleted. Ensure the database is re-initialized (e.g., `make db-init` or equivalent) now that `make start-bg` is running.
+   - *Bypass GitHub Actions:* We will test entirely locally without relying on real GitHub App webhooks. Create a local `mock_pr_payload.json` file simulating a `pull_request` event for `demo-repos/microservices-demo`.
+   - *Trigger Webhook:* Send a POST request directly to the local Wrangler worker (`curl -X POST http://localhost:8787/ -H "Content-Type: application/json" -H "X-GitHub-Event: pull_request" -d @mock_pr_payload.json`).
+   - *Validate:* Ensure the dashboard graph renders correctly and the worker detects the cross-repo blast radius (showing downstream services broken) without triggering a `402 Payment Required` Tier Limit error.
+   - *Execution:* Use the local **OpenCode** LLM to generate the mock JSON payload and run the test.
 
 2. **Enterprise VPC Deployment (P12-T08):**
    - Shift focus from the Cloudflare SaaS model to the Enterprise Self-Hosted model.
