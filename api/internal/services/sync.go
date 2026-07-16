@@ -38,7 +38,7 @@ func ProcessSync(ctx context.Context, store db.Store, req SyncRequest) (int, err
 	if len(parts) == 2 {
 		consumerName = parts[1]
 	}
-	consumerRepoID, err := store.UpsertRepo(ctx, orgID, req.ConsumerGithubRepoID, consumerName, req.ConsumerRepo, json.RawMessage("{}"))
+	consumerRepoID, err := store.UpsertRepo(ctx, orgID, req.ConsumerGithubRepoID, consumerName, req.ConsumerRepo, []byte("{}"))
 	if err != nil {
 		return 0, err
 	}
@@ -52,7 +52,7 @@ func ProcessSync(ctx context.Context, store db.Store, req SyncRequest) (int, err
 			providerName = providerParts[1]
 		}
 
-		providerRepoID, err := store.UpsertRepo(ctx, orgID, dep.ProviderGithubRepoID, providerName, dep.ProviderRepo, json.RawMessage("{}"))
+		providerRepoID, err := store.UpsertRepo(ctx, orgID, dep.ProviderGithubRepoID, providerName, dep.ProviderRepo, []byte("{}"))
 		if err != nil {
 			return 0, err
 		}
