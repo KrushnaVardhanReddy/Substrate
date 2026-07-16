@@ -69,7 +69,7 @@ Updated 3 spec files to document architectural decisions made during implementat
 
 | Agent | Task | Session/Project ID | Status |
 |---|---|---|---|
-| **Jules** | P9-T15 Public Impact API & MCP Server | `2968892326550283282` | 🔄 Running |
+| **Jules** | P9-T15 Public Impact API & MCP Server | `2968892326550283282` | ✅ Merged & Passing |
 
 Monitor Jules at: **https://jules.google.com**
 

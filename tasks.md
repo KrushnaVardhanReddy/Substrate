@@ -41,7 +41,7 @@
 | **P9-T12** | 🚀 P1 | **Embedded SQLite (LibSQL) Local Caching** — Embed SQLite directly into the CLI and MCP Server to pull background graph updates, enabling sub-millisecond, zero-latency local schema diffs. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T13** | 🟡 P2 | **Embedded Mermaid Blast Radius** — Upgrade the GitHub PR comment bot to render a visual Mermaid.js flowchart of the exact blast radius directly inside the PR, eliminating the need to click away. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T14** | 🟢 P3 | **Ephemeral API Preview URLs** — Generate temporary, shareable Substrate dashboard URLs for PRs so engineers can share proposed schema changes and interactive diffs with frontend teams before merging. | Unassigned | 💡 Backlog | `(Pending)` |
-| **P9-T15** | 🚀 P1 | **Public Impact API & MCP Server** — Expose a REST API (`/api/v1/impact`) and an MCP tool (`get_blast_radius`) allowing CI/CD pipelines to block merges based on downstream risk scores, and enabling AI agents (Cursor/Claude) to autonomously fix downstream breaking changes. | Jules | 🔄 Running (`2968892326550283282`) | `docs/specs/phase-9/p9-t15-impact-api.md` |
+| **P9-T15** | 🚀 P1 | **Public Impact API & MCP Server** — Expose a REST API (`/api/v1/impact`) and an MCP tool (`get_blast_radius`) allowing CI/CD pipelines to block merges based on downstream risk scores, and enabling AI agents (Cursor/Claude) to autonomously fix downstream breaking changes. | Jules | ✅ Complete | `docs/specs/phase-9/p9-t15-impact-api.md` |
 
 ---
 
