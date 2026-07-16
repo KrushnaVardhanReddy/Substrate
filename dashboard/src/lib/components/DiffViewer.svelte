@@ -23,7 +23,7 @@
 			const lines = chunk.value.endsWith('\n') ? chunk.value.slice(0, -1).split('\n') : chunk.value.split('\n');
 
 			if (!chunk.added && !chunk.removed) {
-				lines.forEach(line => {
+				lines.forEach((line: string) => {
 					rows.push({
 						leftNum: leftNum++,
 						rightNum: rightNum++,
@@ -53,7 +53,7 @@
 					});
 				}
 			} else if (chunk.added) {
-				lines.forEach(line => {
+				lines.forEach((line: string) => {
 					rows.push({
 						leftNum: null,
 						rightNum: rightNum++,

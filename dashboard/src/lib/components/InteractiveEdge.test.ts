@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/svelte';
 import { describe, it, expect, vi } from 'vitest';
+import { Position } from '@xyflow/svelte';
 import InteractiveEdge from './InteractiveEdge.svelte';
 
 // Mock getBezierPath from Svelte Flow
@@ -13,6 +14,7 @@ vi.mock('@xyflow/svelte', () => {
 	DummyComponent.render = () => ({ html: '' });
 
 	return {
+		Position: { Top: 'top', Bottom: 'bottom', Left: 'left', Right: 'right' },
 		getBezierPath: vi.fn(() => ['M 0 0 C 50 0 50 100 100 100', 50, 50]),
 		BaseEdge: DummyComponent,
 		EdgeLabel: DummyComponent
@@ -22,23 +24,26 @@ vi.mock('@xyflow/svelte', () => {
 describe('InteractiveEdge', () => {
 	const defaultProps = {
 		id: 'e1',
+		type: 'interactive',
+		source: 's1',
+		target: 't1',
 		sourceX: 0,
 		sourceY: 0,
 		targetX: 100,
 		targetY: 100,
-		sourcePosition: 'bottom',
-		targetPosition: 'top',
+		sourcePosition: Position.Bottom,
+		targetPosition: Position.Top,
 		style: '',
 		markerEnd: ''
 	};
 
 	it('renders without crashing', () => {
-		const { container } = render(InteractiveEdge, defaultProps);
+		const { container } = render(InteractiveEdge, { props: defaultProps });
 		expect(container.querySelector('g')).toBeInTheDocument();
 	});
 
 	it('shows tooltip on hover and hides on mouseleave', async () => {
-		const { container, queryByText } = render(InteractiveEdge, defaultProps);
+		const { container, queryByText } = render(InteractiveEdge, { props: defaultProps });
 		const gElement = container.querySelector('g');
 
 		expect(gElement).not.toBeNull();
