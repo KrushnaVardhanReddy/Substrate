@@ -67,9 +67,66 @@
 		}
 		return rows;
 	});
+
+	import { diffSchemas } from '$lib/utils/wasmLoader';
+	import { onMount } from 'svelte';
+
+	let semanticDiff: any = $state(null);
+	let isWasmLoading = $state(true);
+	let wasmError: string | null = $state(null);
+
+	onMount(async () => {
+		if (!before || !after) {
+			isWasmLoading = false;
+			return;
+		}
+		try {
+			isWasmLoading = true;
+			semanticDiff = await diffSchemas(before, after);
+		} catch (err: any) {
+			console.error("WASM Semantic Diff Error:", err);
+			wasmError = err.message || "Failed to analyze schema semantics.";
+		} finally {
+			isWasmLoading = false;
+		}
+	});
 </script>
 
 <div class="diff-viewer">
+	{#if isWasmLoading}
+		<div class="semantic-diff-panel loading">
+			<span class="spinner"></span> Analyzing structural changes with WASM Engine...
+		</div>
+	{:else if wasmError}
+		<div class="semantic-diff-panel error">
+			<strong>WASM Engine Error:</strong> {wasmError}
+		</div>
+	{:else if semanticDiff}
+		<div class="semantic-diff-panel">
+			<div class="semantic-header">
+				<h3>Semantic Diff Analysis</h3>
+				<span class="badge {semanticDiff.summary?.overallSeverity?.toLowerCase() || 'safe'}">
+					{semanticDiff.summary?.overallSeverity || 'Safe'}
+				</span>
+			</div>
+			<div class="semantic-stats">
+				<span class="stat breaking">{semanticDiff.summary?.breakingCount || 0} Breaking</span>
+				<span class="stat warning">{semanticDiff.summary?.warningCount || 0} Warnings</span>
+				<span class="stat safe">{semanticDiff.summary?.safeCount || 0} Safe</span>
+			</div>
+			{#if semanticDiff.breakingChanges?.length > 0}
+				<div class="semantic-list">
+					<h4>Breaking Changes</h4>
+					<ul>
+						{#each semanticDiff.breakingChanges as change}
+							<li><strong>{change.path}:</strong> {change.description}</li>
+						{/each}
+					</ul>
+				</div>
+			{/if}
+		</div>
+	{/if}
+
 	<div class="diff-header">
 		<div class="diff-header-side">Base</div>
 		<div class="diff-header-side">Head</div>
@@ -104,6 +161,35 @@
 		display: flex;
 		flex-direction: column;
 	}
+
+	.semantic-diff-panel {
+		padding: 16px;
+		background: var(--bg-hover, #111);
+		border-bottom: 1px solid var(--border, #333);
+	}
+	.semantic-diff-panel.loading { color: #888; display: flex; align-items: center; gap: 8px; }
+	.semantic-diff-panel.error { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+	
+	.semantic-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+	.semantic-header h3 { margin: 0; font-size: 14px; font-weight: 600; color: #fff; }
+	
+	.badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+	.badge.breaking { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+	.badge.warning { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+	.badge.safe { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+
+	.semantic-stats { display: flex; gap: 16px; margin-bottom: 12px; }
+	.stat { font-size: 13px; font-weight: 500; }
+	.stat.breaking { color: #ef4444; }
+	.stat.warning { color: #f59e0b; }
+	.stat.safe { color: #10b981; }
+
+	.semantic-list h4 { margin: 0 0 8px 0; font-size: 13px; color: #ef4444; }
+	.semantic-list ul { margin: 0; padding-left: 20px; color: #ddd; font-size: 12px; }
+	.semantic-list li { margin-bottom: 4px; }
+
+	.spinner { width: 14px; height: 14px; border: 2px solid #555; border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; }
+	@keyframes spin { to { transform: rotate(360deg); } }
 
 	.diff-header {
 		display: flex;
