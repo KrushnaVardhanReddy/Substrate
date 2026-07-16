@@ -5,6 +5,14 @@
 	let { data } = $props<{ data: any }>();
 
 	let nodeType = $derived(data.metadata?.type || data.type || 'service');
+
+	let backgroundColor = $derived(() => {
+		if (!data.heatmapMode) return '#1E222C';
+		const score = data.volatilityScore as number;
+		if (score <= 30) return 'var(--accent)';
+		if (score <= 70) return 'var(--safe)';
+		return 'var(--danger)';
+	});
 </script>
 
 <div class="service-node-card {nodeType}" class:origin={data.isOrigin} class:affected={data.isAffected} class:faded={data.isFaded}>
@@ -46,6 +54,7 @@
 		color: white;
 		font-family: 'Inter', sans-serif;
 		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+		transition: background-color 0.3s ease;
 	}
 
 	.icon-wrapper {

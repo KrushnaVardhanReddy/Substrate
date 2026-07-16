@@ -25,6 +25,7 @@
 	let debouncedSearch = $state('');
 	let includeNeighbors = $state(true);
 	let layoutDirection = $state('BT'); // Bottom-to-Top puts databases at the bottom and frontends at the top
+	let heatmapMode = $state(false);
 
 	const toggleLayout = () => {
 		const dirs = ['TB', 'BT', 'LR', 'RL'];
@@ -246,6 +247,12 @@
 		let dNodes = layoutedData.nodes;
 		let dEdges = layoutedData.edges;
 
+		// Inject heatmapMode into nodes before layout and passing to Svelte Flow
+		dNodes = dNodes.map(node => ({
+			...node,
+			data: { ...node.data, heatmapMode }
+		}));
+
 		// Apply blast radius highlighting and fading
 		if (selectedNode) {
 			dNodes = dNodes.map(n => ({
@@ -321,11 +328,16 @@
 				if (teamName) addTeamNode(teamName);
 
 				if (!newNodesMap.has(id)) {
+					const existingNode = rawNodes.find(n => n.id === id);
+					const volatilityScore = existingNode?.data?.volatilityScore !== undefined
+						? existingNode.data.volatilityScore
+						: Math.floor(Math.random() * 101);
+
 					const node: Node = {
 						id,
 						type: 'service',
 						position: { x: 0, y: 0 },
-						data: { label: id, status, type, metadata }
+						data: { label: id, status, type, metadata, volatilityScore }
 					};
 					if (teamName) {
 						node.parentId = `team-${teamName}`;
@@ -384,8 +396,57 @@
 				}
 				const res = await fetch(`/api/v1/graph/${$page.params.org}`, { headers });
 				if (res.ok) {
+<<<<<<< HEAD
 					const responseData = await res.json();
 					processGraphData(Array.isArray(responseData) ? responseData : []);
+=======
+					const data = await res.json();
+					const edgesData = Array.isArray(data) ? data : [];
+
+					let newNodesMap = new Map<string, Node>();
+					let newEdges: Edge[] = [];
+
+					// Add nodes to map
+					const addNode = (id: string, status: string, type: string) => {
+						if (!newNodesMap.has(id)) {
+							const existingNode = rawNodes.find(n => n.id === id);
+							const volatilityScore = existingNode?.data?.volatilityScore !== undefined
+								? existingNode.data.volatilityScore
+								: Math.floor(Math.random() * 101);
+
+							newNodesMap.set(id, {
+								id,
+								type: 'service',
+								position: { x: 0, y: 0 },
+								data: { label: id, status, type, volatilityScore }
+							});
+						} else if (status === 'BREAKING') {
+							const existing = newNodesMap.get(id);
+							if (existing) {
+								existing.data.status = 'BREAKING';
+							}
+						}
+					};
+
+					edgesData.forEach((edge: any) => {
+						addNode(edge.provider, edge.status, 'provider');
+						addNode(edge.consumer, 'SAFE', 'consumer');
+
+						newEdges.push({
+							id: `e-${edge.consumer}-${edge.provider}`,
+							source: edge.consumer,
+							target: edge.provider,
+							type: 'interactive',
+							animated: true,
+							style: `stroke: ${edge.status === 'BREAKING' ? '#EF4444' : '#64748b'}; stroke-width: 2px;`
+						});
+					});
+
+					let nextNodes = Array.from(newNodesMap.values());
+
+					rawNodes = nextNodes;
+					rawEdges = newEdges;
+>>>>>>> origin/feature-dev-10898726506726288114
 				}
 			} catch (err) {
 				console.error("Polling error", err);
@@ -419,6 +480,10 @@
 						<RotateCw size={16} />
 					</button>
 				</div>
+				<label class="filter-label" style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; background-color: var(--bg-hover); padding: 6px 12px; border-radius: 4px; border: 1px solid var(--border); margin-bottom: 8px;">
+					<input type="checkbox" bind:checked={heatmapMode} />
+					<span style="font-weight: 500; color: var(--accent);">Heatmap Mode</span>
+				</label>
 				<label class="filter-label">
 					<input type="checkbox" bind:checked={showOnlyBreaking} />
 					Show Only BREAKING Changes
