@@ -1,3 +1,5 @@
+//go:build js && wasm
+
 package main
 
 import (
@@ -5,28 +7,19 @@ import (
 	"fmt"
 	"syscall/js"
 
-	"github.com/KrushnaVardhanReddy/substrate/engine/internal/diff"
+	"github.com/KrushnaVardhanReddy/substrate/engine"
 )
 
 func diffSchemasWrapper(this js.Value, args []js.Value) any {
 	if len(args) != 2 {
-		return map[string]any{"error": "Invalid number of arguments, expected 2 (base, revision)"}
+		errBytes, _ := json.Marshal(map[string]any{"error": "Invalid number of arguments, expected 2 (base, revision)"})
+		return string(errBytes)
 	}
 
 	baseStr := args[0].String()
 	revisionStr := args[1].String()
 
-	rep, err := diff.CompareOpenAPIFromData([]byte(baseStr), []byte(revisionStr), true, nil)
-	if err != nil {
-		return map[string]any{"error": err.Error()}
-	}
-
-	repBytes, err := json.Marshal(rep)
-	if err != nil {
-		return map[string]any{"error": "failed to marshal report: " + err.Error()}
-	}
-
-	return string(repBytes)
+	return engine.DiffSchemas(baseStr, revisionStr)
 }
 
 func main() {
