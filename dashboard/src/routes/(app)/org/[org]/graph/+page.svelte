@@ -232,8 +232,22 @@
 		if (hideOrphans) {
 			const connectedIds = new Set<string>();
 			fEdges.forEach(e => { connectedIds.add(e.source); connectedIds.add(e.target); });
-			fNodes = fNodes.filter(n => connectedIds.has(n.id));
+			fNodes = fNodes.filter(n => connectedIds.has(n.id) || n.type === 'teamGroup'); // keep team nodes temporarily
 		}
+
+		// Ensure all parent nodes (teams) for the surviving children are included
+		const requiredParentIds = new Set<string>();
+		fNodes.forEach(n => {
+			if (n.parentId) requiredParentIds.add(n.parentId);
+		});
+
+		// Add back missing parent nodes
+		requiredParentIds.forEach(parentId => {
+			if (!fNodes.some(n => n.id === parentId)) {
+				const parentNode = rawNodes.find(n => n.id === parentId);
+				if (parentNode) fNodes.push(parentNode);
+			}
+		});
 
 		return { nodes: fNodes, edges: fEdges };
 	});
@@ -382,6 +396,22 @@
 			processGraphData(data.graphData);
 		}
 
+		const fetchInitialGraph = async () => {
+			if ($page.params.org === 'stress-test') return;
+			try {
+				const token = localStorage.getItem('github_token');
+				const headers: Record<string, string> = {};
+				if (token) headers['Authorization'] = `Bearer ${token}`;
+				const res = await fetch(`/api/v1/graph/${$page.params.org}`, { headers });
+				if (res.ok) {
+					const responseData = await res.json();
+					processGraphData(Array.isArray(responseData) ? responseData : []);
+				}
+			} catch (err) {
+				console.error("Initial fetch error", err);
+			}
+		};
+
 		let eventSource: EventSource | null = null;
 
 		const initSSE = () => {
@@ -391,7 +421,6 @@
 
 			eventSource.onmessage = (event) => {
 				if (event.data === 'heartbeat') return;
-				
 				try {
 					const responseData = JSON.parse(event.data);
 					processGraphData(Array.isArray(responseData) ? responseData : []);
@@ -403,12 +432,11 @@
 			eventSource.onerror = (err) => {
 				console.error("SSE connection error", err);
 				eventSource?.close();
-				// Reconnect after 5s
 				setTimeout(initSSE, 5000);
 			};
 		};
 
-		initSSE();
+		fetchInitialGraph().then(initSSE);
 
 		return () => {
 			if (eventSource) {
@@ -530,7 +558,7 @@
 			</section>
 
 			<!-- Taxonomy Metadata -->
-			{#if selectedNode?.metadata && Object.keys(selectedNode.metadata).length > 0}
+			{#if selectedNode?.metadata}
 			<section class="detail-section">
 				<h4 class="section-title">Taxonomy</h4>
 				<div class="metadata-grid">

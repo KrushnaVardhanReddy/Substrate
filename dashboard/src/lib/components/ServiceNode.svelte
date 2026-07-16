@@ -6,7 +6,7 @@
 
 	let nodeType = $derived(data.metadata?.type || data.type || 'service');
 
-	let backgroundColor = $derived(() => {
+	let backgroundColor = $derived.by(() => {
 		if (!data.heatmapMode) return '#1E222C';
 		const score = data.volatilityScore as number;
 		if (score <= 30) return 'var(--accent)';
@@ -15,7 +15,7 @@
 	});
 </script>
 
-<div class="service-node-card {nodeType}" class:origin={data.isOrigin} class:affected={data.isAffected} class:faded={data.isFaded}>
+<div class="service-node-card {nodeType}" style="background-color: {backgroundColor};" class:origin={data.isOrigin} class:affected={data.isAffected} class:faded={data.isFaded}>
 	<Handle type="target" position={Position.Top} style="background: #555; width: 8px; height: 8px;" />
 
 	<div class="header">

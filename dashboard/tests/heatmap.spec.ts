@@ -19,6 +19,10 @@ test.describe('Heatmap Mode', () => {
 		// Wait for the mock fetch to complete
 		await page.waitForTimeout(1000);
 
+		// Enter search query to bypass Search-First empty state
+		await page.fill('input.filter-input', 'service');
+		await page.waitForSelector('.svelte-flow', { state: 'attached' });
+
 		// Get all service node cards
 		const serviceNodes = page.locator('.service-node-card');
 		await expect(serviceNodes.first()).toBeVisible();

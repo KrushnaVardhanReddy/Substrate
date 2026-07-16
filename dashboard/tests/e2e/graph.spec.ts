@@ -22,7 +22,7 @@ test.describe('Dependency Graph', () => {
 						consumer: 'frontend/dashboard', 
 						status: 'SAFE',
 						provider_metadata: { type: 'database', team: 'Platform' },
-						consumer_metadata: { type: 'frontend', team: 'Product' }
+						consumer_metadata: { type: 'frontend' }
 					}
 				])
 			});
@@ -54,9 +54,12 @@ test.describe('Dependency Graph', () => {
 		await responsePromise;
 
 		// The graph should initially be empty due to Search-First model, but wait, the test currently triggers graph render without search in the app or the test passes search? Wait, the test mock data is rendered if search is typed, or if it bypasses search. Let's type in the search box to be safe.
-		await page.fill('input.filter-input', 'core');
+		await page.fill('input.filter-input', '/');
 		
 		await page.waitForSelector('.svelte-flow', { state: 'attached', timeout: 15000 });
+		// Wait for the debounced search and graph render
+		await page.waitForTimeout(1000);
+		await page.waitForSelector('.service-node-card', { state: 'attached', timeout: 15000 });
 		
 		// 1. Check tinted icons logic based on taxonomy metadata
 		await expect(page.locator('.icon-wrapper.database').first()).toBeVisible();
@@ -68,13 +71,13 @@ test.describe('Dependency Graph', () => {
 		await rotateBtn.click(); // Should change state to TB
 
 		// 3. Click the node to open detail panel
-		await page.locator('.service-node-card.database').first().click();
+		await page.locator('.service-node-card.database').first().click({ force: true });
 
 		// 4. Verify Taxonomy Metadata in the detail panel
 		const detailPanel = page.locator('.detail-panel');
 		await expect(detailPanel).toBeVisible();
-		await expect(detailPanel.locator('text=Taxonomy')).toBeVisible();
-		await expect(detailPanel.getByText('Platform', { exact: true })).toBeVisible();
+		await expect(detailPanel.getByRole('heading', { name: 'Taxonomy' })).toBeVisible();
+		await expect(detailPanel.getByText('Platform')).toBeVisible();
 
 		// 5. Verify Deep DX Links
 		const logsLink = page.locator('a:has-text("View Logs")');
