@@ -15,7 +15,7 @@ func TestScaleGeneratorE2E(t *testing.T) {
 	}
 	defer exec.Command("rm", "-f", "substrate_scale_test_bin").Run()
 
-	cmd := exec.Command("./substrate_scale_test_bin", "--scale", "10", "--concurrency", "2")
+	cmd := exec.Command("./substrate_scale_test_bin", "--scale", "10", "--concurrency", "2", "--duration", "2s")
 	cmd.Env = append(os.Environ(), "GITHUB_TOKEN=dummy")
 
 	out, err := cmd.CombinedOutput()
