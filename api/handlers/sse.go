@@ -3,11 +3,14 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 )
 
 // SSEBroker acts as a channel registry to broadcast events to connected clients
 type SSEBroker struct {
+	mu sync.RWMutex
+
 	// Channels for managing client connections
 	clients  map[chan string]bool
 	newClients chan chan string
@@ -32,11 +35,16 @@ func (broker *SSEBroker) Start() {
 	for {
 		select {
 		case s := <-broker.newClients:
+			broker.mu.Lock()
 			broker.clients[s] = true
+			broker.mu.Unlock()
 		case s := <-broker.defunctClients:
+			broker.mu.Lock()
 			delete(broker.clients, s)
+			broker.mu.Unlock()
 			close(s)
 		case msg := <-broker.messages:
+			broker.mu.RLock()
 			for s := range broker.clients {
 				select {
 				case s <- msg:
@@ -44,8 +52,17 @@ func (broker *SSEBroker) Start() {
 					// If the client channel is full/blocked, we shouldn't block the broker.
 				}
 			}
+			broker.mu.RUnlock()
 		}
 	}
+}
+
+// Len returns the number of currently connected SSE clients.
+// Used only for testing.
+func (b *SSEBroker) Len() int {
+	b.mu.RLock()
+	defer b.mu.RUnlock()
+	return len(b.clients)
 }
 
 // Broadcast sends a message to all connected clients
