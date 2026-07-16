@@ -73,9 +73,9 @@
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **P11-T01** | 🟡 P2 | **Cascading Blast Radius (Nth-Degree)** — Add an "Impact Depth" slider to the focus mode to animate and reveal 2nd and 3rd-degree downstream consumers to track rippling failures. | Jules | ⏳ In Progress | `docs/specs/phase-11/p11-t01-blast-radius.md` |
+| **P11-T01** | 🟡 P2 | **Cascading Blast Radius (Nth-Degree)** — Add an "Impact Depth" slider to the focus mode to animate and reveal 2nd and 3rd-degree downstream consumers to track rippling failures. | Jules | ✅ Complete | `docs/specs/phase-11/p11-t01-blast-radius.md` |
 | **P11-T02** | 🟡 P2 | **Team Neighborhoods (Compound Nodes)** — Group repository nodes physically inside Cytoscape compound boundary boxes based on their `CODEOWNERS` or organizational team structure. | Jules | ⏳ In Progress | `docs/specs/phase-11/p11-t02-team-neighborhoods.md` |
-| **P11-T03** | 🟢 P3 | **Interactive Edge Tooltips** — Hovering over a dependency edge reveals a tooltip showing exactly which endpoints/contracts are being consumed (e.g., `GET /api/v1/customers`). | Jules | ⏳ In Progress | `docs/specs/phase-11/p11-t03-edge-tooltips.md` |
+| **P11-T03** | 🟢 P3 | **Interactive Edge Tooltips** — Hovering over a dependency edge reveals a tooltip showing exactly which endpoints/contracts are being consumed (e.g., `GET /api/v1/customers`). | Jules | ✅ Complete | `docs/specs/phase-11/p11-t03-edge-tooltips.md` |
 | **P11-T04** | 🔵 P4 | **Historical Volatility Heatmap** — Add a toggle to color-code the graph by historical breaking changes (Red = frequent breakers, Blue = stable core services). | Jules | ⏳ In Progress | `docs/specs/phase-11/p11-t04-volatility-heatmap.md` |
 | **P11-T05** | ⚪ P5 | **Bird's Eye Mini-Map** — Introduce a Cytoscape navigator widget in the bottom-left corner for maintaining context when zoomed into a localized blast radius on 100+ repo graphs. | Stitch | ✅ Complete | `(Handled by P11-T10)` |
 | **P11-T07** | 🚀 P1 | **Visual API Design Studio** — Drag-and-drop OpenAPI designer built directly into the Substrate UI to empower PMs and Architects to design before coding. | Jules | ⏳ In Progress | `docs/specs/phase-11/p11-t07-visual-api-studio.md` |
