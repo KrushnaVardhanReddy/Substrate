@@ -548,6 +548,13 @@ func substrateDocsContent() string {
   schema_type: openapi            # Supported: openapi, sql, graphql, protobuf, asyncapi, avro, terraform-plan, ai-model
   spec_path: openapi.yaml         # Path to the schema file, relative to repo root
   on_breaking_change: block       # 'block' (default) = fail PR | 'warn' = comment only
+  
+  # Optional: Taxonomy metadata for the Dashboard Graph
+  metadata:
+    type: backend                 # frontend, backend, database, mobile, gateway, cronjob
+    team: platform-core
+    databases:
+      - postgres
   ` + "```" + `
 
   ### Consumer Configuration (a repo that depends on another team's API)
