@@ -3,43 +3,88 @@ TASK: P12-T02 — Svelte Flow Interaction E2E (Playwright)
 ═══════════════════════════════════════════════════════════════
 OBJECTIVE
 ═══════════════════════════════════════════════════════════════
-Write a Playwright test to verify that the core Svelte Flow canvas interactions (Blast Radius, Heatmap, Tooltips) function without throwing Svelte state exceptions.
+Extend the Dependency Graph Playwright test suite with deep canvas interaction tests. Specifically: assert that clicking a node correctly triggers cascading blast radius CSS class changes on all related nodes, and that hovering over an edge reveals the interactive tooltip component.
 
 Spec (READ ONLY — implement from it, never edit):
-  docs/specs/phase-12/p12-master-plan.md
+  docs/specs/phase-12/p12-t02-svelteflow-interactions.md
 
 ═══════════════════════════════════════════════════════════════
 CONSTRAINTS & RULES
 ═══════════════════════════════════════════════════════════════
-- The test must navigate to `/org/demo/graph`.
-- Assert the canvas renders.
-- Simulate a click on a Node to trigger the "Cascading Blast Radius" styling (assert the CSS class updates).
-- Simulate clicking the "Volatility Heatmap" toggle switch.
-- Simulate hovering over an Edge to ensure the Interactive Tooltip element appears.
-
-**EXACT ENDPOINTS & REPOS TO USE:**
-- Frontend URL: `http://localhost:5173`
-- The graph page to navigate to is exactly `http://localhost:5173/org/demo/graph`
-- Mock API requests should point to `http://localhost:8090/api/v1/graph` (NOTE: The E2E backend runs on 8090, not 8080)
-- Do NOT use random external URLs or random ports.
+- Append new `test(...)` blocks ONLY. Do NOT modify or delete the 3 existing test blocks in `graph.spec.ts`.
+- The existing `beforeEach` mock data must be reused as-is. If you add a `test.describe` block, nest it inside the existing one.
+- All node clicks on the Svelte Flow canvas MUST use `{ force: true }` to bypass the browser's stability/animation check, since SvelteFlow nodes are positioned absolutely and may be under transparent overlay divs.
+- Do NOT hardcode pixel positions for clicks. Use CSS class selectors only.
+- The graph is in "Search-First" mode: the canvas starts empty. You MUST fill the search box before asserting nodes are visible.
 
 ═══════════════════════════════════════════════════════════════
 CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
 ═══════════════════════════════════════════════════════════════
-Playwright tests live in `dashboard/tests/`. You will need to inspect the DOM structure rendered by `@xyflow/svelte` (usually `.svelte-flow__node` and `.svelte-flow__edge`).
+- Graph page: `dashboard/src/routes/(app)/org/[org]/graph/+page.svelte`
+- ServiceNode component: `dashboard/src/lib/components/ServiceNode.svelte`
+- The `ServiceNode.svelte` template: `<div class="service-node-card {nodeType}" class:origin={data.isOrigin} class:affected={data.isAffected} class:faded={data.isFaded}>`
+  - When a node is the origin (clicked): it gets `.service-node-card.origin`
+  - When a node is in the blast radius: it gets `.service-node-card.affected`
+  - When a node is unrelated: it gets `.service-node-card.faded`
+- The icon wrapper inside each node: `<div class="icon-wrapper {nodeType}">` — so a database node has `.icon-wrapper.database`
+- Edge tooltip class: `.edge-tooltip` (rendered by `InteractiveEdge.svelte` on hover)
+- The mock `beforeEach` in `graph.spec.ts` sets up:
+  - 1 provider: `core/auth` with `provider_metadata: { type: 'database', team: 'Platform' }`
+  - 1 consumer: `frontend/dashboard` with `consumer_metadata: { type: 'frontend' }`
+- The search input selector: `input.filter-input`
+- SvelteFlow edge selector: `.svelte-flow__edge` or `.react-flow__edge`
 
 ═══════════════════════════════════════════════════════════════
 DELIVERABLES
 ═══════════════════════════════════════════════════════════════
-1. FILE: dashboard/tests/graph-interaction.spec.ts (CREATE NEW)
-   - Implement the Playwright test suite for the Svelte Flow interactions.
-2. Run `npm run test:e2e` inside the dashboard directory to verify.
+
+1. FILE: dashboard/tests/e2e/graph.spec.ts (MODIFY — append only)
+
+   APPEND TEST A — "should highlight blast radius on node click":
+   a. Inside the existing `test.describe('Dependency Graph', ...)` block, add a new test.
+   b. Intercept the API (same as existing `beforeEach`).
+   c. `await page.goto('/org/testorg/graph')`.
+   d. `await page.waitForResponse('**/api/v1/graph/*')`.
+   e. `await page.fill('input.filter-input', '/')` — this triggers the search-first model to show all nodes.
+   f. `await page.waitForSelector('.service-node-card', { state: 'attached', timeout: 15000 })`.
+   g. `await page.locator('.service-node-card.database').first().click({ force: true })`.
+   h. `await expect(page.locator('.detail-panel')).toBeVisible()`.
+   i. `await expect(page.locator('.service-node-card.origin').first()).toBeVisible()`.
+   j. `await expect(page.locator('.service-node-card.faded').first()).toBeVisible()`.
+
+   APPEND TEST B — "should show edge tooltip on hover":
+   a. Load the same page and fill the search box as in Test A.
+   b. Wait for `.svelte-flow__edge` to appear: `await page.waitForSelector('.svelte-flow__edge', { state: 'attached', timeout: 15000 })`.
+   c. `await page.locator('.svelte-flow__edge').first().hover()`.
+   d. `await expect(page.locator('.edge-tooltip')).toBeVisible()`.
+
+2. Run `npx playwright test tests/e2e/graph.spec.ts --reporter=list` before committing. All 5 tests (3 existing + 2 new) must pass.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION HINTS
+═══════════════════════════════════════════════════════════════
+- If `.service-node-card.faded` is not immediately visible after click, add `await page.waitForTimeout(500)` after the click to allow Svelte's reactive $derived to propagate.
+- If the edge tooltip does not appear on `.hover()`, try using `page.mouse.move()` to the bounding box center of the edge element:
+  ```typescript
+  const edge = page.locator('.svelte-flow__edge').first();
+  const box = await edge.boundingBox();
+  if (box) await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await expect(page.locator('.edge-tooltip')).toBeVisible({ timeout: 5000 });
+  ```
+- If `.svelte-flow__edge` is not found, check if the selector is `.react-flow__edge` — the XyFlow library uses both class prefixes depending on version. Inspect the DOM to confirm.
+- The "affected" class on blast radius nodes is only applied when `includeNeighbors` is `true` (which is the default). Do NOT change this state.
 
 ═══════════════════════════════════════════════════════════════
 FILES LIST
 ═══════════════════════════════════════════════════════════════
-FILES TO CREATE:
-- dashboard/tests/graph-interaction.spec.ts
 
-Commit: "test: P12-T02 add Playwright E2E for graph interactions"
+FILES TO MODIFY:
+- dashboard/tests/e2e/graph.spec.ts
+
+FILES TO NOT TOUCH:
+- dashboard/src/**  (no production code changes)
+- dashboard/tests/e2e/onboarding.spec.ts
+- dashboard/tests/heatmap.spec.ts
+
+Commit: "test: P12-T02 add Svelte Flow interaction E2E tests"
 Target branch: feature/dev

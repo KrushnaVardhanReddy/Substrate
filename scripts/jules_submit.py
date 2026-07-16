@@ -642,9 +642,15 @@ TASKS = {
         "prompt": _load_prompt("prompts/phase-12/t05_wasm_boundary_e2e.txt"),
     },
     1206: {
-        "name": "P12-T06 — 1,000-Node UI Stress Test (Playwright)",
+        "name": "P12-T06 — 1,000-Node Scale Generator (Go)",
         "phase": "phase-12-qa",
         "prompt": _load_prompt("prompts/phase-12/t06_ui_stress_test_e2e.txt"),
+    },
+    # NOTE: P12-T07 (Telemetry) and P12-T01/T02/T03 (Playwright) are Stitch tasks → see stitch_submit.py
+    1208: {
+        "name": "P12-T08 — V2.0 Production Cutover (Docker + CI)",
+        "phase": "phase-12-qa",
+        "prompt": _load_prompt("prompts/phase-12/t08_production_cutover.txt"),
     },
 }
 

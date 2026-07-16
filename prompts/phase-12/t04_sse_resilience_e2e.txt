@@ -1,37 +1,141 @@
-TASK: P12-T04 — SSE Connection Resilience Test (Go E2E)
+TASK: P12-T04 — SSE Connection Resilience Test (Go)
 
 ═══════════════════════════════════════════════════════════════
 OBJECTIVE
 ═══════════════════════════════════════════════════════════════
-Write a Go E2E test to simulate 100+ concurrent clients connecting to the SSE endpoint and abruptly disconnecting to ensure no memory leaks occur.
+Harden the SSE Broker against production-grade stress: 100 concurrent clients registering and abruptly disconnecting, concurrent broadcasts during disconnects, and a heartbeat tick verification. This test guards against memory leaks and goroutine deadlocks in the real-time event pipeline.
 
 Spec (READ ONLY — implement from it, never edit):
-  docs/specs/phase-12/p12-master-plan.md
+  docs/specs/phase-12/p12-t04-sse-resilience.md
 
 ═══════════════════════════════════════════════════════════════
 CONSTRAINTS & RULES
 ═══════════════════════════════════════════════════════════════
-- The test must follow the patterns established in `scripts/e2e/phase8_e2e_test.go`.
-- Use `http://localhost:8090` for the API URL.
-- Use `local-jwt-secret` for JWT creation if needed.
-- Connect 100 concurrent HTTP clients to `/api/v1/events`, cancel their contexts, and assert the server recovers gracefully.
+- Do NOT start a real HTTP server. Test the `SSEBroker` struct directly in-process.
+- Run all tests with `-race` flag. Zero data races are acceptable.
+- If the `SSEBroker` fields `clients`, `newClients`, `defunctClients`, and `messages` are unexported, you MUST add a `Len() int` method to `SSEBroker` in `api/handlers/sse.go` that returns `len(b.clients)`. Do NOT inline the assertion using reflection.
+- The broker's `Start()` goroutine must be running before any client registrations.
+- Use `t.Parallel()` on all independent tests.
+- Do NOT import external test packages. Use only the standard library (`testing`, `time`, `context`, `sync`, `runtime`).
 
 ═══════════════════════════════════════════════════════════════
 CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
 ═══════════════════════════════════════════════════════════════
-E2E tests live in `scripts/e2e/`. You can reference `phase8_e2e_test.go` for DB setup and constants.
+- The SSE broker implementation: `api/handlers/sse.go`
+- Existing broker struct (from the file):
+  ```go
+  type SSEBroker struct {
+      clients        map[chan string]bool
+      newClients     chan chan string
+      defunctClients chan chan string
+      messages       chan string
+  }
+  func NewSSEBroker() *SSEBroker { ... }
+  func (b *SSEBroker) Start() { ... }
+  ```
+- The heartbeat fires every 5 seconds via a `time.NewTicker` inside `Start()`.
+- The existing test file to expand: `scripts/e2e/phase12_sse_test.go`
+- Other E2E test files for reference patterns: `scripts/e2e/phase8_e2e_test.go`
+- Go module root: the project root directory (check `go.mod` for the module name).
 
 ═══════════════════════════════════════════════════════════════
 DELIVERABLES
 ═══════════════════════════════════════════════════════════════
-1. FILE: scripts/e2e/phase12_sse_test.go (CREATE NEW)
-2. Run `go test ./scripts/e2e/...` to verify.
+
+1. FILE: api/handlers/sse.go (MODIFY — add Len() method only)
+   Add at the bottom of the file:
+   ```go
+   // Len returns the number of currently connected SSE clients.
+   // Used only for testing.
+   func (b *SSEBroker) Len() int {
+       return len(b.clients)
+   }
+   ```
+
+2. FILE: scripts/e2e/phase12_sse_test.go (EXPAND — add new test functions)
+
+   TEST A — `TestSSEBroker_100ConcurrentClients`:
+   ```
+   a. broker := NewSSEBroker()
+   b. go broker.Start()
+   c. time.Sleep(50 * time.Millisecond) // allow Start() to initialise
+   d. Register 100 client channels:
+      for i := 0; i < 100; i++ {
+          ch := make(chan string, 1)
+          broker.newClients <- ch
+      }
+   e. time.Sleep(100 * time.Millisecond) // allow broker to process
+   f. assert broker.Len() == 100
+   ```
+
+   TEST B — `TestSSEBroker_DisconnectNoLeak`:
+   ```
+   a. broker := NewSSEBroker(); go broker.Start()
+   b. Register 100 clients, collect their channels in a slice.
+   c. Disconnect all 100:
+      for _, ch := range clients {
+          broker.defunctClients <- ch
+      }
+   d. time.Sleep(200 * time.Millisecond)
+   e. assert broker.Len() == 0
+   ```
+
+   TEST C — `TestSSEBroker_BroadcastUnderConcurrentDisconnect`:
+   ```
+   a. broker := NewSSEBroker(); go broker.Start()
+   b. Register 50 clients.
+   c. Launch 3 goroutines concurrently:
+      - goroutine 1: disconnect clients[0:25] via defunctClients
+      - goroutine 2: broadcast a message via broker.messages <- "test-event"
+      - goroutine 3: broadcast another via broker.messages <- "test-event-2"
+   d. Use a timeout: select { case <-done: // ok; case <-time.After(2*time.Second): t.Fatal("deadlock") }
+   e. Assert no panic occurred.
+   ```
+
+   TEST D — `TestSSEBroker_HeartbeatTick`:
+   ```
+   a. broker := NewSSEBroker(); go broker.Start()
+   b. ch := make(chan string, 2); broker.newClients <- ch
+   c. time.Sleep(6 * time.Second) // wait for the 5s ticker
+   d. received := <-ch
+   e. assert strings.Contains(received, "heartbeat")
+   ```
+
+3. Run `go test -race -count=1 -run TestSSE ./scripts/e2e/...` and ensure all pass before committing.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION HINTS
+═══════════════════════════════════════════════════════════════
+- If `broker.newClients <- ch` blocks, the broker's `Start()` goroutine is not running yet. Always add a `time.Sleep(50ms)` after launching `go broker.Start()` before sending to channels.
+- The broker's channels (`newClients`, `defunctClients`, `messages`) are unbuffered. Send to them sequentially from the test goroutine to avoid race conditions.
+- For Test C, use a `sync.WaitGroup` to coordinate the 3 goroutines:
+  ```go
+  var wg sync.WaitGroup
+  wg.Add(3)
+  go func() { defer wg.Done(); ... }()
+  // etc.
+  done := make(chan struct{})
+  go func() { wg.Wait(); close(done) }()
+  select {
+  case <-done:
+  case <-time.After(2 * time.Second):
+      t.Fatal("broadcast deadlocked under concurrent disconnects")
+  }
+  ```
+- Test D takes 6 seconds. Add `t.Parallel()` so it doesn't block the other fast tests.
 
 ═══════════════════════════════════════════════════════════════
 FILES LIST
 ═══════════════════════════════════════════════════════════════
-FILES TO CREATE:
-- scripts/e2e/phase12_sse_test.go
 
-Commit: "test: P12-T04 add Go E2E test for SSE resilience"
+FILES TO MODIFY:
+- api/handlers/sse.go  (add Len() method only — no other changes)
+- scripts/e2e/phase12_sse_test.go  (add new test functions)
+
+FILES TO NOT TOUCH:
+- api/handlers/sse_handler.go (if it exists — no HTTP handler changes)
+- scripts/e2e/phase8_e2e_test.go
+- dashboard/**
+
+Commit: "test: P12-T04 SSE broker 100-client resilience and leak detection tests"
 Target branch: feature/dev

@@ -1,0 +1,209 @@
+TASK: P12-T08 — V2.0 Production Cutover (Docker + CI)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Bundle the SvelteKit static frontend, Go API binary, and Go-compiled WASM engine into a single, self-contained Docker image using a multi-stage build. Update the Makefile with a `build-prod` target and harden the GitHub Actions release pipeline to gate Docker pushes on the full test suite passing.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-12/p12-t08-production-cutover.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- The final Docker image MUST serve:
+  - `/` → SvelteKit HTML (200 OK, text/html)
+  - `/engine.wasm` → Go WASM binary (200 OK, application/wasm)
+  - `/api/v1/events` → SSE stream (200 OK, text/event-stream)
+- The final image MUST be under 100MB. Use `gcr.io/distroless/static-debian12` as the base.
+- Do NOT change any application source code. Only touch `Dockerfile`, `Makefile`, `.github/workflows/`, and `.dockerignore`.
+- The `engine.wasm` binary is built separately. Verify it already exists at `dashboard/static/engine.wasm`. If it does NOT exist, add a `build-wasm` Makefile target that compiles it.
+- The GitHub Actions change MUST gate the Docker push on BOTH `go test ./...` and `npx playwright test` passing.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- Go backend entrypoint: `main.go` (project root). Inspect it to confirm where static files are served from. The binary likely serves a `static/` or `dashboard/build/` directory at `/`.
+- The SvelteKit build output: `dashboard/build/` (produced by `npm run build` inside `dashboard/`).
+- The SvelteKit static files (including `engine.wasm`): `dashboard/static/`.
+- The existing `Dockerfile` (if any): inspect before overwriting. Preserve any secrets handling (ENV vars for DB, JWT, etc.).
+- The existing `Makefile`: inspect before adding targets. Preserve all existing targets.
+- GitHub Actions workflows: `.github/workflows/` — find the release or deploy workflow.
+- The Go binary serves static assets. Search `main.go` or `api/server.go` for `http.FileServer` or `static` to understand how the SvelteKit build output is served.
+
+  CRITICAL — STATIC FILE SERVING:
+  If `main.go` does NOT currently serve `dashboard/build/` as a static file tree, you MUST add this handler BEFORE modifying the Dockerfile:
+  ```go
+  // In main.go or api/server.go, inside the route setup:
+  fs := http.FileServer(http.Dir("./static"))
+  mux.Handle("/", fs)
+  ```
+  And update the Dockerfile to copy `dashboard/build/` into `./static/` in the final image.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FILE: Dockerfile (CREATE or OVERWRITE)
+   ```dockerfile
+   # ─── Stage 1: Build SvelteKit frontend ────────────────────────────────────────
+   FROM node:22-alpine AS node-builder
+   WORKDIR /app/dashboard
+   COPY dashboard/package*.json ./
+   RUN npm ci --prefer-offline
+   COPY dashboard/ ./
+   RUN npm run build
+   # Output: /app/dashboard/build/
+
+   # ─── Stage 2: Build Go binary ─────────────────────────────────────────────────
+   FROM golang:1.23-alpine AS go-builder
+   WORKDIR /app
+   COPY go.mod go.sum ./
+   RUN go mod download
+   COPY . .
+   # Build static binary (no CGO for distroless compatibility)
+   RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o substrate .
+   # Output: /app/substrate
+
+   # ─── Stage 3: Final minimal image ────────────────────────────────────────────
+   FROM gcr.io/distroless/static-debian12
+   # Copy the compiled Go API binary
+   COPY --from=go-builder /app/substrate /substrate
+   # Copy SvelteKit built static assets to /static (served at "/" by the Go binary)
+   COPY --from=node-builder /app/dashboard/build /static
+   # Copy the Go WASM binary (built separately and checked into dashboard/static/)
+   COPY --from=node-builder /app/dashboard/static/engine.wasm /static/engine.wasm
+   EXPOSE 8090
+   ENTRYPOINT ["/substrate"]
+   ```
+
+2. FILE: Makefile (MODIFY — add new targets, do NOT remove existing ones)
+   Append at the end:
+   ```makefile
+   # ── Phase 12: Production Build ────────────────────────────────────────────────
+
+   ## build-wasm: Compile the Go diff engine to WebAssembly
+   build-wasm:
+   	GOOS=js GOARCH=wasm go build -o dashboard/static/engine.wasm ./engine/
+
+   ## build-frontend: Build the SvelteKit dashboard for production
+   build-frontend:
+   	cd dashboard && npm ci && npm run build
+
+   ## build-prod: Full production build (WASM + Frontend + Go binary)
+   build-prod: build-wasm build-frontend
+   	CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o substrate .
+
+   ## docker-build: Build the production Docker image
+   docker-build: build-prod
+   	docker build -t substrate:v2 .
+
+   ## test-all: Run the full test suite (Go unit tests + Playwright E2E)
+   test-all:
+   	go test -race -count=1 ./...
+   	cd dashboard && npx playwright test
+
+   ## e2e-phase12: Run Phase 12 specific Go E2E tests
+   e2e-phase12:
+   	go test -race -count=1 -v ./scripts/e2e/... -run "TestSSE|TestScale|TestDiff"
+   	cd dashboard && npx playwright test
+   ```
+
+3. FILE: .github/workflows/ (MODIFY — find the release/deploy workflow)
+   Add a `test` job that runs BEFORE the `build` or `deploy` job:
+   ```yaml
+   jobs:
+     test:
+       name: Full Test Suite
+       runs-on: ubuntu-latest
+       steps:
+         - uses: actions/checkout@v4
+         - uses: actions/setup-go@v5
+           with: { go-version: '1.23' }
+         - uses: actions/setup-node@v4
+           with: { node-version: '22' }
+         - name: Install Playwright dependencies
+           run: cd dashboard && npm ci && npx playwright install --with-deps chromium
+         - name: Run Go tests
+           run: go test -race -count=1 ./...
+         - name: Run Playwright E2E
+           run: cd dashboard && npx playwright test
+
+     build:
+       name: Build & Push Docker Image
+       needs: test          # ← This gates the Docker push on tests passing
+       runs-on: ubuntu-latest
+       steps:
+         - uses: actions/checkout@v4
+         - name: Build production image
+           run: make docker-build
+         - name: Push to registry
+           # (your existing push logic here)
+   ```
+
+4. FILE: .dockerignore (CREATE or MODIFY)
+   Ensure the following are excluded from the Docker build context (speeds up builds):
+   ```
+   dashboard/node_modules
+   dashboard/.svelte-kit
+   dashboard/build
+   scripts/
+   .git
+   *.md
+   ```
+   Ensure `dashboard/static/engine.wasm` is NOT in `.dockerignore` (it must be included in the build context).
+
+5. Verify locally by running `docker build -t substrate:v2 .` and then:
+   ```bash
+   docker run -p 8090:8090 -e JWT_SECRET=test substrate:v2 &
+   curl -I http://localhost:8090/           # Must return 200 text/html
+   curl -I http://localhost:8090/engine.wasm # Must return 200 application/wasm
+   curl -N http://localhost:8090/api/v1/events # Must stream text/event-stream
+   ```
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION HINTS
+═══════════════════════════════════════════════════════════════
+- If `main.go` does not serve static files, add this before committing the Dockerfile:
+  ```go
+  // Serve dashboard build output from ./static/
+  staticFS := http.FileServer(http.Dir("./static"))
+  router.PathPrefix("/").Handler(staticFS)  // or http.Handle("/", staticFS) for stdlib mux
+  ```
+  The SPA (Single Page App) needs a fallback: if a path is not found in `./static/`, serve `./static/index.html`. This is critical for SvelteKit client-side routing:
+  ```go
+  router.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+      path := filepath.Join("./static", r.URL.Path)
+      if _, err := os.Stat(path); os.IsNotExist(err) {
+          http.ServeFile(w, r, "./static/index.html")
+          return
+      }
+      staticFS.ServeHTTP(w, r)
+  })
+  ```
+- The `gcr.io/distroless/static-debian12` image has no shell, no package manager, no `ls` or `sh`. Do NOT use `RUN` commands in Stage 3.
+- The `-ldflags="-w -s"` flags strip debug info and symbol tables, reducing binary size by ~30%.
+- If `dashboard/static/engine.wasm` does not yet exist, run `make build-wasm` locally and commit the binary, OR add the `GOOS=js GOARCH=wasm go build` step to Stage 2 of the Dockerfile.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE OR OVERWRITE:
+- Dockerfile
+- .dockerignore  (create if missing, modify if exists)
+
+FILES TO MODIFY:
+- Makefile  (append new targets only)
+- .github/workflows/{release or deploy}.yml  (add test job, add `needs: test` to build job)
+
+FILES TO POTENTIALLY MODIFY (only if static serving is missing):
+- main.go  (add static file handler for dashboard/build)
+
+FILES TO NOT TOUCH:
+- dashboard/src/**
+- dashboard/tests/**
+- api/**  (unless adding static file handler)
+
+Commit: "feat: P12-T08 multi-stage Dockerfile and production cutover pipeline"
+Target branch: feature/dev
