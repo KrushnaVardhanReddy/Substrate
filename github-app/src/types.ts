@@ -35,6 +35,7 @@ export interface SubstrateConfig {
 export interface Env {
   GITHUB_APP_ID: string;
   GITHUB_APP_PRIVATE_KEY: string;
+  GITHUB_TOKEN?: string;
   GITHUB_WEBHOOK_SECRET: string;
   CONTAINER_SERVICE_URL: string;
   REGISTRY_API_URL: string;

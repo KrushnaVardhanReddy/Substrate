@@ -9,24 +9,24 @@ import (
 )
 
 type Contract struct {
-	ID              uuid.UUID
-	RepoID          uuid.UUID
-	SchemaType      string
-	SpecPath        string
-	Branch          string
-	LatestCommitSHA string
-	RawContent      string
-	SyncedAt        time.Time
+	ID              uuid.UUID `json:"id"`
+	RepoID          uuid.UUID `json:"repo_id"`
+	SchemaType      string    `json:"schema_type"`
+	SpecPath        string    `json:"spec_path"`
+	Branch          string    `json:"branch"`
+	LatestCommitSHA string    `json:"latest_commit_sha"`
+	RawContent      string    `json:"raw_content"`
+	SyncedAt        time.Time `json:"synced_at"`
 }
 
 type Repository struct {
-	ID           uuid.UUID
-	OrgID        uuid.UUID
-	GithubRepoID int64
-	Name         string
-	FullName     string
-	Metadata     json.RawMessage
-	CreatedAt    time.Time
+	ID           uuid.UUID       `json:"id"`
+	OrgID        uuid.UUID       `json:"org_id"`
+	GithubRepoID int64           `json:"github_repo_id"`
+	Name         string          `json:"name"`
+	FullName     string          `json:"full_name"`
+	Metadata     json.RawMessage `json:"metadata"`
+	CreatedAt    time.Time       `json:"created_at"`
 }
 
 type ConsumerDependency struct {

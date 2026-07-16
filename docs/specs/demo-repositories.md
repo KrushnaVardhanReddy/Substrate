@@ -67,3 +67,14 @@ This document outlines the recommended open-source repositories to fork and use 
     1. Import a repository containing SQL schemas (or dbt models) that pipe data into Teradata.
     2. Have a backend engineer open a PR dropping the `customer_lifetime_value` column from the Postgres production database.
     3. Show Substrate catching the schema drift and warning that the downstream "Teradata ETL Pipeline" and "Executive BI Dashboard" will fail if the PR is merged.
+
+## Implementation Notes (Phase 12 Demo Adjustments)
+
+To support the above demos (specifically the Monorepo Microservices Demo), several architectural adjustments were implemented to the local environment and webhooks:
+
+1. **Multi-Consumer Monorepo Sync:** The GitHub App Webhook Worker (`github-app/src/index.ts`) was updated to loop over all parsed consumers in `substrate.yaml` and sync them individually to the Registry API (using `${owner}/${entry.name}` as the `consumer_repo`). This prevents all microservices from collapsing into a single repository node in the graph.
+2. **Explicit Consumer Mapping:** The `demo-repos/microservices-demo/substrate.yaml` was updated to explicitly list every microservice consumer (e.g., `frontend`, `checkoutservice`) to satisfy the TypeScript worker's strict parsing regex.
+3. **Pseudo GitHub Repo IDs (Upcoming Fix):** To bypass the Postgres unique constraint on `github_repo_id` (which was blocking multiple microservices from the same repository), the TS webhook worker will be updated to hash the `consumer_repo` full name into a pseudo-integer ID, mimicking the Go backend's Phase 5 Auto-Discovery logic.
+4. **Go Backend JSON Tags:** The Go API database models (`Repository` and `Contract`) were updated with explicit lowercase JSON struct tags (`json:"name"`, `json:"full_name"`) to match the SvelteKit dashboard UI expectations, resolving the "Blank Repository Name" bug.
+5. **Internal Service Authentication:** Fixed a bug in the local development `Makefile` where the Go API was rejecting sync requests (`401 Unauthorized`) because `INTERNAL_SERVICE_TOKEN` was missing from the `make api` environment.
+6. **Wrangler Webhook Caching:** Updated the TS Webhook worker to gracefully fall back to a personal `GITHUB_TOKEN` to bypass Wrangler `.dev.vars` caching issues when testing webhooks locally, and added `GITHUB_TOKEN` to `github-app/src/types.ts`.

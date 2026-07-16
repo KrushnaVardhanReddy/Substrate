@@ -200,6 +200,7 @@ func (c *SubstrateConfig) HasConsumers() bool
 ```
 REGISTRY_API_URL    — base URL of the Go Registry API (e.g. https://api.substrate.dev)
 REGISTRY_API_TOKEN  — internal service token (matches INTERNAL_SERVICE_TOKEN on api/ server)
+GITHUB_TOKEN        — optional fallback Personal Access Token (PAT) for local testing to bypass Wrangler caching
 ```
 
 **Push event detection:**
@@ -246,9 +247,9 @@ interface SyncRequest {
 7. For each consumer entry (in parallel via `Promise.all`):
    a. Fetch provider repo metadata: `GET https://api.github.com/repos/{provider_repo}` → extract `.id`
    b. Fetch provider spec file: `fetchFileContent(token, owner, repo, entry.provider_spec_path, entry.provider_branch)`
-   c. Build `SyncDependency` object
-8. `POST {REGISTRY_API_URL}/api/v1/sync` with `Authorization: Bearer {REGISTRY_API_TOKEN}`
-9. Return 200 with `{ synced: N }`
+   c. Generate a pseudo-ID for the consumer: `hashString(owner + "/" + entry.name)` (To bypass the UNIQUE constraint on `github_repo_id` for monorepos)
+   d. `POST {REGISTRY_API_URL}/api/v1/sync` with `Authorization: Bearer {REGISTRY_API_TOKEN}`. The payload uses `consumer_repo: {owner}/{entry.name}` and the generated pseudo-ID.
+8. Return 200 with `{ synced: N }` where N is the number of successfully synced consumers.
 
 **Error handling:** Wrap entire push handler in `try/catch`. On any error: `console.error` + return 200 (never 5xx to GitHub).
 

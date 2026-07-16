@@ -93,6 +93,7 @@ export async function fetchFileContent(
   path: string,
   ref: string
 ): Promise<string | null> {
+  console.log(`fetchFileContent: token starts with ${token.substring(0, 8)}`);
   const response = await fetch(
     `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${ref}`,
     {

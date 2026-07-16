@@ -41,6 +41,7 @@ export async function syncToRegistry(
   payload: SyncRequest
 ): Promise<{ synced: number }> {
   const url = `${registryUrl.replace(/\/$/, '')}/api/v1/sync`;
+  console.log(`syncToRegistry: url=${url} token=${token}`);
 
   const response = await fetch(url, {
     method: 'POST',

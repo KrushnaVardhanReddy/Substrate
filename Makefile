@@ -62,6 +62,7 @@ api: build
 	cd api && \
 	DATABASE_URL="postgresql://postgres:postgres@localhost:5432/substrate?sslmode=disable" \
 	REGISTRY_API_TOKEN="local-dev-token" \
+	INTERNAL_SERVICE_TOKEN="local-dev-token" \
 	JWT_SECRET="local-jwt-secret" \
 	GITHUB_CLIENT_ID="mock-client-id" \
 	GITHUB_CLIENT_SECRET="mock-client-secret" \
@@ -73,6 +74,7 @@ api-ai:
 	cd api && \
 	DATABASE_URL="postgresql://postgres:postgres@localhost:5432/substrate?sslmode=disable" \
 	REGISTRY_API_TOKEN="local-dev-token" \
+	INTERNAL_SERVICE_TOKEN="local-dev-token" \
 	JWT_SECRET="local-jwt-secret" \
 	GITHUB_CLIENT_ID="mock-client-id" \
 	GITHUB_CLIENT_SECRET="mock-client-secret" \
