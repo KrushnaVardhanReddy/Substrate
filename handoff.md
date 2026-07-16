@@ -51,6 +51,14 @@ Updated 3 spec files to document architectural decisions made during implementat
 | **Stitch** | P12-T01 Onboarding E2E (Playwright) | `11402434877808026304` | ✅ Screens generated |
 | **Stitch** | P12-T02 Svelte Flow Interactions (Playwright) | `5648955620864936150` | ✅ Screens generated |
 
+### 5. Wave 2 Triggered — Live Sessions
+
+| Agent | Task | Session/Project ID | Status |
+|---|---|---|---|
+| **Stitch** | P12-T03 Playground E2E (Playwright) | `3443016659672603780` | 🔄 Running |
+| **Stitch** | P12-T07 Telemetry & PostHog (Svelte) | `14129042895366541864` | 🔄 Running |
+| **Jules** | P12-T06 1,000-Node Scale Generator (Go) | `9405238502927674003` | 🔄 Running |
+
 Monitor Jules at: **https://jules.google.com**
 
 ---

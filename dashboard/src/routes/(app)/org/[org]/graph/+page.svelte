@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { trackEvent } from '$lib/utils/telemetry';
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import { SvelteFlow, MiniMap, Controls, Background, BackgroundVariant, type Node, type Edge, useSvelteFlow } from '@xyflow/svelte';
@@ -512,7 +513,10 @@
 				onnodeclick={(...args: any[]) => {
 					// Handle different event shapes between SvelteFlow versions
 					const node = args.length > 1 ? args[1] : (args[0]?.node || args[0]?.detail?.node);
-					if (node) selectedNode = { id: node.id, ...node.data };
+					if (node) {
+						selectedNode = { id: node.id, ...node.data };
+						trackEvent('node_clicked', { nodeId: node.id, nodeType: node.data?.type });
+					}
 				}}
 			>
 				<Background variant={BackgroundVariant.Dots} />
