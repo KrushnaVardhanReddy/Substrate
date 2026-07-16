@@ -46,8 +46,8 @@ Updated 3 spec files to document architectural decisions made during implementat
 
 | Agent | Task | Session/Project ID | Status |
 |---|---|---|---|
-| **Jules** | P12-T04 SSE Resilience (Go) | `5104152489202688551` | 🔄 Running |
-| **Jules** | P12-T05 WASM Boundary Tests (Go) | `11080546568812455455` | 🔄 Running |
+| **Jules** | P12-T04 SSE Resilience (Go) | `5104152489202688551` | ✅ Merged |
+| **Jules** | P12-T05 WASM Boundary Tests (Go) | `11080546568812455455` | ✅ Merged |
 | **Stitch** | P12-T01 Onboarding E2E (Playwright) | `11402434877808026304` | ✅ Screens generated |
 | **Stitch** | P12-T02 Svelte Flow Interactions (Playwright) | `5648955620864936150` | ✅ Screens generated |
 
@@ -83,8 +83,8 @@ Key features shipped:
 | P12-T01 Onboarding E2E | Stitch | 1 | ✅ Merged & Passing (13/13) |
 | P12-T02 Svelte Flow E2E | Stitch | 1 | ✅ Merged & Passing (13/13) |
 | P12-T03 Playground E2E | Stitch | 2 | ⏳ Ready for Tomorrow |
-| P12-T04 SSE Resilience (Go) | Jules | 1 | 🟡 Ready for Code Review (Tests pass cleanly with race fixes) |
-| P12-T05 WASM Boundary (Go) | Jules | 1 | 🔄 Jules session re-triggered with updated scripts/e2e/ spec |
+| P12-T04 SSE Resilience (Go) | Jules | 1 | ✅ Validated & Merged |
+| P12-T05 WASM Boundary (Go) | Jules | 1 | ✅ Validated & Merged |
 | P12-T06 UI Stress Test | Jules | 2 | ⏳ Ready for Tomorrow |
 | P12-T07 Telemetry (PostHog) | Stitch | 2 | ⏳ Ready for Tomorrow |
 | P12-T08 V2.0 Production Build | Jules | 3 | 🔒 Blocked by Wave 2 |
@@ -93,9 +93,7 @@ Key features shipped:
 
 ### 🌅 Plan for Tomorrow
 
-1. **Merge Jules's Wave 1:** 
-   - Review Jules's PR for `P12-T04` (Make sure the `sync.RWMutex` fix for the SSEBroker is intact).
-   - Review Jules's PR for `P12-T05` (Ensure tests are in `scripts/e2e/wasm_boundary_test.go`).
+1. **Merge Jules's Wave 1:** ✅ Done (Merged P12-T04 and P12-T05 to feature/dev)
 2. **Trigger Wave 2:** Fire off Stitch (`--phase12-wave2`) and Jules (`--task 1206`).
 3. **Trigger Wave 3:** Final Docker/Production Cutover (`P12-T08`).
 4. **Phase 9 Preparation:** Start scoping the newly added `P9-T15` (Public Impact API & MCP Server) to begin executing next week.

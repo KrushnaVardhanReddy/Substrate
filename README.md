@@ -2,7 +2,7 @@
 
 ## The Living Map of Your Engineering Ecosystem
 
-> **Status:** Phase 11 🎨 — **Advanced Graph Visualization (V2.0 UX).** Phase 8 (Enterprise Readiness) has been completely merged. We have successfully merged the core UI/UX overhaul foundation tasks, as well as the Cascading Blast Radius, Interactive Tooltips, Diff Viewer, and Time-Travel Scrubber. We are currently working on the remaining Phase 11 features (Team Neighborhoods, Historical Heatmaps) and kicking off Phase 12 E2E testing in parallel.
+> **Status:** Phase 12 🧪 — **V2.0 Quality Assurance.** Phase 11 (Advanced Graph Visualization) has been completely merged, including the core UI/UX overhaul, Cascading Blast Radius, Team Neighborhoods, and Time-Travel Scrubber. We are currently executing the Phase 12 Playwright and Go E2E tests, with Wave 1 successfully merged.
 
 Substrate is a CI/CD-integrated data contract and dependency intelligence platform that prevents downstream data failures before they reach production.
 
