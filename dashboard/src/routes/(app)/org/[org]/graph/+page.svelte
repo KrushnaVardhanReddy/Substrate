@@ -304,8 +304,6 @@
 
 	// We'll manage nodes and edges mapping inside onMount
 	onMount(() => {
-		let interval: any;
-
 		const processGraphData = (edgesData: any) => {
 			let newNodesMap = new Map<string, Node>();
 			let newEdges: Edge[] = [];
@@ -384,30 +382,39 @@
 			processGraphData(data.graphData);
 		}
 
-		const fetchGraph = async () => {
-			// Prevent real backend from overwriting our static 200-node demo
+		let eventSource: EventSource | null = null;
+
+		const initSSE = () => {
 			if ($page.params.org === 'stress-test') return;
 
-			try {
-				const token = localStorage.getItem('github_token');
-				const headers: Record<string, string> = {};
-				if (token) {
-					headers['Authorization'] = `Bearer ${token}`;
-				}
-				const res = await fetch(`/api/v1/graph/${$page.params.org}`, { headers });
-				if (res.ok) {
-					const responseData = await res.json();
+			eventSource = new EventSource('/api/v1/events');
+
+			eventSource.onmessage = (event) => {
+				if (event.data === 'heartbeat') return;
+				
+				try {
+					const responseData = JSON.parse(event.data);
 					processGraphData(Array.isArray(responseData) ? responseData : []);
+				} catch (err) {
+					console.error("Failed to parse SSE data", err);
 				}
-			} catch (err) {
-				console.error("Polling error", err);
-			}
+			};
+
+			eventSource.onerror = (err) => {
+				console.error("SSE connection error", err);
+				eventSource?.close();
+				// Reconnect after 5s
+				setTimeout(initSSE, 5000);
+			};
 		};
 
-		fetchGraph();
-		interval = setInterval(fetchGraph, 5000);
+		initSSE();
 
-		return () => clearInterval(interval);
+		return () => {
+			if (eventSource) {
+				eventSource.close();
+			}
+		};
 	});
 </script>
 
