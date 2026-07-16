@@ -7,8 +7,25 @@ on:
       - "v*.*.*"
 
 jobs:
+  test:
+    name: Full Test Suite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version: '1.23' }
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - name: Install Playwright dependencies
+        run: cd dashboard && npm ci && npx playwright install --with-deps chromium
+      - name: Run Go tests
+        run: cd api && go test -race -count=1 ./... && cd ../engine && go test -race -count=1 ./...
+      - name: Run Playwright E2E
+        run: cd dashboard && npx playwright test
+
   docker:
     name: Build & Push to Docker Hub
+    needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: write

@@ -296,3 +296,29 @@ e2e-phase12: check-token
 	cd engine/cmd/wasm && PATH="$$PATH:$$(go env GOROOT)/misc/wasm:$$(go env GOROOT)/lib/wasm" GOOS=js GOARCH=wasm go test -v
 	@echo "Running Phase 12 Playwright Frontend E2E Suite..."
 	cd dashboard && npm run test:e2e
+
+
+# ── Phase 12: Production Build ────────────────────────────────────────────────
+
+## build-frontend: Build the SvelteKit dashboard for production
+build-frontend:
+	cd dashboard && npm ci && npm run build
+
+## build-prod: Full production build (WASM + Frontend + Go binary)
+build-prod: build-wasm build-frontend
+	cd api && CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o ../substrate ./cmd/server
+
+## docker-build: Build the production Docker image
+docker-build: build-prod
+	docker build -t substrate:v2 .
+
+## test-all: Run the full test suite (Go unit tests + Playwright E2E)
+test-all:
+	cd api && go test -race -count=1 ./...
+	cd engine && go test -race -count=1 ./...
+	cd dashboard && npx playwright test
+
+## e2e-phase12: Run Phase 12 specific Go E2E tests
+e2e-phase12:
+	go test -race -count=1 -v ./scripts/e2e/... -run "TestSSE|TestScale|TestDiff"
+	cd dashboard && npx playwright test
