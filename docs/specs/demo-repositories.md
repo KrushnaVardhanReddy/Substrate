@@ -58,3 +58,12 @@ This document outlines the recommended open-source repositories to fork and use 
     1. Import the Slack AsyncAPI/OpenAPI webhook definitions.
     2. Drop the `channel_id` field from a `message.channels` event payload.
     3. Show Substrate protecting a downstream Slack Bot repository from the broken payload contract.
+
+## 7. The "Data Engineering / ETL" Demo: Database to Teradata/Snowflake
+*   **Repository:** [dbt-labs/jaffle_shop](https://github.com/dbt-labs/jaffle_shop) (or any SQL migration repo)
+*   **Purpose:** Showing that Substrate protects data pipelines, BI dashboards, and enterprise data warehouses (like Teradata).
+*   **Why it works:** Data teams constantly deal with upstream engineers accidentally renaming or dropping database columns, which silently breaks ETL jobs and executive dashboards.
+*   **Demo Script:**
+    1. Import a repository containing SQL schemas (or dbt models) that pipe data into Teradata.
+    2. Have a backend engineer open a PR dropping the `customer_lifetime_value` column from the Postgres production database.
+    3. Show Substrate catching the schema drift and warning that the downstream "Teradata ETL Pipeline" and "Executive BI Dashboard" will fail if the PR is merged.
