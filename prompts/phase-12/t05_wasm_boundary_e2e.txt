@@ -25,7 +25,7 @@ CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
   OR it may be named `Diff(a, b string) string` or accept a struct. INSPECT the source first.
 - If the function is not exported (lowercase), you must write the tests INSIDE the `engine/` package as `engine_test.go` or in a `_test.go` file with `package engine`.
 - The WASM build tag is `//go:build js && wasm`. The tests should NOT use this build tag — they are native Go tests.
-- The existing E2E test directory: `scripts/e2e/` — but WASM engine unit tests belong in the engine package directory: `engine/diff_boundary_test.go`.
+- The existing E2E test directory is `scripts/e2e/`. WASM engine unit tests belong in `scripts/e2e/wasm_boundary_test.go`.
 
 ═══════════════════════════════════════════════════════════════
 DELIVERABLES
@@ -36,8 +36,8 @@ DELIVERABLES
    - The exact exported function signature for diffing schemas
    - Whether the function is guarded by a `//go:build js` constraint (if so, the native test must use a wrapper)
 
-2. FILE: engine/diff_boundary_test.go (CREATE NEW)
-   Package: match the engine package (likely `package engine` or `package engine_test`)
+2. FILE: scripts/e2e/wasm_boundary_test.go (CREATE NEW)
+   Package: `package main` (same as other E2E tests in this folder)
 
    SETUP — panic-safe wrapper to use in all tests:
    ```go
@@ -48,7 +48,9 @@ DELIVERABLES
                t.Fatalf("DiffSchemas panicked with input a=%q b=%q: %v", a[:min(len(a),50)], b[:min(len(b),50)], r)
            }
        }()
-       return DiffSchemas(a, b)
+       // NOTE: You will need to import the engine module here.
+       // e.g., result = engine.DiffSchemas(a, b)
+       return result // Update this
    }
    func assertValidJSON(t *testing.T, result string) {
        t.Helper()
@@ -95,7 +97,8 @@ DELIVERABLES
                    t.Fatalf("panic on inputs a=%q b=%q: %v", a[:min(len(a),100)], b[:min(len(b),100)], r)
                }
            }()
-           result := DiffSchemas(a, b)
+           // NOTE: You will need to import the engine module here.
+           result := "" // engine.DiffSchemas(a, b)
            if !json.Valid([]byte(result)) {
                t.Errorf("non-JSON result for a=%q b=%q: %s", a[:min(len(a),50)], b[:min(len(b),50)], result[:min(len(result),100)])
            }
@@ -103,8 +106,8 @@ DELIVERABLES
    }
    ```
 
-3. Run `go test ./engine/... -run TestDiffSchemas` before committing. All table tests must pass.
-4. Run `go test ./engine/... -fuzz=FuzzDiffSchemas -fuzztime=30s`. Must complete without any panic or crash.
+3. Run `go test ./scripts/e2e/... -run TestDiffSchemas` before committing. All table tests must pass.
+4. Run `go test ./scripts/e2e/... -fuzz=FuzzDiffSchemas -fuzztime=30s`. Must complete without any panic or crash.
 
 ═══════════════════════════════════════════════════════════════
 IMPLEMENTATION HINTS
@@ -112,7 +115,7 @@ IMPLEMENTATION HINTS
 - If the diff function is behind a `//go:build js` tag, you cannot call it from a native test. In that case:
   1. Extract the core diffing logic into a new file WITHOUT the build tag (e.g., `engine/diff_core.go`).
   2. Keep the WASM-specific JS glue (`js.Global().Set(...)`) in the original tagged file.
-  3. Write tests against the new `diff_core.go` function.
+  3. Write tests in `scripts/e2e/wasm_boundary_test.go` against the new `diff_core.go` function by importing the engine module.
 - The `min()` helper for string slicing is available in Go 1.21+. If not available, implement it:
   ```go
   func min(a, b int) int { if a < b { return a }; return b }
@@ -124,7 +127,7 @@ FILES LIST
 ═══════════════════════════════════════════════════════════════
 
 FILES TO CREATE:
-- engine/diff_boundary_test.go
+- scripts/e2e/wasm_boundary_test.go
 
 FILES TO POTENTIALLY CREATE (only if build tag extraction is needed):
 - engine/diff_core.go  (extract logic from engine/main.go or engine/diff.go)
@@ -132,7 +135,6 @@ FILES TO POTENTIALLY CREATE (only if build tag extraction is needed):
 FILES TO NOT TOUCH:
 - api/**
 - dashboard/**
-- scripts/e2e/**
 
 Commit: "test: P12-T05 WASM engine boundary and fuzz tests"
 Target branch: feature/dev
