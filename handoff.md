@@ -59,6 +59,12 @@ Updated 3 spec files to document architectural decisions made during implementat
 | **Stitch** | P12-T07 Telemetry & PostHog (Svelte) | `14129042895366541864` | ✅ Validated |
 | **Jules** | P12-T06 1,000-Node Scale Generator (Go) | `9405238502927674003` | ✅ Merged & Passing |
 
+### 6. Wave 3 Triggered — Final Cutover
+
+| Agent | Task | Session/Project ID | Status |
+|---|---|---|---|
+| **Jules** | P12-T08 V2.0 Production Cutover (Docker + CI) | `7567015248302150297` | 🔄 Running |
+
 Monitor Jules at: **https://jules.google.com**
 
 ---
