@@ -33,12 +33,12 @@ describe('InteractiveEdge', () => {
 	};
 
 	it('renders without crashing', () => {
-		const { container } = render(InteractiveEdge, defaultProps);
+		const { container } = render(InteractiveEdge, defaultProps as any);
 		expect(container.querySelector('g')).toBeInTheDocument();
 	});
 
 	it('shows tooltip on hover and hides on mouseleave', async () => {
-		const { container, queryByText } = render(InteractiveEdge, defaultProps);
+		const { container, queryByText } = render(InteractiveEdge, defaultProps as any);
 		const gElement = container.querySelector('g');
 
 		expect(gElement).not.toBeNull();

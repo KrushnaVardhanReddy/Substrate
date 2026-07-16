@@ -2,7 +2,7 @@
 	import { Handle, Position, type NodeProps } from '@xyflow/svelte';
 	import { AppWindow, Database, Smartphone, Server } from 'lucide-svelte';
 
-	let { data }: NodeProps = $props();
+	let { data }: NodeProps & { data: any } = $props();
 
 	let nodeType = $derived(data.metadata?.type || data.type || 'service');
 </script>
