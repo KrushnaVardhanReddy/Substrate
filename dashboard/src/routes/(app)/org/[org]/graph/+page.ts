@@ -49,29 +49,29 @@ export const load: PageLoad = async ({ fetch, params }) => {
 				provider: "demo-org/core-service", 
 				consumer: "demo-org/gateway-service", 
 				status: "SAFE",
-				provider_metadata: { type: "backend", team: "Platform", databases: ["postgres", "redis"] },
-				consumer_metadata: { type: "service", team: "Infrastructure" }
+				provider_metadata: { type: "backend", team: "platform", databases: ["postgres", "redis"] },
+				consumer_metadata: { type: "service", team: "infrastructure" }
 			},
 			{ 
 				provider: "demo-org/postgres-driver", 
 				consumer: "demo-org/core-service", 
 				status: "SAFE",
-				provider_metadata: { type: "database", team: "DataEng", databases: ["postgres"] },
-				consumer_metadata: { type: "backend", team: "Platform", databases: ["postgres", "redis"] }
+				provider_metadata: { type: "database", team: "data", databases: ["postgres"] },
+				consumer_metadata: { type: "backend", team: "platform", databases: ["postgres", "redis"] }
 			},
 			{ 
 				provider: "demo-org/gateway-service", 
 				consumer: "demo-org/frontend-dashboard", 
 				status: "SAFE",
-				provider_metadata: { type: "service", team: "Infrastructure" },
-				consumer_metadata: { type: "frontend", team: "Product" }
+				provider_metadata: { type: "service", team: "infrastructure" },
+				consumer_metadata: { type: "frontend", team: "product" }
 			},
 			{ 
 				provider: "demo-org/gateway-service", 
 				consumer: "demo-org/mobile-ios", 
 				status: "BREAKING",
-				provider_metadata: { type: "service", team: "Infrastructure" },
-				consumer_metadata: { type: "mobile", team: "Mobile" }
+				provider_metadata: { type: "service", team: "infrastructure" },
+				consumer_metadata: { type: "mobile", team: "mobile" }
 			}
 		]
 	};

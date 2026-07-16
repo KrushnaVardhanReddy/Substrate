@@ -7,6 +7,7 @@
 	import { toPng } from 'html-to-image';
 	import { Download, RotateCw } from 'lucide-svelte';
 	import ServiceNode from '$lib/components/ServiceNode.svelte';
+	import TeamGroupNode from '$lib/components/TeamGroupNode.svelte';
 	import TimeTravelScrubber from '$lib/components/TimeTravelScrubber.svelte';
 	import InteractiveEdge from '$lib/components/InteractiveEdge.svelte';
 
@@ -84,7 +85,8 @@
 	});
 
 	const nodeTypes = {
-		service: ServiceNode
+		service: ServiceNode,
+		teamGroup: TeamGroupNode
 	};
 	const edgeTypes = {
 		interactive: InteractiveEdge
@@ -109,14 +111,24 @@
 			return { nodes: layoutedNodes, edges };
 		}
 
-		const dagreGraph = new dagre.graphlib.Graph();
+		const dagreGraph = new dagre.graphlib.Graph({ compound: true });
 		dagreGraph.setDefaultEdgeLabel(() => ({}));
 
 		const isHorizontal = direction === 'LR';
-		dagreGraph.setGraph({ rankdir: direction, nodesep: 15, ranksep: 40 });
+		dagreGraph.setGraph({ rankdir: direction, nodesep: 15, ranksep: 40, marginx: 20, marginy: 20 });
 
 		nodes.forEach((node) => {
-			dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+			if (node.type === 'teamGroup') {
+				dagreGraph.setNode(node.id, { label: node.data.label, clusterLabelPos: 'top' });
+			} else {
+				dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+			}
+		});
+
+		nodes.forEach((node) => {
+			if (node.parentId) {
+				dagreGraph.setParent(node.id, node.parentId);
+			}
 		});
 
 		edges.forEach((edge) => {
@@ -127,15 +139,34 @@
 
 		const layoutedNodes = nodes.map((node) => {
 			const nodeWithPosition = dagreGraph.node(node.id);
-			return {
-				...node,
-				width: nodeWidth,
-				height: nodeHeight,
-				position: {
-					x: nodeWithPosition.x - nodeWidth / 2,
-					y: nodeWithPosition.y - nodeHeight / 2
+			const newNode = { ...node };
+			if (newNode.type === 'teamGroup') {
+				newNode.position = {
+					x: nodeWithPosition.x - nodeWithPosition.width / 2,
+					y: nodeWithPosition.y - nodeWithPosition.height / 2
+				};
+				// Assign width and height to SvelteFlow nodes so they size correctly
+				newNode.width = nodeWithPosition.width;
+				newNode.height = nodeWithPosition.height;
+				newNode.style = `width: ${nodeWithPosition.width}px; height: ${nodeWithPosition.height}px; ${newNode.style || ''}`;
+			} else {
+				newNode.width = nodeWidth;
+				newNode.height = nodeHeight;
+				// For children inside parents, SvelteFlow expects positions relative to the parent
+				if (newNode.parentId) {
+					const parentNodePos = dagreGraph.node(newNode.parentId);
+					newNode.position = {
+						x: nodeWithPosition.x - parentNodePos.x + parentNodePos.width / 2 - nodeWidth / 2,
+						y: nodeWithPosition.y - parentNodePos.y + parentNodePos.height / 2 - nodeHeight / 2
+					};
+				} else {
+					newNode.position = {
+						x: nodeWithPosition.x - nodeWidth / 2,
+						y: nodeWithPosition.y - nodeHeight / 2
+					};
 				}
-			};
+			}
+			return newNode;
 		});
 
 		return { nodes: layoutedNodes, edges };
@@ -272,20 +303,45 @@
 			let newNodesMap = new Map<string, Node>();
 			let newEdges: Edge[] = [];
 
+			const addTeamNode = (teamName: string) => {
+				if (!teamName) return;
+				const teamId = `team-${teamName}`;
+				if (!newNodesMap.has(teamId)) {
+					newNodesMap.set(teamId, {
+						id: teamId,
+						type: 'teamGroup',
+						position: { x: 0, y: 0 },
+						data: { label: teamName }
+					});
+				}
+			};
+
 			const addNode = (id: string, status: string, type: string, metadata: any = {}) => {
+				let teamName = metadata?.team || null;
+				if (teamName) addTeamNode(teamName);
+
 				if (!newNodesMap.has(id)) {
-					newNodesMap.set(id, {
+					const node: Node = {
 						id,
 						type: 'service',
 						position: { x: 0, y: 0 },
 						data: { label: id, status, type, metadata }
-					});
+					};
+					if (teamName) {
+						node.parentId = `team-${teamName}`;
+						node.extent = 'parent';
+					}
+					newNodesMap.set(id, node);
 				} else {
 					const existing = newNodesMap.get(id);
 					if (existing) {
 						if (status === 'BREAKING') existing.data.status = 'BREAKING';
 						if (metadata && Object.keys(metadata).length > 0) {
 							existing.data.metadata = metadata;
+						}
+						if (teamName && !existing.parentId) {
+							existing.parentId = `team-${teamName}`;
+							existing.extent = 'parent';
 						}
 					}
 				}
@@ -300,7 +356,7 @@
 					source: edge.provider,
 					target: edge.consumer,
 					type: edgesData.length < 150 ? 'interactive' : 'straight',
-					animated: false,
+					animated: true,
 					style: `stroke: ${edge.status === 'BREAKING' ? '#EF4444' : '#64748b'}; stroke-width: 2px;`
 				});
 			});
