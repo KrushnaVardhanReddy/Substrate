@@ -66,6 +66,7 @@
 | **P10-T13** | 🔴 P1 | **Integrated API Documentation Catalog** — Evolve the registry into an internal Developer Portal by embedding interactive API reference viewers (like Stoplight Elements or ReDoc) directly into the dashboard. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P10-T14** | 🚀 P1 | **Turing-Complete Governance Rules (WASM)** — Support WebAssembly (Wazero) plugins for custom enterprise governance rules written in Rust/Go/TS. *UX Goal: Provide a simple `substrate plugin create` CLI and integrate via `wasm_plugin: "./policy.wasm"` in `substrate.yaml`.* | Unassigned | 💡 Backlog | `(Pending)` |
 | **P10-T15** | 🚀 P1 | **Zero-Latency Drift Detection (eBPF)** — Extend runtime drift detection with a zero-latency `cilium/ebpf` kernel probe for high-throughput environments. *UX Goal: Provide a pre-packaged Helm chart (`helm install substrate-ebpf`) that auto-detects pods via Kubernetes labels (e.g., `substrate.io/monitor: "true"`).* | Unassigned | 💡 Backlog | `(Pending)` |
+| **P10-T16** | 🔴 P1 | **Webhook Auto-Discovery Integration** — Wire the Phase 5 Discovery Engine (`api/internal/discovery`) into the Cloudflare Webhook pipeline to automatically scan repos for dependencies, eliminating the need for manual `substrate.yaml` consumer mapping. | Unassigned | 💡 Backlog | `docs/specs/phase-5/dependency-discovery.md` |
 ---
 
 ## 🗺️ Phase 11: Advanced Graph Visualization (V2.0 UX)
