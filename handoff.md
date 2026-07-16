@@ -65,6 +65,12 @@ Updated 3 spec files to document architectural decisions made during implementat
 |---|---|---|---|
 | **Jules** | P12-T08 V2.0 Production Cutover (Docker + CI) | `7567015248302150297` | 🔄 Running |
 
+### 7. Phase 9 Initiated — Post-Launch API
+
+| Agent | Task | Session/Project ID | Status |
+|---|---|---|---|
+| **Jules** | P9-T15 Public Impact API & MCP Server | `2968892326550283282` | 🔄 Running |
+
 Monitor Jules at: **https://jules.google.com**
 
 ---

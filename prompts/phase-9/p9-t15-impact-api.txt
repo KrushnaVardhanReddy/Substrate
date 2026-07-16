@@ -1,0 +1,64 @@
+TASK: P9-T15 — Public Impact API & MCP Server (Go)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Expose the existing graph blast radius logic as a public REST API endpoint and an MCP tool. This allows CI/CD pipelines to programmatically block merges based on downstream risk scores, and enables AI agents (like Cursor/Claude) to autonomously fix downstream breaking changes by querying the Nth-degree blast radius.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-9/p9-t15-impact-api.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Do NOT rewrite the existing graph calculation logic. Call the existing graph packages used by the dashboard.
+- The `/api/v1/impact/{org}/{repo}` endpoint MUST return JSON containing `provider`, `risk_score` (integer), and `impacted_repos` (array of strings).
+- The MCP tool MUST be named exactly `get_blast_radius`.
+- All Go code must pass `go fmt` and `go test` before committing.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The Go Registry API handlers live in `api/handlers/` or `api/`. Check where the current `/api/v1/graph` route is registered.
+- The MCP Server entrypoint is located at `engine/cmd/substrate-mcp/main.go`.
+- The MCP Server uses `mcp.NewServer()` and `server.RegisterTool()`. Existing tools like `get_dependency_graph` can be used as a reference.
+- To call the Registry API from the MCP Server, the MCP server makes HTTP requests to the URL provided by the `REGISTRY_API_URL` environment variable.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FILE: api/ (or wherever handlers are located) (NEW/EXPAND)
+   a. Create the HTTP handler for `GET /api/v1/impact/{org}/{repo}`.
+   b. The handler should query the graph data structure for the specified repo to find all downstream consumers.
+   c. Calculate the `risk_score` as the total count of impacted repos.
+   d. Write the JSON response payload.
+   e. Add unit tests for the new handler ensuring accurate risk score calculation.
+
+2. FILE: engine/cmd/substrate-mcp/main.go (EXPAND)
+   a. Register a new tool: `get_blast_radius`.
+   b. Define the input schema requiring `repo` (e.g., 'myorg/payments-api').
+   c. The handler function must make an HTTP GET request to `{REGISTRY_API_URL}/api/v1/impact/{org}/{repo}`.
+   d. Handle errors and return the JSON string response from the API back to the MCP protocol.
+
+3. Build and Test:
+   a. Run `go test ./...` in the API directory to verify the new handler.
+   b. Run `go build -o substrate-mcp ./engine/cmd/substrate-mcp` to ensure the MCP server compiles.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION HINTS
+═══════════════════════════════════════════════════════════════
+- For the API handler, look at how `GET /api/v1/graph/{org}` currently fetches all dependencies. You may need to recursively walk the returned dependencies starting from the target `{repo}` to find the full impact chain.
+- In `engine/cmd/substrate-mcp/main.go`, remember to split the `repo` string (e.g., `myorg/repo`) into `org` and `repo` before making the HTTP GET request.
+- Ensure the MCP server returns a meaningful error message if the repository is not found or the API request fails.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO MODIFY:
+- api/ (create or modify the impact handler and tests)
+- engine/cmd/substrate-mcp/main.go
+
+Commit: "feat: P9-T15 implement public impact API and MCP blast radius tool"
+Target branch: feature/dev
