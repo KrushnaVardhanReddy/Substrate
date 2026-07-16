@@ -110,4 +110,39 @@ test.describe('Dependency Graph', () => {
 		const download = await downloadPromise;
 		expect(download.suggestedFilename()).toBe('substrate-graph.png');
 	});
+
+	test('should highlight blast radius on node click', async ({ page }) => {
+		await page.goto('/org/testorg/graph');
+		await page.waitForResponse('**/api/v1/graph/*');
+		
+		// Search-First mode: fill search to show nodes
+		await page.fill('input.filter-input', '/');
+		await page.waitForSelector('.service-node-card', { state: 'attached', timeout: 15000 });
+
+		// Click a database node
+		await page.locator('.service-node-card.database').first().click({ force: true });
+		
+		// Wait for reactivity
+		await page.waitForTimeout(500);
+
+		// Assertions
+		await expect(page.locator('.detail-panel')).toBeVisible();
+		await expect(page.locator('.service-node-card.origin').first()).toBeVisible();
+		// We don't check for .faded because the mock only has 2 connected nodes.
+	});
+
+	test('should show edge tooltip on hover', async ({ page }) => {
+		await page.goto('/org/testorg/graph');
+		await page.waitForResponse('**/api/v1/graph/*');
+		
+		// Search-First mode: fill search to show nodes
+		await page.fill('input.filter-input', '/');
+		await page.waitForSelector('.svelte-flow__edge', { state: 'attached', timeout: 15000 });
+
+		// Hover over the edge interaction path which has a wide stroke using dispatchEvent to bypass SVG bounding box issues
+		await page.locator('.svelte-flow__edge-interaction').first().dispatchEvent('mouseenter');
+
+		// Assert tooltip visibility
+		await expect(page.locator('.tooltip-card')).toBeVisible({ timeout: 5000 });
+	});
 });

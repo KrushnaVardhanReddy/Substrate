@@ -93,8 +93,8 @@
 ### Phase 12: V2.0 Public Launch & Quality Assurance
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **P12-T01** | 🔴 P1 | **Zero-to-One Onboarding E2E** — Automate the user journey from GitHub token entry to Graph rendering using Playwright. | Jules | ⏳ In Progress | `docs/specs/phase-12/p12-master-plan.md` |
-| **P12-T02** | 🔴 P1 | **Svelte Flow Interaction E2E** — Playwright tests for Canvas interactions: clicking nodes (blast radius), toggling heatmaps, hovering edges. | Jules | ⏳ In Progress | `docs/specs/phase-12/p12-master-plan.md` |
+| **P12-T01** | 🔴 P1 | **Zero-to-One Onboarding E2E** — Automate the user journey from GitHub token entry to Graph rendering using Playwright. | Stitch | ✅ Complete | `docs/specs/phase-12/p12-master-plan.md` |
+| **P12-T02** | 🔴 P1 | **Svelte Flow Interaction E2E** — Playwright tests for Canvas interactions: clicking nodes (blast radius), toggling heatmaps, hovering edges. | Stitch | ✅ Complete | `docs/specs/phase-12/p12-master-plan.md` |
 | **P12-T03** | 🟡 P2 | **Visual Studio Resilience Test** — Verify bidirectional YAML binding and ensure invalid YAML does not crash Svelte state. | Jules | ⏳ In Progress | `docs/specs/phase-12/p12-master-plan.md` |
 | **P12-T04** | 🔴 P1 | **SSE Connection Resilience Test** — Go tests to simulate 100+ concurrent clients and abrupt disconnects to prevent memory leaks in the broadcast registry. | Jules | ⏳ In Progress | `docs/specs/phase-12/p12-master-plan.md` |
 | **P12-T05** | 🟡 P2 | **WASM Engine Boundary Tests** — Ensure passing massive/malformed payloads to the WebAssembly diff engine returns safe JS errors instead of panics. | Jules | ⏳ In Progress | `docs/specs/phase-12/p12-master-plan.md` |

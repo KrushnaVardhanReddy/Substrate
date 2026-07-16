@@ -80,8 +80,8 @@ Key features shipped:
 
 | Task | Owner | Wave | Status |
 |---|---|---|---|
-| P12-T01 Onboarding E2E | Stitch | 1 | 🔄 Stitch session live |
-| P12-T02 Svelte Flow E2E | Stitch | 1 | 🔄 Stitch session live |
+| P12-T01 Onboarding E2E | Stitch | 1 | ✅ Merged |
+| P12-T02 Svelte Flow E2E | Stitch | 1 | ✅ Merged |
 | P12-T03 Playground E2E | Stitch | 2 | ⏳ After Wave 1 merge |
 | P12-T04 SSE Resilience (Go) | Jules | 1 | 🔄 Jules session live |
 | P12-T05 WASM Boundary (Go) | Jules | 1 | 🔄 Jules session live |
