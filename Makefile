@@ -67,6 +67,7 @@ api: build
 	GITHUB_CLIENT_ID="mock-client-id" \
 	GITHUB_CLIENT_SECRET="mock-client-secret" \
 	DASHBOARD_URL="http://localhost:5173" \
+	ENVIRONMENT="development" \
 	go run ./cmd/server/main.go
 
 # To enable real AI (requires LM Studio running at port 1234), use make api-ai instead
