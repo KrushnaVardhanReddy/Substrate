@@ -76,46 +76,38 @@ Key features shipped:
 - Graph PNG Export (html-to-image)
 
 ### Phase 12 — V2.0 Quality Assurance
-**Wave 1 in flight, 2+3 pending Wave 1 merge.**
+**Wave 1 in flight, 2+3 pending### 🌊 Wave Status (End of Day)
 
 | Task | Owner | Wave | Status |
 |---|---|---|---|
-| P12-T01 Onboarding E2E | Stitch | 1 | ✅ Merged |
-| P12-T02 Svelte Flow E2E | Stitch | 1 | ✅ Merged |
-| P12-T03 Playground E2E | Stitch | 2 | ⏳ After Wave 1 merge |
-| P12-T04 SSE Resilience (Go) | Jules | 1 | 🔄 Jules session live |
-| P12-T05 WASM Boundary (Go) | Jules | 1 | 🔄 Jules session live |
-| P12-T06 Scale Generator (Go) | Jules | 2 | ⏳ After Wave 1 merge |
-| P12-T07 Telemetry (PostHog) | Stitch | 2 | ⏳ After Wave 1 merge |
-| P12-T08 Production Cutover | Jules | 3 | ⏳ After Wave 2 merge |
+| P12-T01 Onboarding E2E | Stitch | 1 | ✅ Merged & Passing (13/13) |
+| P12-T02 Svelte Flow E2E | Stitch | 1 | ✅ Merged & Passing (13/13) |
+| P12-T03 Playground E2E | Stitch | 2 | ⏳ Ready for Tomorrow |
+| P12-T04 SSE Resilience (Go) | Jules | 1 | 🟡 Ready for Code Review (Tests pass cleanly with race fixes) |
+| P12-T05 WASM Boundary (Go) | Jules | 1 | 🔄 Jules session re-triggered with updated scripts/e2e/ spec |
+| P12-T06 UI Stress Test | Jules | 2 | ⏳ Ready for Tomorrow |
+| P12-T07 Telemetry (PostHog) | Stitch | 2 | ⏳ Ready for Tomorrow |
+| P12-T08 V2.0 Production Build | Jules | 3 | 🔒 Blocked by Wave 2 |
 
 ---
 
-## 🔮 First Things Tomorrow
+### 🌅 Plan for Tomorrow
 
-1. **Check Jules PRs** at https://jules.google.com for T04 and T05 (SSE + WASM tests).
-   - Review and merge into `feature/dev` if passing.
-   - Run `go test -race ./scripts/e2e/...` locally to validate.
+1. **Merge Jules's Wave 1:** 
+   - Review Jules's PR for `P12-T04` (Make sure the `sync.RWMutex` fix for the SSEBroker is intact).
+   - Review Jules's PR for `P12-T05` (Ensure tests are in `scripts/e2e/wasm_boundary_test.go`).
+2. **Trigger Wave 2:** Fire off Stitch (`--phase12-wave2`) and Jules (`--task 1206`).
+3. **Trigger Wave 3:** Final Docker/Production Cutover (`P12-T08`).
+4. **Phase 9 Preparation:** Start scoping the newly added `P9-T15` (Public Impact API & MCP Server) to begin executing next week.
 
-2. **Check Stitch output** for T01 and T02 (Playwright test files).
-   - Download the generated HTML screens from the Stitch project.
-   - Extract the `graph.spec.ts` changes and apply them to the repo.
-   - Run `cd dashboard && npm run test:e2e` to confirm all 13 tests pass.
+---
 
-3. **After Wave 1 PRs merge → trigger Wave 2:**
-   ```bash
-   # Jules Wave 2 (Go scale generator)
-   python3 scripts/jules_submit.py --task 1206
+### 🚨 Don't Forget (Architectural Rules for Tomorrow)
+*   **Search-First SvelteFlow:** The UI defaults to an empty graph until `/` is searched. Do not let agents revert this to rendering all 20,000 nodes on load.
+*   **Go WASM Tests:** The Go compiler cannot link `//go:build js && wasm` files in native unit tests. E2E WASM boundaries *must* go in `scripts/e2e/` (Package main).
+*   **Demo Repos:** We finalized the 7 major enterprise targets (Stripe, RealWorld, Google Microservices, OpenAI, GraphQL, Slack Webhooks, and Teradata) in `demo-repositories.md`. No installation required on target repos!
 
-   # Stitch Wave 2 (Playground E2E + Telemetry)
-   python3 scripts/stitch_submit.py --phase12-wave2
-   ```
-
-4. **After Wave 2 PRs merge → trigger Wave 3:**
-   ```bash
-   # Jules Wave 3 (Docker production cutover)
-   python3 scripts/jules_submit.py --task 1208
-   ```
+*Goodnight!* 🌙
 
 ---
 
