@@ -1,0 +1,27 @@
+{
+  "asyncapi": "2.6.0",
+  "info": {
+    "title": "Slack Events",
+    "version": "1.0.0"
+  },
+  "channels": {
+    "message.channels": {
+      "subscribe": {
+        "message": {
+          "payload": {
+            "type": "object",
+            "required": ["type", "channel", "user", "text", "ts"],
+            "properties": {
+              "type": { "type": "string" },
+              "channel": { "type": "string" },
+              "user": { "type": "string" },
+              "text": { "type": "string" },
+              "ts": { "type": "string" },
+              "thread_ts": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

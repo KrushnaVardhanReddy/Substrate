@@ -32,3 +32,13 @@ dashboard.pid
 
 engine/substrate
 coverage.out
+
+# Scratch test files
+github-app/test_parse.ts
+test-comment.js
+
+# Large upstream demo repos (only substrate.yaml configs are tracked)
+demo-repos/graphql-schema/
+demo-repos/jaffle_shop/
+demo-repos/openai-openapi/
+demo-repos/slack-api-specs/

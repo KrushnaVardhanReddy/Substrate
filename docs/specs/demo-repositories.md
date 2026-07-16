@@ -68,6 +68,67 @@ This document outlines the recommended open-source repositories to fork and use 
     2. Have a backend engineer open a PR dropping the `customer_lifetime_value` column from the Postgres production database.
     3. Show Substrate catching the schema drift and warning that the downstream "Teradata ETL Pipeline" and "Executive BI Dashboard" will fail if the PR is merged.
 
+## Local Testing Strategy (No GitHub Required)
+
+All 7 demo repos can be validated entirely locally by bypassing the Cloudflare Worker and hitting the Go API + Engine directly. This enables offline demo rehearsal, instant feedback during development, and CI/CD testing in air-gapped environments.
+
+### Architecture: Direct API Testing
+```
+┌──────────────────────────────────────────────────────────┐
+│                   Local Test Scripts                      │
+│  scripts/local-test.sh → test-engine.sh → test-sync.sh  │
+└────────────┬─────────────────────┬───────────────────────┘
+             │                     │
+             ▼                     ▼
+   ┌─────────────────┐   ┌─────────────────┐
+   │  Go Engine       │   │  Go API          │
+   │  POST /diff      │   │  POST /sync      │
+   │  :8080           │   │  POST /cross-repo│
+   └─────────────────┘   │  :8090           │
+                          └─────────────────┘
+```
+
+### Test Matrix
+
+| Demo Repo | Schema Type | Breaking Test | Safe Test |
+|-----------|-------------|---------------|-----------|
+| microservices-demo | protobuf | Remove `CartItem.product_id` | Add `string notes = 3` |
+| graphql-schema | graphql | Remove `User.email` | Add `User.age: Int` |
+| openapi (Stripe) | openapi | Remove `/v1/charges` | Add `/v2/beta/charges` |
+| openai-openapi | openapi | Remove `function_call` | Add `metadata: Map` |
+| jaffle_shop | sql | Drop `customer_lifetime_value` | Add `age INTEGER` |
+| slack-api-specs | asyncapi | Remove `channel_id` | Add `thread_ts` |
+| realworld | openapi | Remove `/api/articles` | Add `/api/tags` |
+
+### Running Locally
+```bash
+# Start all services
+make start-bg
+
+# Run full local test suite (no GitHub token needed)
+./scripts/local-test.sh
+
+# Run specific schema type
+./scripts/local-test.sh --schema=protobuf
+
+# Run specific layer only
+./scripts/local-test.sh --layer=1  # Engine diff only
+./scripts/local-test.sh --layer=2  # Sync + graph only
+./scripts/local-test.sh --layer=3  # Cross-repo blast radius only
+
+# Reset database and re-test
+./scripts/local-test.sh --reset
+```
+
+### Prerequisites
+- `make start-bg` running (Postgres, API, Engine, Worker, Dashboard)
+- `curl` and `jq` installed
+- No GitHub token required
+
+See `docs/specs/phase-12/p12-t10-local-demo-testing.md` for the full specification.
+
+---
+
 ## Implementation Notes (Phase 12 Demo Adjustments)
 
 To support the above demos (specifically the Monorepo Microservices Demo), several architectural adjustments were implemented to the local environment and webhooks:

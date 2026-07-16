@@ -1,0 +1,27 @@
+# substrate.yaml — Substrate configuration
+
+schema_type: protobuf
+base_schema: protos/demo.proto
+head_schema: protos/demo.proto
+
+consumers:
+  - name: frontend
+    provider_repo: substrate-demo-testing/microservices-demo
+    schema_type: protobuf
+    provider_spec_path: protos/demo.proto
+  - name: checkoutservice
+    provider_repo: substrate-demo-testing/microservices-demo
+    schema_type: protobuf
+    provider_spec_path: protos/demo.proto
+  - name: recommendationservice
+    provider_repo: substrate-demo-testing/microservices-demo
+    schema_type: protobuf
+    provider_spec_path: protos/demo.proto
+  - name: emailservice
+    provider_repo: substrate-demo-testing/microservices-demo
+    schema_type: protobuf
+    provider_spec_path: protos/demo.proto
+
+owners:
+  - team: platform-core
+    contact: platform@company.com
