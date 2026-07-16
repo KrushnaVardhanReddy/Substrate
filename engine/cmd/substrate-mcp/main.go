@@ -470,7 +470,75 @@ func main() {
 		},
 	})
 
-	// Tool 7: get_schema_file
+	// Tool 7: get_blast_radius
+	server.RegisterTool(mcp.Tool{
+		Name:        "get_blast_radius",
+		Description: "Queries the Substrate Registry to calculate the Nth-degree blast radius of an API. Returns the total count of impacted downstream consumers and their repository names.",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"repo": map[string]any{
+					"type":        "string",
+					"description": "The full repository name, e.g., 'org/repo'",
+				},
+			},
+			"required": []string{"repo"},
+		},
+		Handler: func(params json.RawMessage) (any, error) {
+			var args struct {
+				Repo string `json:"repo"`
+			}
+			if err := json.Unmarshal(params, &args); err != nil {
+				return nil, err
+			}
+			if args.Repo == "" {
+				return nil, fmt.Errorf("repo is required (e.g., 'myorg/backend-api')")
+			}
+
+			parts := strings.SplitN(args.Repo, "/", 2)
+			if len(parts) != 2 {
+				return nil, fmt.Errorf("repo must be in 'org/repo' format")
+			}
+
+			apiURL := os.Getenv("REGISTRY_API_URL")
+			if apiURL == "" {
+				apiURL = "http://localhost:8090"
+			}
+
+			url := fmt.Sprintf("%s/api/v1/impact/%s/%s", apiURL, parts[0], parts[1])
+
+			// If authorization is needed locally, it will need a Service Token or bypass.
+			// MCP documentation assumes a direct GET request against `{REGISTRY_API_URL}/api/v1/impact/{org}/{repoName}`.
+			req, err := http.NewRequest("GET", url, nil)
+			if err != nil {
+				return nil, err
+			}
+
+			// We attach an API token if the MCP is configured with one. Substrate uses REGISTRY_API_TOKEN.
+			if token := os.Getenv("REGISTRY_API_TOKEN"); token != "" {
+				req.Header.Set("Authorization", "Bearer "+token)
+			}
+
+			resp, err := http.DefaultClient.Do(req)
+			if err != nil {
+				return nil, fmt.Errorf("failed to fetch blast radius: %w", err)
+			}
+			defer resp.Body.Close()
+
+			body, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return nil, err
+			}
+
+			if resp.StatusCode != http.StatusOK {
+				return nil, fmt.Errorf("registry API returned status %d: %s", resp.StatusCode, string(body))
+			}
+
+			return string(body), nil
+		},
+	})
+
+	// Tool 8: get_schema_file
 	server.RegisterTool(mcp.Tool{
 		Name:        "get_schema_file",
 		Description: "Retrieves the exact, raw text of a stored contract schema from the registry. The AI can use this to read a downstream team's OpenAPI or GraphQL schema so it can perfectly write integration code against it.",
