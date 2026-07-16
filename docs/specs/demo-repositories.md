@@ -31,3 +31,30 @@ This document outlines the recommended open-source repositories to fork and use 
     2. Drop in a `substrate.yaml` configuration.
     3. Open a GitHub Pull Request that changes the `/api/articles` endpoint response format.
     4. Show the Substrate GitHub App automatically commenting on the PR and blocking the merge.
+
+## 4. The "AI/ML Integration" Demo: OpenAI API Specs
+*   **Repository:** [openai/openai-openapi](https://github.com/openai/openai-openapi)
+*   **Purpose:** Proving that Substrate can govern LLM/AI integrations and prevent downstream AI application crashes.
+*   **Why it works:** AI startups depend entirely on upstream API stability from providers like OpenAI, Anthropic, or local inference servers like Ollama. 
+*   **Demo Script:**
+    1. Create a graph where `openai-openapi` is the upstream provider, and a downstream consumer is a mock "AI Chatbot" repo.
+    2. Introduce a breaking change to the `ChatCompletionRequestMessage` (e.g., removing the `function_call` field).
+    3. Substrate highlights the downstream Chatbot as "Broken", demonstrating how AI agent frameworks can be protected from upstream LLM provider API drift.
+
+## 5. The "Federated GraphQL" Demo: GitHub GraphQL Schema
+*   **Repository:** [octokit/graphql-schema](https://github.com/octokit/graphql-schema) (or Apollo Odyssey Voyage)
+*   **Purpose:** Showing that Substrate goes beyond REST and supports GraphQL AST schema diffing.
+*   **Why it works:** GraphQL APIs are notoriously difficult to version without breaking consumers. GitHub maintains a massive, heavily-typed GraphQL schema.
+*   **Demo Script:**
+    1. Import the GitHub GraphQL schema.
+    2. Remove a highly-utilized query (e.g., `user.repositories`).
+    3. Substrate's diff engine (configured for GQL) catches the missing field and blocks the PR, preventing frontend React/Apollo apps from crashing on missing data.
+
+## 6. The "Async Event / Webhook" Demo: Slack API Specs
+*   **Repository:** [slackapi/slack-api-specs](https://github.com/slackapi/slack-api-specs)
+*   **Purpose:** Proving Substrate handles asynchronous Event-Driven Architecture (AsyncAPI / Webhooks).
+*   **Why it works:** Slack's entire ecosystem runs on webhooks and the Events API. Changing a payload shape instantly breaks downstream bots.
+*   **Demo Script:**
+    1. Import the Slack AsyncAPI/OpenAPI webhook definitions.
+    2. Drop the `channel_id` field from a `message.channels` event payload.
+    3. Show Substrate protecting a downstream Slack Bot repository from the broken payload contract.
