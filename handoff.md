@@ -7,8 +7,8 @@
 1. **P11-T16 & P11-T17 Finalized:** We finished the Taxonomy & Metadata Tagging (tinted Lucide icons) and the Graph Image Export. We also fixed the Playwright E2E strict mode violation errors and aligned the markdown specifications perfectly with the code. These are now marked as complete in `tasks.md`.
 2. **Standardized AI Prompts:** We rewrote and standardized the prompt files for the remaining Phase 11 tasks (`t12_diff_viewer.txt` and `t13_time_travel.txt`) to enforce strict adherence to design tokens and our native vanilla CSS implementation over Tailwind CDNs.
 3. **Dispatched Jules (Phase 11):** We successfully triggered Jules via `jules_submit.py` to implement:
-   - **P11-T12 (Diff Viewer & Sign Out):** Session `10682893628416163267`
-   - **P11-T13 (Time-Travel Scrubber):** Session `9937051008420969622` (Jules has reported finishing this and is in the process of committing/pushing).
+   - **P11-T12 (Diff Viewer & Sign Out):** Session `10682893628416163267` (Merged into feature/dev)
+   - **P11-T13 (Time-Travel Scrubber):** Session `9937051008420969622` (Merged into feature/dev and validated).
 4. **Prepared Live Demo Environments:** We successfully forked three massive open-source repositories directly to the `KrushnaVardhanReddy` GitHub account for future CI/CD stress-testing:
    - `stripe/openapi`
    - `GoogleCloudPlatform/microservices-demo`
