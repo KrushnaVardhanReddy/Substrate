@@ -1,5 +1,7 @@
 //go:build ignore
 
+
+
 package main
 
 import (
@@ -28,6 +30,66 @@ type Config struct {
 	Scale       int
 	Concurrency int
 	Duration    time.Duration
+}
+
+type Edge struct {
+	Provider string `json:"provider"`
+	Consumer string `json:"consumer"`
+	Status   string `json:"status"`
+}
+
+func GenerateScaleGraph(n, targetEdges int) []Edge {
+	rng := rand.New(rand.NewSource(42))
+	edges := make([]Edge, 0, targetEdges)
+
+	// 1. Backbone chain: node-0 -> node-1 -> ... -> node-(n-1)
+	for i := 0; i < n-1; i++ {
+		status := "SAFE"
+		if len(edges)%20 == 0 {
+			status = "BREAKING"
+		}
+		edges = append(edges, Edge{
+			Provider: fmt.Sprintf("node-%d", i),
+			Consumer: fmt.Sprintf("node-%d", i+1),
+			Status:   status,
+		})
+	}
+
+	// 2. Skip edges: node-i -> node-j where j > i+1
+	attempts := 0
+	edgeSet := make(map[string]bool)
+	// seed the set with backbone edges
+	for _, e := range edges {
+		edgeSet[e.Provider+">"+e.Consumer] = true
+	}
+
+	for len(edges) < targetEdges && attempts < targetEdges*10 {
+		attempts++
+		i := rng.Intn(n - 2) // 0 to n-3
+
+		// to ensure we can reach 3000 edges without too many collisions, limit the jump range
+		maxJump := n - i - 2
+		if maxJump > 50 {
+			maxJump = 50
+		}
+
+		j := i + 2 + rng.Intn(maxJump) // j > i+1
+		key := fmt.Sprintf("node-%d>node-%d", i, j)
+		if edgeSet[key] {
+			continue
+		}
+		edgeSet[key] = true
+		status := "SAFE"
+		if len(edges)%20 == 0 {
+			status = "BREAKING"
+		}
+		edges = append(edges, Edge{
+			Provider: fmt.Sprintf("node-%d", i),
+			Consumer: fmt.Sprintf("node-%d", j),
+			Status:   status,
+		})
+	}
+	return edges
 }
 
 var (
@@ -338,8 +400,11 @@ func runAssertionAndReporting(totalDuration time.Duration) {
 	req.Header.Set("Authorization", "Bearer local-dev-token")
 	resp, err := http.DefaultClient.Do(req)
 	accuracy := "100%"
-	if err != nil || resp.StatusCode != 200 {
+	if err != nil {
+		accuracy = fmt.Sprintf("Failed to fetch graph (Status %v)", err)
+	} else if resp.StatusCode != 200 {
 		accuracy = fmt.Sprintf("Failed to fetch graph (Status %d)", resp.StatusCode)
+		resp.Body.Close()
 	} else {
 	    defer resp.Body.Close()
 	    bodyBytes, _ := io.ReadAll(resp.Body)
