@@ -37,6 +37,8 @@ export interface Env {
   GITHUB_APP_PRIVATE_KEY: string;
   GITHUB_TOKEN?: string;
   GITHUB_WEBHOOK_SECRET: string;
+  GITEA_API_URL?: string;
+  GITEA_TOKEN?: string;
   CONTAINER_SERVICE_URL: string;
   REGISTRY_API_URL: string;
   REGISTRY_API_TOKEN: string;
@@ -165,4 +167,32 @@ export interface InstallationEvent {
     id: number;
   };
   repositories?: InstallationRepo[];
+}
+
+export interface VCSClient {
+  fetchFileContent(owner: string, repo: string, path: string, ref: string): Promise<string | null>;
+  postPRComment(owner: string, repo: string, prNumber: number, body: string): Promise<void>;
+  setCommitStatus(owner: string, repo: string, sha: string, state: 'success' | 'failure' | 'pending', description: string): Promise<void>;
+  fetchPRFiles(owner: string, repo: string, prNumber: number): Promise<string[]>;
+}
+
+export interface StandardPREvent {
+  owner: string;
+  repo: string;
+  fullName: string;
+  prNumber: number;
+  headSha: string;
+  baseBranch: string;
+  installationId: number;
+}
+
+export interface StandardPushEvent {
+  ref: string;
+  after: string;
+  installationId: number;
+  owner: string;
+  repo: string;
+  fullName: string;
+  githubRepoId: number;
+  installationOrgId: number;
 }
