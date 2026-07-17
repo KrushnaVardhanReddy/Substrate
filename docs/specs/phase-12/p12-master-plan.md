@@ -42,6 +42,10 @@ Final preparations before directing public traffic to the V2.0 dashboard.
 *   **P12-T09 — Local Git Server Integration (Forgejo)**
     *   **Spec:** Deploy a local Forgejo container to simulate real GitHub webhooks for the Cloudflare worker and Go API, moving away from static mock payloads.
 
+*   **P12-T10 — VCS-Agnostic Webhook & API Adapter**
+    *   **Spec:** Refactor the Cloudflare worker to implement an Adapter pattern, decoupling it from GitHub. Support generic webhook parsing and generic API clients for GitHub, GitLab, and Gitea/Forgejo to unlock enterprise self-hosted environments.
+
+
 
 ## Execution Plan
 This phase will heavily utilize Jules for both Playwright automation (TypeScript) and backend stress testing (Go). Since these are test suites, we will instruct Jules to use the `--ui` mode for Playwright debugging if necessary and provide strict test artifacts.

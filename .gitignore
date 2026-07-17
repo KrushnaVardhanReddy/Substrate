@@ -42,3 +42,5 @@ demo-repos/graphql-schema/
 demo-repos/jaffle_shop/
 demo-repos/openai-openapi/
 demo-repos/slack-api-specs/
+
+forgejo-data/*

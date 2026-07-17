@@ -652,6 +652,16 @@ TASKS = {
         "phase": "phase-12-qa",
         "prompt": _load_prompt("prompts/phase-12/t08_production_cutover.txt"),
     },
+    1210: {
+        "name": "P12-T10 — VCS-Agnostic Webhook & API Adapter",
+        "phase": "phase-12-qa",
+        "prompt": _load_prompt("prompts/phase-12/t10_vcs_agnostic_adapter.txt"),
+    },
+    1211: {
+        "name": "P12-T11 — Multi-VCS Onboarding UI",
+        "phase": "phase-12-qa",
+        "prompt": _load_prompt("prompts/phase-12/t11_multi_vcs_onboarding_ui.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
