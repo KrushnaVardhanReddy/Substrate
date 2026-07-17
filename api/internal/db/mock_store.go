@@ -21,6 +21,7 @@ type MockStore struct {
 	GetDependencyGraphFunc             func(ctx context.Context, orgName string) ([]DependencyEdge, error)
 	CountReposByOrgFunc                func(ctx context.Context, orgName string) (int, error)
 	UpdateDependencyConfidenceFunc     func(ctx context.Context, consumerFullName, providerURL string, boostAmount float64) error
+	UpdateDependencyStatusFunc         func(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, status string) error
 	CountDownstreamDependenciesFunc    func(ctx context.Context, providerFullName string) (int, error)
 	RecordBreakingChangeFunc           func(ctx context.Context, repoID uuid.UUID, orgName, repoName, gitSHA string, breakingChanges json.RawMessage) error
 	GetBreakingChangeHistoryFunc       func(ctx context.Context, orgName, repoName string, limit int) ([]BreakingChangeRecord, error)
@@ -139,6 +140,13 @@ func (m *MockStore) GetDependencyGraph(ctx context.Context, orgName string) ([]D
 func (m *MockStore) UpdateDependencyConfidence(ctx context.Context, consumerFullName, providerURL string, boostAmount float64) error {
 	if m.UpdateDependencyConfidenceFunc != nil {
 		return m.UpdateDependencyConfidenceFunc(ctx, consumerFullName, providerURL, boostAmount)
+	}
+	return nil
+}
+
+func (m *MockStore) UpdateDependencyStatus(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, status string) error {
+	if m.UpdateDependencyStatusFunc != nil {
+		return m.UpdateDependencyStatusFunc(ctx, consumerRepoID, providerContractID, status)
 	}
 	return nil
 }

@@ -397,9 +397,11 @@ describe('Worker Handler Push Event', () => {
       body: payload
     });
 
-    (mockFetchFileContent as any)
-      .mockResolvedValueOnce('consumers yaml content')
-      .mockResolvedValueOnce('provider spec content');
+    (mockFetchFileContent as any).mockImplementation(async (owner: string, repo: string, path: string, ref: string) => {
+      if (path === 'substrate.yaml') return 'consumers yaml content';
+      if (path === 's.yaml') return 'provider spec content';
+      return null;
+    });
 
     (parseConsumersFromYaml as any).mockResolvedValueOnce([{
       name: 'c', provider_repo: 'org/prov', schema_type: 'openapi', provider_spec_path: 's.yaml', provider_branch: 'main'

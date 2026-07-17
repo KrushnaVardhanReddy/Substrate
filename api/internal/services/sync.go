@@ -28,6 +28,7 @@ type SyncRequest struct {
 	ConsumerGithubRepoID int64               `json:"consumer_github_repo_id"`
 	CommitSHA            string              `json:"commit_sha"`
 	Dependencies         []DependencyPayload `json:"dependencies"`
+	Files                map[string]string   `json:"files,omitempty"`
 }
 
 func ProcessSync(ctx context.Context, store db.Store, req SyncRequest) (int, error) {
@@ -48,13 +49,26 @@ func ProcessSync(ctx context.Context, store db.Store, req SyncRequest) (int, err
 		return 0, err
 	}
 
-	// 3. For each dependency
+	// 3. Auto-discover implicit infrastructure dependencies
+	if len(req.Files) > 0 {
+		implicitDeps := DiscoverImplicitDependencies(req.Files)
+		req.Dependencies = append(req.Dependencies, implicitDeps...)
+	}
+
+	// 4. For each dependency
 	syncedCount := 0
 	for _, dep := range req.Dependencies {
-		providerParts := strings.Split(dep.ProviderRepo, "/")
 		providerName := dep.ProviderRepo
-		if len(providerParts) == 2 {
-			providerName = providerParts[1]
+		if strings.HasPrefix(dep.ProviderRepo, "infra:") || strings.HasPrefix(dep.ProviderRepo, "saas:") {
+			parts := strings.SplitN(dep.ProviderRepo, ":", 2)
+			if len(parts) == 2 {
+				providerName = parts[1]
+			}
+		} else {
+			providerParts := strings.Split(dep.ProviderRepo, "/")
+			if len(providerParts) == 2 {
+				providerName = providerParts[1]
+			}
 		}
 
 		providerRepoID, err := store.UpsertRepo(ctx, orgID, dep.ProviderGithubRepoID, providerName, dep.ProviderRepo, []byte("{}"))

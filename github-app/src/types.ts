@@ -73,6 +73,7 @@ export interface SyncRequest {
   consumer_github_repo_id: number;
   commit_sha: string;
   dependencies: SyncDependency[];
+  files?: Record<string, string>;
 }
 
 export interface PushEvent {
