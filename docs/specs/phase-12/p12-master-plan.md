@@ -39,5 +39,9 @@ Final preparations before directing public traffic to the V2.0 dashboard.
 *   **P12-T08 — V2.0 Production Cutover**
     *   **Spec:** Final updates to the Docker/Helm CI/CD pipelines to ensure the WASM binaries and Svelte static assets are perfectly bundled into the single-binary deployment.
 
+*   **P12-T09 — Local Git Server Integration (Forgejo)**
+    *   **Spec:** Deploy a local Forgejo container to simulate real GitHub webhooks for the Cloudflare worker and Go API, moving away from static mock payloads.
+
+
 ## Execution Plan
 This phase will heavily utilize Jules for both Playwright automation (TypeScript) and backend stress testing (Go). Since these are test suites, we will instruct Jules to use the `--ui` mode for Playwright debugging if necessary and provide strict test artifacts.
