@@ -3,7 +3,7 @@
 ## 1. Goal
 Complete the "Yellow Path" (Overrides/Acknowledged) across the entire Substrate architecture. This ensures that when a developer pushes a breaking schema change but provides a valid `overrides:` block in their `substrate.yaml`, the backend downgrades the breaking change to an `ACKNOWLEDGED` status, and the frontend visually renders this as a non-breaking warning (Yellow/Orange) instead of a catastrophic failure (Red).
 
-Finally, this task expands the E2E matrix in `system-matrix-full.spec.ts` to include the final two missing schema types (SQL and AsyncAPI), testing Red, Green, and Yellow paths for all 5 implemented repositories.
+Finally, this task expands the E2E matrix in `system-matrix-full.spec.ts` to include the remaining schema types (SQL and AsyncAPI), testing Red, Green, and Yellow paths for all 7 implemented repositories (`microservices-demo`, `stripe-api`, `github-graphql`, `jaffle-shop-db`, `slack-webhooks`, `openai-openapi`, and `realworld`).
 
 ## 2. Requirements
 
@@ -27,7 +27,8 @@ Finally, this task expands the E2E matrix in `system-matrix-full.spec.ts` to inc
     - Use a tiny 10-line SQL stub for `BASE`, `BREAKING` (e.g., dropping a column), `SAFE` (adding a column), and `OVERRIDE`.
   - Create a test block for **AsyncAPI** (`slack-webhooks`).
     - Use a tiny 10-line AsyncAPI YAML stub for `BASE`, `BREAKING` (removing a payload property), `SAFE` (adding a payload property), and `OVERRIDE`.
-
+  - Create a test block for **OpenAPI (openai)** (`openai-openapi`). Use a tiny OpenAPI stub with a `chat/completions` endpoint.
+  - Create a test block for **OpenAPI (realworld)** (`realworld`). Use a tiny OpenAPI stub with an `/api/articles` endpoint.
 ## 3. Architecture Constraints
 - **Do not push massive repos to Forgejo.** We must continue using the "stub generation" strategy (defining 10-line string variables inside the Playwright script and pushing them) to simulate repo changes.
 - **Do not alter `pushToForgejo`**. The helper perfectly simulates standard `git init`, `commit`, and `push` via Forgejo API repository creation.
@@ -35,4 +36,4 @@ Finally, this task expands the E2E matrix in `system-matrix-full.spec.ts` to inc
 ## 4. Deliverables
 - [ ] Updated `ServiceNode.svelte` with Yellow path UI classes.
 - [ ] Updated `sync.go` (and related DB layers) to support `ACKNOWLEDGED` status.
-- [ ] Updated `system-matrix-full.spec.ts` containing Red/Green/Yellow paths for Protobuf, OpenAPI, GraphQL, SQL, and AsyncAPI.
+- [ ] Updated `system-matrix-full.spec.ts` containing Red/Green/Yellow paths for all 7 repositories.

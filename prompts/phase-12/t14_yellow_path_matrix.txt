@@ -3,7 +3,7 @@ TASK: P12-T14 — System Matrix Overrides & Completion (Yellow Path)
 ═══════════════════════════════════════════════════════════════
 OBJECTIVE
 ═══════════════════════════════════════════════════════════════
-We need to complete the E2E matrix by implementing the "Yellow Path" (Overrides) across the entire stack, as well as adding the final two schema types (SQL and AsyncAPI) to the real-world pipeline.
+We need to complete the E2E matrix by implementing the "Yellow Path" (Overrides) across the entire stack, as well as adding the remaining schema types (SQL, AsyncAPI, and two more OpenAPI variants) to the real-world pipeline.
 
 When a developer introduces a mathematically breaking schema change, but explicitly adds an `overrides` block in their `substrate.yaml` acknowledging the break, the UI should render the dependency node with a "Warning" (Yellow) status rather than a "Breaking" (Red) status.
 
@@ -36,8 +36,10 @@ DELIVERABLES
 
 3. E2E TESTS: dashboard/tests/e2e/system-matrix-full.spec.ts
    - Retrofit Protobuf, OpenAPI, and GraphQL to include a 3rd test: `Yellow Path: Push breaking change with override`.
-   - Add a full SQL test block (Red, Green, Yellow) using a tiny `CREATE TABLE` stub.
-   - Add a full AsyncAPI test block (Red, Green, Yellow) using a tiny AsyncAPI YAML stub.
+   - Add a full SQL test block (Red, Green, Yellow) for `jaffle-shop-db` using a tiny `CREATE TABLE` stub.
+   - Add a full AsyncAPI test block (Red, Green, Yellow) for `slack-webhooks` using a tiny AsyncAPI YAML stub.
+   - Add a full OpenAPI test block for `openai-openapi` using a tiny OpenAPI stub with a `chat/completions` endpoint.
+   - Add a full OpenAPI test block for `realworld` using a tiny OpenAPI stub with an `/api/articles` endpoint.
 
 ═══════════════════════════════════════════════════════════════
 FILES LIST
