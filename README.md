@@ -360,9 +360,12 @@ Responsibilities:
 
 ```
 Go
-PostgreSQL
+Neon (Serverless PostgreSQL)
 Redis (future)
 ```
+
+**Cloud Database Strategy (Neon):**
+We have officially selected **Neon (Serverless Postgres)** as our managed cloud database provider for the SaaS tier. It scales to zero, meaning the Free Tier costs **$0/month** until we land paying enterprise clients. Once scaled, Neon's "Database Branching" feature aligns perfectly with Substrate's PR-based schema preview model, allowing instant zero-copy previews of the dependency graph data on every PR.
 
 Responsibilities:
 
