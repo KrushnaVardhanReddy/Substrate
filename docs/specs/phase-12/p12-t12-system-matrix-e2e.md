@@ -388,3 +388,13 @@ dashboard/tests/e2e/
 
 **Total estimated tests: ~80 across 8 spec files.**
 
+
+## Backend State Sync Fix (Red Path UI Readiness)
+
+During the E2E matrix execution, we discovered a gap in the Go API (`api/internal/services/push.go`): the Engine correctly evaluates `BREAKING` changes and queues AI Autofix PRs, but it does NOT update the `status` column in the `dependencies` PostgreSQL table. This causes the UI to render the node as `SAFE` even when broken.
+
+**Specification to fix:**
+1. **DB Layer:** Add `UpdateDependencyStatus(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, status string) error` to `api/internal/db/store.go` and `pgstore.go`.
+2. **Implementation:** In `api/internal/db/queries.go`, implement the SQL: `UPDATE dependencies SET status = $3 WHERE consumer_repo_id = $1 AND provider_contract_id = $2`.
+3. **Service Layer:** In `api/internal/services/push.go`, when `diffReport.Summary.BreakingCount > 0`, call `UpdateDependencyStatus(ctx, consumer.ConsumerRepoID, contract.ID, "BREAKING")`.
+4. **Recovery:** Also add logic so that if `BreakingCount == 0`, we reset the status to `"SAFE"`, enabling the Green Path tests to pass when a safe schema is subsequently pushed.
