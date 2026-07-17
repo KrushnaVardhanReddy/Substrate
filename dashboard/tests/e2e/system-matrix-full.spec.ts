@@ -321,4 +321,63 @@ paths:
     });
   });
 
+  test.describe.serial('Repo: github-graphql (GraphQL)', () => {
+    const REPO_NAME = 'github-graphql';
+
+    const BASE_SUBSTRATE_YAML = `schema_type: graphql
+base_schema: schema.graphql
+head_schema: schema.graphql
+
+consumers:
+  - name: github-action-runner
+    provider_repo: admin/github-graphql
+    schema_type: graphql
+    provider_spec_path: schema.graphql
+    provider_branch: main
+`;
+
+    const BASE_GRAPHQL = `type Query { user(id: ID!): User }
+type User { id: ID!, name: String! }
+`;
+
+    test('Setup & Seeding: Push initial valid schema', async () => {
+      await pushToForgejo(REPO_NAME, {
+        'substrate.yaml': BASE_SUBSTRATE_YAML,
+        'schema.graphql': BASE_GRAPHQL
+      });
+      await new Promise(r => setTimeout(r, 2000));
+    });
+
+    test('Red Path: Push breaking change', async ({ page }) => {
+      const BREAKING_GRAPHQL = `type Query { user(id: ID!): User }
+type User { id: ID! }
+`;
+      await pushToForgejo(REPO_NAME, {
+        'substrate.yaml': BASE_SUBSTRATE_YAML,
+        'schema.graphql': BREAKING_GRAPHQL
+      });
+
+      await page.waitForTimeout(3000);
+      await waitForGraphSearch(page, 'github', 2); // 1 provider + 1 consumer
+
+      const alertNodes = page.locator('.status-indicator.breaking');
+      await expect(alertNodes).toHaveCount(1, { timeout: 10000 });
+    });
+
+    test('Green Path: Push safe change', async ({ page }) => {
+      const SAFE_GRAPHQL = `type Query { user(id: ID!): User }
+type User { id: ID!, name: String!, email: String }
+`;
+      await pushToForgejo(REPO_NAME, {
+        'substrate.yaml': BASE_SUBSTRATE_YAML,
+        'schema.graphql': SAFE_GRAPHQL
+      });
+
+      await page.waitForTimeout(3000);
+      await waitForGraphSearch(page, 'github', 2);
+
+      await expect(page.locator('.status-indicator.breaking')).toHaveCount(0, { timeout: 10000 });
+    });
+  });
+
 });
