@@ -4,7 +4,7 @@
 * **Goal Achieved:** Successfully stood up the local Forgejo Git Server (via `docker-compose.forgejo.yml`) to replace mock GitHub webhooks. Network connectivity works, webhooks are firing, and the local Cloudflare worker successfully intercepts and validates the payload (using the `testsecret` HMAC signature).
 * **Blocker Identified:** The worker is currently returning `Ignored` because `github-client.ts` is hardcoded to call `api.github.com` instead of dynamically calling the Git server that triggered the webhook.
 * **Tasks Delegated:** 
-  * Delegated **P12-T10** to Jules to refactor the webhook worker using an Adapter Pattern to make it VCS-Agnostic (supporting GitHub, GitLab, and Gitea/Forgejo).
+  * Merged **P12-T10** from Jules to refactor the webhook worker using an Adapter Pattern to make it VCS-Agnostic (supporting GitHub, GitLab, and Gitea/Forgejo).
   * Merged **P12-T11** from Jules to update the SvelteKit onboarding UI to let users select their VCS provider (Cloud vs Self-Hosted).
 
 ## Next Steps for Tomorrow
