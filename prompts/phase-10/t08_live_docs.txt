@@ -1,0 +1,16 @@
+TASK: P10-T08 — Live Documentation Generator
+
+OBJECTIVE
+Create a new standalone REST endpoint to export the Svelte graph as a Markdown/Mermaid document.
+
+CONSTRAINTS
+- Add a new handler in `api/internal/handlers/export.go`.
+- Do NOT modify any frontend `dashboard/` code. Do NOT modify the `engine/`.
+- Reference spec: `docs/specs/phase-10/p10-t08-live-docs.md`
+
+FILES TO CREATE/MODIFY:
+- api/internal/handlers/export.go
+- api/internal/router.go (just add the route `/api/v1/export/docs`)
+
+Commit: "feat: P10-T08 implement live mermaid docs export API"
+Target branch: feature/dev

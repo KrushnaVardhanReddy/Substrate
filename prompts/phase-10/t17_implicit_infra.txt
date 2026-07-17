@@ -1,0 +1,16 @@
+TASK: P10-T17 — Implicit Infrastructure Discovery
+
+OBJECTIVE
+Parse `package.json` and `docker-compose.yml` to automatically map infrastructure dependencies (Postgres, Redis, Kafka, etc).
+
+CONSTRAINTS
+- Only modify the webhook payload fetcher and create a new Go service for heuristics.
+- Do NOT modify the `engine/` or `dashboard/`.
+- Reference spec: `docs/specs/phase-10/p10-t17-implicit-infrastructure-discovery.md`
+
+FILES TO CREATE/MODIFY:
+- github-app/src/index.ts (fetch package.json on push)
+- api/internal/services/discovery.go (heuristic logic)
+
+Commit: "feat: P10-T17 implement implicit infrastructure discovery"
+Target branch: feature/dev

@@ -1,0 +1,17 @@
+TASK: P10-T01 — Automated Security Fuzzing (OWASP)
+
+OBJECTIVE
+Create a new Security Fuzzing engine that parses OpenAPI schemas and generates OWASP malicious payloads.
+
+CONSTRAINTS
+- All work must be isolated inside the `engine/` directory.
+- Do NOT modify `api/`, `dashboard/`, or `github-app/`.
+- Reference spec: `docs/specs/phase-10/p10-t01-security-fuzzing.md`
+
+FILES TO CREATE:
+- engine/internal/fuzzer/fuzzer.go
+- engine/internal/fuzzer/owasp_payloads.go
+- engine/cmd/substrate/fuzz.go
+
+Commit: "feat: P10-T01 implement automated security fuzzing engine"
+Target branch: feature/dev

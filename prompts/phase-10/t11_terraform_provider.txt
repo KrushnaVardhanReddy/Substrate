@@ -1,0 +1,20 @@
+TASK: P10-T11 — Official Terraform Provider
+
+OBJECTIVE
+Create a new HashiCorp Terraform Plugin Framework provider in a new directory called `terraform-provider-substrate`.
+
+CONSTRAINTS
+- Create a completely new root directory: `terraform-provider-substrate/`.
+- Initialize a new `go.mod` inside that directory.
+- Do NOT modify any existing code in `api/`, `engine/`, or `dashboard/`.
+- Create basic resources: `substrate_webhook` and `substrate_policy`.
+- Reference spec: `docs/specs/phase-10/p10-t11-terraform-provider.md`
+
+FILES TO CREATE:
+- terraform-provider-substrate/main.go
+- terraform-provider-substrate/internal/provider/provider.go
+- terraform-provider-substrate/internal/provider/webhook_resource.go
+- terraform-provider-substrate/internal/provider/policy_resource.go
+
+Commit: "feat: P10-T11 initialize official terraform provider"
+Target branch: feature/dev
