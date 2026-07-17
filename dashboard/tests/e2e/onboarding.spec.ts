@@ -6,21 +6,31 @@ test.describe('Onboarding Wizard E2E', () => {
         await page.goto('/onboarding');
         
         // Assert Step 1 content
+        await expect(page.getByText('Select Git Provider', { exact: false })).toBeVisible();
+
+        // Click provider button
+        const providerBtn = page.getByTestId('provider-github-btn');
+        await expect(providerBtn).toBeVisible();
+        await providerBtn.click();
+
+        // Step 2: Assert credentials step content
         await expect(page.getByText('Connect GitHub', { exact: false })).toBeVisible();
         
-        // Click connect button
-        const connectBtn = page.getByRole('button', { name: /connect github/i });
+        // Enter token and connect
+        await page.getByTestId('token-input').fill('ghp_mock_12345');
+        const connectBtn = page.getByTestId('connect-provider-btn');
         await expect(connectBtn).toBeVisible();
+        await expect(connectBtn).toBeEnabled();
         await connectBtn.click();
         
-        // Step 2: Assert scanning state
+        // Step 3: Assert scanning state
         await expect(page.locator('text=Scanning your Repositories').first()).toBeVisible();
         
-        // Wait for step 3 to appear (progress bar + delay takes ~3.5 seconds)
+        // Wait for step 4 to appear (progress bar + delay takes ~3.5 seconds)
         // We'll give it a generous timeout of 10s to avoid flakes
         await expect(page.locator('text=Ready to Launch')).toBeVisible({ timeout: 10000 });
         
-        // Step 3: Enter Dashboard
+        // Step 4: Enter Dashboard
         const enterBtn = page.getByRole('button', { name: /enter dashboard/i });
         await expect(enterBtn).toBeVisible();
         await enterBtn.click();

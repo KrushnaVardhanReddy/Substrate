@@ -13,27 +13,32 @@ test.describe('Onboarding E2E Flow', () => {
 		// 1. Visit /onboarding
 		await page.goto('/onboarding');
 
-		// 2. Fill in a mock GitHub token
-		const tokenInput = page.getByTestId('github-token-input');
+		// 2. Select GitHub provider
+		const githubBtn = page.getByTestId('provider-github-btn');
+		await githubBtn.waitFor({ state: 'visible', timeout: 5000 });
+		await githubBtn.click();
+
+		// 3. Fill in a mock GitHub token
+		const tokenInput = page.getByTestId('token-input');
 		await tokenInput.waitFor({ state: 'visible', timeout: 5000 });
 		await tokenInput.fill('ghp_mock_12345');
 
-		// 3. Click the "Connect" button
-		const connectBtn = page.getByTestId('connect-github-btn');
+		// 4. Click the "Connect" button
+		const connectBtn = page.getByTestId('connect-provider-btn');
 		await connectBtn.click();
 
-		// 4. Wait for the simulated "Scanning Repositories" progress bar to complete
+		// 5. Wait for the simulated "Scanning Repositories" progress bar to complete
 		const enterDashboardBtn = page.getByTestId('enter-dashboard-btn');
 		await expect(enterDashboardBtn).toBeVisible({ timeout: 10000 });
 
-		// 5. Click Enter Dashboard to trigger redirect
+		// 6. Click Enter Dashboard to trigger redirect
 		await enterDashboardBtn.click();
 
-		// 6. Assert that the URL successfully redirects to /org/*/graph
+		// 7. Assert that the URL successfully redirects to /org/*/graph
 		await page.waitForURL('**/org/*/graph', { timeout: 5000 });
 		expect(page.url()).toMatch(/\/org\/.*\/graph/);
 
-		// 7. Assert that the Svelte Flow canvas container is visible in the DOM
+		// 8. Assert that the Svelte Flow canvas container is visible in the DOM
 		const mainCanvas = page.locator('.main-canvas');
 		await expect(mainCanvas).toBeVisible();
 	});
