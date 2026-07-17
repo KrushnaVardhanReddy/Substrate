@@ -29,6 +29,14 @@ type MockStore struct {
 	GetROIMetricsFunc                  func(ctx context.Context, orgID string) (ROIMetrics, error)
 	UpdateStripeCustomerIDFunc         func(ctx context.Context, orgID uuid.UUID, stripeID string) error
 	GetBillingStatusFunc               func(ctx context.Context, orgName string) (time.Time, *string, error)
+	UpdateDependencyStatusFunc         func(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, status string) error
+}
+
+func (m *MockStore) UpdateDependencyStatus(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, status string) error {
+	if m.UpdateDependencyStatusFunc != nil {
+		return m.UpdateDependencyStatusFunc(ctx, consumerRepoID, providerContractID, status)
+	}
+	return nil
 }
 
 func (m *MockStore) UpsertOrg(ctx context.Context, installationID int64, orgName string) (uuid.UUID, error) {
