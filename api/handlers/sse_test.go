@@ -52,8 +52,10 @@ func TestSSEBroker(t *testing.T) {
 		req = req.WithContext(ctx)
 
 		// Start client
+		done := make(chan struct{})
 		go func() {
 			broker.ServeHTTP(rr, req)
+			close(done)
 		}()
 
 		// Wait for client to connect
@@ -66,9 +68,7 @@ func TestSSEBroker(t *testing.T) {
 		time.Sleep(10 * time.Millisecond)
 
 		cancel()
-
-		// Wait for disconnect to process
-		time.Sleep(10 * time.Millisecond)
+		<-done
 
 		body := rr.Body.String()
 		if !strings.Contains(body, "data: test-message\n\n") {
@@ -87,8 +87,17 @@ func TestSSEBroker(t *testing.T) {
 		ctx2, cancel2 := context.WithCancel(req2.Context())
 		req2 = req2.WithContext(ctx2)
 
-		go broker.ServeHTTP(rr1, req1)
-		go broker.ServeHTTP(rr2, req2)
+		done1 := make(chan struct{})
+		done2 := make(chan struct{})
+
+		go func() {
+			broker.ServeHTTP(rr1, req1)
+			close(done1)
+		}()
+		go func() {
+			broker.ServeHTTP(rr2, req2)
+			close(done2)
+		}()
 
 		time.Sleep(10 * time.Millisecond)
 
@@ -97,7 +106,8 @@ func TestSSEBroker(t *testing.T) {
 		time.Sleep(10 * time.Millisecond)
 		cancel1()
 		cancel2()
-		time.Sleep(10 * time.Millisecond)
+		<-done1
+		<-done2
 
 		if !strings.Contains(rr1.Body.String(), "data: multi-test\n\n") {
 			t.Errorf("client 1 didn't receive message, got: %s", rr1.Body.String())
