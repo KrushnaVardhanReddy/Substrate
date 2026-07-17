@@ -1,0 +1,41 @@
+TASK: P12-T13 — Zero-Config Developer Portal (Catalog UI)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Build the "Backstage Killer" Zero-Config Service Catalog in the SvelteKit dashboard. 
+You will create a new Catalog route that displays all microservices in a searchable table/grid, and a Detail route that auto-renders the API documentation using Stoplight Elements.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-12/p12-t13-zero-config-catalog.md
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES & INSTRUCTIONS
+═══════════════════════════════════════════════════════════════
+1. **Navigation Update:**
+   - Update the existing navigation (e.g., in `dashboard/src/routes/org/[orgId]/+layout.svelte` or the sidebar component) to include a "Catalog" link alongside the existing "Graph" link.
+   - Use `lucide-svelte` icons (e.g., `Book` or `Library` for the Catalog).
+
+2. **Catalog Page (`dashboard/src/routes/org/[orgId]/catalog/+page.svelte`):**
+   - Create the layout and load function.
+   - Fetch the list of nodes (mock the fetch if necessary, simulating the `/api/v1/nodes` response).
+   - Display a modern table or card grid showing Service Name, Protocol, Owner, and Status.
+
+3. **Detail Page (`dashboard/src/routes/org/[orgId]/catalog/[repoName]/+page.svelte`):**
+   - Create a dynamic route for the individual service details.
+   - Embed Stoplight Elements to render OpenAPI specs. 
+   - *Technical requirement for Elements in Svelte:* The easiest way without bundle conflicts is to inject the Stoplight Web Component script via Svelte's `<svelte:head>`:
+     `<script src="https://unpkg.com/@stoplight/elements/web-components.min.js"></script>`
+     `<link rel="stylesheet" href="https://unpkg.com/@stoplight/elements/styles.min.css">`
+   - Then render: `<elements-api apiDescriptionDocument="YAML_STRING_HERE" router="hash"></elements-api>`
+   - Provide a dummy OpenAPI YAML string in the `+page.ts` load function for testing.
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS
+═══════════════════════════════════════════════════════════════
+- The dashboard is a SvelteKit app using Vite.
+- Ensure the UI matches the premium, dark-mode aesthetic of the existing Graph UI.
+- Do NOT modify the Go API or Cloudflare Worker. This is purely a Frontend Dashboard task.
+
+Commit: "feat(dashboard): P12-T13 implement zero-config service catalog and API docs viewer"
+Target branch: feature/dev

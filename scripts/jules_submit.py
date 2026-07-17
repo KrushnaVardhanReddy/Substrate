@@ -667,6 +667,11 @@ TASKS = {
         "phase": "phase-12-qa",
         "prompt": _load_prompt("prompts/phase-12/t12_system_matrix_e2e.txt"),
     },
+    1213: {
+        "name": "P12-T13 — Zero-Config Developer Portal",
+        "phase": "phase-12-qa",
+        "prompt": _load_prompt("prompts/phase-12/t13_zero_config_catalog.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
