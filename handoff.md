@@ -1,54 +1,66 @@
-# Substrate Handoff — Webhook & Monorepo Fixes
+# Substrate Handoff
 
-**Date:** July 16, 2026
-**Branch:** `feature/dev`
-**Current Focus:** Cloudflare Webhook Worker Stabilization & Multi-Consumer Monorepos
+## Current Status (End of Day)
+* **Goal Achieved:** Successfully stood up the local Forgejo Git Server (via `docker-compose.forgejo.yml`) to replace mock GitHub webhooks. Network connectivity works, webhooks are firing, and the local Cloudflare worker successfully intercepts and validates the payload (using the `testsecret` HMAC signature).
+* **Blocker Identified:** The worker is currently returning `Ignored` because `github-client.ts` is hardcoded to call `api.github.com` instead of dynamically calling the Git server that triggered the webhook.
+* **Tasks Delegated:** 
+  * Delegated **P12-T10** to Jules to refactor the webhook worker using an Adapter Pattern to make it VCS-Agnostic (supporting GitHub, GitLab, and Gitea/Forgejo).
+  * Delegated **P12-T11** to Jules to update the SvelteKit onboarding UI to let users select their VCS provider (Cloud vs Self-Hosted).
 
----
+## Next Steps for Tomorrow
+1. **Review & Merge Jules PRs:** Verify the VCS-Agnostic Adapter and the UI changes in `feature/dev`.
+2. **End-to-End Forgejo Test:** Once the adapter is merged, test pushing to the local `microservices-demo` repository in Forgejo again. Verify that the worker successfully fetches `substrate.yaml` from Forgejo and updates the Svelte dashboard.
+3. **P12-T08 (Enterprise VPC Deployment):** Transition focus to the final V2.0 production cutover, bundling the static assets and WASM binary into the Go single-binary deployment.
 
-## ✅ What We Accomplished Today
+## Quick Start Reminders
+* **Start Forgejo locally:** Run `make forgejo` (Starts the container on port 3000).
+* **Start Backend Stack:** Run `make start-bg`.
+* **View Graph:** Go to `http://localhost:5173/org/<forgejo-username>/graph`.
 
-### 1. Fixed Dashboard Rendering (JSON Tags)
-- Identified that the SvelteKit frontend was showing blank names for repositories in the dependency graph.
-- Added explicit lowercase JSON struct tags (`json:"name"`, `json:"full_name"`, etc.) to the `Repository` and `Contract` models in `api/internal/db/store.go` to properly serialize the Postgres data.
+## 🧪 Comprehensive Demo Testing Guide
 
-### 2. Fixed Local API Authentication (401 Unauthorized)
-- Discovered that the local Go API was rejecting sync requests from the Cloudflare Webhook worker with a `401 Unauthorized`.
-- Added `INTERNAL_SERVICE_TOKEN="local-dev-token"` to the `api` and `api-ai` targets in `Makefile`.
+To fully validate Substrate across all 7 demo repositories (Stripe, Microservices, RealWorld, OpenAI, GraphQL, Slack, and Jaffle Shop), test along the following three axes:
 
-### 3. Enabled Monorepo Multi-Consumer Webhooks
-- Refactored `github-app/src/index.ts` to loop over *all* consumers found in `substrate.yaml` when a `push` event occurs.
-- Implemented a `hashString()` utility to generate deterministic pseudo-IDs for the `githubRepoId` field. This prevents Postgres `UNIQUE` constraint errors when syncing multiple microservices (e.g., `frontend`, `payment-service`) that technically share the same underlying GitHub repository ID.
+### Axis 1: Breaking vs. Non-Breaking Changes
+For each repository, test both a schema breaking change and a safe (non-breaking) addition to verify the diff engine logic.
+* **Microservices (Protobuf):**
+  * *Breaking:* Remove `CartItem.product_id`
+  * *Safe:* Add `string notes = 3`
+* **GitHub GraphQL:**
+  * *Breaking:* Remove `User.email`
+  * *Safe:* Add `User.age: Int`
+* **Stripe (OpenAPI):**
+  * *Breaking:* Remove `/v1/charges` endpoint
+  * *Safe:* Add `/v2/beta/charges`
+* **OpenAI (OpenAPI):**
+  * *Breaking:* Remove `function_call` property
+  * *Safe:* Add `metadata: Map` property
+* **Jaffle Shop (SQL):**
+  * *Breaking:* Drop `customer_lifetime_value` column
+  * *Safe:* Add `age INTEGER` column
+* **Slack (AsyncAPI):**
+  * *Breaking:* Remove `channel_id` from payload
+  * *Safe:* Add `thread_ts` to payload
+* **RealWorld (OpenAPI):**
+  * *Breaking:* Remove `/api/articles`
+  * *Safe:* Add `/api/tags`
 
-### 4. Blast Radius (Cross-Repo Impact) Verification
-- Fixed missing `base_schema` and `head_schema` config fields in the `demo-repos/microservices-demo/substrate.yaml` file, which was causing the diff engine to silently skip processing `pull_request` events.
-- Diagnosed why the Cross-Repo impact string was missing from the generated PR comment: The Go API's `TierLimitsMiddleware` was blocking the request with a **402 Payment Required** because the microservices demo syncs 5 repos (the free tier limit is 3).
-- **Fix applied:** Updated `api/internal/server/limits.go` and `router.go` to conditionally bypass tier limits when `ENVIRONMENT=development`. Injected `ENVIRONMENT="development"` into the `Makefile`.
+### Axis 2: Configuration Modality
+* **Manual Yaml Creation:** Push a `substrate.yaml` file to the repository. Verify that the Cloudflare Worker webhook correctly parses the consumers block and explicitly draws the specified dependency edges in the graph.
+* **Automated Discovery (Phase 5):** Remove the `substrate.yaml` file and rely on the Go API's internal discovery engine (`POST /discovery`). Verify that it auto-detects dependencies by scanning for URLs, SDK imports, or env vars, and draws the graph dynamically without explicit configuration.
 
-### 5. Documentation & Specifications Synced
-- Updated `docs/specs/demo-repositories.md` with new implementation notes covering the Tier Limits bypass, JSON tags, Internal auth fixes, and monorepo sync structure.
-- Updated `docs/specs/phase-3/contract-registry.md` to reflect the multi-consumer sync architecture.
-- Added `P10-T16` to `tasks.md` to track the upcoming integration of the Go Auto-Discovery Engine into the webhook pipeline.
+### Axis 3: Execution Environment (Diffing Engine)
+* **Cloud (Go API / CI/CD):** Push the change to the Git server (Forgejo). Ensure the Cloudflare Worker intercepts the webhook, routes the schemas to the Go Diff Engine container running on port `8080`, and correctly fails/passes the CI check.
+* **WASM (In-Browser):** Open the Substrate Dashboard Visual API Studio. Make the breaking changes directly in the browser's schema editor. Verify that the WebAssembly-compiled diff engine (`engine.wasm`) catches the breakage instantly (0ms latency) entirely on the client side, without making any network requests to the Go API.
 
----
+### Axis 4: Governance & Overrides (The "Yellow Path")
+* **Intentional Breakage:** Push a breaking change (e.g. dropping a column), but include an `overrides` block in the `substrate.yaml` with a valid `approved_by` email and future `expires` date.
+* **Verification:** Ensure that the CI check *passes* (with a warning) instead of failing, and the UI marks the change as "Acknowledged".
 
-## 🌅 Pending for Tomorrow
+### Axis 5: Scale & Resilience
+* **1,000-Node Stress Test:** Generate a massive mock graph and verify that the Svelte Flow layout calculation completes in under 2 seconds and the UI maintains 60fps during zooming/panning.
+* **Network Drop Simulation:** Terminate the Go API process briefly. Verify that the UI displays a "Reconnecting..." toast and successfully re-establishes the Server-Sent Events (SSE) connection without losing graph state when the API comes back online.
 
-1. **Verify the Final Webhook locally (Bypassing GitHub using OpenCode):**
-   - *Database Reset Note:* The old Postgres container was deleted. Ensure the database is re-initialized (e.g., `make db-init` or equivalent) now that `make start-bg` is running.
-   - *Bypass GitHub Actions:* We will test entirely locally without relying on real GitHub App webhooks. Create a local `mock_pr_payload.json` file simulating a `pull_request` event for `demo-repos/microservices-demo`.
-   - *Trigger Webhook:* Send a POST request directly to the local Wrangler worker (`curl -X POST http://localhost:8787/ -H "Content-Type: application/json" -H "X-GitHub-Event: pull_request" -d @mock_pr_payload.json`).
-   - *Validate:* Ensure the dashboard graph renders correctly and the worker detects the cross-repo blast radius (showing downstream services broken) without triggering a `402 Payment Required` Tier Limit error.
-   - *Execution:* Use the local **OpenCode** LLM to generate the mock JSON payload and run the test.
-
-2. **Enterprise VPC Deployment (P12-T08):**
-   - Shift focus from the Cloudflare SaaS model to the Enterprise Self-Hosted model.
-   - Validate the multi-stage `Dockerfile` (Phase 12, Task 08 - Production Cutover) builds successfully, packaging the Svelte UI, Go API, and WASM engine into a single <100MB Distroless image.
-   - Test sending webhooks directly to the Go API (`/api/v1/webhook`) instead of the Cloudflare Worker to simulate an on-premise Kubernetes environment.
-
-3. **Auto-Discovery Integration (P10-T16):**
-   - Wire up `api/internal/discovery/aggregator.go` into the sync pipeline so manual mapping via `substrate.yaml` can eventually be phased out.
-
----
-
-*Last updated by Antigravity — July 16, 2026*
+### 🤖 Playwright E2E Automation Note
+Since the entire stack (including the Forgejo Git server) is now fully local, this entire 5-axis test matrix can and will be automated via **Playwright**. 
+We can write a script (`dashboard/tests/e2e/system-matrix.spec.ts`) that programmatically pushes commits to the local Forgejo container, triggers the webhook, and asserts that the Substrate Dashboard DOM updates with the correct blast radius and CI status.

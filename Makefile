@@ -36,6 +36,7 @@ help:
 	@echo "Substrate Local Development Commands:"
 	@echo "--------------------------------------------------------"
 	@echo "make postgres     - Start the Postgres database in Docker"
+	@echo "make forgejo      - Start the local Forgejo Git server in Docker"
 	@echo "make api          - Start the Registry API (port 8090)"
 	@echo "make engine       - Start the Diff Engine (port 8080)"
 	@echo "make worker       - Start the GitHub Webhook Worker"
@@ -52,6 +53,12 @@ help:
 
 postgres:
 	docker rm -f substrate-postgres || true && docker run --name substrate-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=substrate -p 5432:5432 -d docker.io/library/postgres:15
+
+forgejo:
+	docker-compose -f docker-compose.forgejo.yml up -d
+
+stop-forgejo:
+	docker-compose -f docker-compose.forgejo.yml down
 
 build:
 	cd dashboard && npm install && npm run build
