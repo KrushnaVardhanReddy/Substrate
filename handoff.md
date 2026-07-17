@@ -18,6 +18,10 @@
 * **Start Backend Stack:** Run `make start-bg`.
 * **View Graph:** Go to `http://localhost:5173/org/<forgejo-username>/graph`.
 
+## 🏛️ Architectural Decisions Log
+* **Cloud Database Selection:** We have officially selected **Neon (Serverless Postgres)** as our managed cloud database provider for the SaaS tier. 
+  * *Why:* It scales to zero, meaning the Free Tier (0.5GB storage) will cost us literally **$0/month** until we land our first paying enterprise client. Once we scale, Neon's "Database Branching" feature will perfectly align with Substrate's PR-based schema preview model.
+
 ## 🧪 Comprehensive Demo Testing Guide
 
 ### Axis 1: Breaking vs. Non-Breaking Changes
