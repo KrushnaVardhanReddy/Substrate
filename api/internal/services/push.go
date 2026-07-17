@@ -134,11 +134,14 @@ func ProcessPush(ctx context.Context, store db.Store, ghClient github.Client, re
 				}
 				diffReqBytes, err := json.Marshal(diffReq)
 				if err != nil {
+					log.Printf("ProcessPush: Failed to marshal diff request: %v", err)
 					continue
 				}
 
+				log.Printf("ProcessPush: Calling DiffEngine at %s/diff for %s", diffEngineURL, contract.SpecPath)
 				diffResp, err := http.Post(diffEngineURL+"/diff", "application/json", bytes.NewBuffer(diffReqBytes))
 				if err != nil || diffResp.StatusCode != http.StatusOK {
+					log.Printf("ProcessPush: DiffEngine failed. err=%v, status=%v", err, diffResp)
 					if diffResp != nil {
 						diffResp.Body.Close()
 					}
@@ -147,10 +150,23 @@ func ProcessPush(ctx context.Context, store db.Store, ghClient github.Client, re
 
 				var diffReport DiffReport
 				if err := json.NewDecoder(diffResp.Body).Decode(&diffReport); err != nil {
+					log.Printf("ProcessPush: Failed to decode diff report: %v", err)
 					diffResp.Body.Close()
 					continue
 				}
 				diffResp.Body.Close()
+
+				log.Printf("ProcessPush: DiffReport summary: BreakingCount=%d", diffReport.Summary.BreakingCount)
+
+				statusToSet := "SAFE"
+				if diffReport.Summary.BreakingCount > 0 {
+					statusToSet = "BREAKING"
+				}
+
+				consumers, _ := store.GetConsumersByProviderContract(ctx, contract.ID)
+				for _, consumer := range consumers {
+					_ = store.UpdateDependencyStatus(ctx, consumer.ConsumerRepoID, contract.ID, statusToSet)
+				}
 
 				if diffReport.Summary.BreakingCount > 0 {
 					var breakingChanges []BreakingChange
@@ -166,7 +182,6 @@ func ProcessPush(ctx context.Context, store db.Store, ghClient github.Client, re
 						}
 					}
 
-					consumers, _ := store.GetConsumersByProviderContract(ctx, contract.ID)
 					for _, consumer := range consumers {
 						// Inside a worker context, we probably should either do this synchronously
 						// or enqueue another job. For now, doing it synchronously inside the worker is fine

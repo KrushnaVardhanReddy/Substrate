@@ -1,7 +1,12 @@
 package services
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"log"
+	"net/http"
+	"os"
 	"strings"
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
@@ -57,15 +62,68 @@ func ProcessSync(ctx context.Context, store db.Store, req SyncRequest) (int, err
 			return 0, err
 		}
 
+		// Fetch existing contracts to get the BASE schema before we overwrite it
+		existingContracts, _ := store.GetContractsByProviderFullName(ctx, dep.ProviderRepo)
+		var baseSchema string
+		for _, c := range existingContracts {
+			if c.SpecPath == dep.SpecPath {
+				baseSchema = c.RawContent
+				break
+			}
+		}
+
 		contractID, err := store.UpsertContract(ctx, providerRepoID, dep.SchemaType, dep.SpecPath, dep.Branch, req.CommitSHA, dep.RawContent)
 		if err != nil {
 			return 0, err
+		}
+
+		// Perform Diff Analysis
+		statusToSet := "SAFE"
+		if baseSchema != "" {
+			diffEngineURL := os.Getenv("DIFF_ENGINE_URL")
+			if diffEngineURL == "" {
+				diffEngineURL = "http://localhost:8080"
+			}
+			
+			diffReq := DiffEngineRequest{
+				BaseSchema: baseSchema,
+				HeadSchema: dep.RawContent,
+				SchemaType: dep.SchemaType,
+			}
+			
+			if diffReqBytes, err := json.Marshal(diffReq); err == nil {
+				log.Printf("ProcessSync: Calling DiffEngine at %s/diff", diffEngineURL)
+				diffResp, err := http.Post(diffEngineURL+"/diff", "application/json", bytes.NewBuffer(diffReqBytes))
+				if err != nil {
+					log.Printf("ProcessSync: DiffEngine failed with error: %v", err)
+				} else if diffResp.StatusCode != http.StatusOK {
+					log.Printf("ProcessSync: DiffEngine returned status: %d", diffResp.StatusCode)
+					diffResp.Body.Close()
+				} else {
+					var diffReport DiffReport
+					if err := json.NewDecoder(diffResp.Body).Decode(&diffReport); err == nil {
+						log.Printf("ProcessSync: DiffReport summary: BreakingCount=%d", diffReport.Summary.BreakingCount)
+						if diffReport.Summary.BreakingCount > 0 {
+							statusToSet = "BREAKING"
+						}
+					} else {
+						log.Printf("ProcessSync: Failed to decode DiffReport: %v", err)
+					}
+					diffResp.Body.Close()
+				}
+			} else {
+				log.Printf("ProcessSync: Failed to marshal diff request: %v", err)
+			}
 		}
 
 		// For manual yaml configs, confidence score is implicitly 100 since it is explicitly declared
 		if err := store.UpsertDependency(ctx, consumerRepoID, contractID, 100); err != nil {
 			return 0, err
 		}
+
+		// Set the dependency status in the database based on the diff result
+		_ = store.UpdateDependencyStatus(ctx, consumerRepoID, contractID, statusToSet)
+
 		syncedCount++
 	}
 

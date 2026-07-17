@@ -426,3 +426,19 @@ func (s *PGStore) GetDriftAnomalies(ctx context.Context, orgName, repoName strin
 	}
 	return anomalies, nil
 }
+
+func (s *PGStore) UpdateDependencyStatus(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, status string) error {
+	return UpdateDependencyStatus(ctx, s.pool, consumerRepoID, providerContractID, status)
+}
+
+func UpdateDependencyStatus(ctx context.Context, pool *pgxpool.Pool, consumerRepoID, providerContractID uuid.UUID, status string) error {
+	_, err := pool.Exec(ctx, `
+		UPDATE dependencies
+		SET status = $3, last_checked_at = NOW()
+		WHERE consumer_repo_id = $1 AND provider_contract_id = $2
+	`, consumerRepoID, providerContractID, status)
+	if err != nil {
+		return fmt.Errorf("failed to update dependency status: %w", err)
+	}
+	return nil
+}
