@@ -64,3 +64,7 @@ For each repository, test both a schema breaking change and a safe (non-breaking
 ### 🤖 Playwright E2E Automation Note
 Since the entire stack (including the Forgejo Git server) is now fully local, this entire 5-axis test matrix can and will be automated via **Playwright**. 
 We can write a script (`dashboard/tests/e2e/system-matrix.spec.ts`) that programmatically pushes commits to the local Forgejo container, triggers the webhook, and asserts that the Substrate Dashboard DOM updates with the correct blast radius and CI status.
+
+> **Important Architectural Note for the E2E Tests:** 
+> You will notice the Playwright script dynamically generates lightweight "stub" schema files (e.g., a 10-line `openapi.yaml`) in a `/tmp` folder instead of copying the real `demo-repos/` from disk. 
+> *Why did we do this?* Because massive repos like `stripe/openapi` are 1.2GB and are explicitly `.gitignore`d. If Playwright relied on them, the E2E tests would instantly fail in CI environments where those ignored files don't exist. Generating stubs guarantees the test is lightning-fast and 100% reproducible on any machine.

@@ -662,6 +662,11 @@ TASKS = {
         "phase": "phase-12-qa",
         "prompt": _load_prompt("prompts/phase-12/t11_multi_vcs_onboarding_ui.txt"),
     },
+    1212: {
+        "name": "P12-T12 — System Matrix E2E Test",
+        "phase": "phase-12-qa",
+        "prompt": _load_prompt("prompts/phase-12/t12_system_matrix_e2e.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
