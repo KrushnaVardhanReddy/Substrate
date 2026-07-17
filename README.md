@@ -935,6 +935,27 @@ To run Substrate locally, you need 5 terminals running simultaneously:
 
 ---
 
+# 🚀 WASM Micro-Tools (Product-Led Growth Engine)
+
+Because Substrate's core Go diffing engine is compiled to a portable WebAssembly (`engine.wasm`) binary, we have a massive competitive advantage for lead generation: we can run enterprise-grade schema analysis entirely in the user's browser for free, with zero server costs.
+
+As part of our go-to-market strategy, we will launch standalone, single-page "Micro-Tools" that act as lead-generation magnets for the core Substrate CI/CD platform:
+
+1. **The "Zero-Trust" OpenAPI Diff Studio (`diff.substrate.dev`)**
+   * **The Hook:** Users paste `v1.yaml` on the left and `v2.yaml` on the right. The WASM engine highlights breaking changes instantly.
+   * **The Sell:** "100% Secure. Your proprietary APIs never leave your laptop."
+
+2. **The "Will it Break?" SQL Migration Tester**
+   * **The Hook:** Data engineers paste their Postgres `schema.sql` and `migration.sql` to instantly verify if dropping a column breaks downstream contracts.
+   * **The Sell:** "Want to automate this in your CI pipeline? Install the Substrate GitHub App."
+
+3. **VS Code / Cursor Extension (Real-time Linting)**
+   * **The Hook:** The WASM engine runs on every keystroke inside the IDE, providing instant red squiggly lines if an edit breaks an API contract, without ever hitting a backend server.
+
+Offering these tools for free solves two massive startup problems: it eliminates server costs (the heavy AST diffing runs on the user's CPU) and it builds immense developer trust, seamlessly funneling them into the paid Enterprise tier when they need to automate it across 50+ repositories.
+
+---
+
 # Business Model & Monetization
 
 Substrate scales in value as an organization's complexity grows. The proposed model is a Product-Led Growth (PLG) approach utilizing a **Usage-Based Pricing Model (Per-Repository)** to eliminate seat-based friction:
