@@ -6,6 +6,7 @@
 * **Tasks Delegated:** 
   * Merged **P12-T10** from Jules to refactor the webhook worker using an Adapter Pattern to make it VCS-Agnostic (supporting GitHub, GitLab, and Gitea/Forgejo).
   * Merged **P12-T11** from Jules to update the SvelteKit onboarding UI to let users select their VCS provider (Cloud vs Self-Hosted).
+  * Merged **P12-T12** from Jules which provides the true E2E system matrix integration test that executes actual git pushes against the Forgejo server to validate Red/Green/Yellow paths.
 
 ## Next Steps for Tomorrow
 1. **Review & Merge Jules PRs:** Verify the VCS-Agnostic Adapter and the UI changes in `feature/dev`.
