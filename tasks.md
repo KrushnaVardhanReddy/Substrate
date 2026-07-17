@@ -114,7 +114,8 @@
 | **P12-T12** | 🚀 P1 | **System Matrix E2E Test** — Playwright suite that runs `git push` against local Forgejo to test the Red (Breaking), Green (Safe), and Yellow (Override) paths natively end-to-end. | Jules | ✅ Done | `docs/specs/phase-12/p12-t12-system-matrix-e2e.md` |
 | **P12-T13** | ⭐ P1 | **Zero-Config Developer Portal (Catalog UI)** — Build a "Backstage Killer" Service Catalog in the dashboard to auto-render API docs using Stoplight Elements without manual yaml config. | Jules | ✅ Done | `docs/specs/phase-12/p12-t13-zero-config-catalog.md` |
 | **P12-T14** | 🔴 P1 | **System Matrix Overrides (Yellow Path)** — Extend the E2E Matrix to SQL and AsyncAPI, and implement the Acknowledged status in the Go backend and Svelte UI. | Jules | 🔄 Running (`4731870067383577278`) | `docs/specs/phase-12/p12-t14-yellow-path-matrix.md` |
-| **P12-T15** | 🚀 P1 | **Advanced Feature Suites E2E** — Automate E2E testing for WASM Engine, MCP Impact API, AI Autofix, SSE Real-Time, Blast Radius, and Enterprise Dashboard UI. | Jules | 🔄 Running (`14546955130784840283`) | `docs/specs/phase-12/p12-t15-advanced-e2e.md` |
+| **P12-T15** | 🚀 P1 | **Advanced Feature Suites E2E** — Automate E2E testing for WASM Engine, MCP Impact API, AI Autofix, SSE Real-Time, Blast Radius, and Enterprise Dashboard UI. | Jules | ✅ Complete | `docs/specs/phase-12/p12-t15-advanced-e2e.md` |
+| **P12-T16** | 🔴 P1 | **Advanced E2E UI Implementation (TDD)** — Implement the SvelteKit frontend UI (Enterprise Routes, Impact API UI, Transitive Blast Radius, Telemetry) to satisfy the failing TDD E2E tests from P12-T15. | Unassigned | 💡 Backlog | `(Pending)` |
 
 ---
 
