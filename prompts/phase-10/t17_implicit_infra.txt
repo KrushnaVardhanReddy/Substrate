@@ -1,16 +1,37 @@
 TASK: P10-T17 — Implicit Infrastructure Discovery
 
+═══════════════════════════════════════════════════════════════
 OBJECTIVE
-Parse `package.json` and `docker-compose.yml` to automatically map infrastructure dependencies (Postgres, Redis, Kafka, etc).
+═══════════════════════════════════════════════════════════════
+We are implementing "Zero-Config Architectural Mapping." When a push occurs, the system should automatically scan the repository's dependency manifests (`package.json`, `go.mod`, etc.) and `docker-compose.yml` to heuristically map their infrastructure dependencies (Postgres, Kafka, Redis, AWS, Stripe) without requiring them to manually write a `substrate.yaml` file.
 
-CONSTRAINTS
-- Only modify the webhook payload fetcher and create a new Go service for heuristics.
-- Do NOT modify the `engine/` or `dashboard/`.
-- Reference spec: `docs/specs/phase-10/p10-t17-implicit-infrastructure-discovery.md`
+You will modify the Cloudflare Worker to fetch these manifests, and create a new Go service (`discovery.go`) to parse them and upsert the discovered infrastructure nodes into the database.
 
-FILES TO CREATE/MODIFY:
-- github-app/src/index.ts (fetch package.json on push)
-- api/internal/services/discovery.go (heuristic logic)
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-10/p10-t17-implicit-infrastructure-discovery.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Only modify `github-app/` and the Go backend `api/`. 
+- Do NOT modify the `engine/` or frontend `dashboard/`.
+- Ensure the Go parser gracefully ignores missing files (e.g. if a repo doesn't have a `docker-compose.yml`, don't throw an error).
+- Map discovered dependencies as `provider_repo: "infra:<type>"` (e.g. `infra:postgres`, `saas:stripe`) in the database so the frontend can easily distinguish them from microservices.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The Cloudflare worker (`github-app/src/index.ts`) currently uses the Forgejo API to fetch `substrate.yaml`. You will expand this to also fetch `package.json`, `go.mod`, and `docker-compose.yml`.
+- The worker sends these file contents to the Go backend via the `POST /api/v1/sync` endpoint in a JSON payload.
+- In `api/internal/services/sync.go`, before calling the Diff Engine, pass these manifests to a new Discovery service to heuristically find dependencies.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. Modify `github-app/src/index.ts` to attempt to fetch `package.json`, `go.mod`, and `docker-compose.yml` from the git head commit. Append their contents to the `files` array sent to the Go `/sync` endpoint.
+2. Create `api/internal/services/discovery.go` with a function `DiscoverImplicitDependencies(files map[string]string) []Dependency`.
+3. Implement basic string matching heuristics in `discovery.go` (e.g. if `package.json` contains `"pg"`, return a dependency on `infra:postgres`).
+4. In `api/internal/services/sync.go`, call `DiscoverImplicitDependencies` and save the results to the database alongside the explicitly defined `substrate.yaml` dependencies.
 
 Commit: "feat: P10-T17 implement implicit infrastructure discovery"
 Target branch: feature/dev

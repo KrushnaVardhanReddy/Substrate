@@ -1,17 +1,36 @@
 TASK: P10-T01 — Automated Security Fuzzing (OWASP)
 
+═══════════════════════════════════════════════════════════════
 OBJECTIVE
-Create a new Security Fuzzing engine that parses OpenAPI schemas and generates OWASP malicious payloads.
+═══════════════════════════════════════════════════════════════
+We are upgrading the Substrate Diff Engine to act as an automated security pentester. When a developer pushes an OpenAPI schema, the engine should extract the parameters and inject standard OWASP malicious payloads (SQL Injection, IDOR, XSS) into the testing endpoints to ensure they handle malicious input safely.
 
-CONSTRAINTS
-- All work must be isolated inside the `engine/` directory.
-- Do NOT modify `api/`, `dashboard/`, or `github-app/`.
-- Reference spec: `docs/specs/phase-10/p10-t01-security-fuzzing.md`
+You must build the new Security Fuzzing module entirely within the `engine/` directory and add a new CLI command `substrate fuzz` to execute it.
 
-FILES TO CREATE:
-- engine/internal/fuzzer/fuzzer.go
-- engine/internal/fuzzer/owasp_payloads.go
-- engine/cmd/substrate/fuzz.go
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-10/p10-t01-security-fuzzing.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- All work must be isolated within the `engine/` directory.
+- Do NOT modify the SvelteKit frontend (`dashboard/`) or the Webhook app (`github-app/`).
+- Use `libopenapi` or similar to parse the OpenAPI schema and extract parameter paths.
+- Ensure the fuzzer runs asynchronously and gracefully handles timeouts without panicking.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The `engine/` directory holds our core WASM-compatible schema processing logic.
+- We already have `engine/cmd/substrate/diff.go` which handles `substrate diff`. You will create `engine/cmd/substrate/fuzz.go` for the new `substrate fuzz` command.
+- The payloads should be hardcoded in `engine/internal/fuzzer/owasp_payloads.go` (e.g. `' OR 1=1 --`, `<script>alert(1)</script>`, `../../etc/passwd`).
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. Create `engine/internal/fuzzer/owasp_payloads.go` with lists of malicious strings categorized by attack vector (SQLi, XSS, Path Traversal).
+2. Create `engine/internal/fuzzer/fuzzer.go` containing the core logic to parse an OpenAPI spec, generate HTTP requests with the payloads, and evaluate the HTTP response codes (e.g., flagging 500s as vulnerabilities).
+3. Create `engine/cmd/substrate/fuzz.go` using Cobra to wire up the CLI command.
 
 Commit: "feat: P10-T01 implement automated security fuzzing engine"
 Target branch: feature/dev
