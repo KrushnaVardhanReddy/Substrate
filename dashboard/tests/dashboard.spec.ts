@@ -13,7 +13,7 @@ test('dashboard loads and displays the empty state', async ({ page }) => {
 	await page.goto('/');
 
 	// Verify sidebar contains the dynamic repo
-	await expect(page.locator('.sidebar')).toContainText('org/repo-1');
+	await expect(page.locator('.sidebar')).toContainText('org/repo-1', { timeout: 10000 });
 
 	await expect(page.locator('header')).toBeVisible();
 

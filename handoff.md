@@ -5,7 +5,7 @@
 * **Blocker Identified:** The worker is currently returning `Ignored` because `github-client.ts` is hardcoded to call `api.github.com` instead of dynamically calling the Git server that triggered the webhook.
 * **Tasks Delegated:** 
   * Delegated **P12-T10** to Jules to refactor the webhook worker using an Adapter Pattern to make it VCS-Agnostic (supporting GitHub, GitLab, and Gitea/Forgejo).
-  * Delegated **P12-T11** to Jules to update the SvelteKit onboarding UI to let users select their VCS provider (Cloud vs Self-Hosted).
+  * Merged **P12-T11** from Jules to update the SvelteKit onboarding UI to let users select their VCS provider (Cloud vs Self-Hosted).
 
 ## Next Steps for Tomorrow
 1. **Review & Merge Jules PRs:** Verify the VCS-Agnostic Adapter and the UI changes in `feature/dev`.
