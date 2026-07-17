@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Library from '@lucide/svelte/icons/library';
 	let { repos = [], org = '', pathname = '', isAdmin = true }: { repos?: { id: string; name: string; full_name: string }[], org?: string, pathname?: string, isAdmin?: boolean } = $props();
 </script>
 
@@ -9,6 +10,9 @@
 	<div class="sidebar-nav">
 		{#if org}
 			<a href="/org/{org}" class="nav-item {pathname === `/org/${org}` ? 'active' : ''}">Repositories</a>
+			<a href="/org/{org}/catalog" class="nav-item {pathname === `/org/${org}/catalog` ? 'active' : ''}" style="display: flex; align-items: center; gap: 8px;">
+				<Library size={16} /> Catalog
+			</a>
 			<a href="/org/{org}/graph" class="nav-item {pathname === `/org/${org}/graph` ? 'active' : ''}">Dependency Graph</a>
 			<a href="/org/{org}/matrix" class="nav-item {pathname === `/org/${org}/matrix` ? 'active' : ''}">Compatibility Matrix</a>
 		{:else}
