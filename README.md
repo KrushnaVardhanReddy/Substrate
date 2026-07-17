@@ -939,20 +939,38 @@ To run Substrate locally, you need 5 terminals running simultaneously:
 
 Because Substrate's core Go diffing engine is compiled to a portable WebAssembly (`engine.wasm`) binary, we have a massive competitive advantage for lead generation: we can run enterprise-grade schema analysis entirely in the user's browser for free, with zero server costs.
 
-As part of our go-to-market strategy, we will launch standalone, single-page "Micro-Tools" that act as lead-generation magnets for the core Substrate CI/CD platform:
+As part of Phase 13 (Go-To-Market), we will launch a standalone, single-page hub at **`tools.substrate.dev`** housing a suite of "Micro-Tools" that act as lead-generation magnets for the core Substrate CI/CD platform.
 
-1. **The "Zero-Trust" OpenAPI Diff Studio (`diff.substrate.dev`)**
-   * **The Hook:** Users paste `v1.yaml` on the left and `v2.yaml` on the right. The WASM engine highlights breaking changes instantly.
-   * **The Sell:** "100% Secure. Your proprietary APIs never leave your laptop."
+### Target Personas & Tools
 
-2. **The "Will it Break?" SQL Migration Tester**
-   * **The Hook:** Data engineers paste their Postgres `schema.sql` and `migration.sql` to instantly verify if dropping a column breaks downstream contracts.
-   * **The Sell:** "Want to automate this in your CI pipeline? Install the Substrate GitHub App."
+**1. For Backend & Frontend Developers**
+* **The "Zero-Trust" OpenAPI Diff Studio:** Users paste `v1.yaml` on the left and `v2.yaml` on the right. The WASM engine highlights breaking changes instantly. (Sell: "100% Secure. Your proprietary APIs never leave your laptop.")
+* **VS Code / Cursor Extension:** The WASM engine runs on every keystroke inside the IDE, providing instant red squiggly lines if an edit breaks an API contract, without hitting a server.
+* **Instant SDK Compiler:** Paste a GraphQL or OpenAPI spec, and the WASM engine compiles it into a strongly-typed TypeScript/Python SDK instantly.
 
-3. **VS Code / Cursor Extension (Real-time Linting)**
-   * **The Hook:** The WASM engine runs on every keystroke inside the IDE, providing instant red squiggly lines if an edit breaks an API contract, without ever hitting a backend server.
+**2. For QA & Testing Teams**
+* **In-Browser Mock Server:** Paste an OpenAPI spec, and the WASM engine uses a Service Worker to intercept network requests, returning fake JSON data that matches the schema perfectly. A local mock API in seconds.
+* **Instant Postman/Playwright Generator:** Paste an API contract to generate a fully populated Postman Collection or Playwright E2E script covering all endpoints.
 
-Offering these tools for free solves two massive startup problems: it eliminates server costs (the heavy AST diffing runs on the user's CPU) and it builds immense developer trust, seamlessly funneling them into the paid Enterprise tier when they need to automate it across 50+ repositories.
+**3. For DevOps & Platform Engineers**
+* **Terraform / Helm Blast Radius Visualizer:** Paste a `terraform plan` output. The WASM engine parses the IaC and draws a dependency graph showing exactly what resources will be destroyed.
+
+**4. For Data Engineers**
+* **The "Will it Break?" SQL Migration Tester:** Paste `schema.sql` and `migration.sql` to instantly verify if dropping a column breaks downstream ETL contracts.
+* **dbt DAG Visualizer:** Paste massive `models.sql` files to instantly draw the Directed Acyclic Graph (DAG) of table flows without spinning up a data warehouse.
+
+### Architecture Strategy
+* **Repository:** We will create a new `/tools-site/` directory inside this monorepo. This allows it to effortlessly consume the `engine.wasm` output from the `Makefile`.
+* **Deployment:** Hosted on Cloudflare Pages for $0/month.
+* **The Hook:** Every tool solves a daily pain point for free, but features a call-to-action: *"Want to automate this in your CI pipeline? Install the Substrate GitHub App."*
+
+### UI/UX Reference Architectures (The Blueprint)
+To ensure these tools are massively successful, we will heavily model their UX after the "Hall of Fame" developer micro-tools:
+1. **Transform.tools** (Clean Split-Screen): Our SDK Compilers will mimic their beautifully simple left/right pastebin interface.
+2. **Regex101.com** (Zero-Latency Feedback): Our SQL Migration Tester must feel like Regex101—instant red/green DOM updates on every keystroke.
+3. **JWT.io** (The PLG Funnel): We will copy Auth0's playbook, using a highly useful free tool to subtly funnel enterprise teams into our paid CI/CD product.
+4. **CyberChef** (Complex Client-Side Pipelines): Proves that heavy computations (like our WASM AST Diffing) can be trusted to run 100% securely on the client.
+5. **AST Explorer** (Deep Debugging): We will expose a simplified view of our Go Engine's AST parser so developers can visually debug why their schemas are failing.
 
 ---
 
