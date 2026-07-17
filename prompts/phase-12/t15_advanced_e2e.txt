@@ -1,0 +1,56 @@
+TASK: P12-T15 — Advanced Feature Suites E2E (WASM, MCP, AI, Enterprise)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+We need to complete Phase 12 by fully automating Suites 8 through 14. These suites test our advanced platform capabilities: WASM In-Browser Diffing, Impact API/MCP Tools, AI Autofix, Enterprise Dashboard rendering, Real-time SSE updates, Cascading Blast Radius, and Telemetry/ROI tracking.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-12/p12-t15-advanced-e2e.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Each suite MUST be in its own isolated `.spec.ts` file in `dashboard/tests/e2e/` to prevent merge conflicts.
+- Reference `dashboard/tests/e2e/system-matrix-full.spec.ts` for examples of how we structure our Playwright tests, network intercepts, and assertions. Use the same patterns.
+- Do not modify existing test files; only create new ones.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- Substrate relies on a SvelteKit dashboard and a Go backend.
+- You can mock backend API routes using `page.route` when appropriate for purely frontend-focused tests (like the UI enterprise routes), but for full integration tests (like Blast Radius), you should trigger real API flows if possible.
+- The WASM Engine is loaded statically by the browser in the Playground route.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FILES TO CREATE IN `dashboard/tests/e2e/`:
+   - `wasm-engine.spec.ts` (Playground/WASM isolation)
+   - `impact-api.spec.ts` (Can-Deploy / Can-Rollback gates)
+   - `ai-autofix.spec.ts` (Analyze & Autofix endpoints)
+   - `enterprise-routes.spec.ts` (Navigation/Rendering)
+   - `sse-realtime.spec.ts` (Server-Sent Events)
+   - `blast-radius.spec.ts` (Cross-repo propagation)
+   - `telemetry-roi.spec.ts` (Tracking events)
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO MODIFY/CREATE:
+- dashboard/tests/e2e/wasm-engine.spec.ts
+- dashboard/tests/e2e/impact-api.spec.ts
+- dashboard/tests/e2e/ai-autofix.spec.ts
+- dashboard/tests/e2e/enterprise-routes.spec.ts
+- dashboard/tests/e2e/sse-realtime.spec.ts
+- dashboard/tests/e2e/blast-radius.spec.ts
+- dashboard/tests/e2e/telemetry-roi.spec.ts
+
+FILES TO NOT TOUCH:
+- dashboard/tests/e2e/system-matrix-full.spec.ts
+- dashboard/tests/e2e/system-matrix.spec.ts
+
+Commit: "test(e2e): P12-T15 implement advanced feature test suites"
+Target branch: feature/dev
