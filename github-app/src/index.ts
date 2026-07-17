@@ -86,7 +86,7 @@ export default {
 
     const body = await request.text();
 
-    if (isGitHub) {
+    if (isGitHub && !isGitea) {
       const signature = request.headers.get('X-Hub-Signature-256');
       if (!signature) {
         return new Response('Unauthorized', { status: 401 });

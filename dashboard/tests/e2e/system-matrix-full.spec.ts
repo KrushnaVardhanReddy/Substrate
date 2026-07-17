@@ -35,7 +35,7 @@ async function pushToForgejo(repoName: string, files: Record<string, string>, br
     try {
       execSync(`git push -u origin main -f`, { cwd: tempDir, stdio: 'pipe' });
     } catch (e: any) {
-      if (e.stderr && e.stderr.toString().includes('repository does not exist')) {
+      if (e.stderr && (e.stderr.toString().includes('repository does not exist') || e.stderr.toString().includes('403'))) {
         console.log(`Repo ${repoName} does not exist, attempting to create via API...`);
         const createRes = await fetch(`http://localhost:3000/api/v1/user/repos`, {
           method: 'POST',
@@ -46,6 +46,20 @@ async function pushToForgejo(repoName: string, files: Record<string, string>, br
           body: JSON.stringify({ name: repoName, private: false })
         });
         if (createRes.ok) {
+           // Create the webhook
+           await fetch(`http://localhost:3000/api/v1/repos/${FORGEJO_USER}/${repoName}/hooks`, {
+             method: 'POST',
+             headers: {
+               'Content-Type': 'application/json',
+               'Authorization': `Basic ${Buffer.from(`${FORGEJO_USER}:${FORGEJO_PASS}`).toString('base64')}`
+             },
+             body: JSON.stringify({
+               type: 'gitea',
+               config: { url: 'http://localhost:8787/', content_type: 'json' },
+               events: ['push', 'pull_request'],
+               active: true
+             })
+           });
            // Try push again
            execSync(`git push -u origin main -f`, { cwd: tempDir, stdio: 'pipe' });
         } else {
@@ -176,6 +190,133 @@ message Empty {}
       await waitForGraphSearch(page, 'microservices', 5);
       
       // No breaking alerts
+      await expect(page.locator('.status-indicator.breaking')).toHaveCount(0, { timeout: 10000 });
+    });
+  });
+
+  test.describe.serial('Repo: stripe-api (OpenAPI)', () => {
+    const REPO_NAME = 'stripe-api';
+    
+    const BASE_SUBSTRATE_YAML = `schema_type: openapi
+base_schema: openapi.yaml
+head_schema: openapi.yaml
+
+consumers:
+  - name: billing-service
+    provider_repo: admin/stripe-api
+    schema_type: openapi
+    provider_spec_path: openapi.yaml
+    provider_branch: main
+`;
+
+    const BASE_OPENAPI = `openapi: 3.0.0
+info:
+  title: Stripe API
+  version: 1.0.0
+paths:
+  /charges:
+    post:
+      summary: Create a charge
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+              properties:
+                amount:
+                  type: integer
+      responses:
+        '200':
+          description: OK
+`;
+
+    test('Setup & Seeding: Push initial valid schema', async () => {
+      await pushToForgejo(REPO_NAME, {
+        'substrate.yaml': BASE_SUBSTRATE_YAML,
+        'openapi.yaml': BASE_OPENAPI
+      });
+      await new Promise(r => setTimeout(r, 2000));
+    });
+
+    test('Red Path: Push breaking change', async ({ page }) => {
+      const BREAKING_OPENAPI = `openapi: 3.0.0
+info:
+  title: Stripe API
+  version: 1.0.0
+paths:
+  /charges:
+    post:
+      summary: Create a charge
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+                - currency # BREAKING: added required field
+              properties:
+                amount:
+                  type: integer
+                currency:
+                  type: string
+      responses:
+        '200':
+          description: OK
+`;
+      await pushToForgejo(REPO_NAME, {
+        'substrate.yaml': BASE_SUBSTRATE_YAML,
+        'openapi.yaml': BREAKING_OPENAPI
+      });
+      
+      await page.waitForTimeout(3000);
+      await waitForGraphSearch(page, 'stripe', 2); // 1 provider + 1 consumer
+      
+      const alertNodes = page.locator('.status-indicator.breaking');
+      await expect(alertNodes).toHaveCount(1, { timeout: 10000 });
+    });
+
+    test('Green Path: Push safe change', async ({ page }) => {
+      const SAFE_OPENAPI = `openapi: 3.0.0
+info:
+  title: Stripe API
+  version: 1.0.0
+paths:
+  /charges:
+    post:
+      summary: Create a charge
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+                - currency # Keep required from BREAKING
+              properties:
+                amount:
+                  type: integer
+                currency:
+                  type: string
+                description: # SAFE: added optional field
+                  type: string
+      responses:
+        '200':
+          description: OK
+`;
+      await pushToForgejo(REPO_NAME, {
+        'substrate.yaml': BASE_SUBSTRATE_YAML,
+        'openapi.yaml': SAFE_OPENAPI
+      });
+      
+      await page.waitForTimeout(3000);
+      await waitForGraphSearch(page, 'stripe', 2);
+      
       await expect(page.locator('.status-indicator.breaking')).toHaveCount(0, { timeout: 10000 });
     });
   });
