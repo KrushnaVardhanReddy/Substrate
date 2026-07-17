@@ -120,6 +120,7 @@ export default {
     const prEvent = isGitea ? parseGiteaPREvent(request.headers, body) : parseGitHubPREvent(request.headers, body);
 
     if (!pushEvent && !prEvent) {
+      console.log('Ignored: No valid push or PR event parsed');
       return new Response('Ignored', { status: 200 });
     }
 
@@ -139,6 +140,7 @@ export default {
     }
 
     if (!providerResult) {
+         console.log('Auth Error: providerResult is null. Check env vars GITEA_API_URL/GITEA_TOKEN.');
          return new Response('Auth Error', { status: 200 });
     }
 
@@ -155,11 +157,13 @@ export default {
         );
 
         if (!configContent) {
+          console.log(`Ignored: No substrate.yaml found in ${eventOwner}/${eventRepo} at ${pushEv.after}`);
           return new Response('Ignored', { status: 200 });
         }
 
         const consumerEntries = await parseConsumersFromYaml(configContent);
         if (consumerEntries.length === 0) {
+          console.log('Ignored: No consumers found in substrate.yaml');
           return new Response('Ignored', { status: 200 });
         }
 
