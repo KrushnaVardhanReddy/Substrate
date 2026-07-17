@@ -1,10 +1,11 @@
-import { Env, DiffReport, SyncDependency, CrossRepoCheckRequest, CrossRepoCheckResponse, AIAutofixRequest, AIAutofixResponse } from './types.js';
-import { validateWebhookSignature, parsePREvent, parsePushEvent } from './webhook.js';
-import { generateInstallationToken, fetchFileContent, postPRComment, setCommitStatus, fetchPRFiles } from './github-client.js';
+import { Env, DiffReport, SyncDependency, CrossRepoCheckRequest, CrossRepoCheckResponse, AIAutofixRequest, AIAutofixResponse, VCSClient } from './types.js';
+import { validateWebhookSignature, parseInstallationRepositoriesEvent, parseInstallationEvent } from './webhook.js';
+import { generateInstallationToken } from './github-client.js';
 import { formatPRComment, formatMissingConfigComment, getCommitStatusState, getCommitStatusDescription, formatCrossRepoImpact } from './formatter.js';
 import { parseConsumersFromYaml, syncToRegistry, crossRepoCheck } from './registry-client.js';
-import { parseInstallationRepositoriesEvent, parseInstallationEvent } from './webhook.js';
 import { processAutoDiscovery } from './discovery.js';
+import { parseGitHubPREvent, parseGitHubPushEvent, GitHubProvider } from './providers/github/index.js';
+import { parseGiteaPREvent, parseGiteaPushEvent, GiteaProvider } from './providers/gitea/index.js';
 
 
 // YAML parser mock/regex for the stub phase
@@ -48,6 +49,27 @@ async function callContainerService(containerUrl: string, baseSchema: string, he
   return await response.json();
 }
 
+async function getVCSProvider(request: Request, env: Env, eventData: any): Promise<{provider: VCSClient, eventOwner: string, eventRepo: string} | null> {
+  const isGitea = request.headers.has('X-Gitea-Event') || request.headers.has('X-Forgejo-Event');
+
+  if (isGitea && env.GITEA_API_URL && env.GITEA_TOKEN) {
+    return {
+      provider: new GiteaProvider(env.GITEA_API_URL, env.GITEA_TOKEN),
+      eventOwner: eventData.owner,
+      eventRepo: eventData.repo
+    };
+  } else if (!isGitea) {
+    if (!eventData.installationId) return null;
+    const token = await generateInstallationToken(env.GITHUB_APP_ID, env.GITHUB_APP_PRIVATE_KEY, eventData.installationId);
+    return {
+      provider: new GitHubProvider(token),
+      eventOwner: eventData.owner,
+      eventRepo: eventData.repo
+    };
+  }
+  return null;
+}
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     // Step 1: Only accept POST
@@ -55,60 +77,81 @@ export default {
       return new Response('Method Not Allowed', { status: 405 });
     }
 
-    const signature = request.headers.get('X-Hub-Signature-256');
-    if (!signature) {
-      return new Response('Unauthorized', { status: 401 });
+    const isGitea = request.headers.has('X-Gitea-Event') || request.headers.has('X-Forgejo-Event');
+    const isGitHub = request.headers.has('X-GitHub-Event');
+
+    if (!isGitea && !isGitHub) {
+      return new Response('Unknown Webhook Source', { status: 400 });
     }
 
     const body = await request.text();
 
-    // Step 2: Validate HMAC
-    const isValid = await validateWebhookSignature(signature, body, env.GITHUB_WEBHOOK_SECRET);
-    if (!isValid) {
-      return new Response('Unauthorized', { status: 401 });
-    }
-
-    const eventType = request.headers.get('X-GitHub-Event');
-
-    if (eventType === 'installation_repositories') {
-      const installReposEvent = parseInstallationRepositoriesEvent(request.headers, body);
-      if (installReposEvent && installReposEvent.action === 'added' && installReposEvent.repositories_added) {
-        // Fire and forget auto-discovery
-        ctx.waitUntil(processAutoDiscovery(env, installReposEvent.installation.id, installReposEvent.repositories_added).catch(console.error));
-      }
-      return new Response('Accepted', { status: 202 });
-    }
-
-    if (eventType === 'installation') {
-      const installEvent = parseInstallationEvent(request.headers, body);
-      if (installEvent && installEvent.action === 'created' && installEvent.repositories) {
-         // Fire and forget auto-discovery
-         ctx.waitUntil(processAutoDiscovery(env, installEvent.installation.id, installEvent.repositories).catch(console.error));
-      }
-      return new Response('Accepted', { status: 202 });
-    }
-    if (eventType === 'push') {
-      const pushEvent = parsePushEvent(request.headers, body);
-      if (!pushEvent) {
-        return new Response('Ignored', { status: 200 });
+    if (isGitHub) {
+      const signature = request.headers.get('X-Hub-Signature-256');
+      if (!signature) {
+        return new Response('Unauthorized', { status: 401 });
       }
 
-      try {
-        let token = "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";
-        if (pushEvent.installationId) {
-          token = await generateInstallationToken(
-            env.GITHUB_APP_ID,
-            env.GITHUB_APP_PRIVATE_KEY,
-            pushEvent.installationId
-          );
+      const isValid = await validateWebhookSignature(signature, body, env.GITHUB_WEBHOOK_SECRET);
+      if (!isValid) {
+        return new Response('Unauthorized', { status: 401 });
+      }
+
+      const eventType = request.headers.get('X-GitHub-Event');
+
+      if (eventType === 'installation_repositories') {
+        const installReposEvent = parseInstallationRepositoriesEvent(request.headers, body);
+        if (installReposEvent && installReposEvent.action === 'added' && installReposEvent.repositories_added) {
+          ctx.waitUntil(processAutoDiscovery(env, installReposEvent.installation.id, installReposEvent.repositories_added).catch(console.error));
         }
+        return new Response('Accepted', { status: 202 });
+      }
 
-        const configContent = await fetchFileContent(
-          token,
-          pushEvent.owner,
-          pushEvent.repo,
+      if (eventType === 'installation') {
+        const installEvent = parseInstallationEvent(request.headers, body);
+        if (installEvent && installEvent.action === 'created' && installEvent.repositories) {
+           ctx.waitUntil(processAutoDiscovery(env, installEvent.installation.id, installEvent.repositories).catch(console.error));
+        }
+        return new Response('Accepted', { status: 202 });
+      }
+    }
+
+    const pushEvent = isGitea ? parseGiteaPushEvent(request.headers, body) : parseGitHubPushEvent(request.headers, body);
+    const prEvent = isGitea ? parseGiteaPREvent(request.headers, body) : parseGitHubPREvent(request.headers, body);
+
+    if (!pushEvent && !prEvent) {
+      return new Response('Ignored', { status: 200 });
+    }
+
+    const isPushEvent = !!pushEvent;
+    const eventData = pushEvent || prEvent;
+
+    if (!eventData) {
+        return new Response('No Event Data', { status: 400 });
+    }
+
+    let providerResult;
+    try {
+        providerResult = await getVCSProvider(request, env, eventData);
+    } catch (e) {
+        console.error("Token Generation Failed:", e);
+        return new Response('Auth Error', { status: 200 });
+    }
+
+    if (!providerResult) {
+         return new Response('Auth Error', { status: 200 });
+    }
+
+    const { provider, eventOwner, eventRepo } = providerResult;
+
+    if (isPushEvent) {
+      try {
+        const pushEv = pushEvent!;
+        const configContent = await provider.fetchFileContent(
+          eventOwner,
+          eventRepo,
           'substrate.yaml',
-          pushEvent.after
+          pushEv.after
         );
 
         if (!configContent) {
@@ -132,27 +175,10 @@ export default {
 
         await Promise.all(consumerEntries.map(async (entry) => {
           try {
-            // Fetch provider_github_repo_id using GitHub API
-            const repoResponse = await fetch(`https://api.github.com/repos/${entry.provider_repo}`, {
-              headers: {
-                'Accept': 'application/vnd.github.v3+json',
-                'Authorization': `Bearer ${token}`,
-                'User-Agent': 'Substrate-GitHub-App'
-              }
-            });
+            const providerOwner = entry.provider_repo.split('/')[0] || eventOwner;
+            const providerRepoName = entry.provider_repo.split('/')[1] || entry.provider_repo;
 
-            if (!repoResponse.ok) {
-              console.error(`Failed to fetch repo ${entry.provider_repo}`);
-              return;
-            }
-
-            const repoData = await repoResponse.json() as any;
-            const providerOwner = repoData.owner.login;
-            const providerRepoName = repoData.name;
-            const providerGithubRepoId = repoData.id;
-
-            const providerSpecContent = await fetchFileContent(
-              token,
+            const providerSpecContent = await provider.fetchFileContent(
               providerOwner,
               providerRepoName,
               entry.provider_spec_path,
@@ -160,16 +186,16 @@ export default {
             );
 
             if (providerSpecContent) {
-              const consumerFullName = `${pushEvent.owner}/${entry.name}`;
+              const consumerFullName = `${eventOwner}/${entry.name}`;
               const syncResult = await syncToRegistry(env.REGISTRY_API_URL, env.REGISTRY_API_TOKEN, {
-                installation_id: pushEvent.installationId,
-                org: pushEvent.owner,
+                installation_id: pushEv.installationId,
+                org: eventOwner,
                 consumer_repo: consumerFullName,
                 consumer_github_repo_id: hashString(consumerFullName),
-                commit_sha: pushEvent.after,
+                commit_sha: pushEv.after,
                 dependencies: [{
                   provider_repo: entry.provider_repo,
-                  provider_github_repo_id: providerGithubRepoId,
+                  provider_github_repo_id: hashString(entry.provider_repo), // Using hash as fallback for repo ID
                   schema_type: entry.schema_type,
                   spec_path: entry.provider_spec_path,
                   branch: entry.provider_branch,
@@ -195,39 +221,22 @@ export default {
       }
     }
 
-    // Step 3: Parse PR event
-    const event = parsePREvent(request.headers, body);
-    if (!event) {
-      // Not a handled PR action, return 200 immediately
-      return new Response('Ignored', { status: 200 });
-    }
+    const event = prEvent!;
 
     try {
-      // Step 4: Generate installation token or fallback
-      let token = "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";
-      if (event.installationId) {
-        token = await generateInstallationToken(
-          env.GITHUB_APP_ID,
-          env.GITHUB_APP_PRIVATE_KEY,
-          event.installationId
-        );
-      }
-
       // Step 5: Set 'pending' commit status immediately
-      await setCommitStatus(
-        token,
-        event.owner,
-        event.repo,
+      await provider.setCommitStatus(
+        eventOwner,
+        eventRepo,
         event.headSha,
         'pending',
         'Substrate is checking...'
       );
 
       // Step 6: Fetch substrate.yaml from head commit
-      let configContent = await fetchFileContent(
-        token,
-        event.owner,
-        event.repo,
+      let configContent = await provider.fetchFileContent(
+        eventOwner,
+        eventRepo,
         'substrate.yaml',
         event.headSha
       );
@@ -237,15 +246,14 @@ export default {
       // Step 7: Zero-Config Heuristics if no substrate.yaml
       if (!configContent) {
         // First try to fetch org-level config
-        const orgConfigContent = await fetchFileContent(
-          token,
-          event.owner,
-          '.github',
-          'substrate-org.yaml',
+        const orgConfigContent = await provider.fetchFileContent(
+          eventOwner,
+          eventRepo,
+          '.github/substrate-org.yaml',
           'main'
         );
 
-        const prFiles = await fetchPRFiles(token, event.owner, event.repo, event.prNumber);
+        const prFiles = await provider.fetchPRFiles(eventOwner, eventRepo, event.prNumber);
 
         let matchedSchema = null;
         let matchedType = null;
@@ -291,13 +299,12 @@ export default {
           if (!config.schema_type) config.schema_type = matchedType;
         } else {
           const missingConfigMsg = formatMissingConfigComment();
-          await postPRComment(token, event.owner, event.repo, event.prNumber, missingConfigMsg);
+          await provider.postPRComment(eventOwner, eventRepo, event.prNumber, missingConfigMsg);
 
           // Ensure pending status remains (set neutrally above, spec says neutral/pending)
-          await setCommitStatus(
-            token,
-            event.owner,
-            event.repo,
+          await provider.setCommitStatus(
+            eventOwner,
+            eventRepo,
             event.headSha,
             'pending',
             'substrate.yaml not found — run `substrate init` to activate'
@@ -313,28 +320,28 @@ export default {
       let headContent: string | null = null;
 
       if (config.base_schema && config.head_schema) {
-        baseContent = await fetchFileContent(token, event.owner, event.repo, config.base_schema, event.baseBranch);
-        headContent = await fetchFileContent(token, event.owner, event.repo, config.head_schema, event.headSha);
+        baseContent = await provider.fetchFileContent(eventOwner, eventRepo, config.base_schema, event.baseBranch);
+        headContent = await provider.fetchFileContent(eventOwner, eventRepo, config.head_schema, event.headSha);
       }
 
       if (!config.base_schema || !config.head_schema) {
         const configErrorMsg = "## ⚠️ Substrate — Config Error\n\nCould not parse `base_schema` and `head_schema` from your `substrate.yaml`.\n\n*Powered by [Substrate](https://github.com/KrushnaVardhanReddy/Substrate)*";
-        await postPRComment(token, event.owner, event.repo, event.prNumber, configErrorMsg);
-        await setCommitStatus(token, event.owner, event.repo, event.headSha, 'failure', 'Substrate config error — check substrate.yaml');
+        await provider.postPRComment(eventOwner, eventRepo, event.prNumber, configErrorMsg);
+        await provider.setCommitStatus(eventOwner, eventRepo, event.headSha, 'failure', 'Substrate config error — check substrate.yaml');
         return new Response('Config Error', { status: 200 });
       }
 
       if (baseContent === null && headContent !== null) {
         const welcomeMsg = "## 🎉 Welcome to Substrate!\n\nWe detected your new schema file. Since this is your first time adding it, there is no previous baseline to compare against.\n\nOnce this PR is merged, Substrate will begin monitoring all future pull requests for breaking changes!\n\n*Powered by [Substrate](https://github.com/KrushnaVardhanReddy/Substrate)*";
-        await postPRComment(token, event.owner, event.repo, event.prNumber, welcomeMsg);
-        await setCommitStatus(token, event.owner, event.repo, event.headSha, 'success', 'First-time setup detected — Ready to merge!');
+        await provider.postPRComment(eventOwner, eventRepo, event.prNumber, welcomeMsg);
+        await provider.setCommitStatus(eventOwner, eventRepo, event.headSha, 'success', 'First-time setup detected — Ready to merge!');
         return new Response('First Time Setup', { status: 200 });
       }
 
       if (baseContent === null || headContent === null) {
         const configErrorMsg = "## ⚠️ Substrate — Fetch Error\n\nCould not fetch spec files from GitHub. Check that the paths match your repository structure.\n\n*Powered by [Substrate](https://github.com/KrushnaVardhanReddy/Substrate)*";
-        await postPRComment(token, event.owner, event.repo, event.prNumber, configErrorMsg);
-        await setCommitStatus(token, event.owner, event.repo, event.headSha, 'failure', 'Substrate fetch error — check file paths');
+        await provider.postPRComment(eventOwner, eventRepo, event.prNumber, configErrorMsg);
+        await provider.setCommitStatus(eventOwner, eventRepo, event.headSha, 'failure', 'Substrate fetch error — check file paths');
         return new Response('Config Error', { status: 200 });
       }
 
@@ -344,14 +351,14 @@ export default {
         const schemaType = config.schema_type || 'openapi';
         diffReport = await callContainerService(
           env.CONTAINER_SERVICE_URL,
-          baseContent,
-          headContent,
-          configContent,
+          baseContent || '',
+          headContent || '',
+          configContent || '',
           schemaType
         );
       } catch (e: any) {
         console.error("Engine Call Failed:", e);
-        await setCommitStatus(token, event.owner, event.repo, event.headSha, 'failure', 'Substrate engine error — retry later');
+        await provider.setCommitStatus(eventOwner, eventRepo, event.headSha, 'failure', 'Substrate engine error — retry later');
         return new Response('Engine Error', { status: 200 });
       }
 
@@ -398,7 +405,7 @@ export default {
           installation_id: event.installationId,
           org: event.owner,
           provider_repo: event.fullName,
-          head_schema_content: headContent,
+          head_schema_content: headContent || '',
           schema_type: schemaType,
           config_content: configContent
         };
@@ -449,15 +456,14 @@ export default {
       if (crossRepoSection) {
         commentBody += "\n" + crossRepoSection;
       }
-      await postPRComment(token, event.owner, event.repo, event.prNumber, commentBody);
+      await provider.postPRComment(eventOwner, eventRepo, event.prNumber, commentBody);
 
       // Step 11: Set final commit status
       const statusState = getCommitStatusState(diffReport, config, crossRepoResponse);
       const statusDescription = getCommitStatusDescription(diffReport, crossRepoResponse, config);
-      await setCommitStatus(
-        token,
-        event.owner,
-        event.repo,
+      await provider.setCommitStatus(
+        eventOwner,
+        eventRepo,
         event.headSha,
         statusState,
         statusDescription
