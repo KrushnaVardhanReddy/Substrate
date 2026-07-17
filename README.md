@@ -995,6 +995,10 @@ While Phase 13 focuses on Developer Acquisition (WASM micro-tools), Phase 14 foc
 **5. "Cost of Breakage" Analytics**
 * **The Idea:** Assign an estimated engineering-hour cost to every node in the graph based on commit frequency. The GitHub PR comment doesn't just say *"You are breaking 3 services."* It says, *"Warning: This breaking change will require an estimated 45 engineering hours to fix across 3 teams. Are you sure?"*
 
+**6. The GitOps Architecture Wiki**
+* **The Problem:** Dependency graphs tell you *what* connects to *what*, but they don't explain *why*. Standalone wikis rot because they are disconnected from the code.
+* **The Moonshot:** We introduce a `SUBSTRATE.md` standard. Teams write their architecture decisions, runbooks, and mermaid diagrams directly in their repo. The Substrate Webhook auto-fetches this file and attaches it to the node in the Service Catalog. The Substrate Dashboard becomes a living, auto-updating engineering wiki that is reviewed in the exact same PRs as the code changes.
+
 ---
 
 # Business Model & Monetization
