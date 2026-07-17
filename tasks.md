@@ -42,6 +42,7 @@
 | **P9-T13** | 🟡 P2 | **Embedded Mermaid Blast Radius** — Upgrade the GitHub PR comment bot to render a visual Mermaid.js flowchart of the exact blast radius directly inside the PR, eliminating the need to click away. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T14** | 🟢 P3 | **Ephemeral API Preview URLs** — Generate temporary, shareable Substrate dashboard URLs for PRs so engineers can share proposed schema changes and interactive diffs with frontend teams before merging. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T15** | 🚀 P1 | **Public Impact API & MCP Server** — Expose a REST API (`/api/v1/impact`) and an MCP tool (`get_blast_radius`) allowing CI/CD pipelines to block merges based on downstream risk scores, and enabling AI agents (Cursor/Claude) to autonomously fix downstream breaking changes. | Jules | ✅ Complete | `docs/specs/phase-9/p9-t15-impact-api.md` |
+| **P9-T16** | 🚀 P1 | **WASM Git Pre-Commit Hooks** — Blazing fast local Git hooks that run `substrate diff` in 0.02s before code ever leaves the developer's laptop. | Unassigned | 💡 Backlog | `(Pending)` |
 
 ---
 
@@ -67,6 +68,10 @@
 | **P10-T14** | 🚀 P1 | **Turing-Complete Governance Rules (WASM)** — Support WebAssembly (Wazero) plugins for custom enterprise governance rules written in Rust/Go/TS. *UX Goal: Provide a simple `substrate plugin create` CLI and integrate via `wasm_plugin: "./policy.wasm"` in `substrate.yaml`.* | Unassigned | 💡 Backlog | `(Pending)` |
 | **P10-T15** | 🚀 P1 | **Zero-Latency Drift Detection (eBPF)** — Extend runtime drift detection with a zero-latency `cilium/ebpf` kernel probe for high-throughput environments. *UX Goal: Provide a pre-packaged Helm chart (`helm install substrate-ebpf`) that auto-detects pods via Kubernetes labels (e.g., `substrate.io/monitor: "true"`).* | Unassigned | 💡 Backlog | `(Pending)` |
 | **P10-T16** | 🔴 P1 | **Webhook Auto-Discovery Integration** — Wire the Phase 5 Discovery Engine (`api/internal/discovery`) into the Cloudflare Webhook pipeline to automatically scan repos for dependencies, eliminating the need for manual `substrate.yaml` consumer mapping. | Unassigned | 💡 Backlog | `docs/specs/phase-5/dependency-discovery.md` |
+| **P10-T17** | ⭐ P1 | **Implicit Infrastructure Discovery (IID)** — Scan package manifests, Docker Compose, and SaaS SDKs to auto-generate infrastructure dependency graphs (Databases, Queues, Stripe, AWS) with Zero-Config. | Jules | 🔄 Running (`12714762550436530606`) | `docs/specs/phase-10/p10-t17-implicit-infrastructure-discovery.md` |
+| **P10-T18** | 🚀 P1 | **GraphQL Supergraph Federation** — Add native support for Apollo Federation to diff subgraphs and prevent routing breakages. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P10-T19** | 🚀 P1 | **CRM/Billing Blast Radius** — Integrate with Stripe and Salesforce to map external customer impact on internal API breakages. | Unassigned | 💡 Backlog | `(Pending)` |
+
 ---
 
 ## 🗺️ Phase 11: Advanced Graph Visualization (V2.0 UX)
@@ -110,4 +115,15 @@
 | **P12-T13** | ⭐ P1 | **Zero-Config Developer Portal (Catalog UI)** — Build a "Backstage Killer" Service Catalog in the dashboard to auto-render API docs using Stoplight Elements without manual yaml config. | Jules | ✅ Done | `docs/specs/phase-12/p12-t13-zero-config-catalog.md` |
 | **P12-T14** | 🔴 P1 | **System Matrix Overrides (Yellow Path)** — Extend the E2E Matrix to SQL and AsyncAPI, and implement the Acknowledged status in the Go backend and Svelte UI. | Jules | 🔄 Running (`4731870067383577278`) | `docs/specs/phase-12/p12-t14-yellow-path-matrix.md` |
 | **P12-T15** | 🚀 P1 | **Advanced Feature Suites E2E** — Automate E2E testing for WASM Engine, MCP Impact API, AI Autofix, SSE Real-Time, Blast Radius, and Enterprise Dashboard UI. | Jules | 🔄 Running (`14546955130784840283`) | `docs/specs/phase-12/p12-t15-advanced-e2e.md` |
-| **P10-T17** | ⭐ P1 | **Implicit Infrastructure Discovery (IID)** — Scan package manifests, Docker Compose, and SaaS SDKs to auto-generate infrastructure dependency graphs (Databases, Queues, Stripe, AWS) with Zero-Config. | Jules | 🔄 Running (`12714762550436530606`) | `docs/specs/phase-10/p10-t17-implicit-infrastructure-discovery.md` |
+
+---
+
+## 👑 Phase 13: God-Mode & Enterprise Intelligence
+
+**Goal:** Evolve Substrate into a predictive, financial, and auto-healing infrastructure intelligence platform.
+
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|---|---|---|---|---|---|
+| **P13-T01** | 🤯 P1 | **FinOps Cost Prediction** — Connect schema diffs to Datadog traffic to calculate the exact USD egress cost increase of payload size changes. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P13-T02** | 🤯 P1 | **DB Performance Breakages** — Dry-run Prisma/PlanetScale migrations to predict table-locks and performance outages before they merge. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P13-T03** | 🤯 P1 | **AI Chaos Engineering Auto-Tests** — Automatically write Playwright/Jest tests that prove an API breakage, run them in a sandbox, and post the failing test logs to the PR. | Unassigned | 💡 Backlog | `(Pending)` |
