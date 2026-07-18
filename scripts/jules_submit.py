@@ -672,6 +672,26 @@ TASKS = {
         "phase": "phase-12-qa",
         "prompt": _load_prompt("prompts/phase-12/t13_zero_config_catalog.txt"),
     },
+    1209: {
+        "name": "P12-T09 — AI Support Copilot",
+        "phase": "phase-12-qa",
+        "prompt": _load_prompt("prompts/phase-12/t09_ai_copilot.txt"),
+    },
+    1012: {
+        "name": "P10-T12 — Tree-sitter Deterministic Impact Analysis",
+        "phase": "phase-10-ecosystem",
+        "prompt": _load_prompt("prompts/phase-10/t12_tree_sitter.txt"),
+    },
+    912: {
+        "name": "P9-T12 — Embedded SQLite (LibSQL) Local Caching",
+        "phase": "phase-9-compliance",
+        "prompt": _load_prompt("prompts/phase-9/t12_embedded_sqlite.txt"),
+    },
+    1301: {
+        "name": "P13-T01 — FinOps Cost Prediction",
+        "phase": "phase-13-god-mode",
+        "prompt": _load_prompt("prompts/phase-13/t01_finops.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
