@@ -1,5 +1,22 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
+
 	let { data } = $props();
+
+	let impactData: any = $state(null);
+
+	onMount(async () => {
+		const { org, repo } = $page.params;
+		try {
+			const res = await fetch(`/api/v1/impact/${org}/${repo}`);
+			if (res.ok) {
+				impactData = await res.json();
+			}
+		} catch (e) {
+			console.error(e);
+		}
+	});
 </script>
 
 <div class="page-header flex justify-between items-center">
@@ -8,6 +25,20 @@
 		<p class="page-subtitle">Viewing schema definition for this repository.</p>
 	</div>
 </div>
+
+{#if impactData}
+<div class="card mb-4">
+	<h2>Deployment Status</h2>
+	<div class="flex gap-4 mt-2">
+		<div class="badge {impactData.can_deploy ? 'safe' : 'breaking'}">
+			Can-Deploy: {impactData.can_deploy ? 'Yes' : 'No'}
+		</div>
+		<div class="badge {impactData.can_rollback ? 'safe' : 'breaking'}">
+			Can-Rollback: {impactData.can_rollback ? 'Yes' : 'No'}
+		</div>
+	</div>
+</div>
+{/if}
 
 <div class="card p-0 flex flex-col h-[600px] overflow-hidden">
 	<div class="p-3 border-b border-[var(--border)] bg-[var(--bg-card)] flex items-center gap-2 font-mono text-sm text-[var(--text-muted)]">
@@ -40,4 +71,23 @@
 	.flex-grow { flex-grow: 1; }
 	.bg-\[\#090A0F\] { background-color: #090A0F; }
 	.whitespace-pre { white-space: pre; }
+	.mb-4 { margin-bottom: 1rem; }
+	.mt-2 { margin-top: 0.5rem; }
+	.gap-4 { gap: 1rem; }
+	.flex { display: flex; }
+
+	.badge {
+		padding: 4px 12px;
+		border-radius: 12px;
+		font-size: 0.85rem;
+		font-weight: 600;
+	}
+	.badge.safe {
+		background-color: rgba(16, 185, 129, 0.2);
+		color: #10B981;
+	}
+	.badge.breaking {
+		background-color: rgba(239, 68, 68, 0.2);
+		color: #EF4444;
+	}
 </style>

@@ -44,6 +44,8 @@
     let aiFixCode = $state('');
     let aiFixLanguage = $state('');
 
+    import { trackEvent } from '$lib/utils/telemetry';
+
     async function analyzeWithAI() {
         isAnalyzing = true;
         analysisResult = null;
@@ -51,6 +53,8 @@
         aiFindings = [];
         aiFixCode = '';
         aiFixLanguage = '';
+
+        trackEvent('playground_analyze', { schemaType });
 
         try {
             const apiUrl = env.PUBLIC_API_URL || 'http://localhost:8080';
