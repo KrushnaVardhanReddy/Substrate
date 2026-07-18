@@ -7,6 +7,16 @@
 		<h1 class="page-title">{data.repoName}</h1>
 		<p class="page-subtitle">Viewing schema definition for this repository.</p>
 	</div>
+	<div class="flex gap-2">
+		{#if data.canDeploy !== undefined}
+			<span class="badge" style="background: {data.canDeploy ? '#10B981' : '#EF4444'}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">
+				Can-Deploy
+			</span>
+			<span class="badge" style="background: {data.canRollback ? '#10B981' : '#EF4444'}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">
+				Can-Rollback
+			</span>
+		{/if}
+	</div>
 </div>
 
 <div class="card p-0 flex flex-col h-[600px] overflow-hidden">
