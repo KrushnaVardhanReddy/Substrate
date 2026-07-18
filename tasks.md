@@ -36,7 +36,7 @@
 | **P9-T07** | 🔴 P1 | **AI Migration Planner** — Upgrade AI Autofix to generate safe, multi-step migration plans for complex schema/database changes with minimal downtime. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T08** | 🟡 P2 | **Deployment Risk Scoring** — Synthesize breaking change data, infrastructure changes, and downstream blast radius into a holistic "Deployment Risk Score". | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T09** | 🟢 P3 | **AI Impact Analysis Summaries** — Pass cross-repo blast radius checks to the AI handler to generate a plain-English impact summary on PRs. | Unassigned | 💡 Backlog | `(Pending)` |
-| **P9-T10** | 🚀 P1 | **MCP Server WASI Distribution** — Compile the `substrate-mcp` server using `GOOS=wasip1 GOARCH=wasm` to allow secure, sandboxed execution of the MCP server in Claude Desktop or Cursor via Wasmtime/Node.js. | Jules | 🔄 Running (`4465246985995751668`) | `docs/specs/phase-9/p9-t10-mcp-wasi.md` |
+| **P9-T10** | 🚀 P1 | **MCP Server WASI Distribution** — Compile the `substrate-mcp` server using `GOOS=wasip1 GOARCH=wasm` to allow secure, sandboxed execution of the MCP server in Claude Desktop or Cursor via Wasmtime/Node.js. | Jules | 🔄 Running (`10089394627344776190`) | `docs/specs/phase-9/p9-t10-mcp-wasi.md` |
 | **P9-T11** | 🚀 P1 | **Automated Deprecation Campaigns** — Track sunsetting endpoints, auto-open issues in downstream consumer repos, and nag them until 0% usage is reached. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T12** | 🚀 P1 | **Embedded SQLite (LibSQL) Local Caching** — Embed SQLite directly into the CLI and MCP Server to pull background graph updates, enabling sub-millisecond, zero-latency local schema diffs. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T13** | 🟡 P2 | **Embedded Mermaid Blast Radius** — Upgrade the GitHub PR comment bot to render a visual Mermaid.js flowchart of the exact blast radius directly inside the PR, eliminating the need to click away. | Unassigned | 💡 Backlog | `(Pending)` |
@@ -115,7 +115,7 @@
 | **P12-T13** | ⭐ P1 | **Zero-Config Developer Portal (Catalog UI)** — Build a "Backstage Killer" Service Catalog in the dashboard to auto-render API docs using Stoplight Elements without manual yaml config. | Jules | ✅ Done | `docs/specs/phase-12/p12-t13-zero-config-catalog.md` |
 | **P12-T14** | 🔴 P1 | **System Matrix Overrides (Yellow Path)** — Extend the E2E Matrix to SQL and AsyncAPI, and implement the Acknowledged status in the Go backend and Svelte UI. | Jules | ✅ Done | `docs/specs/phase-12/p12-t14-yellow-path-matrix.md` |
 | **P12-T15** | 🚀 P1 | **Advanced Feature Suites E2E** — Automate E2E testing for WASM Engine, MCP Impact API, AI Autofix, SSE Real-Time, Blast Radius, and Enterprise Dashboard UI. | Jules | ✅ Complete | `docs/specs/phase-12/p12-t15-advanced-e2e.md` |
-| **P12-T16** | 🔴 P1 | **Advanced E2E UI Implementation (TDD)** — Implement the SvelteKit frontend UI (Enterprise Routes, Impact API UI, Transitive Blast Radius, Telemetry) to satisfy the failing TDD E2E tests from P12-T15. | Jules | 🔄 Running (`13451155588492664589`) | `docs/specs/phase-12/p12-t16-advanced-e2e-ui.md` |
+| **P12-T16** | 🔴 P1 | **Advanced E2E UI Implementation (TDD)** — Implement the SvelteKit frontend UI (Enterprise Routes, Impact API UI, Transitive Blast Radius, Telemetry) to satisfy the failing TDD E2E tests from P12-T15. | Jules | 🔄 Running (`8531555920558093775`) | `docs/specs/phase-12/p12-t16-advanced-e2e-ui.md` |
 
 ---
 
