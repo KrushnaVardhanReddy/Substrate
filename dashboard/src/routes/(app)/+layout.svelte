@@ -4,6 +4,7 @@
 	import TopNav from '$lib/components/TopNav.svelte';
 	import Footer from '$lib/components/Footer.svelte';
 	import CommandPalette from '$lib/components/CommandPalette.svelte';
+	import CopilotWidget from '$lib/components/CopilotWidget.svelte';
 	import { page } from '$app/stores';
 
 	let { data, children } = $props();
@@ -41,3 +42,5 @@
 
 	<Footer />
 </div>
+
+<CopilotWidget />
