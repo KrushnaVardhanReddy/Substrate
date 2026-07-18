@@ -1,0 +1,40 @@
+TASK: P9-T10 — MCP Server WASI Distribution
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Compile the Substrate MCP server using `GOOS=wasip1 GOARCH=wasm` to allow secure, sandboxed execution in IDEs and Claude Desktop.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-9/p9-t10-mcp-wasi.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- The MCP server logic must not rely on unsupported WASI system calls (e.g. listening on TCP sockets must be avoided since MCP uses stdio).
+- Only modify the MCP CLI wrapper, not the core diff engine.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. MODIFY: Makefile
+   Add a `build-mcp-wasi` target that compiles `cmd/substrate-mcp/main.go` to `substrate-mcp.wasm` with `GOOS=wasip1 GOARCH=wasm`.
+
+2. MODIFY: .github/workflows/release.yml (if exists) or create one.
+   Add a step to build the WASI binary and attach it to releases.
+
+3. MODIFY: engine/cmd/substrate-mcp/main.go
+   Ensure that any panic handling or IO correctly targets `os.Stdin` and `os.Stdout` without attempting network access.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO MODIFY:
+- Makefile
+- .github/workflows/release.yml
+- engine/cmd/substrate-mcp/main.go
+
+Commit: "feat: P9-T10 implement WASI distribution for MCP server"
+Target branch: feature/dev

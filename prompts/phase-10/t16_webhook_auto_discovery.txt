@@ -1,0 +1,42 @@
+TASK: P10-T16 — Webhook Auto-Discovery Integration
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Wire the Phase 5 Discovery Engine (`api/internal/discovery`) into the Cloudflare Webhook pipeline to automatically scan repositories for dependencies upon push, eliminating manual `substrate.yaml` configuration.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-10/p10-t16-webhook-auto-discovery.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Do not introduce blocking, synchronous scans in the HTTP webhook handler. Must use River job queue.
+- Re-use the existing `discovery` package logic.
+- Avoid introducing circular dependencies between the `webhook` and `discovery` packages.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. MODIFY: api/internal/workers/workers.go
+   Create a new `DiscoveryJob` struct and a corresponding worker to handle async AST scanning.
+
+2. MODIFY: api/internal/services/push.go
+   Update the push logic so that after the schema is synced, it also enqueues a `DiscoveryJob` using the river client.
+
+3. MODIFY: api/internal/discovery/scanner.go
+   Ensure the scanner is capable of streaming files directly from GitHub or cloning into a temporary directory using the GitHub client wrapper.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO MODIFY:
+- api/internal/workers/workers.go
+- api/internal/services/push.go
+- api/internal/discovery/scanner.go
+- api/internal/server/server.go
+
+Commit: "feat: P10-T16 integrate webhook auto-discovery pipeline"
+Target branch: feature/dev
