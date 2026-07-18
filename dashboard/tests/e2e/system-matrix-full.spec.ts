@@ -192,6 +192,63 @@ message Empty {}
       // No breaking alerts
       await expect(page.locator('.status-indicator.breaking')).toHaveCount(0, { timeout: 10000 });
     });
+
+    test('Yellow Path: Push breaking change with override', async ({ page }) => {
+      // Push breaking schema again, but this time with override
+      const BREAKING_PROTO = `syntax = "proto3";
+package hipstershop;
+message CartItem {
+    // string product_id = 1; REMOVED
+    int32 quantity = 2;
+}
+message Empty {}
+`;
+      const OVERRIDE_SUBSTRATE_YAML = `schema_type: protobuf
+base_schema: protos/demo.proto
+head_schema: protos/demo.proto
+
+consumers:
+  - name: frontend
+    provider_repo: admin/microservices-demo
+    schema_type: protobuf
+    provider_spec_path: protos/demo.proto
+    provider_branch: main
+    overrides:
+      - rule_id: "*"
+  - name: checkoutservice
+    provider_repo: admin/microservices-demo
+    schema_type: protobuf
+    provider_spec_path: protos/demo.proto
+    provider_branch: main
+    overrides:
+      - rule_id: "*"
+  - name: recommendationservice
+    provider_repo: admin/microservices-demo
+    schema_type: protobuf
+    provider_spec_path: protos/demo.proto
+    provider_branch: main
+    overrides:
+      - rule_id: "*"
+  - name: emailservice
+    provider_repo: admin/microservices-demo
+    schema_type: protobuf
+    provider_spec_path: protos/demo.proto
+    provider_branch: main
+    overrides:
+      - rule_id: "*"
+`;
+      await pushToForgejo(REPO_NAME, {
+        'substrate.yaml': OVERRIDE_SUBSTRATE_YAML,
+        'protos/demo.proto': BREAKING_PROTO
+      });
+
+      await page.waitForTimeout(3000);
+      await waitForGraphSearch(page, 'microservices', 5);
+
+      // No breaking alerts, but expecting warning instead
+      await expect(page.locator('.status-indicator.breaking')).toHaveCount(0, { timeout: 10000 });
+      await expect(page.locator('.status-indicator.warning')).toHaveCount(4, { timeout: 10000 }); // All 4 consumers
+    });
   });
 
   test.describe.serial('Repo: stripe-api (OpenAPI)', () => {
@@ -318,6 +375,58 @@ paths:
       await waitForGraphSearch(page, 'stripe', 2);
       
       await expect(page.locator('.status-indicator.breaking')).toHaveCount(0, { timeout: 10000 });
+    });
+
+    test('Yellow Path: Push breaking change with override', async ({ page }) => {
+      const BREAKING_OPENAPI = `openapi: 3.0.0
+info:
+  title: Stripe API
+  version: 1.0.0
+paths:
+  /charges:
+    post:
+      summary: Create a charge
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+                - currency # BREAKING: added required field
+              properties:
+                amount:
+                  type: integer
+                currency:
+                  type: string
+      responses:
+        '200':
+          description: OK
+`;
+      const OVERRIDE_SUBSTRATE_YAML = `schema_type: openapi
+base_schema: openapi.yaml
+head_schema: openapi.yaml
+
+consumers:
+  - name: billing-service
+    provider_repo: admin/stripe-api
+    schema_type: openapi
+    provider_spec_path: openapi.yaml
+    provider_branch: main
+    overrides:
+      - rule_id: "*"
+`;
+      await pushToForgejo(REPO_NAME, {
+        'substrate.yaml': OVERRIDE_SUBSTRATE_YAML,
+        'openapi.yaml': BREAKING_OPENAPI
+      });
+
+      await page.waitForTimeout(3000);
+      await waitForGraphSearch(page, 'stripe', 2);
+
+      await expect(page.locator('.status-indicator.breaking')).toHaveCount(0, { timeout: 10000 });
+      await expect(page.locator('.status-indicator.warning')).toHaveCount(1, { timeout: 10000 });
     });
   });
 
