@@ -87,6 +87,9 @@ func NewRouter(store db.Store, riverClient workers.JobEnqueuer, authConfig handl
 	// The endpoint validates the token by making a call to GitHub.
 	r.Method("POST", "/api/v1/org/{org}/enforce", authzMW(http.HandlerFunc(handlers.EnforceGlobalHandler())))
 
+	// FinOps routes
+	r.Method("POST", "/api/v1/finops/predict", serviceTokenMW(http.HandlerFunc(handlers.HandlePredictCost)))
+
 	// AI routes (public — no auth required, BYOK model)
 	r.Post("/api/v1/ai/analyze", services.AIAnalyzeHandler())
 	r.Post("/api/v1/ai/autofix", services.AIAutofixHandler())
