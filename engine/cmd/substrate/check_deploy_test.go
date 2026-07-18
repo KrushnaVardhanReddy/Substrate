@@ -36,9 +36,9 @@ func TestCheckDeployCommand(t *testing.T) {
 		expectedStderr string
 	}{
 		{
-			name:      "safe to deploy",
-			repoArg:   "owner/repo",
-			commitArg: "a1b2c3d4",
+			name:       "safe to deploy",
+			repoArg:    "owner/repo",
+			commitArg:  "a1b2c3d4",
 			mockStatus: http.StatusOK,
 			mockResponse: map[string]interface{}{
 				"safe":    true,
@@ -48,9 +48,9 @@ func TestCheckDeployCommand(t *testing.T) {
 			expectedStdout: "✅ SAFE TO DEPLOY\n\nProvider: owner/repo (a1b2c3d4)\n\nCompatibility Check:\n- consumers -> COMPATIBLE\n",
 		},
 		{
-			name:      "deployment blocked",
-			repoArg:   "owner/repo",
-			commitArg: "a1b2c3d4",
+			name:       "deployment blocked",
+			repoArg:    "owner/repo",
+			commitArg:  "a1b2c3d4",
 			mockStatus: http.StatusConflict,
 			mockResponse: map[string]interface{}{
 				"safe":       false,
@@ -61,21 +61,21 @@ func TestCheckDeployCommand(t *testing.T) {
 			expectedStdout: "❌ DEPLOYMENT BLOCKED\n\nProvider: owner/repo (a1b2c3d4)\n\nThe following consumers are INCOMPATIBLE with this deployment:\n- owner/consumer1\n- owner/consumer2\n",
 		},
 		{
-			name:      "missing repo",
-			repoArg:   "",
-			commitArg: "a1b2c3d4",
-			expectedExit: 3,
+			name:           "missing repo",
+			repoArg:        "",
+			commitArg:      "a1b2c3d4",
+			expectedExit:   3,
 			expectedStderr: "Error: --repo flag is required\n",
 		},
 		{
-			name:      "server error",
-			repoArg:   "owner/repo",
-			commitArg: "a1b2c3d4",
+			name:       "server error",
+			repoArg:    "owner/repo",
+			commitArg:  "a1b2c3d4",
 			mockStatus: http.StatusInternalServerError,
 			mockResponse: map[string]interface{}{
 				"message": "Internal Server Error",
 			},
-			expectedExit: 3,
+			expectedExit:   3,
 			expectedStderr: "Error from server: HTTP 500 Internal Server Error\n",
 		},
 	}
@@ -114,6 +114,7 @@ func TestCheckDeployCommand(t *testing.T) {
 			cmd.Env = append(os.Environ(),
 				"SUBSTRATE_API_URL="+server.URL,
 				"REGISTRY_API_TOKEN=test-token",
+				"SUBSTRATE_DISABLE_CACHE_SYNC=1",
 			)
 
 			var stdout, stderr strings.Builder

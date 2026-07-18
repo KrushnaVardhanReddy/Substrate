@@ -6,6 +6,7 @@ require (
 	github.com/asyncapi/parser-go v0.5.0
 	github.com/getkin/kin-openapi v0.140.0
 	github.com/google/cel-go v0.29.2
+	github.com/mattn/go-sqlite3 v1.14.48
 	github.com/oasdiff/oasdiff v1.22.0
 	github.com/pganalyze/pg_query_go/v6 v6.2.2
 	github.com/sashabaranov/go-openai v1.41.2

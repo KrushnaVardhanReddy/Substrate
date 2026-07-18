@@ -28,8 +28,10 @@ func TestCheckRollbackCmd_Safe(t *testing.T) {
 
 	os.Setenv("REGISTRY_API_TOKEN", "testtoken")
 	os.Setenv("SUBSTRATE_API_URL", ts.URL)
+	os.Setenv("SUBSTRATE_DISABLE_CACHE_SYNC", "1")
 	defer os.Unsetenv("REGISTRY_API_TOKEN")
 	defer os.Unsetenv("SUBSTRATE_API_URL")
+	defer os.Unsetenv("SUBSTRATE_DISABLE_CACHE_SYNC")
 
 	cmd := exec.Command("go", "build", "-o", "substrate_bin")
 	out, err := cmd.CombinedOutput()
@@ -59,8 +61,10 @@ func TestCheckRollbackCmd_Blocked(t *testing.T) {
 
 	os.Setenv("REGISTRY_API_TOKEN", "testtoken")
 	os.Setenv("SUBSTRATE_API_URL", ts.URL)
+	os.Setenv("SUBSTRATE_DISABLE_CACHE_SYNC", "1")
 	defer os.Unsetenv("REGISTRY_API_TOKEN")
 	defer os.Unsetenv("SUBSTRATE_API_URL")
+	defer os.Unsetenv("SUBSTRATE_DISABLE_CACHE_SYNC")
 
 	cmd := exec.Command("go", "build", "-o", "substrate_bin")
 	out, err := cmd.CombinedOutput()

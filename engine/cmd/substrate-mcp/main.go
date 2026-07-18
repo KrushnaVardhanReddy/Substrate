@@ -1,7 +1,6 @@
 package main
 
 import (
-	"runtime"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -10,14 +9,17 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/cache"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/checker"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/diff"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/mcp"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 	sqlpkg "github.com/KrushnaVardhanReddy/substrate/engine/internal/sql"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/telemetry"
+	"time"
 )
 
 func main() {
@@ -28,6 +30,27 @@ func main() {
 		defer func() {
 			if err := tp.Shutdown(context.Background()); err != nil {
 				fmt.Fprintf(os.Stderr, "[substrate-mcp] error shutting down tracer provider: %v\n", err)
+			}
+		}()
+	}
+
+	cacheDir := filepath.Join(os.Getenv("HOME"), ".substrate")
+	os.MkdirAll(cacheDir, 0755)
+	c, err := cache.InitCache(filepath.Join(cacheDir, "cache.db"))
+	if err == nil {
+		go func() {
+			apiURL := os.Getenv("SUBSTRATE_API_URL")
+			if apiURL == "" {
+				apiURL = "http://localhost:8090"
+			}
+			apiToken := os.Getenv("REGISTRY_API_TOKEN")
+			org := os.Getenv("SUBSTRATE_ORG")
+			if org == "" {
+				org = "default"
+			}
+			for {
+				c.SyncFromRemote(context.Background(), apiURL, apiToken, org)
+				time.Sleep(1 * time.Minute)
 			}
 		}()
 	}

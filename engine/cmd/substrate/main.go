@@ -10,8 +10,8 @@ import (
 	"path/filepath"
 
 	"bytes"
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/cache"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/checker"
-	"net/http"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/config"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/diff"
 	initcmd "github.com/KrushnaVardhanReddy/substrate/engine/internal/init"
@@ -20,6 +20,8 @@ import (
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/telemetry"
 	"github.com/KrushnaVardhanReddy/substrate/engine/pkg/ai"
 	"github.com/spf13/cobra"
+	"net/http"
+	"time"
 )
 
 var flattenAllOf bool
@@ -36,6 +38,27 @@ func main() {
 		defer func() {
 			if err := tp.Shutdown(context.Background()); err != nil {
 				log.Printf("[substrate-engine] error shutting down tracer provider: %v", err)
+			}
+		}()
+	}
+
+	cacheDir := filepath.Join(os.Getenv("HOME"), ".substrate")
+	os.MkdirAll(cacheDir, 0755)
+	c, err := cache.InitCache(filepath.Join(cacheDir, "cache.db"))
+	if err == nil && os.Getenv("SUBSTRATE_DISABLE_CACHE_SYNC") != "1" {
+		go func() {
+			apiURL := os.Getenv("SUBSTRATE_API_URL")
+			if apiURL == "" {
+				apiURL = "http://localhost:8090"
+			}
+			apiToken := os.Getenv("REGISTRY_API_TOKEN")
+			org := os.Getenv("SUBSTRATE_ORG")
+			if org == "" {
+				org = "default"
+			}
+			for {
+				c.SyncFromRemote(context.Background(), apiURL, apiToken, org)
+				time.Sleep(1 * time.Minute)
 			}
 		}()
 	}
@@ -200,7 +223,6 @@ func main() {
 				finalMode = cfg.Mode
 			}
 			rep.Mode = finalMode
-
 
 			if format == "json" {
 				output, err := json.MarshalIndent(rep, "", "  ")
