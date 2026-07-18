@@ -70,6 +70,9 @@ func TestSSEBroker(t *testing.T) {
 		cancel()
 		<-done
 
+		// Wait for disconnect to process
+		time.Sleep(10 * time.Millisecond)
+
 		body := rr.Body.String()
 		if !strings.Contains(body, "data: test-message\n\n") {
 			t.Errorf("expected body to contain data: test-message\\n\\n, got %v", body)
@@ -108,6 +111,7 @@ func TestSSEBroker(t *testing.T) {
 		cancel2()
 		<-done1
 		<-done2
+		time.Sleep(10 * time.Millisecond)
 
 		if !strings.Contains(rr1.Body.String(), "data: multi-test\n\n") {
 			t.Errorf("client 1 didn't receive message, got: %s", rr1.Body.String())
