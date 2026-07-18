@@ -1,0 +1,53 @@
+TASK: P10-T09 — Protobuf & gRPC Schema Registry
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Extend the Substrate Go Engine to natively parse, validate, and store Protocol Buffers (.proto) schemas and gRPC service definitions.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-10/p10-t09-protobuf-grpc.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Use a robust Go parser library for Protobuf (e.g., `github.com/emicklei/proto`).
+- Avoid implementing custom tokenizers if an established library exists.
+- The diffing logic MUST correctly flag field type changes or tag number changes as breaking.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+The core parsing and diffing engine lives in `engine/internal/diff`.
+Registry ingestion is in `engine/internal/registry`.
+
+⚠️ CRITICAL CONTEXT: POLYMORPHIC SCHEMAS ⚠️
+The registry needs to handle the new `protobuf` schema type. Ensure database enums or types properly accept the new enum values without breaking existing OpenAPI pipelines.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. CREATE: `engine/internal/diff/protobuf_adapter.go`
+   - Implement the parsing logic mapping `.proto` AST to the internal Substrate graph format.
+   - Implement diffing logic to find breaking changes between two proto specs.
+
+2. INTEGRATION: Registry Ingestion
+   - Update `engine/internal/registry/ingest.go` to route `.proto` file uploads to the new protobuf adapter.
+
+3. CREATE: Tests
+   - Add unit tests for breaking and non-breaking protobuf changes.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- engine/internal/diff/protobuf_adapter.go
+- engine/internal/diff/protobuf_adapter_test.go
+
+FILES TO MODIFY:
+- engine/internal/registry/ingest.go
+
+Commit: "feat: P10-T09 implement Protobuf and gRPC parsing"
+Target branch: feature/dev
