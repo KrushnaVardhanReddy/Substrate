@@ -1,0 +1,48 @@
+TASK: P12-T16 — Advanced E2E UI Implementation (TDD)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement the missing SvelteKit UI features required to satisfy the advanced E2E test suites created in P12-T15.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-12/p12-t16-advanced-e2e-ui.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Do not modify `tests/e2e/advanced-features.spec.ts` to make tests pass; fix the Svelte UI instead.
+- Use Svelte 5 syntax (Runes) where possible.
+- Retain the HSL styling aesthetics introduced in Phase 11.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. CREATE: dashboard/src/routes/enterprise/+page.svelte
+   Implement the new enterprise dashboard route with a sidebar layout.
+
+2. MODIFY: dashboard/src/components/GraphCanvas.svelte
+   Add logic to recursively highlight 2nd and 3rd degree consumers when a node is clicked.
+   Visually fade out non-impacted nodes.
+
+3. MODIFY: dashboard/src/routes/settings/+page.svelte
+   Add a "Telemetry" toggle switch bound to local storage.
+
+4. MODIFY: dashboard/src/lib/api.ts
+   Ensure safe error boundaries are in place so WASM panics or bad mock payloads return graceful JS Error objects instead of crashing the app.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- dashboard/src/routes/enterprise/+page.svelte
+
+FILES TO MODIFY:
+- dashboard/src/components/GraphCanvas.svelte
+- dashboard/src/routes/settings/+page.svelte
+- dashboard/src/lib/api.ts
+
+Commit: "feat: P12-T16 implement advanced E2E UI features"
+Target branch: feature/dev
