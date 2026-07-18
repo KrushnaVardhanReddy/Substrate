@@ -83,7 +83,7 @@ func main() {
 	store := db.NewPGStore(pool)
 
 	// Initialize River job queue
-	workersPool := workers.RegisterWorkers(store, github.NewRESTClient())
+	workersPool, pushWorker := workers.RegisterWorkers(store, github.NewRESTClient())
 	riverClient, err := river.NewClient(riverpgxv5.New(pool), &river.Config{
 		Queues: map[string]river.QueueConfig{
 			river.QueueDefault: {MaxWorkers: 100},
@@ -93,6 +93,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to create river client: %v", err)
 	}
+	pushWorker.RiverClient = riverClient
 	if err := riverClient.Start(context.Background()); err != nil {
 		log.Fatalf("failed to start river client: %v", err)
 	}

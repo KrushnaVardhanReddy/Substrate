@@ -1,6 +1,7 @@
 package main
 
 import (
+	"runtime"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -61,6 +62,9 @@ func main() {
 				apiURL = "http://localhost:8090"
 			}
 
+			if runtime.GOOS == "wasip1" {
+				return nil, fmt.Errorf("WASI does not support network requests")
+			}
 			resp, err := http.Get(fmt.Sprintf("%s/api/v1/graph/%s", apiURL, args.Org))
 			if err != nil {
 				return nil, fmt.Errorf("failed to fetch dependency graph: %w", err)
@@ -298,6 +302,9 @@ func main() {
 				req.Header.Set("Authorization", "Bearer "+token)
 			}
 
+			if runtime.GOOS == "wasip1" {
+				return nil, fmt.Errorf("WASI does not support network requests")
+			}
 			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
 				return nil, fmt.Errorf("failed to fetch history: %w", err)
@@ -519,6 +526,9 @@ func main() {
 				req.Header.Set("Authorization", "Bearer "+token)
 			}
 
+			if runtime.GOOS == "wasip1" {
+				return nil, fmt.Errorf("WASI does not support network requests")
+			}
 			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
 				return nil, fmt.Errorf("failed to fetch blast radius: %w", err)
@@ -575,6 +585,9 @@ func main() {
 			}
 
 			url := fmt.Sprintf("%s/api/v1/schema/%s/%s", apiURL, parts[0], parts[1])
+			if runtime.GOOS == "wasip1" {
+				return nil, fmt.Errorf("WASI does not support network requests")
+			}
 			resp, err := http.Get(url)
 			if err != nil {
 				return nil, fmt.Errorf("failed to fetch schema from registry: %w", err)

@@ -386,7 +386,38 @@
 				});
 			});
 
-			rawNodes = Array.from(newNodesMap.values());
+			let nextNodes = Array.from(newNodesMap.values());
+
+			// Compute global transitive blast radius immediately on load
+			const globalBreakingImpacts = new Set<string>();
+			for (const n of nextNodes) {
+				if (String(n.data.status).toLowerCase() === 'breaking') globalBreakingImpacts.add(n.id);
+			}
+
+			let changed = true;
+			while (changed) {
+				changed = false;
+				for (const edge of newEdges) {
+					if (globalBreakingImpacts.has(edge.source) || edge.style?.includes('#EF4444')) {
+						if (!globalBreakingImpacts.has(edge.target)) {
+							globalBreakingImpacts.add(edge.target);
+							changed = true;
+						}
+					}
+				}
+			}
+
+			// Apply global breaking status to downstream nodes
+			rawNodes = nextNodes.map(n => {
+				if (globalBreakingImpacts.has(n.id) && String(n.data.status).toLowerCase() !== 'breaking') {
+					return {
+						...n,
+						data: { ...n.data, status: 'BREAKING' }
+					};
+				}
+				return n;
+			});
+
 			rawEdges = newEdges;
 			console.log('processGraphData finished. rawNodes length:', rawNodes.length);
 		};

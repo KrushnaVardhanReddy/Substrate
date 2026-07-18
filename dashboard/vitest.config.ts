@@ -13,6 +13,7 @@ export default defineConfig({
 			'$env/dynamic/public': '/src/__mocks__/$env/dynamic/public.ts',
 			'$app/stores': '/src/__mocks__/$app/stores.ts',
 			'$app/navigation': '/src/__mocks__/$app/navigation.ts',
+			'$app/environment': '/src/__mocks__/$app/environment.ts',
 			'$lib': '/src/lib'
 		}
 	},

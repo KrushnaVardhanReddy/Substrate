@@ -14,8 +14,9 @@ import (
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/config"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/discovery"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/sandbox"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/github"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/discovery"
 )
 
 type File struct {
@@ -102,7 +103,7 @@ func ProcessPush(ctx context.Context, store db.Store, ghClient github.Client, re
 				continue
 			}
 
-			contractID, err := store.UpsertContract(ctx, providerRepoID, "unknown", "discovered", req.CommitSHA, req.CommitSHA, dep.VarValue)
+			contractID, err := store.UpsertContract(ctx, providerRepoID, "unknown", "discovered", "unknown", "unknown", dep.VarValue)
 			if err != nil {
 				continue
 			}
@@ -224,7 +225,17 @@ func ProcessPush(ctx context.Context, store db.Store, ghClient github.Client, re
 							}
 
 							title := fmt.Sprintf("chore(substrate): Auto-fix breaking change from upstream [%s]", providerRepo)
-							prBody := fmt.Sprintf("Substrate AI detected a breaking change in %s and generated this patch to fix it.\n\n**Reasoning:**\n%s", providerRepo, autofixResp.Explanation)
+
+							breakingChangesJSON, _ := json.Marshal(changes)
+							chaosSvc := NewChaosTestingService()
+							chaosCode, err := chaosSvc.GenerateChaosTest(currentSchema, proposedSchema, string(breakingChangesJSON))
+							chaosOutput := ""
+							if err == nil {
+								_, stderr, _ := sandbox.RunCode(chaosCode)
+								chaosOutput = stderr
+							}
+
+							prBody := fmt.Sprintf("Substrate AI detected a breaking change in %s and generated this patch to fix it.\n\n**Reasoning:**\n%s\n\n%s", providerRepo, autofixResp.Explanation, github.GeneratePRComment(chaosOutput))
 
 							_, err = ghClient.CreateDraftPR(bgCtx, owner, repo, "substrate-autofix-"+fmt.Sprint(time.Now().Unix()), autofixResp.SafePatch, title, prBody)
 							if err != nil {
