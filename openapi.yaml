@@ -46,3 +46,26 @@ paths:
       responses:
         '200':
           description: Auto-fix diff
+  /api/v1/impact/{org}/{repo}:
+    get:
+      summary: Get Blast Radius Impact
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Impact analysis including can_deploy and can_rollback flags
+  /api/v1/telemetry/track:
+    post:
+      summary: Track Telemetry Event
+      responses:
+        '200':
+          description: Event tracked successfully

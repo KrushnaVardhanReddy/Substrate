@@ -15,12 +15,13 @@ This spec introduces a new Go REST endpoint (`/api/v1/impact`) and a new MCP Too
 - **Response Format:**
   ```json
   {
-    "provider": "myorg/payments-api",
-    "risk_score": 3,
-    "impacted_repos": [
-      "myorg/checkout-ui",
-      "myorg/invoice-worker",
-      "myorg/reporting-dashboard"
+    "org": "myorg",
+    "repo": "payments-api",
+    "can_deploy": false,
+    "can_rollback": false,
+    "dependencies": [
+      { "consumer": "checkout-ui", "status": "breaking" },
+      { "consumer": "invoice-worker", "status": "breaking" }
     ]
   }
   ```
