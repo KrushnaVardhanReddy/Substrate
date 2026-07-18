@@ -103,7 +103,7 @@ func ProcessPush(ctx context.Context, store db.Store, ghClient github.Client, re
 				continue
 			}
 
-			contractID, err := store.UpsertContract(ctx, providerRepoID, "unknown", "discovered", req.CommitSHA, req.CommitSHA, dep.VarValue)
+			contractID, err := store.UpsertContract(ctx, providerRepoID, "unknown", "discovered", "unknown", "unknown", dep.VarValue)
 			if err != nil {
 				continue
 			}
