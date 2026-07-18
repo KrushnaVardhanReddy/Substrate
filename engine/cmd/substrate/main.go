@@ -11,7 +11,6 @@ import (
 
 	"bytes"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/checker"
-	"net/http"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/config"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/diff"
 	initcmd "github.com/KrushnaVardhanReddy/substrate/engine/internal/init"
@@ -20,6 +19,7 @@ import (
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/telemetry"
 	"github.com/KrushnaVardhanReddy/substrate/engine/pkg/ai"
 	"github.com/spf13/cobra"
+	"net/http"
 )
 
 var flattenAllOf bool
@@ -200,7 +200,6 @@ func main() {
 				finalMode = cfg.Mode
 			}
 			rep.Mode = finalMode
-
 
 			if format == "json" {
 				output, err := json.MarshalIndent(rep, "", "  ")

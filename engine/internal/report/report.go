@@ -36,14 +36,15 @@ type Summary struct {
 }
 
 type Change struct {
-	ID             string         `json:"id"`
-	RuleID         string         `json:"rule_id"`
-	Severity       ChangeSeverity `json:"severity"`
-	Path           string         `json:"path"`
-	Description    string         `json:"description"`
-	Before         any            `json:"before"`
-	After          any            `json:"after"`
-	Recommendation *string        `json:"recommendation"`
+	ID              string         `json:"id"`
+	RuleID          string         `json:"rule_id"`
+	Severity        ChangeSeverity `json:"severity"`
+	Path            string         `json:"path"`
+	Description     string         `json:"description"`
+	Before          any            `json:"before"`
+	After           any            `json:"after"`
+	Recommendation  *string        `json:"recommendation"`
+	ConsumerImpacts []string       `json:"consumer_impacts,omitempty"`
 }
 
 type ComplianceAlert struct {

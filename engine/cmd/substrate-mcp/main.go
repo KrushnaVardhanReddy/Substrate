@@ -1,7 +1,6 @@
 package main
 
 import (
-	"runtime"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -10,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/checker"
