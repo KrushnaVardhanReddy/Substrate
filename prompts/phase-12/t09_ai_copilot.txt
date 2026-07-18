@@ -1,0 +1,61 @@
+TASK: P12-T09 — AI Support Copilot
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement a floating AI chat widget (Support Copilot) in the dashboard that uses the existing Phase 4 AI Intelligence Layer to answer questions, generate `substrate.yaml` configs, and troubleshoot user graphs in real-time.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-12/p12-t09-ai-copilot.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Do NOT use third-party chat widget libraries (e.g., intercom, drift). Build a native Svelte 5 component.
+- You MUST use Svelte 5 Runes (`$state()`, `$derived()`) for managing the chat history state. DO NOT use Svelte 4 `let` reactivity for complex objects.
+- Ensure the widget uses the exact dark mode aesthetics and tokens from the Phase 11 Premium Aesthetics System (`bg-[var(--bg-card)]`, glassmorphism, etc.).
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+The Svelte frontend lives in `dashboard/`.
+Components are in `dashboard/src/lib/components/`.
+The global layout is in `dashboard/src/routes/(app)/+layout.svelte`.
+The AI endpoint is `POST /api/v1/ai/analyze`.
+
+⚠️ CRITICAL CONTEXT: EVENT BUBBLING & CLICK OUTSIDE ⚠️
+When building the floating widget, clicking outside the chat window should close it. Ensure you implement a robust `use:clickOutside` action or window event listener that does not conflict with the Svelte Flow canvas interactions. Svelte Flow actively manages pointer events, so the Copilot widget must have a higher `z-index` and properly call `stopPropagation` when clicking inside the chat to prevent the canvas from panning.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. CREATE: `dashboard/src/lib/components/CopilotWidget.svelte`
+   - Build a Floating Action Button (FAB) positioned bottom-right (`fixed bottom-6 right-6 z-50`).
+   - On click, toggle a chat panel modal/drawer.
+   - The panel should have a message history area and a chat input with a submit button.
+   - Use `$state` to store an array of `Message { role: 'user' | 'ai', content: string }`.
+
+2. INTEGRATION: `dashboard/src/routes/(app)/+layout.svelte`
+   - Import and instantiate `<CopilotWidget />` so it is globally available across the authenticated dashboard.
+
+3. LOGIC: AI Streaming Client
+   - Wire the chat input to call `fetch('/api/v1/ai/analyze', { method: 'POST', body: ... })`.
+   - Ensure the server-sent events (SSE) stream or chunks are correctly parsed and appended to the last AI message in the `$state` array to create a typing effect.
+
+4. CREATE: E2E Test `dashboard/tests/e2e/ai-copilot.spec.ts`
+   - Write a Playwright test to open the widget, type a message, and verify the AI responds. Mock the `/api/v1/ai/analyze` endpoint.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- dashboard/src/lib/components/CopilotWidget.svelte
+- dashboard/tests/e2e/ai-copilot.spec.ts
+
+FILES TO MODIFY:
+- dashboard/src/routes/(app)/+layout.svelte
+
+Commit: "feat: P12-T09 implement AI Support Copilot widget"
+Target branch: feature/dev

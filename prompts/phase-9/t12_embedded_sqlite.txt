@@ -1,0 +1,62 @@
+TASK: P9-T12 — Embedded SQLite (LibSQL) Local Caching
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Embed SQLite into the CLI and MCP Server to pull background graph updates, enabling sub-millisecond, zero-latency local schema diffs without hitting the cloud API.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-9/p9-t12-embedded-sqlite.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Use ONLY `github.com/tursodatabase/libsql-client-go` or `github.com/mattn/go-sqlite3`. Since we may want to sync with Turso later, prefer LibSQL, but `mattn/go-sqlite3` is acceptable if CGO issues arise in WASM builds. For this task, use `github.com/mattn/go-sqlite3` strictly since we need WASM compatibility down the line. 
+- Do NOT alter the central Postgres database in `api/`. This is ONLY for `engine/cmd/substrate`.
+- Ensure migrations for the local SQLite db run automatically on CLI start.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+The CLI lives in `engine/cmd/substrate/main.go`.
+The MCP server lives in `engine/cmd/substrate-mcp/main.go`.
+
+⚠️ CRITICAL CONTEXT: CONCURRENCY IN SQLITE ⚠️
+SQLite is highly susceptible to `database is locked` errors if written to concurrently. Ensure you enable WAL mode (`PRAGMA journal_mode=WAL;`) upon connection, and only use a single writer connection for the background sync process.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. MODIFY: `engine/go.mod`
+   - Add `github.com/mattn/go-sqlite3`.
+
+2. CREATE: `engine/internal/cache/sqlite.go`
+   - Implement `InitCache(dbPath string)` to open the SQLite DB and set WAL mode.
+   - Run `CREATE TABLE IF NOT EXISTS` for `schemas` and `dependencies`.
+   - Implement `SyncFromRemote(ctx context.Context, apiURL string, token string)` to fetch `/api/v1/graph` and bulk insert into SQLite.
+
+3. MODIFY: `engine/cmd/substrate/main.go`
+   - On startup, call `cache.InitCache("~/.substrate/cache.db")`.
+   - Start `SyncFromRemote` in a non-blocking goroutine.
+   - Inject the SQLite cache into the diff engine so it checks the local cache first instead of making HTTP requests.
+
+4. CREATE: `engine/internal/cache/sqlite_test.go`
+   - Unit tests mocking the SQLite connection and verifying `SyncFromRemote` correctly maps JSON to SQL rows.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- engine/internal/cache/sqlite.go
+- engine/internal/cache/sqlite_test.go
+
+FILES TO MODIFY:
+- engine/go.mod
+- engine/go.sum
+- engine/cmd/substrate/main.go
+- engine/cmd/substrate-mcp/main.go
+
+Commit: "feat: P9-T12 implement embedded SQLite caching in CLI"
+Target branch: feature/dev
