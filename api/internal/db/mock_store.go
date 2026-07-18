@@ -197,6 +197,4 @@ func (m *MockStore) GetWebhooks(ctx context.Context, org string) ([]WebhookConfi
 	return nil, nil
 }
 
-func (m *MockStore) UpdateDependencyStatus(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, status string) error {
-	return nil
-}
+
