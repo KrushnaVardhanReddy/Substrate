@@ -506,3 +506,74 @@ See the full spec: `docs/specs/enterprise-vision.md`
 
 ---
 
+
+
+## Recently Completed Tasks (Moved from tasks.md)
+
+### Legend
+
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|---|---|---|---|---|---|
+| ✅ | Complete |
+
+### 🔐 Phase 9: Compliance, IDEs & Developer Experience
+
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|---|---|---|---|---|---|
+| **P9-T10** | 🚀 P1 | **MCP Server WASI Distribution** — Compile the `substrate-mcp` server using `GOOS=wasip1 GOARCH=wasm` to allow secure, sandboxed execution of the MCP server in Claude Desktop or Cursor via Wasmtime/Node.js. | Jules | ✅ Complete | `docs/specs/phase-9/p9-t10-mcp-wasi.md` |
+| **P9-T15** | 🚀 P1 | **Public Impact API & MCP Server** — Expose a REST API (`/api/v1/impact`) and an MCP tool (`get_blast_radius`) allowing CI/CD pipelines to block merges based on downstream risk scores, and enabling AI agents (Cursor/Claude) to autonomously fix downstream breaking changes. | Jules | ✅ Complete | `docs/specs/phase-9/p9-t15-impact-api.md` |
+
+### 🚀 Phase 10: Ecosystem Expansion & Security (Post-V1.0)
+
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|---|---|---|---|---|---|
+| **P10-T08** | 🔵 P4 | **Live Documentation Generator** — Auto-generate live developer portals and Mermaid architecture diagrams from Substrate's live schema/graph metadata. | Jules | ✅ Done | `docs/specs/phase-10/p10-t08-live-docs.md` |
+| **P10-T11** | 🚀 P1 | **Official Terraform Provider** — Build `terraform-provider-substrate` so DevOps teams can manage webhooks, rules, and RBAC policies entirely via Infrastructure-as-Code. | Jules | ✅ Done | `docs/specs/phase-10/p10-t11-terraform-provider.md` |
+| **P10-T16** | 🔴 P1 | **Webhook Auto-Discovery Integration** — Wire the Phase 5 Discovery Engine (`api/internal/discovery`) into the Cloudflare Webhook pipeline to automatically scan repos for dependencies, eliminating the need for manual `substrate.yaml` consumer mapping. | Jules | ✅ Complete | `docs/specs/phase-10/p10-t16-webhook-auto-discovery.md` |
+| **P10-T17** | ⭐ P1 | **Implicit Infrastructure Discovery (IID)** — Scan package manifests, Docker Compose, and SaaS SDKs to auto-generate infrastructure dependency graphs (Databases, Queues, Stripe, AWS) with Zero-Config. | Jules | ✅ Done | `docs/specs/phase-10/p10-t17-implicit-infrastructure-discovery.md` |
+
+### 🗺️ Phase 11: Advanced Graph Visualization (V2.0 UX)
+
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|---|---|---|---|---|---|
+| **P11-T01** | 🟡 P2 | **Cascading Blast Radius (Nth-Degree)** — Add an "Impact Depth" slider to the focus mode to animate and reveal 2nd and 3rd-degree downstream consumers to track rippling failures. | Jules | ✅ Complete | `docs/specs/phase-11/p11-t01-blast-radius.md` |
+| **P11-T02** | 🟡 P2 | **Team Neighborhoods (Compound Nodes)** — Group repository nodes physically inside Cytoscape compound boundary boxes based on their `CODEOWNERS` or organizational team structure. | Jules | ✅ Complete | `docs/specs/phase-11/p11-t02-team-neighborhoods.md` |
+| **P11-T03** | 🟢 P3 | **Interactive Edge Tooltips** — Hovering over a dependency edge reveals a tooltip showing exactly which endpoints/contracts are being consumed (e.g., `GET /api/v1/customers`). | Jules | ✅ Complete | `docs/specs/phase-11/p11-t03-edge-tooltips.md` |
+| **P11-T04** | 🔵 P4 | **Historical Volatility Heatmap** — Add a toggle to color-code the graph by historical breaking changes (Red = frequent breakers, Blue = stable core services). | Jules | ✅ Complete | `docs/specs/phase-11/p11-t04-volatility-heatmap.md` |
+| **P11-T05** | ⚪ P5 | **Bird's Eye Mini-Map** — Introduce a Cytoscape navigator widget in the bottom-left corner for maintaining context when zoomed into a localized blast radius on 100+ repo graphs. | Stitch | ✅ Complete | `(Handled by P11-T10)` |
+| **P11-T07** | 🚀 P1 | **Visual API Design Studio** — Drag-and-drop OpenAPI designer built directly into the Substrate UI to empower PMs and Architects to design before coding. | Jules | ✅ Complete | `docs/specs/phase-11/p11-t07-visual-api-studio.md` |
+| **P11-T08** | 🤯 P1 | **Substrate WASM Engine (In-Browser Diffing)** — Compile the Go Diff Engine to WebAssembly (`GOOS=js GOARCH=wasm`) so users can test schema breakages instantly in the Svelte dashboard with zero backend latency. | Stitch | ✅ Complete | `docs/specs/phase-11/p11-t08-wasm-engine.md` |
+| **P11-T09** | 🚀 P1 | **Server-Sent Events (SSE) Real-Time UI** — Stream real-time cross-repo diff results from the River queue directly to the dashboard via SSE and Go channels, eliminating UI polling. | Stitch | ✅ Complete | `docs/specs/phase-11/p11-t09-sse-ui.md` |
+| **P11-T10** | 🔴 P1 | **Svelte Flow Migration** — Migrate the entire graph visualization from Cytoscape.js to `Svelte Flow` for native reactivity, gorgeous HTML custom nodes, and built-in minimap support. | Stitch | ✅ Complete | `docs/specs/phase-11/p11-t10-svelte-flow.md` |
+| **P11-T11** | 🔴 P1 | **Global Command Palette (Cmd+K)** — Implement a Raycast-style command palette for instant global search across 100+ microservices, allowing users to jump directly to specific nodes. | Stitch | ✅ Complete | `docs/specs/phase-11/p11-t11-command-palette.md` |
+| **P11-T12** | 🟡 P2 | **Rich Side-by-Side Diff Viewer (& Sign Out)** — Build an interactive, syntax-highlighted side-by-side YAML diff viewer in the dashboard to review exact line deletions. Also includes adding the global Sign Out button. | Jules | ✅ Complete | `docs/specs/phase-11/p11-t12-diff-viewer.md` |
+| **P11-T13** | 🟢 P3 | **Time-Travel Graph Replay** — Add a timeline scrubber to the bottom of the graph to view the architectural dependencies of the enterprise exactly as they existed on any historical date. | Jules | ✅ Complete | `docs/specs/phase-11/p11-t13-time-travel.md` |
+| **P11-T14** | 🔴 P1 | **Premium Aesthetics System** — Overhaul the UI with a strict focus on Enterprise SaaS aesthetics: Deep Dark Mode, Glassmorphism modals, curated HSL color palettes, and edge-flow micro-animations. | Stitch | ✅ Complete | `docs/specs/phase-11/p11-t14-premium-aesthetics.md` |
+| **P11-T15** | 🔴 P1 | **Zero-to-One Onboarding Wizard** — Create a frictionless, animated onboarding wizard (Connect GitHub → Scan Repos → Build Graph) to guarantee a flawless 5-minute enterprise onboarding experience. | Stitch | ✅ Complete | `docs/specs/phase-11/p11-t15-onboarding-wizard.md` |
+| **P11-T16** | 🔴 P1 | **Taxonomy & Metadata Tagging** — Extend `substrate.yaml` with a `metadata` block (type, team, databases). Update the database with a JSONB column, pass it via the API, and render visually distinct SVG icons (frontend, database, mobile) in the Svelte Flow graph. | Jules | ✅ Complete | `docs/specs/phase-11/p11-t16-taxonomy-metadata.md` |
+| **P11-T17** | 🟢 P3 | **Graph Image Export** — Allow users to export their current Svelte Flow dependency graph as a high-resolution PNG for use in RFCs and compliance audits, using `html-to-image`. | Jules | ✅ Complete | `docs/specs/phase-11/p11-t17-graph-export.md` |
+
+### Phase 12: V2.0 Public Launch & Quality Assurance
+
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|---|---|---|---|---|---|
+| **P12-T01** | 🔴 P1 | **Zero-to-One Onboarding E2E** — Automate the user journey from GitHub token entry to Graph rendering using Playwright. | Stitch | ✅ Complete | `docs/specs/phase-12/p12-t01-onboarding-e2e.md` |
+| **P12-T02** | 🔴 P1 | **Svelte Flow Interaction E2E** — Playwright tests for Canvas interactions: clicking nodes (blast radius), toggling heatmaps, hovering edges. | Stitch | ✅ Complete | `docs/specs/phase-12/p12-t02-svelteflow-interactions.md` |
+| **P12-T03** | 🟡 P2 | **Visual Studio Resilience Test** — Verify bidirectional YAML binding and ensure invalid YAML does not crash Svelte state. | Stitch | ✅ Complete | `docs/specs/phase-12/p12-t03-playground-e2e.md` |
+| **P12-T04** | 🔴 P1 | **SSE Connection Resilience Test** — Go tests to simulate 100+ concurrent clients and abrupt disconnects to prevent memory leaks in the broadcast registry. | Jules | ✅ Complete | `docs/specs/phase-12/p12-t04-sse-resilience.md` |
+| **P12-T05** | 🟡 P2 | **WASM Engine Boundary Tests** — Ensure passing massive/malformed payloads to the WebAssembly diff engine returns safe JS errors instead of panics. | Jules | ✅ Complete | `docs/specs/phase-12/p12-t05-wasm-boundary.md` |
+| **P12-T06** | 🟢 P3 | **1,000-Node UI Stress Test** — Generate a massive mock graph to ensure Dagre layouts under 2s and canvas renders at 60fps. | Jules | ✅ Complete | `docs/specs/phase-12/p12-t06-stress-test.md` |
+| **P12-T07** | 🔵 P4 | **Telemetry & Crash Reporting** — Integrate PostHog/Sentry to trace live production errors in the Svelte Flow canvas. | Stitch | ✅ Complete | `docs/specs/phase-12/p12-t07-telemetry.md` |
+| **P12-T10** | 🔴 P1 | **VCS-Agnostic Webhook & API Adapter** — Refactor the Cloudflare worker to implement an Adapter pattern, supporting GitHub, GitLab, and Gitea/Forgejo payloads. | Jules | ✅ Done | `docs/specs/phase-12/p12-t10-vcs-agnostic-adapter.md` |
+| **P12-T11** | 🟡 P2 | **Multi-VCS Onboarding UI** — Update the dashboard onboarding flow to present three connect options: GitHub (Cloud), GitLab (Cloud), and Custom Server (URL & Token) for self-hosted instances. | Jules | ✅ Done | `docs/specs/phase-12/p12-t11-multi-vcs-onboarding-ui.md` |
+| **P12-T12** | 🚀 P1 | **System Matrix E2E Test** — Playwright suite that runs `git push` against local Forgejo to test the Red (Breaking), Green (Safe), and Yellow (Override) paths natively end-to-end. | Jules | ✅ Done | `docs/specs/phase-12/p12-t12-system-matrix-e2e.md` |
+| **P12-T13** | ⭐ P1 | **Zero-Config Developer Portal (Catalog UI)** — Build a "Backstage Killer" Service Catalog in the dashboard to auto-render API docs using Stoplight Elements without manual yaml config. | Jules | ✅ Done | `docs/specs/phase-12/p12-t13-zero-config-catalog.md` |
+| **P12-T14** | 🔴 P1 | **System Matrix Overrides (Yellow Path)** — Extend the E2E Matrix to SQL and AsyncAPI, and implement the Acknowledged status in the Go backend and Svelte UI. | Jules | ✅ Done | `docs/specs/phase-12/p12-t14-yellow-path-matrix.md` |
+| **P12-T15** | 🚀 P1 | **Advanced Feature Suites E2E** — Automate E2E testing for WASM Engine, MCP Impact API, AI Autofix, SSE Real-Time, Blast Radius, and Enterprise Dashboard UI. | Jules | ✅ Complete | `docs/specs/phase-12/p12-t15-advanced-e2e.md` |
+| **P12-T16** | 🔴 P1 | **Advanced E2E UI Implementation (TDD)** — Implement the SvelteKit frontend UI (Enterprise Routes, Impact API UI, Transitive Blast Radius, Telemetry) to satisfy the failing TDD E2E tests from P12-T15. | Jules | ✅ Complete | `docs/specs/phase-12/p12-t16-advanced-e2e-ui.md` |
+
+### 👑 Phase 13: God-Mode & Enterprise Intelligence
+
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|---|---|---|---|---|---|
+| **P13-T03** | 🤯 P1 | **AI Chaos Engineering Auto-Tests** — Automatically write Playwright/Jest tests that prove an API breakage, run them in a sandbox, and post the failing test logs to the PR. | Jules | ✅ Complete | `docs/specs/phase-13/p13-t03-ai-chaos-tests.md` |
