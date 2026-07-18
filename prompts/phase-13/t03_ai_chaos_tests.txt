@@ -1,0 +1,44 @@
+TASK: P13-T03 — AI Chaos Engineering Auto-Tests
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Automatically write and execute Playwright/Jest tests that prove an API breakage, running them in a secure sandbox, and posting the failure logs to the PR to provide concrete evidence of the downstream impact.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-13/p13-t03-ai-chaos-tests.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Do not execute untrusted AI-generated code directly on the host machine. You must use an isolated execution environment (e.g. wrapping Deno or Node via child processes with strict permissions).
+- Output must be formatted as markdown for GitHub PR comments.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. CREATE: api/internal/services/chaos.go
+   Create a new service `ChaosTestingService` that takes a `DiffReport` and prompts the LLM to write a JavaScript test case asserting the old schema expectations against the new broken schema.
+
+2. CREATE: api/internal/sandbox/runner.go
+   Implement a `RunCode` function that executes the JS file in a secure `deno run --no-net` or similar restricted child process.
+   Capture stdout and stderr.
+
+3. MODIFY: api/internal/github/comments.go
+   Embed the sandbox test failure output directly into the PR comment template under a "Proof of Breakage" section.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- api/internal/services/chaos.go
+- api/internal/sandbox/runner.go
+
+FILES TO MODIFY:
+- api/internal/github/comments.go
+- api/internal/services/ai.go
+
+Commit: "feat: P13-T03 implement AI chaos engineering auto-tests"
+Target branch: feature/dev
