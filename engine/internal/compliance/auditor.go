@@ -12,11 +12,11 @@ import (
 )
 
 var piiPatterns = map[string]string{
-	`(?i)(ssn|social.?security)`:   "PII:SSN",
-	`(?i)(password|passwd|secret)`: "SECURITY:CREDENTIAL",
-	`(?i)(card.?number|pan|cvv)`:   "PCI:PAYMENT",
+	`(?i)(ssn|social.?security)`:    "PII:SSN",
+	`(?i)(password|passwd|secret)`:  "SECURITY:CREDENTIAL",
+	`(?i)(card.?number|pan|cvv)`:    "PCI:PAYMENT",
 	`(?i)(medical|diagnosis|hipaa)`: "HIPAA:PHI",
-	`(?i)(email|phone|address)`:    "PII:CONTACT",
+	`(?i)(email|phone|address)`:     "PII:CONTACT",
 }
 
 // Compile regexes once

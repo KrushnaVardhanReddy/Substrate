@@ -8,8 +8,8 @@ import (
 )
 
 func DiffSchemas(base, head *SQLSchema) *report.DiffReport {
-    return &report.DiffReport{
-		SchemaType: "sql",
+	return &report.DiffReport{
+		SchemaType:      "sql",
 		BreakingChanges: []report.Change{},
 	}
 }

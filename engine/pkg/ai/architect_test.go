@@ -23,17 +23,17 @@ func TestRunArchitect(t *testing.T) {
 		expectedFile   string
 	}{
 		{
-			name:           "Empty input",
-			input:          "\n",
-			apiKey:         "test-key",
-			expectedError:  "input cannot be empty",
+			name:          "Empty input",
+			input:         "\n",
+			apiKey:        "test-key",
+			expectedError: "input cannot be empty",
 		},
 		{
-			name:           "Missing API key without fallback URL",
-			input:          "test\n",
-			apiKey:         "",
-			baseURL:        "http://some-url",
-			expectedError:  "SUBSTRATE_AI_API_KEY environment variable is required",
+			name:          "Missing API key without fallback URL",
+			input:         "test\n",
+			apiKey:        "",
+			baseURL:       "http://some-url",
+			expectedError: "SUBSTRATE_AI_API_KEY environment variable is required",
 		},
 		{
 			name:           "Fallback triggered when baseURL is unset",
@@ -55,10 +55,10 @@ func TestRunArchitect(t *testing.T) {
 			expectedOutput: "openapi: 3.0.0",
 		},
 		{
-			name:           "Closed input unexpectedly",
-			input:          "",
-			apiKey:         "test-key",
-			expectedError:  "input closed unexpectedly",
+			name:          "Closed input unexpectedly",
+			input:         "",
+			apiKey:        "test-key",
+			expectedError: "input closed unexpectedly",
 		},
 	}
 
