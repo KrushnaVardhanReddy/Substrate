@@ -13,6 +13,7 @@ CONSTRAINTS & RULES
 ═══════════════════════════════════════════════════════════════
 - The MCP server logic must not rely on unsupported WASI system calls (e.g. listening on TCP sockets must be avoided since MCP uses stdio).
 - Only modify the MCP CLI wrapper, not the core diff engine.
+- CRITICAL HINT: Ensure `GOOS=wasip1` builds don't import packages that strictly depend on CGO or unsupported OS threading. Mock or conditionally compile network-related code if necessary.
 
 ═══════════════════════════════════════════════════════════════
 DELIVERABLES

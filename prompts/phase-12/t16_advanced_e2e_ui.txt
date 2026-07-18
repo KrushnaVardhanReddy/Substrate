@@ -14,6 +14,8 @@ CONSTRAINTS & RULES
 - Do not modify `tests/e2e/advanced-features.spec.ts` to make tests pass; fix the Svelte UI instead.
 - Use Svelte 5 syntax (Runes) where possible.
 - Retain the HSL styling aesthetics introduced in Phase 11.
+- CRITICAL HINT 1: DO NOT run the Playwright E2E tests inside your sandbox (they will fail due to missing X11). Just ensure the code compiles and the logic is theoretically sound.
+- CRITICAL HINT 2: Svelte Flow requires immutability. To trigger reactivity when styling impacted nodes, you must map and return a brand new `nodes` array (`nodes = nodes.map(n => ...)`) and ensure `ServiceNode.svelte` uses `$derived()` or reactive declarations to read `data.status`.
 
 ═══════════════════════════════════════════════════════════════
 DELIVERABLES
