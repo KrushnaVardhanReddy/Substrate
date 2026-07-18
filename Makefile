@@ -107,6 +107,9 @@ docs:
 build-cli:
 	cd engine && go build -o substrate ./cmd/substrate/
 
+build-mcp-wasi:
+	cd engine && CGO_ENABLED=0 GOOS=wasip1 GOARCH=wasm go build -o substrate-mcp.wasm ./cmd/substrate-mcp/main.go
+
 build-mcp:
 	cd engine && go build -o substrate-mcp ./cmd/substrate-mcp/main.go
 
