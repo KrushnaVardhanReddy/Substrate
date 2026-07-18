@@ -1,0 +1,81 @@
+TASK: P10-T14 — Embedded JS Governance Rules (Goja)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Enterprise platform teams need to enforce custom API design policies beyond standard breaking changes (e.g., "All endpoints must have an X-Correlation-ID header"). Instead of forcing them to use an external linter or compile WASM plugins, we will embed a pure-Go JavaScript engine (`github.com/dop251/goja`) directly into the Substrate CLI. This allows developers to write custom, Turing-complete governance rules directly in `substrate.yaml` using plain JavaScript, with zero compilation overhead.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-10/p10-t14-custom-governance.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Do NOT use CGO, V8 bindings, or WebAssembly. You MUST use `github.com/dop251/goja` because it is pure Go and preserves our single-binary cross-compilation pipeline.
+- The JavaScript execution must be strictly sandboxed. `goja` has no I/O bindings by default, which is perfect.
+- The MCP Server tool must be exactly named `test_js_rule`.
+- All Go code must pass `go fmt` and `go test` before committing.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The `substrate.yaml` config parsing logic is located in `engine/internal/config/config.go`. It currently defines `CustomRule` structures.
+- The diff logic is orchestrated in `engine/internal/diff/` or `engine/cmd/substrate/main.go`.
+- The MCP Server entrypoint is located at `engine/cmd/substrate-mcp/main.go`, which uses `mcp.NewServer()` to register tools.
+- We need a new package `engine/internal/rules/` to house the isolated JS engine execution logic to keep things clean.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FILE: engine/go.mod (UPDATE)
+   a. Run `go get github.com/dop251/goja` within the `engine` directory to add the dependency.
+
+2. FILE: engine/internal/config/config.go (EXPAND)
+   a. Update the `CustomRule` struct to include a new string property: `Javascript string `yaml:"javascript,omitempty" json:"javascript,omitempty"`.
+
+3. FILE: engine/internal/rules/js_engine.go (NEW)
+   a. Create a `RunJSRule(script string, schema map[string]interface{}) (string, error)` function.
+   b. Initialize a new `goja.New()` runtime.
+   c. Inject the `schema` variable into the JS runtime: `vm.Set("schema", schema)`.
+   d. Evaluate the provided `script`.
+   e. Extract the `validate` function from the runtime and call it with the `schema`.
+   f. If `validate` returns a string, return it as a validation failure message. If it returns `true`, return empty string (success). Handle execution errors.
+
+4. FILE: engine/internal/rules/js_engine_test.go (NEW)
+   a. Write a unit test providing a JS script that rejects an OpenAPI schema map missing a specific header, ensuring the engine correctly returns the error string.
+
+5. FILE: engine/internal/diff/diff.go (or wherever the custom rules are evaluated) (EXPAND)
+   a. When iterating over `cfg.CustomRules`, if `rule.Javascript` is not empty, convert the schema to a `map[string]interface{}` and pass it to `RunJSRule`.
+   b. If `RunJSRule` returns an error string, append it to the `DiffReport` as a `Warning` or `BreakingChange` depending on rule configuration.
+
+6. FILE: engine/cmd/substrate-mcp/main.go (EXPAND)
+   a. Register a new tool: `test_js_rule`.
+   b. Define the input schema requiring `javascript` (string) and `schema` (JSON string or object).
+   c. The handler must execute `rules.RunJSRule` and return a JSON result containing either `{ "valid": true }` or `{ "valid": false, "error": "validation message" }`.
+
+7. Build and Test:
+   a. Run `go test ./...` in the `engine` directory.
+   b. Run `go build -o substrate ./engine/cmd/substrate` and `go build -o substrate-mcp ./engine/cmd/substrate-mcp` to ensure compilation.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION HINTS
+═══════════════════════════════════════════════════════════════
+- To convert a Go struct (like `openapi3.T`) into a `map[string]interface{}` for `goja`, the easiest way is usually to JSON marshal the struct and then JSON unmarshal it into `map[string]interface{}`. This guarantees it perfectly matches standard JS object traversal.
+- In the MCP server, ensure you gracefully handle invalid JS syntax by capturing the `goja` parsing error and returning it as a tool failure instead of crashing the server.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO MODIFY:
+- engine/go.mod
+- engine/go.sum
+- engine/internal/config/config.go
+- engine/internal/rules/js_engine.go (NEW)
+- engine/internal/rules/js_engine_test.go (NEW)
+- engine/internal/diff/diff.go (or related diff execution file)
+- engine/cmd/substrate-mcp/main.go
+
+Commit: "feat: P10-T14 implement embedded goja JavaScript governance rules engine"
+Target branch: feature/dev
