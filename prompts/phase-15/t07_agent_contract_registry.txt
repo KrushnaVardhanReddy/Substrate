@@ -1,0 +1,26 @@
+TASK: P15-T07 — Agent Contract Registry
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement the Substrate AI Agent Contract Registry to track AI agent dependencies on MCP tools, and auto-generate fix PRs when upstream tools change.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-15/p15-t07-agent-contract-registry.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Implement `api/internal/agents/` registry.
+- Provide SQL migrations in `api/internal/db/migrations/`.
+- Provide tests.
+
+⚠️ CRITICAL CONTEXT & IMPLEMENTATION TIPS ⚠️
+1. Database Schema: Create a migration (e.g. `20260720000000_create_agent_contracts.up.sql`) adding two tables: `agent_consumers (id, repo_name, owner)` and `agent_tool_dependencies (agent_id, tool_name, parameters_jsonb)`.
+2. DB Layer: Update `api/internal/db/store.go` and `queries.go` (or `sqlc` if applicable) to perform CRUD operations on these tables.
+3. Autofix Logic (`engine/pkg/ai/agent_fix.go`): When a breaking change is detected in an MCP tool (e.g. parameter removed), query the DB to find all agents depending on that tool. Use the LLM client (`go-openai`) to generate an updated agent system prompt or JSON schema.
+4. Cross-Repo PRs: Use the GitHub client to automatically create a Pull Request in the agent's repository with the LLM-generated fix.
+5. Mocking: Ensure the GitHub client and LLM client are properly mocked in your unit tests to prevent network calls during `go test`.
+
+Commit: "feat: P15-T07 implement agent contract registry"
+Target branch: feature/dev

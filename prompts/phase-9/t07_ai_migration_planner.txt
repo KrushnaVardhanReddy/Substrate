@@ -1,0 +1,26 @@
+TASK: P9-T07 — AI Migration Planner
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement the AI Migration Planner which generates multi-step, zero-downtime migration strategies for detected breaking changes.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-9/p9-t07-ai-migration-planner.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Implement in `engine/pkg/ai/migration.go`.
+- Hook into `api/internal/handlers/diff.go` to trigger the planner when high-severity breaking changes are detected.
+- Tests MUST be included.
+
+⚠️ CRITICAL CONTEXT & IMPLEMENTATION TIPS ⚠️
+1. LLM Client: Use `github.com/sashabaranov/go-openai` (add it to go.mod if not present). Read `OPENAI_API_KEY` from `os.Getenv()`.
+2. Input Context: The planner takes a `DiffReport` (which contains `FIELD_REMOVED`, `FIELD_ADDED`, etc.) as input. You must convert these breaking anomalies into a structured prompt.
+3. System Prompt: The AI must be instructed to output an "Expand-and-Contract" deployment strategy (e.g. 1. Add new field, 2. Dual write, 3. Backfill, 4. Drop old field).
+4. Output Parsing: Force the LLM to output a JSON object or strictly formatted Markdown checklist so it can be seamlessly injected into the GitHub PR comment bot (`api/internal/github/client.go`).
+5. Fallback: If the LLM API fails or times out, gracefully fallback to the standard diff report without crashing the PR pipeline.
+
+Commit: "feat: P9-T07 implement AI migration planner"
+Target branch: feature/dev
