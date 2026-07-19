@@ -6,7 +6,9 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"strings"
 
+	pkgconsumers "github.com/KrushnaVardhanReddy/substrate/api/internal/consumers"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 )
 
@@ -161,6 +163,63 @@ func PerformCrossRepoCheck(ctx context.Context, store db.Store, req CrossRepoChe
 				continue
 			}
 			diffResp.Body.Close()
+
+			// Consumer Manifest Pruning
+			var finalBreaking []interface{}
+			var hasManifest bool
+			var manifest *pkgconsumers.Manifest
+
+			manifestBytes, err := store.GetConsumerManifests(ctx, req.ProviderRepo, consumer.ConsumerFullName)
+			if err == nil && len(manifestBytes) > 0 {
+				m, parseErr := pkgconsumers.Parse(manifestBytes)
+				if parseErr == nil {
+					hasManifest = true
+					manifest = m
+				}
+			}
+
+			for _, b := range diffReport.Breaking {
+				bcMap, ok := b.(map[string]interface{})
+				if !ok {
+					finalBreaking = append(finalBreaking, b)
+					continue
+				}
+
+				ruleID, _ := bcMap["rule_id"].(string)
+				if ruleID == "FIELD_REMOVED" && hasManifest {
+					path, _ := bcMap["path"].(string)
+
+					parts := strings.Split(path, ".")
+					fieldName := parts[len(parts)-1]
+
+					isConsumed := false
+					for _, consumes := range manifest.Consumes {
+						for _, f := range consumes.Fields {
+							if f == fieldName {
+								isConsumed = true
+								break
+							}
+						}
+						if isConsumed {
+							break
+						}
+					}
+
+					if !isConsumed {
+						bcMap["severity"] = "SAFE_NO_CONSUMERS"
+						if diffReport.Info == nil {
+							diffReport.Info = []interface{}{}
+						}
+						diffReport.Info = append(diffReport.Info, bcMap)
+						diffReport.Summary.BreakingCount--
+						continue
+					}
+				}
+
+				finalBreaking = append(finalBreaking, b)
+			}
+
+			diffReport.Breaking = finalBreaking
 
 			status := "safe"
 			if diffReport.Summary.BreakingCount > 0 {

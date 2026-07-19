@@ -39,6 +39,7 @@ type MockStore struct {
 	GetDiffReportFunc                  func(ctx context.Context, id uuid.UUID) (json.RawMessage, error)
 	GetDiffReportsByRepoFunc           func(ctx context.Context, orgName, repoName string, limit int) ([]DiffReportRecord, error)
 	UpdateDependencyStatusFunc         func(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, status string) error
+	GetConsumerManifestsFunc             func(ctx context.Context, providerRepo, consumerRepo string) (json.RawMessage, error)
 }
 
 func (m *MockStore) UpsertOrg(ctx context.Context, installationID int64, orgName string) (uuid.UUID, error) {
@@ -241,6 +242,13 @@ func (m *MockStore) GetCommitVelocity(ctx context.Context, repoID uuid.UUID, sin
 func (m *MockStore) GetTimeSinceLastBreak(ctx context.Context, repoID uuid.UUID) (*time.Time, error) {
 	if m.GetTimeSinceLastBreakFunc != nil {
 		return m.GetTimeSinceLastBreakFunc(ctx, repoID)
+	}
+	return nil, nil
+}
+
+func (m *MockStore) GetConsumerManifests(ctx context.Context, providerRepo, consumerRepo string) (json.RawMessage, error) {
+	if m.GetConsumerManifestsFunc != nil {
+		return m.GetConsumerManifestsFunc(ctx, providerRepo, consumerRepo)
 	}
 	return nil, nil
 }
