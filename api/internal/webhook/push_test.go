@@ -82,7 +82,7 @@ func TestPushHandler(t *testing.T) {
 
 		checkRunCreated := false
 		mockClient := &github.MockClient{
-			CreateCheckRunFunc: func(ctx context.Context, owner, repo, commitSHA, name, title, summary string) error {
+			CreateCheckRunFunc: func(ctx context.Context, owner, repo, commitSHA, name, title, summary, conclusion string) error {
 				checkRunCreated = true
 				if owner != "test-org" {
 					t.Errorf("Expected owner test-org, got %s", owner)

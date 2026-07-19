@@ -84,6 +84,7 @@ func ReactionHandler(store db.Store, ghClient github.Client) http.HandlerFunc {
 							"Substrate Contract Negotiation",
 							"Consumer Approval Received",
 							"All affected consumers have approved the breaking change.",
+							"success",
 						)
 					}
 				}
