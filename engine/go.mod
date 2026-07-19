@@ -6,6 +6,7 @@ require (
 	github.com/asyncapi/parser-go v0.5.0
 	github.com/aws/aws-sdk-go-v2/config v1.32.30
 	github.com/aws/aws-sdk-go-v2/service/apigateway v1.41.1
+	github.com/dop251/goja v0.0.0-20260701091749-b07b74453ea9
 	github.com/emicklei/proto v1.14.3
 	github.com/getkin/kin-openapi v0.140.0
 	github.com/google/cel-go v0.29.2
@@ -50,7 +51,6 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dlclark/regexp2/v2 v2.2.1 // indirect
-	github.com/dop251/goja v0.0.0-20260701091749-b07b74453ea9 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/jsonpointer v0.22.5 // indirect
