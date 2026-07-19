@@ -1,4 +1,4 @@
-# P10-T06: MCP (Model Context Protocol) Runtime Diffing
+# P10-T07: MCP (Model Context Protocol) Runtime Diffing
 
 ## Objective
 As AI Agents become first-class citizens in enterprise architecture, the tools and resources they rely on (exposed via MCP) become critical infrastructure. Unlike OpenAPI, MCP schemas are dynamically discovered at runtime. Substrate must introduce a specialized "Runtime Diff Engine" capable of spinning up an MCP server during CI/CD, querying its capabilities, and detecting breaking changes before they disrupt autonomous agent workflows.
