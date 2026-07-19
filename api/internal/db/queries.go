@@ -229,12 +229,13 @@ func (s *PGStore) GetDependencyGraph(ctx context.Context, orgName string) ([]Dep
 
 func GetDependencyGraph(ctx context.Context, pool *pgxpool.Pool, orgName string) ([]DependencyEdge, error) {
 	rows, err := pool.Query(ctx, `
-		SELECT cr.full_name as consumer_full_name, pr.full_name as provider_full_name, d.status, cr.metadata as consumer_metadata, pr.metadata as provider_metadata
+		SELECT cr.full_name as consumer_full_name, pr.full_name as provider_full_name, d.status, cr.metadata as consumer_metadata, pr.metadata as provider_metadata, COALESCE(rm.predictive_risk_score, 0) as predictive_risk_score
 		FROM dependencies d
 		JOIN repositories cr ON d.consumer_repo_id = cr.id
 		JOIN contracts pc ON d.provider_contract_id = pc.id
 		JOIN repositories pr ON pc.repo_id = pr.id
 		JOIN organizations o ON cr.org_id = o.id
+		LEFT JOIN repo_metrics rm ON pr.id = rm.repo_id
 		WHERE o.github_org_name = $1
 	`, orgName)
 	if err != nil {
@@ -366,18 +367,45 @@ func UpdateDependencyConfidence(ctx context.Context, pool *pgxpool.Pool, consume
 	return nil
 }
 
-func (s *PGStore) SaveDiffReport(ctx context.Context, diffReport json.RawMessage, isAuditMode bool) (uuid.UUID, error) {
-	return SaveDiffReport(ctx, s.pool, diffReport, isAuditMode)
+func (s *PGStore) SaveDiffReport(ctx context.Context, diffReport json.RawMessage, isAuditMode bool, orgName, repoName string) (uuid.UUID, error) {
+	return SaveDiffReport(ctx, s.pool, diffReport, isAuditMode, orgName, repoName)
 }
 
-func SaveDiffReport(ctx context.Context, pool *pgxpool.Pool, diffReport json.RawMessage, isAuditMode bool) (uuid.UUID, error) {
+func SaveDiffReport(ctx context.Context, pool *pgxpool.Pool, diffReport json.RawMessage, isAuditMode bool, orgName, repoName string) (uuid.UUID, error) {
 	var id uuid.UUID
 	err := pool.QueryRow(ctx, `
-		INSERT INTO diff_reports (report_data, is_audit_mode)
-		VALUES ($1, $2)
+		INSERT INTO diff_reports (report_data, is_audit_mode, org_name, repo_name)
+		VALUES ($1, $2, $3, $4)
 		RETURNING id
-	`, diffReport, isAuditMode).Scan(&id)
+	`, diffReport, isAuditMode, orgName, repoName).Scan(&id)
 	return id, err
+}
+
+func (s *PGStore) GetDiffReportsByRepo(ctx context.Context, orgName, repoName string, limit int) ([]DiffReportRecord, error) {
+	rows, err := s.pool.Query(ctx, `
+		SELECT report_data, created_at
+		FROM diff_reports
+		WHERE org_name = $1 AND repo_name = $2
+		ORDER BY created_at DESC
+		LIMIT $3
+	`, orgName, repoName, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get diff reports: %w", err)
+	}
+	defer rows.Close()
+
+	var reports []DiffReportRecord
+	for rows.Next() {
+		var record DiffReportRecord
+		if err := rows.Scan(&record.ReportData, &record.CreatedAt); err != nil {
+			return nil, fmt.Errorf("failed to scan report: %w", err)
+		}
+		reports = append(reports, record)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows iteration error: %w", err)
+	}
+	return reports, nil
 }
 
 func (s *PGStore) GetDiffReport(ctx context.Context, id uuid.UUID) (json.RawMessage, error) {

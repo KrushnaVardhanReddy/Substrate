@@ -35,12 +35,25 @@ type ConsumerDependency struct {
 	ContractRawContent string
 }
 
+type DiffReportRecord struct {
+	ReportData json.RawMessage
+	CreatedAt  time.Time
+}
+
 type DependencyEdge struct {
-	ConsumerFullName string          `json:"consumer"`
-	ProviderFullName string          `json:"provider"`
-	Status           string          `json:"status"`
-	ConsumerMetadata json.RawMessage `json:"consumer_metadata,omitempty"`
-	ProviderMetadata json.RawMessage `json:"provider_metadata,omitempty"`
+	ConsumerFullName    string          `json:"consumer"`
+	ProviderFullName    string          `json:"provider"`
+	Status              string          `json:"status"`
+	ConsumerMetadata    json.RawMessage `json:"consumer_metadata,omitempty"`
+	ProviderMetadata    json.RawMessage `json:"provider_metadata,omitempty"`
+	PredictiveRiskScore int             `json:"predictive_risk_score,omitempty"`
+}
+
+type RepoMetric struct {
+	ID                  uuid.UUID `json:"id"`
+	RepoID              uuid.UUID `json:"repo_id"`
+	PredictiveRiskScore int       `json:"predictive_risk_score"`
+	CalculatedAt        time.Time `json:"calculated_at"`
 }
 
 type BreakingChangeRecord struct {
@@ -87,14 +100,20 @@ type Store interface {
 	GetConsumersByProviderContract(ctx context.Context, providerContractID uuid.UUID) ([]ConsumerDependency, error)
 	ListReposByOrg(ctx context.Context, orgName string) ([]Repository, error)
 	GetDependencyGraph(ctx context.Context, orgName string) ([]DependencyEdge, error)
+	UpsertRepoMetric(ctx context.Context, repoID uuid.UUID, score int) error
+	GetAllRepositories(ctx context.Context) ([]Repository, error)
+	CountRecentBreakingChanges(ctx context.Context, repoID uuid.UUID, since time.Time) (int, error)
+	GetCommitVelocity(ctx context.Context, repoID uuid.UUID, since time.Time) (int, error)
+	GetTimeSinceLastBreak(ctx context.Context, repoID uuid.UUID) (*time.Time, error)
 	CountReposByOrg(ctx context.Context, orgName string) (int, error)
 	CountDownstreamDependencies(ctx context.Context, providerFullName string) (int, error)
 	RecordBreakingChange(ctx context.Context, repoID uuid.UUID, orgName, repoName, gitSHA string, breakingChanges json.RawMessage) error
 	GetBreakingChangeHistory(ctx context.Context, orgName, repoName string, limit int) ([]BreakingChangeRecord, error)
 	UpdateDependencyConfidence(ctx context.Context, consumerFullName, providerURL string, boostAmount float64) error
 	UpdateDependencyStatus(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, status string) error
-	SaveDiffReport(ctx context.Context, diffReport json.RawMessage, isAuditMode bool) (uuid.UUID, error)
+	SaveDiffReport(ctx context.Context, diffReport json.RawMessage, isAuditMode bool, orgName, repoName string) (uuid.UUID, error)
 	GetDiffReport(ctx context.Context, id uuid.UUID) (json.RawMessage, error)
+	GetDiffReportsByRepo(ctx context.Context, orgName, repoName string, limit int) ([]DiffReportRecord, error)
 	RecordDriftAnomaly(ctx context.Context, anomaly DriftAnomaly) error
 	GetDriftAnomalies(ctx context.Context, orgName, repoName string) ([]DriftAnomaly, error)
 	RegisterWebhook(ctx context.Context, config WebhookConfig) error

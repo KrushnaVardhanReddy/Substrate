@@ -48,7 +48,7 @@ func SaveDiffHandler(store db.Store, riverClient workers.JobEnqueuer) http.Handl
 		}
 
 		ctx := r.Context()
-		id, err := store.SaveDiffReport(ctx, req.DiffReport, req.IsAuditMode)
+		id, err := store.SaveDiffReport(ctx, req.DiffReport, req.IsAuditMode, req.Org, req.ProviderRepo)
 		if err != nil {
 			http.Error(w, "internal server error", http.StatusInternalServerError)
 			return
