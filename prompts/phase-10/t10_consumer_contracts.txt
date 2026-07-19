@@ -20,10 +20,10 @@ CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
 ═══════════════════════════════════════════════════════════════
 API logic is in `api/`.
 Postgres migrations are in `api/internal/db/migrations/`.
-Impact analysis logic lives in `api/internal/handlers/impact.go`.
+Impact analysis logic lives in `api/internal/services/cross_repo.go`.
 
 ⚠️ CRITICAL CONTEXT: OVERRIDING BREAKING ANOMALIES ⚠️
-In `api/internal/handlers/impact.go`, when iterating through the `engine.DiffReport` anomalies, you must query the new `consumer_manifests` table. If an anomaly is `FIELD_REMOVED` (e.g., `last_name`), and you find 0 consumers tracking that field, you MUST change the severity of that anomaly to `SAFE_NO_CONSUMERS` so the PR check turns green.
+In `api/internal/services/cross_repo.go` (inside `PerformCrossRepoCheck`), after it decodes the `diffReport` from the engine, you must query the new `consumer_manifests` table. If an anomaly is `FIELD_REMOVED` (e.g., `last_name`), and you find that `consumer.ConsumerFullName` does NOT track that field, you MUST remove it from `diffReport.Breaking`, move it to `diffReport.Info` (or set severity to `SAFE_NO_CONSUMERS`), and decrement `diffReport.Summary.BreakingCount` so the overall status turns green.
 
 ═══════════════════════════════════════════════════════════════
 DELIVERABLES
@@ -35,8 +35,8 @@ DELIVERABLES
 2. CREATE: `api/internal/db/migrations/20260719000000_create_consumer_manifests.up.sql`
    - Table `consumer_manifests` mapping `provider_repo`, `consumer_repo`, and `consumed_fields` (JSONB).
 
-3. MODIFY: `api/internal/handlers/impact.go`
-   - Implement the pruning logic that cross-references the diff report with the database.
+3. MODIFY: `api/internal/services/cross_repo.go`
+   - Implement the pruning logic inside `PerformCrossRepoCheck` that cross-references the decoded `diffReport` with the database.
 
 ═══════════════════════════════════════════════════════════════
 FILES LIST
@@ -48,7 +48,7 @@ FILES TO CREATE:
 - api/internal/db/migrations/20260719000000_create_consumer_manifests.up.sql
 
 FILES TO MODIFY:
-- api/internal/handlers/impact.go
+- api/internal/services/cross_repo.go
 
 Commit: "feat: P10-T10 implement consumer-driven contract manifests"
 Target branch: feature/dev
