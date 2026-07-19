@@ -17,6 +17,7 @@ import (
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/diff"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/mcp"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/rules"
 	sqlpkg "github.com/KrushnaVardhanReddy/substrate/engine/internal/sql"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/telemetry"
 	"time"
@@ -612,6 +613,70 @@ func main() {
 			res := map[string]any{
 				"stdout":    string(out),
 				"exit_code": exitCode,
+			}
+			b, _ := json.Marshal(res)
+			return string(b), nil
+		},
+	})
+
+	// Tool 10: test_js_rule
+	server.RegisterTool(mcp.Tool{
+		Name:        "test_js_rule",
+		Description: "Tests a custom Javascript governance rule against a provided schema snippet.",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"javascript": map[string]any{
+					"type":        "string",
+					"description": "The javascript validation script. Must contain a `validate(schema)` function.",
+				},
+				"schema": map[string]any{
+					"type":        "string",
+					"description": "The schema to validate against, as a JSON string.",
+				},
+			},
+			"required": []string{"javascript", "schema"},
+		},
+		Handler: func(params json.RawMessage) (any, error) {
+			var args struct {
+				Javascript string `json:"javascript"`
+				Schema     string `json:"schema"`
+			}
+			if err := json.Unmarshal(params, &args); err != nil {
+				return nil, err
+			}
+			if args.Javascript == "" {
+				return nil, fmt.Errorf("javascript is required")
+			}
+
+			var schemaMap map[string]any
+			if args.Schema != "" {
+				if err := json.Unmarshal([]byte(args.Schema), &schemaMap); err != nil {
+					return nil, fmt.Errorf("failed to parse schema as JSON: %w", err)
+				}
+			}
+
+			errMsg, err := rules.RunJSRule(args.Javascript, schemaMap)
+			if err != nil {
+				res := map[string]any{
+					"valid": false,
+					"error": fmt.Sprintf("js execution error: %v", err),
+				}
+				b, _ := json.Marshal(res)
+				return string(b), nil
+			}
+
+			if errMsg != "" {
+				res := map[string]any{
+					"valid": false,
+					"error": errMsg,
+				}
+				b, _ := json.Marshal(res)
+				return string(b), nil
+			}
+
+			res := map[string]any{
+				"valid": true,
 			}
 			b, _ := json.Marshal(res)
 			return string(b), nil
