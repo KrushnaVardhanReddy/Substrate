@@ -6,6 +6,7 @@ require (
 	github.com/asyncapi/parser-go v0.5.0
 	github.com/aws/aws-sdk-go-v2/config v1.32.30
 	github.com/aws/aws-sdk-go-v2/service/apigateway v1.41.1
+	github.com/emicklei/proto v1.14.3
 	github.com/getkin/kin-openapi v0.140.0
 	github.com/google/cel-go v0.29.2
 	github.com/mattn/go-sqlite3 v1.14.48
