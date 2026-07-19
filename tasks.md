@@ -70,7 +70,6 @@
 ### Phase 12: V2.0 Public Launch & Quality Assurance
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **P12-T08** | 🔴 P1 | **V2.0 Production Cutover** — Final pipeline updates to bundle Svelte static assets and WASM binary into the Go single-binary deployment. | Jules | 🔄 Running | `docs/specs/phase-12/p12-t08-production-cutover.md` |
 
 ---
 
