@@ -9,6 +9,17 @@ When an enterprise deploys the Substrate single-binary, they can configure it to
 - **Key Management:** Integrate with AWS KMS, GCP Cloud KMS, and HashiCorp Vault. The app fetches a Data Encryption Key (DEK) wrapped by the enterprise's KMS.
 - **Value:** If the enterprise revokes the KMS key, the entire Substrate database is cryptographically shredded instantly.
 
+### Database Architecture: Toggled Payload Columns
+To ensure we do not need separate databases for Free/Pro vs. Enterprise users, the PostgreSQL schema must use a dual-column fallback strategy:
+```sql
+ALTER TABLE schema_revisions
+  ADD COLUMN raw_schema JSONB,           -- For Standard users (fast indexing)
+  ADD COLUMN encrypted_schema BYTEA,     -- For Enterprise BYOK users (AES-256-GCM)
+  ADD COLUMN is_encrypted BOOLEAN DEFAULT false,
+  ADD COLUMN kms_key_arn VARCHAR(255);
+```
+The application's repository layer (`api/internal/db`) will dynamically choose which column to write to/read from based on the user's tier. This keeps the core diff `engine/` completely unaware of the encryption layer.
+
 ## 2. LLM BYOK (Data-in-Motion / AI)
 Substrate's most advanced features (Migration Planner, Contract Negotiation) rely on LLMs. Enterprises will not allow their proprietary schemas to be sent to a multi-tenant OpenAI SaaS endpoint.
 - **Implementation:** Expand `substrate.yaml` to accept an AI provider configuration block.
