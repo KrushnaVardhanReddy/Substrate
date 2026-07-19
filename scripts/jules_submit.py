@@ -114,6 +114,26 @@ TASKS = {
         "phase": "phase-10-ecosystem",
         "prompt": _load_prompt("prompts/phase-10/t14_custom_governance.txt"),
     },
+    916: {
+        "name": "P9-T16 — WASM Git Pre-Commit Hooks",
+        "phase": "phase-9",
+        "prompt": _load_prompt("prompts/phase-9/t16_wasm_hooks.txt"),
+    },
+    1018: {
+        "name": "P10-T18 — GraphQL Supergraph Federation",
+        "phase": "phase-10",
+        "prompt": _load_prompt("prompts/phase-10/t18_graphql_federation.txt"),
+    },
+    1010: {
+        "name": "P10-T10 — Consumer-Driven Contract Manifests",
+        "phase": "phase-10",
+        "prompt": _load_prompt("prompts/phase-10/t10_consumer_contracts.txt"),
+    },
+    1502: {
+        "name": "P15-T02 — Granular GitHub Check Suite",
+        "phase": "phase-15",
+        "prompt": _load_prompt("prompts/phase-15/t02_granular_check_suite.txt"),
+    },
     # ── Phase 0: Specs (handled by Antigravity, not Jules) ────────────────────
     # (no Jules tasks for Phase 0)
 

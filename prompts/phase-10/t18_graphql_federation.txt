@@ -1,0 +1,47 @@
+TASK: P10-T18 — GraphQL Supergraph Federation
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Extend Substrate's GraphQL diffing engine to natively support Apollo Federation v2 directives so that cross-subgraph breaking changes (like dropping a @key) are caught.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-10/p10-t18-graphql-federation.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Do not build a completely new AST parser; hook into our existing `vektah/gqlparser/v2` usage in `engine/internal/graphql/`.
+- Ensure standard (non-federated) GraphQL diffs still pass all existing tests.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+GraphQL diffing rules live in `engine/internal/graphql/diff.go`.
+
+⚠️ CRITICAL CONTEXT: GQLPARSER FEDERATION INJECTION ⚠️
+`vektah/gqlparser` natively fails if it encounters `@key` without a directive definition. You must programmatically inject the Apollo Federation directives (`directive @key(fields: _FieldSet!) repeatable on OBJECT | INTERFACE`, etc.) into the schema source *before* running `gqlparser.LoadSchema` if you detect they are being used but not explicitly defined.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. MODIFY: `engine/internal/graphql/diff.go`
+   - Inject Apollo Federation v2 definitions before parsing if missing.
+   - Add new rule `FederationKeyBroken`: Fails if an `@key` field is removed or its type is altered.
+
+2. CREATE: `engine/internal/graphql/federation_test.go`
+   - Unit tests proving that deleting a `@key` field triggers the new violation, while deleting a `@shareable` field might not.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- engine/internal/graphql/federation_test.go
+
+FILES TO MODIFY:
+- engine/internal/graphql/diff.go
+
+Commit: "feat: P10-T18 support Apollo Federation GraphQL rules"
+Target branch: feature/dev

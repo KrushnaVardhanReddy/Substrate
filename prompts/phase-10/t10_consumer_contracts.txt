@@ -1,0 +1,54 @@
+TASK: P10-T10 — Consumer-Driven Contract Manifests
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Enable a CDC (Consumer-Driven Contracts) architecture where frontend apps upload `.substrate-consumer.yaml` declaring exactly which API fields they consume, allowing us to prune "breaking" changes if no one uses them.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-10/p10-t10-consumer-contracts.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- The manifest parser must strictly enforce the `schema_version`, `provider`, and `consumes` fields.
+- The PostgreSQL schema migration must use `golang-migrate` to create the `consumer_manifests` table.
+- Impact Engine must gracefully default to blocking if no manifest exists.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+API logic is in `api/`.
+Postgres migrations are in `api/internal/db/migrations/`.
+Impact analysis logic lives in `api/internal/handlers/impact.go`.
+
+⚠️ CRITICAL CONTEXT: OVERRIDING BREAKING ANOMALIES ⚠️
+In `api/internal/handlers/impact.go`, when iterating through the `engine.DiffReport` anomalies, you must query the new `consumer_manifests` table. If an anomaly is `FIELD_REMOVED` (e.g., `last_name`), and you find 0 consumers tracking that field, you MUST change the severity of that anomaly to `SAFE_NO_CONSUMERS` so the PR check turns green.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. CREATE: `api/internal/consumers/parser.go` and `api/internal/consumers/parser_test.go`
+   - Read `.substrate-consumer.yaml` and validate the schema.
+
+2. CREATE: `api/internal/db/migrations/20260719000000_create_consumer_manifests.up.sql`
+   - Table `consumer_manifests` mapping `provider_repo`, `consumer_repo`, and `consumed_fields` (JSONB).
+
+3. MODIFY: `api/internal/handlers/impact.go`
+   - Implement the pruning logic that cross-references the diff report with the database.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- api/internal/consumers/parser.go
+- api/internal/consumers/parser_test.go
+- api/internal/db/migrations/20260719000000_create_consumer_manifests.up.sql
+
+FILES TO MODIFY:
+- api/internal/handlers/impact.go
+
+Commit: "feat: P10-T10 implement consumer-driven contract manifests"
+Target branch: feature/dev

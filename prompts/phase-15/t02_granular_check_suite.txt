@@ -1,0 +1,51 @@
+TASK: P15-T02 — Granular GitHub Check Suite
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Replace the single monolithic "Substrate" GitHub CI check with highly granular, individually passable checks (e.g., `substrate / breaking-changes`, `substrate / schema-linting`) to match enterprise CI pipelines.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-15/p15-t02-granular-check-suite.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- The GitHub App logic in `api/internal/github/checks.go` must dynamically create multiple checks based on config, instead of a single check.
+- You must parse `substrate.yaml` bypass rules to determine if a check failure should be downgraded to `advisory/neutral`.
+- Ensure backwards compatibility: if `substrate.yaml` has no granular check blocks, default to `blocking`.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+GitHub integration logic is inside `api/internal/github/`.
+Diff report data structures are shared via the `docs/contracts/core_models.md` specs.
+
+⚠️ CRITICAL CONTEXT: MULTIPLE GITHUB CHECK RUNS ⚠️
+Previously, `api/internal/github/checks.go` called `POST /repos/{owner}/{repo}/check-runs` once with name "Substrate".
+You must refactor this to immediately POST 4 times to create 4 "queued" checks: `substrate/breaking-changes`, `substrate/security-rules`, `substrate/pii-compliance`, `substrate/schema-linting`.
+Then, as diff results are bucketed, you must send 4 PATCH requests to conclude each check run independently.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. MODIFY: `api/internal/github/checks.go`
+   - Implement spawning multiple independent Check Runs on a PR.
+   - Implement the bucket mapping: map specific anomaly `rule_id` values to their respective Check Run categories.
+
+2. CREATE: `api/internal/github/checks_test.go`
+   - Add unit tests mocking the GitHub API to ensure multiple POST and PATCH requests are accurately made, and `advisory` configurations result in `neutral` conclusions instead of `failure`.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- api/internal/github/checks_test.go
+
+FILES TO MODIFY:
+- api/internal/github/checks.go
+
+Commit: "feat: P15-T02 implement granular GitHub check suite"
+Target branch: feature/dev
