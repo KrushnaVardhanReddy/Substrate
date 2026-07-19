@@ -62,7 +62,7 @@
 | **P10-T13** | 🔴 P1 | **Integrated API Documentation Catalog** — Evolve the registry into an internal Developer Portal by embedding interactive API reference viewers (like Stoplight Elements or ReDoc) directly into the dashboard. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P10-T14** | 🚀 P1 | **Embedded JS Governance Rules (Goja)** — Support writing custom enterprise governance rules directly in `substrate.yaml` using JavaScript. Uses the `goja` pure-Go JS engine for secure, Turing-complete execution without compilation overhead. | Unassigned | ⏳ Ready | `docs/specs/phase-10/p10-t14-custom-governance.md` |
 | **P10-T15** | 🚀 P1 | **Zero-Latency Drift Detection (eBPF)** — Extend runtime drift detection with a zero-latency `cilium/ebpf` kernel probe for high-throughput environments. *UX Goal: Provide a pre-packaged Helm chart (`helm install substrate-ebpf`) that auto-detects pods via Kubernetes labels (e.g., `substrate.io/monitor: "true"`).* | Unassigned | 💡 Backlog | `(Pending)` |
-| **P10-T18** | 🚀 P1 | **GraphQL Supergraph Federation** — Add native support for Apollo Federation to diff subgraphs and prevent routing breakages. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P10-T18** | 🚀 P1 | **GraphQL Supergraph Federation** — Add native support for Apollo Federation to diff subgraphs and prevent routing breakages. | Unassigned | 💡 Backlog | `docs/specs/phase-10/p10-t18-graphql-federation.md` |
 | **P10-T19** | 🚀 P1 | **CRM/Billing Blast Radius** — Integrate with Stripe and Salesforce to map external customer impact on internal API breakages. | Unassigned | 💡 Backlog | `(Pending)` |
 
 ---
