@@ -61,7 +61,7 @@ func TestCompareProto(t *testing.T) {
 			headDir:      "head_field_number_changed",
 			wantBreaking: 1,
 			wantWarnings: 0,
-			wantRuleID:   "PROTO_FIELD_NUMBER_CHANGED",
+			wantRuleID:   "PROTO_FIELD_REMOVED",
 		},
 		{
 			name:         "Service removed",

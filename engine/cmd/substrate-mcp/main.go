@@ -571,6 +571,53 @@ func main() {
 		},
 	})
 
+	// Tool 9: validate_local_schema
+	server.RegisterTool(mcp.Tool{
+		Name:        "validate_local_schema",
+		Description: "Validates a local schema file using the substrate CLI.",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"path": map[string]any{
+					"type":        "string",
+					"description": "Path to the local schema file (e.g. 'openapi.yaml')",
+				},
+			},
+			"required": []string{"path"},
+		},
+		Handler: func(params json.RawMessage) (any, error) {
+			var args struct {
+				Path string `json:"path"`
+			}
+			if err := json.Unmarshal(params, &args); err != nil {
+				return nil, err
+			}
+			if args.Path == "" {
+				return nil, fmt.Errorf("path is required")
+			}
+
+			// In a real scenario, this would parse substrate.yaml or run a diff
+			// For this task, we will run `substrate diff` with head=base to validate syntax
+			cmd := exec.Command("substrate", "diff", "--base", args.Path, "--head", args.Path)
+			out, err := cmd.CombinedOutput()
+			exitCode := 0
+			if err != nil {
+				if exitError, ok := err.(*exec.ExitError); ok {
+					exitCode = exitError.ExitCode()
+				} else {
+					return nil, err
+				}
+			}
+
+			res := map[string]any{
+				"stdout":    string(out),
+				"exit_code": exitCode,
+			}
+			b, _ := json.Marshal(res)
+			return string(b), nil
+		},
+	})
+
 	// Tool 8: get_schema_file
 	server.RegisterTool(mcp.Tool{
 		Name:        "get_schema_file",
