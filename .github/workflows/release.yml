@@ -34,6 +34,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - uses: actions/setup-go@v5
+        with: { go-version: '1.23' }
+
+      - name: Build engine.wasm
+        run: make build-wasm
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 

@@ -1,20 +1,29 @@
-# ─── Stage 1: Build Everything via Make ────────────────────────────────────────
-FROM docker.io/library/golang:1.23-alpine AS builder
+# ─── Stage 1: Build SvelteKit frontend ────────────────────────────────────────
+FROM node:22-alpine AS node-builder
+WORKDIR /app/dashboard
+COPY dashboard/package*.json ./
+RUN npm ci --prefer-offline
+COPY dashboard/ ./
+RUN npm run build
+# Output: /app/dashboard/build/
 
-# Install Node.js, npm, and make
-RUN apk add --no-cache nodejs npm make git
-
+# ─── Stage 2: Build Go binary ─────────────────────────────────────────────────
+FROM golang:1.23-alpine AS go-builder
 WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
 COPY . .
+# Build static binary (no CGO for distroless compatibility)
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o substrate ./api/cmd/server
+# Output: /app/substrate
 
-# Run the full production build (WASM -> SvelteKit -> Go embedded binary)
-RUN make build-prod
-
-# ─── Stage 2: Final minimal image ────────────────────────────────────────────
+# ─── Stage 3: Final minimal image ────────────────────────────────────────────
 FROM gcr.io/distroless/static-debian12
-
-# The single Go binary now contains the entire dashboard and WASM engine inside it!
-COPY --from=builder /app/substrate /substrate
-
+# Copy the compiled Go API binary
+COPY --from=go-builder /app/substrate /substrate
+# Copy SvelteKit built static assets to /static (served at "/" by the Go binary)
+COPY --from=node-builder /app/dashboard/build /static
+# Copy the Go WASM binary (built separately and checked into dashboard/static/)
+COPY --from=node-builder /app/dashboard/static/engine.wasm /static/engine.wasm
 EXPOSE 8090
 ENTRYPOINT ["/substrate"]

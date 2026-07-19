@@ -4,3 +4,5 @@ dashboard/build
 scripts/
 .git
 *.md
+
+!dashboard/static/engine.wasm
