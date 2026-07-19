@@ -92,6 +92,14 @@ func TestE2ESQL(t *testing.T) {
 			expectExit:   1,
 			expectOutput: []string{"VIEW_DEFINITION_CHANGED"},
 		},
+		{
+			name:         "Performance Risk FK",
+			base:         "base_perf_fk.sql",
+			head:         "rev_perf_fk.sql",
+			format:       "text",
+			expectExit:   2, // Contains BREAKING change FOREIGN_KEY_ADDED, wait actually exit 2
+			expectOutput: []string{"🚀 PERFORMANCE RISKS", "FOREIGN_KEY_MISSING_INDEX"},
+		},
 	}
 
 	for _, tc := range tests {

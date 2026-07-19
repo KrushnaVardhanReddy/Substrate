@@ -274,6 +274,14 @@ func diffColumns(bTable, hTable *Table, addChange func(id, ruleID string, severi
 					fmt.Sprintf("tables.%s.columns.%s", tName, cName),
 					fmt.Sprintf("Column '%s' added as NOT NULL without a DEFAULT — existing INSERTs will fail.", cName),
 				)
+			} else if hCol.Default != nil {
+				addChange(
+					fmt.Sprintf("chg_column_added_with_default_%s_%s", tName, cName),
+					"COLUMN_ADDED_WITH_DEFAULT",
+					report.ChangeSeverityWarning,
+					fmt.Sprintf("tables.%s.columns.%s", tName, cName),
+					fmt.Sprintf("Column '%s' added with a DEFAULT value. This can cause a prolonged lock and table rewrite.", cName),
+				)
 			} else {
 				addChange(
 					fmt.Sprintf("chg_column_added_nullable_%s_%s", tName, cName),
@@ -476,6 +484,31 @@ func diffConstraints(bTable, hTable *Table, addChange func(id, ruleID string, se
 					fmt.Sprintf("tables.%s", tName),
 					fmt.Sprintf("FOREIGN KEY '%s' added to table '%s'.", cName, tName),
 				)
+
+				// Performance Risk Heuristic: Check if the new foreign key lacks a corresponding index.
+				hasIndex := false
+				if len(hCon.Columns) > 0 {
+					fkCol := hCon.Columns[0]
+					for _, idx := range hTable.Indexes {
+						if len(idx.Columns) > 0 && idx.Columns[0] == fkCol {
+							hasIndex = true
+							break
+						}
+					}
+				} else {
+					// Fallback if somehow there are no columns specified in the constraint logic
+					hasIndex = true
+				}
+
+				if !hasIndex {
+					addChange(
+						fmt.Sprintf("chg_foreign_key_missing_index_%s_%s", tName, cName),
+						"FOREIGN_KEY_MISSING_INDEX",
+						report.ChangeSeverityWarning,
+						fmt.Sprintf("tables.%s", tName),
+						fmt.Sprintf("Foreign key '%s' added without a corresponding index. This can cause severe lock contention and full table scans.", cName),
+					)
+				}
 			}
 		}
 	}

@@ -277,9 +277,32 @@ func main() {
 					}
 				}
 
-				if len(rep.Warnings) > 0 {
-					fmt.Printf("⚠️  WARNINGS (%d)\n", len(rep.Warnings))
-					for _, chg := range rep.Warnings {
+				var perfRisks []report.Change
+				var otherWarnings []report.Change
+				for _, w := range rep.Warnings {
+					if w.RuleID == "FOREIGN_KEY_MISSING_INDEX" || w.RuleID == "COLUMN_ADDED_WITH_DEFAULT" {
+						perfRisks = append(perfRisks, w)
+					} else {
+						otherWarnings = append(otherWarnings, w)
+					}
+				}
+
+				if len(perfRisks) > 0 {
+					fmt.Printf("🚀 PERFORMANCE RISKS (%d)\n", len(perfRisks))
+					for _, chg := range perfRisks {
+						fmt.Printf("  [%s] %s\n", chg.ID, chg.RuleID)
+						fmt.Printf("  Path: %s\n", chg.Path)
+						fmt.Printf("  Description: %s\n", chg.Description)
+						if chg.Recommendation != nil {
+							fmt.Printf("  Recommendation: %s\n", *chg.Recommendation)
+						}
+						fmt.Println()
+					}
+				}
+
+				if len(otherWarnings) > 0 {
+					fmt.Printf("⚠️  WARNINGS (%d)\n", len(otherWarnings))
+					for _, chg := range otherWarnings {
 						fmt.Printf("  [%s] %s\n", chg.ID, chg.RuleID)
 						fmt.Printf("  Path: %s\n", chg.Path)
 						fmt.Printf("  Description: %s\n", chg.Description)
