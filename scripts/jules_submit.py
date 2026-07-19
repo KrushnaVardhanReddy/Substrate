@@ -104,6 +104,16 @@ def _load_prompt(relative_path):
 
 
 TASKS = {
+    1401: {
+        "name": "P14-T01 — AI Contract Negotiation",
+        "phase": "phase-14",
+        "prompt": _load_prompt("prompts/phase-14/t01_contract_negotiation.txt"),
+    },
+    1014: {
+        "name": "P10-T14 — Custom Governance (Goja)",
+        "phase": "phase-10-ecosystem",
+        "prompt": _load_prompt("prompts/phase-10/t14_custom_governance.txt"),
+    },
     # ── Phase 0: Specs (handled by Antigravity, not Jules) ────────────────────
     # (no Jules tasks for Phase 0)
 
