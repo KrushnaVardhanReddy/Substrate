@@ -8,13 +8,14 @@ RUN npm run build
 # Output: /app/dashboard/build/
 
 # ─── Stage 2: Build Go binary ─────────────────────────────────────────────────
-FROM golang:1.23-alpine AS go-builder
+FROM docker.io/library/golang:alpine AS go-builder
 WORKDIR /app
-COPY go.mod go.sum ./
+COPY engine/ ./engine/
+COPY api/ ./api/
+WORKDIR /app/api
 RUN go mod download
-COPY . .
 # Build static binary (no CGO for distroless compatibility)
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o substrate ./api/cmd/server
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /app/substrate ./cmd/server
 # Output: /app/substrate
 
 # ─── Stage 3: Final minimal image ────────────────────────────────────────────
