@@ -15,12 +15,15 @@ import (
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/cache"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/checker"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/diff"
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/graphql"
+
+	"time"
+
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/mcp"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/rules"
 	sqlpkg "github.com/KrushnaVardhanReddy/substrate/engine/internal/sql"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/telemetry"
-	"time"
 )
 
 func main() {
@@ -240,7 +243,7 @@ func main() {
 			case "graphql":
 				err = checker.CalculateDiff(context.Background(), func() error {
 					var err error
-					rep, err = diff.CompareGraphQL(baseFile.Name(), headFile.Name())
+					rep, err = graphql.CompareGraphQL(baseFile.Name(), headFile.Name())
 					return err
 				})
 				if err != nil {
@@ -763,7 +766,6 @@ func main() {
 			}
 
 			var body []byte
-
 
 			// Try local cache first
 			if cache.GlobalCache != nil {

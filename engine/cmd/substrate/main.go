@@ -10,18 +10,22 @@ import (
 	"path/filepath"
 
 	"bytes"
+
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/cache"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/checker"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/config"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/diff"
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/graphql"
+
+	"net/http"
+	"time"
+
 	initcmd "github.com/KrushnaVardhanReddy/substrate/engine/internal/init"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 	sqlpkg "github.com/KrushnaVardhanReddy/substrate/engine/internal/sql"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/telemetry"
 	"github.com/KrushnaVardhanReddy/substrate/engine/pkg/ai"
 	"github.com/spf13/cobra"
-	"net/http"
-	"time"
 )
 
 var flattenAllOf bool
@@ -134,7 +138,7 @@ func main() {
 			case "graphql":
 				err = checker.CalculateDiff(context.Background(), func() error {
 					var err error
-					rep, err = diff.CompareGraphQL(basePath, revisionPath)
+					rep, err = graphql.CompareGraphQL(basePath, revisionPath)
 					return err
 				})
 				if err != nil {
