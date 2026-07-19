@@ -470,3 +470,23 @@ func UpdateDependencyStatus(ctx context.Context, pool *pgxpool.Pool, consumerRep
 	}
 	return nil
 }
+
+func (s *PGStore) GetConsumerManifests(ctx context.Context, providerRepo, consumerRepo string) (json.RawMessage, error) {
+	return GetConsumerManifests(ctx, s.pool, providerRepo, consumerRepo)
+}
+
+func GetConsumerManifests(ctx context.Context, pool *pgxpool.Pool, providerRepo, consumerRepo string) (json.RawMessage, error) {
+	var consumedFields json.RawMessage
+	err := pool.QueryRow(ctx, `
+		SELECT consumed_fields
+		FROM consumer_manifests
+		WHERE provider_repo = $1 AND consumer_repo = $2
+		ORDER BY created_at DESC
+		LIMIT 1
+	`, providerRepo, consumerRepo).Scan(&consumedFields)
+
+	if err != nil {
+		return nil, err
+	}
+	return consumedFields, nil
+}
