@@ -128,3 +128,52 @@ func (c *Cache) SyncFromRemote(ctx context.Context, apiURL string, token string,
 
 	return tx.Commit()
 }
+
+func (c *Cache) GetGraph(org string) ([]GraphEdge, error) {
+	if c.DB == nil {
+		return nil, fmt.Errorf("cache db not initialized")
+	}
+
+	// Simple check: we just filter by provider starting with org + "/"
+	// or consumer starting with org + "/" for a more general case,
+	// but the API usually returns graph for an org based on repos in that org.
+	// For this embedded cache, we return all dependencies as a simple match.
+	rows, err := c.DB.Query("SELECT provider, consumer, status FROM dependencies WHERE provider LIKE ? OR consumer LIKE ?", org+"/%", org+"/%")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var edges []GraphEdge
+	for rows.Next() {
+		var e GraphEdge
+		if err := rows.Scan(&e.Provider, &e.Consumer, &e.Status); err != nil {
+			return nil, err
+		}
+		edges = append(edges, e)
+	}
+
+	return edges, nil
+}
+
+func (c *Cache) GetSchema(repo string) ([]byte, error) {
+	if c.DB == nil {
+		return nil, fmt.Errorf("cache db not initialized")
+	}
+
+	var content string
+	err := c.DB.QueryRow("SELECT content FROM schemas WHERE repo = ?", repo).Scan(&content)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // Indicate not found
+		}
+		return nil, err
+	}
+
+	return []byte(content), nil
+}
+
+func (c *Cache) GetBreakingChangeHistory(repo string) ([]byte, error) {
+	// History is not cached locally per spec, so return a miss.
+	return nil, nil
+}

@@ -85,6 +85,15 @@ func main() {
 				apiURL = "http://localhost:8090"
 			}
 
+			// Try local cache first
+			if cache.GlobalCache != nil {
+				edges, err := cache.GlobalCache.GetGraph(args.Org)
+				if err == nil && len(edges) > 0 {
+					body, _ := json.Marshal(edges)
+					return string(body), nil
+				}
+			}
+
 			if runtime.GOOS == "wasip1" {
 				return nil, fmt.Errorf("WASI does not support network requests")
 			}
@@ -150,19 +159,53 @@ func main() {
 			}
 			headFile.Close()
 
-			// Write empty base schema to temp file
+			var baseSchemaContent []byte
+
+			// Try local cache first
+			if cache.GlobalCache != nil {
+				baseSchemaContent, _ = cache.GlobalCache.GetSchema(args.ProviderRepo)
+			}
+
+			if baseSchemaContent == nil {
+				apiURL := os.Getenv("REGISTRY_API_URL")
+				if apiURL == "" {
+					apiURL = "http://localhost:8090"
+				}
+				parts := strings.SplitN(args.ProviderRepo, "/", 2)
+				if len(parts) == 2 {
+					url := fmt.Sprintf("%s/api/v1/schema/%s/%s", apiURL, parts[0], parts[1])
+					if runtime.GOOS != "wasip1" {
+						resp, err := http.Get(url)
+						if err == nil {
+							defer resp.Body.Close()
+							if resp.StatusCode == http.StatusOK {
+								baseSchemaContent, _ = io.ReadAll(resp.Body)
+							}
+						}
+					}
+				}
+			}
+
+			// Write empty base schema to temp file if not found
 			baseFile, err := os.CreateTemp("", "base-*.schema")
 			if err != nil {
 				return nil, fmt.Errorf("failed to create temp base file: %v", err)
 			}
 			defer os.Remove(baseFile.Name())
-			// Initialize with an empty valid structure for some formats
-			baseContent := ""
-			if args.SchemaType == "openapi" {
-				baseContent = `{"openapi":"3.0.0","info":{"title":"mock","version":"1"},"paths":{}}`
-			}
-			if _, err := baseFile.WriteString(baseContent); err != nil {
-				return nil, err
+
+			if len(baseSchemaContent) > 0 {
+				if _, err := baseFile.Write(baseSchemaContent); err != nil {
+					return nil, err
+				}
+			} else {
+				// Initialize with an empty valid structure for some formats
+				baseContent := ""
+				if args.SchemaType == "openapi" {
+					baseContent = `{"openapi":"3.0.0","info":{"title":"mock","version":"1"},"paths":{}}`
+				}
+				if _, err := baseFile.WriteString(baseContent); err != nil {
+					return nil, err
+				}
 			}
 			baseFile.Close()
 
@@ -654,26 +697,36 @@ func main() {
 				return nil, fmt.Errorf("repo must be in 'owner/repo' format, got: %s", args.Repo)
 			}
 
-			url := fmt.Sprintf("%s/api/v1/schema/%s/%s", apiURL, parts[0], parts[1])
-			if runtime.GOOS == "wasip1" {
-				return nil, fmt.Errorf("WASI does not support network requests")
-			}
-			resp, err := http.Get(url)
-			if err != nil {
-				return nil, fmt.Errorf("failed to fetch schema from registry: %w", err)
-			}
-			defer resp.Body.Close()
+			var body []byte
 
-			body, err := io.ReadAll(resp.Body)
-			if err != nil {
-				return nil, err
+
+			// Try local cache first
+			if cache.GlobalCache != nil {
+				body, _ = cache.GlobalCache.GetSchema(args.Repo)
 			}
 
-			if resp.StatusCode == http.StatusNotFound {
-				return nil, fmt.Errorf("no schema found for repo '%s' in the registry. Has it been synced?", args.Repo)
-			}
-			if resp.StatusCode != http.StatusOK {
-				return nil, fmt.Errorf("registry API returned status %d for repo '%s'", resp.StatusCode, args.Repo)
+			if body == nil {
+				url := fmt.Sprintf("%s/api/v1/schema/%s/%s", apiURL, parts[0], parts[1])
+				if runtime.GOOS == "wasip1" {
+					return nil, fmt.Errorf("WASI does not support network requests")
+				}
+				resp, err := http.Get(url)
+				if err != nil {
+					return nil, fmt.Errorf("failed to fetch schema from registry: %w", err)
+				}
+				defer resp.Body.Close()
+
+				body, err = io.ReadAll(resp.Body)
+				if err != nil {
+					return nil, err
+				}
+
+				if resp.StatusCode == http.StatusNotFound {
+					return nil, fmt.Errorf("no schema found for repo '%s' in the registry. Has it been synced?", args.Repo)
+				}
+				if resp.StatusCode != http.StatusOK {
+					return nil, fmt.Errorf("registry API returned status %d for repo '%s'", resp.StatusCode, args.Repo)
+				}
 			}
 
 			return string(body), nil
