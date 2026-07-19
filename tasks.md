@@ -36,7 +36,7 @@
 | **P9-T08** | 🟡 P2 | **Deployment Risk Scoring** — Synthesize breaking change data, infrastructure changes, and downstream blast radius into a holistic "Deployment Risk Score". | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T09** | 🟢 P3 | **AI Impact Analysis Summaries** — Pass cross-repo blast radius checks to the AI handler to generate a plain-English impact summary on PRs. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T11** | 🚀 P1 | **Automated Deprecation Campaigns** — Track sunsetting endpoints, auto-open issues in downstream consumer repos, and nag them until 0% usage is reached. | Unassigned | 💡 Backlog | `(Pending)` |
-| **P9-T12** | 🚀 P1 | **Embedded SQLite (LibSQL) Local Caching** — Embed SQLite directly into the CLI and MCP Server to pull background graph updates, enabling sub-millisecond, zero-latency local schema diffs. | Jules | 🔄 Running (`10646242211838366953`) | `docs/specs/phase-9/p9-t12-embedded-sqlite.md` |
+| **P9-T12** | 🚀 P1 | **Embedded SQLite (LibSQL) Local Caching** — Embed SQLite directly into the CLI and MCP Server to pull background graph updates, enabling sub-millisecond, zero-latency local schema diffs. | Unassigned | 💡 Backlog | `docs/specs/phase-9/p9-t12-embedded-sqlite.md` |
 | **P9-T13** | 🟡 P2 | **Embedded Mermaid Blast Radius** — Upgrade the GitHub PR comment bot to render a visual Mermaid.js flowchart of the exact blast radius directly inside the PR, eliminating the need to click away. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T14** | 🟢 P3 | **Ephemeral API Preview URLs** — Generate temporary, shareable Substrate dashboard URLs for PRs so engineers can share proposed schema changes and interactive diffs with frontend teams before merging. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T16** | 🚀 P1 | **WASM Git Pre-Commit Hooks** — Blazing fast local Git hooks that run `substrate diff` in 0.02s before code ever leaves the developer's laptop. | Unassigned | 💡 Backlog | `(Pending)` |
@@ -77,7 +77,7 @@
 ### Phase 12: V2.0 Public Launch & Quality Assurance
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **P12-T08** | 🔴 P1 | **V2.0 Production Cutover** — Final pipeline updates to bundle Svelte static assets and WASM binary into the Go single-binary deployment. | Jules | 🔄 Running (`7567015248302150297`) | `docs/specs/phase-12/p12-t08-production-cutover.md` |
+| **P12-T08** | 🔴 P1 | **V2.0 Production Cutover** — Final pipeline updates to bundle Svelte static assets and WASM binary into the Go single-binary deployment. | Unassigned | 💡 Backlog | `docs/specs/phase-12/p12-t08-production-cutover.md` |
 | **P12-T09** | 🟢 P3 | **AI Support Copilot** — A floating AI chat widget in the dashboard that uses our existing Phase 4 Intelligence Layer to answer questions, generate `substrate.yaml` configs, and troubleshoot user graphs in real-time. | Jules | ✅ Done | `docs/specs/phase-12/p12-t09-ai-copilot.md` |
 
 ---
