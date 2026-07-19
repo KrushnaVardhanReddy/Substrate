@@ -44,3 +44,6 @@ demo-repos/openai-openapi/
 demo-repos/slack-api-specs/
 
 forgejo-data/*
+auto_merge.sh
+auto_merge_latest.sh
+mark_ready_and_merge.sh
