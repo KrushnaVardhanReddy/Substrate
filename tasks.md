@@ -25,7 +25,7 @@
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **P9-T00** | 🚀 P1 | **GitHub Marketplace Launch (WASI)** — Build the `substrate-action` wrapper using `GOOS=wasip1 GOARCH=wasm`. Execute via Node/Wasmtime for sub-second, highly secure, Docker-less CI/CD diffing, and publish to the Marketplace. | Jules | 🔄 Running | `(Pending)` |
+| **P9-T00** | 🚀 P1 | **GitHub Marketplace Launch (WASI)** — Build the `substrate-action` wrapper using `GOOS=wasip1 GOARCH=wasm`. Execute via Node/Wasmtime for sub-second, highly secure, Docker-less CI/CD diffing, and publish to the Marketplace. | Jules | 🔄 Running | `docs/specs/phase-9/p9-t00-wasi-action.md` |
 | **P9-T01** | 🔴 P1 | **Shift-Left IDE Plugins** — VSCode/IntelliJ extensions powered by the MCP server to underline breaking changes as the developer types. | Jules | 🔄 Running (`4464514889206753571`) | `docs/specs/phase-9/p9-t01-ide-plugins.md` |
 | **P9-T02** | 🟡 P2 | **Continuous AI Sync (`watch`)** — Background daemon that monitors code changes in the IDE and updates the local OpenAPI spec in real-time. | Unassigned | 💡 Backlog | `docs/specs/go-to-market-strategy.md` |
 | **P9-T03** | 🟢 P3 | **Compliance Mapping** — Auto-tag schemas with SOC2/GDPR/HIPAA warnings when fields like `ssn` or `medical_history` are detected. | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
@@ -90,7 +90,7 @@
 |---|---|---|---|---|---|
 | **P13-T01** | 🤯 P1 | **FinOps Cost Prediction** — Connect schema diffs to Datadog traffic to calculate the exact USD egress cost increase of payload size changes. | Jules | ✅ Done | `docs/specs/phase-13/p13-t01-finops.md` |
 | **P13-T02** | 🤯 P1 | **DB Performance Breakages** — Dry-run Prisma/PlanetScale migrations to predict table-locks and performance outages before they merge. | Jules | ✅ Done | `docs/specs/phase-13/p13-t02-db-performance.md` |
-| **P13-T04** | 🔴 P1 | **Enterprise E2E Validation** — Create a `phase10_13_e2e_test.go` suite to programmatically validate Protobuf diffing, Embedded JS Governance Rules, FinOps egress calculations, and Tree-sitter AST impact analysis. | Jules | 🔄 Running | `(Pending)` |
+| **P13-T04** | 🔴 P1 | **Enterprise E2E Validation** — Create a `phase10_13_e2e_test.go` suite to programmatically validate Protobuf diffing, Embedded JS Governance Rules, FinOps egress calculations, and Tree-sitter AST impact analysis. | Jules | 🔄 Running | `docs/specs/phase-13/p13-t04-e2e-validation.md` |
 
 ---
 
