@@ -36,11 +36,19 @@ type ConsumerDependency struct {
 }
 
 type DependencyEdge struct {
-	ConsumerFullName string          `json:"consumer"`
-	ProviderFullName string          `json:"provider"`
-	Status           string          `json:"status"`
-	ConsumerMetadata json.RawMessage `json:"consumer_metadata,omitempty"`
-	ProviderMetadata json.RawMessage `json:"provider_metadata,omitempty"`
+	ConsumerFullName    string          `json:"consumer"`
+	ProviderFullName    string          `json:"provider"`
+	Status              string          `json:"status"`
+	ConsumerMetadata    json.RawMessage `json:"consumer_metadata,omitempty"`
+	ProviderMetadata    json.RawMessage `json:"provider_metadata,omitempty"`
+	PredictiveRiskScore int             `json:"predictive_risk_score,omitempty"`
+}
+
+type RepoMetric struct {
+	ID                  uuid.UUID `json:"id"`
+	RepoID              uuid.UUID `json:"repo_id"`
+	PredictiveRiskScore int       `json:"predictive_risk_score"`
+	CalculatedAt        time.Time `json:"calculated_at"`
 }
 
 type BreakingChangeRecord struct {
@@ -87,6 +95,11 @@ type Store interface {
 	GetConsumersByProviderContract(ctx context.Context, providerContractID uuid.UUID) ([]ConsumerDependency, error)
 	ListReposByOrg(ctx context.Context, orgName string) ([]Repository, error)
 	GetDependencyGraph(ctx context.Context, orgName string) ([]DependencyEdge, error)
+	UpsertRepoMetric(ctx context.Context, repoID uuid.UUID, score int) error
+	GetAllRepositories(ctx context.Context) ([]Repository, error)
+	CountRecentBreakingChanges(ctx context.Context, repoID uuid.UUID, since time.Time) (int, error)
+	GetCommitVelocity(ctx context.Context, repoID uuid.UUID, since time.Time) (int, error)
+	GetTimeSinceLastBreak(ctx context.Context, repoID uuid.UUID) (*time.Time, error)
 	CountReposByOrg(ctx context.Context, orgName string) (int, error)
 	CountDownstreamDependencies(ctx context.Context, providerFullName string) (int, error)
 	RecordBreakingChange(ctx context.Context, repoID uuid.UUID, orgName, repoName, gitSHA string, breakingChanges json.RawMessage) error

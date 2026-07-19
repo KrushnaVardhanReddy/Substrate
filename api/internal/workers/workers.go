@@ -120,5 +120,6 @@ func RegisterWorkers(store db.Store, ghClient github.Client) (*river.Workers, *P
 	river.AddWorker(workers, &CrossRepoCheckWorker{Store: store})
 	river.AddWorker(workers, &EgressWebhookWorker{})
 	river.AddWorker(workers, &DiscoveryWorker{Store: store, GHClient: ghClient})
+	river.AddWorker(workers, &RecalculateRiskScoresWorker{store: store})
 	return workers, pushWorker
 }

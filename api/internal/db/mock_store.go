@@ -9,6 +9,12 @@ import (
 )
 
 type MockStore struct {
+	UpsertRepoMetricFunc           func(ctx context.Context, repoID uuid.UUID, score int) error
+	GetAllRepositoriesFunc         func(ctx context.Context) ([]Repository, error)
+	CountRecentBreakingChangesFunc func(ctx context.Context, repoID uuid.UUID, since time.Time) (int, error)
+	GetCommitVelocityFunc          func(ctx context.Context, repoID uuid.UUID, since time.Time) (int, error)
+	GetTimeSinceLastBreakFunc      func(ctx context.Context, repoID uuid.UUID) (*time.Time, error)
+
 	RecordDriftAnomalyFunc             func(ctx context.Context, anomaly DriftAnomaly) error
 	GetDriftAnomaliesFunc              func(ctx context.Context, orgName, repoName string) ([]DriftAnomaly, error)
 	UpsertOrgFunc                      func(ctx context.Context, installationID int64, orgName string) (uuid.UUID, error)
@@ -167,7 +173,6 @@ func (m *MockStore) UpdateDependencyConfidence(ctx context.Context, consumerFull
 	return nil
 }
 
-
 func (m *MockStore) RecordDriftAnomaly(ctx context.Context, anomaly DriftAnomaly) error {
 	if m.RecordDriftAnomalyFunc != nil {
 		return m.RecordDriftAnomalyFunc(ctx, anomaly)
@@ -197,4 +202,37 @@ func (m *MockStore) GetWebhooks(ctx context.Context, org string) ([]WebhookConfi
 	return nil, nil
 }
 
+func (m *MockStore) UpsertRepoMetric(ctx context.Context, repoID uuid.UUID, score int) error {
+	if m.UpsertRepoMetricFunc != nil {
+		return m.UpsertRepoMetricFunc(ctx, repoID, score)
+	}
+	return nil
+}
 
+func (m *MockStore) GetAllRepositories(ctx context.Context) ([]Repository, error) {
+	if m.GetAllRepositoriesFunc != nil {
+		return m.GetAllRepositoriesFunc(ctx)
+	}
+	return nil, nil
+}
+
+func (m *MockStore) CountRecentBreakingChanges(ctx context.Context, repoID uuid.UUID, since time.Time) (int, error) {
+	if m.CountRecentBreakingChangesFunc != nil {
+		return m.CountRecentBreakingChangesFunc(ctx, repoID, since)
+	}
+	return 0, nil
+}
+
+func (m *MockStore) GetCommitVelocity(ctx context.Context, repoID uuid.UUID, since time.Time) (int, error) {
+	if m.GetCommitVelocityFunc != nil {
+		return m.GetCommitVelocityFunc(ctx, repoID, since)
+	}
+	return 0, nil
+}
+
+func (m *MockStore) GetTimeSinceLastBreak(ctx context.Context, repoID uuid.UUID) (*time.Time, error) {
+	if m.GetTimeSinceLastBreakFunc != nil {
+		return m.GetTimeSinceLastBreakFunc(ctx, repoID)
+	}
+	return nil, nil
+}

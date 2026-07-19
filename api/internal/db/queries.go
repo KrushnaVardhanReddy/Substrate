@@ -229,12 +229,13 @@ func (s *PGStore) GetDependencyGraph(ctx context.Context, orgName string) ([]Dep
 
 func GetDependencyGraph(ctx context.Context, pool *pgxpool.Pool, orgName string) ([]DependencyEdge, error) {
 	rows, err := pool.Query(ctx, `
-		SELECT cr.full_name as consumer_full_name, pr.full_name as provider_full_name, d.status, cr.metadata as consumer_metadata, pr.metadata as provider_metadata
+		SELECT cr.full_name as consumer_full_name, pr.full_name as provider_full_name, d.status, cr.metadata as consumer_metadata, pr.metadata as provider_metadata, COALESCE(rm.predictive_risk_score, 0) as predictive_risk_score
 		FROM dependencies d
 		JOIN repositories cr ON d.consumer_repo_id = cr.id
 		JOIN contracts pc ON d.provider_contract_id = pc.id
 		JOIN repositories pr ON pc.repo_id = pr.id
 		JOIN organizations o ON cr.org_id = o.id
+		LEFT JOIN repo_metrics rm ON pr.id = rm.repo_id
 		WHERE o.github_org_name = $1
 	`, orgName)
 	if err != nil {
