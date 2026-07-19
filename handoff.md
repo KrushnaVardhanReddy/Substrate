@@ -21,6 +21,7 @@
     * **P13-T04:** Enterprise E2E Validation — *(Running)*
     * **P9-T00:** GitHub Marketplace Launch (WASI) — *(Running)*
     * **P14-T03:** Living API Changelog — *(Running)*
+    * **P14-T02:** "Time to Break" Predictive Scoring — *(Running split: Backend Jules + Frontend Stitch)*
 
 ## Next Steps
 1. **Monitor Jules PRs:** Track the progress of P9-T01.
