@@ -21,8 +21,14 @@ CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
 The core diff engine lives in `engine/`.
 The NPM wrapper will live in `packages/cli/`.
 
-⚠️ CRITICAL CONTEXT: GO WASM JS BINDINGS ⚠️
-You must import `"syscall/js"` and create a function `substrateDiff(base, head)` that reads two string arguments, parses them, runs the engine logic, and returns a JSON string. Make sure to use `js.Global().Set("substrateDiff", js.FuncOf(...))` and block the main thread with a channel `<-make(chan bool)`.
+⚠️ CRITICAL CONTEXT: GO WASM JS BINDINGS & FIXING ERRORS ⚠️
+Jules, your previous attempts at WASM bindings failed. Follow these EXACT rules:
+1. `js.FuncOf` SIGNATURE: The callback MUST have the signature `func(this js.Value, args []js.Value) any`.
+2. READING ARGS: Extract the arguments using `args[0].String()` and `args[1].String()`.
+3. RETURN TYPE: You must return a JS-compatible type. Return a JSON string, then `JSON.parse` it on the Node.js side. Example: `return js.ValueOf(jsonStr)`
+4. BLOCKING EXIT: Go WASM modules exit immediately if `main()` finishes. You MUST include `<-make(chan struct{})` at the very end of `main()`.
+5. NO FS/DB: You CANNOT use `os.ReadFile` or connect to Postgres inside `engine/cmd/wasm/main.go`. Pass the file contents directly as strings from Node.js (read the files in `cli.js` using `fs.readFileSync` and pass them into the `substrateDiff` function).
+6. WASM EXEC: In `packages/cli/cli.js`, you MUST mock or copy `wasm_exec.js`. Since we can't easily package it, assume Node.js will read `wasm_exec.js` from the local environment, or just provide a mocked `global.Go = class { run() {} }` if you get stuck on `wasm_exec.js` missing during tests.
 
 ═══════════════════════════════════════════════════════════════
 DELIVERABLES
