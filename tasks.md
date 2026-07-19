@@ -25,8 +25,6 @@
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **P9-T00** | 🚀 P1 | **GitHub Marketplace Launch (WASI)** — Build the `substrate-action` wrapper using `GOOS=wasip1 GOARCH=wasm`. Execute via Node/Wasmtime for sub-second, highly secure, Docker-less CI/CD diffing, and publish to the Marketplace. | Jules | ✅ Done | `docs/specs/phase-9/p9-t00-wasi-action.md` |
-| **P9-T01** | 🔴 P1 | **Shift-Left IDE Plugins** — VSCode/IntelliJ extensions powered by the MCP server to underline breaking changes as the developer types. | Jules | ✅ Done | `docs/specs/phase-9/p9-t01-ide-plugins.md` |
 | **P9-T02** | 🟡 P2 | **Continuous AI Sync (`watch`)** — Background daemon that monitors code changes in the IDE and updates the local OpenAPI spec in real-time. | Unassigned | 💡 Backlog | `docs/specs/go-to-market-strategy.md` |
 | **P9-T03** | 🟢 P3 | **Compliance Mapping** — Auto-tag schemas with SOC2/GDPR/HIPAA warnings when fields like `ssn` or `medical_history` are detected. | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
 | **P9-T04** | 🔵 P4 | **Quality Gates (SonarQube-style)** — Allow setting different failure thresholds based on service tier (e.g., Tier 1 allows 0 warnings, Beta allows breakages). | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
@@ -50,15 +48,12 @@
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
 | **P10-T01** | 🔴 P1 | **Automated Security Fuzzing (OWASP)** — Upgrade the Phase 6 fuzzer to inject malicious payloads (SQLi, IDOR) based on the schema, acting as an automated pentester. | Jules | 🔒 Blocked (AI Safety Refusal) | `docs/specs/phase-10/p10-t01-security-fuzzing.md` |
-| **P10-T02** | 🟡 P2 | **API Gateway Auto-Sync** — Automatically push validated OpenAPI schemas to AWS API Gateway, Kong, or Cloudflare API Shield on merge to `main`. | Jules | ✅ Done | `docs/specs/phase-10/p10-t02-api-gateway.md` |
 | **P10-T03** | 🟢 P3 | **AI Mock Data Generator (QA)** — Scan QA repositories for JSON test fixtures and use the AI engine to auto-update mock data when the upstream API schema changes. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P10-T04** | 🔵 P4 | **AI Spectral Linter (API Governance)** — Enforce plain-English API design rules (e.g. "All endpoints must use camelCase") during the PR diff process to maintain org-wide consistency. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P10-T05** | ⚪ P5 | **Auto-SDK Generator PRs** — Automatically generate TypeScript/Swift/Go clients via OpenAPI Generator when a schema is merged, opening PRs directly in the downstream consumer repos. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P10-T06** | ⚪ P6 | **Traffic-Aware Pruning (Zombies)** — Correlate schema endpoints with live Datadog/OTel metrics to detect unused "zombie" APIs and auto-generate PRs to delete the dead code. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P10-T07** | 🟣 P1 | **MCP Runtime Diffing** — Spin up Model Context Protocol (MCP) servers in a sandbox during CI/CD to dynamically diff `tools/list` and block AI agent breaking changes. | Unassigned | 💡 Backlog | `docs/specs/phase-10/p10-t06-mcp-diffing.md` |
-| **P10-T09** | 🚀 P1 | **Protobuf & gRPC Schema Registry** — Add native support for parsing, diffing, and visualizing Protobufs to capture backend-to-backend enterprise microservices. | Jules | ✅ Done | `docs/specs/phase-10/p10-t09-protobuf-grpc.md` |
 | **P10-T10** | 🚀 P1 | **Consumer-Driven Contract Manifests** — Allow frontend apps to upload `.substrate-consumer.yaml` declaring required fields, directly competing with PactFlow. | Unassigned | 💡 Backlog | `(Pending)` |
-| **P10-T12** | 🚀 P1 | **Tree-sitter Deterministic Impact Analysis** — Parse downstream consumer repositories using Tree-sitter AST to deterministically pinpoint exactly *which lines of code* are broken by an upstream API change. | Jules | ✅ Done | `docs/specs/phase-10/p10-t12-treesitter-analysis.md` |
 | **P10-T13** | 🔴 P1 | **Integrated API Documentation Catalog** — Evolve the registry into an internal Developer Portal by embedding interactive API reference viewers (like Stoplight Elements or ReDoc) directly into the dashboard. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P10-T14** | 🚀 P1 | **Embedded JS Governance Rules (Goja)** — Support writing custom enterprise governance rules directly in `substrate.yaml` using JavaScript. Uses the `goja` pure-Go JS engine for secure, Turing-complete execution without compilation overhead. | Unassigned | ⏳ Ready | `docs/specs/phase-10/p10-t14-custom-governance.md` |
 | **P10-T15** | 🚀 P1 | **Zero-Latency Drift Detection (eBPF)** — Extend runtime drift detection with a zero-latency `cilium/ebpf` kernel probe for high-throughput environments. *UX Goal: Provide a pre-packaged Helm chart (`helm install substrate-ebpf`) that auto-detects pods via Kubernetes labels (e.g., `substrate.io/monitor: "true"`).* | Unassigned | 💡 Backlog | `(Pending)` |
@@ -78,7 +73,6 @@
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
 | **P12-T08** | 🔴 P1 | **V2.0 Production Cutover** — Final pipeline updates to bundle Svelte static assets and WASM binary into the Go single-binary deployment. | Unassigned | 💡 Backlog | `docs/specs/phase-12/p12-t08-production-cutover.md` |
-| **P12-T09** | 🟢 P3 | **AI Support Copilot** — A floating AI chat widget in the dashboard that uses our existing Phase 4 Intelligence Layer to answer questions, generate `substrate.yaml` configs, and troubleshoot user graphs in real-time. | Jules | ✅ Done | `docs/specs/phase-12/p12-t09-ai-copilot.md` |
 
 ---
 
@@ -88,9 +82,6 @@
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **P13-T01** | 🤯 P1 | **FinOps Cost Prediction** — Connect schema diffs to Datadog traffic to calculate the exact USD egress cost increase of payload size changes. | Jules | ✅ Done | `docs/specs/phase-13/p13-t01-finops.md` |
-| **P13-T02** | 🤯 P1 | **DB Performance Breakages** — Dry-run Prisma/PlanetScale migrations to predict table-locks and performance outages before they merge. | Jules | ✅ Done | `docs/specs/phase-13/p13-t02-db-performance.md` |
-| **P13-T04** | 🔴 P1 | **Enterprise E2E Validation** — Create a `phase10_13_e2e_test.go` suite to programmatically validate Protobuf diffing, Embedded JS Governance Rules, FinOps egress calculations, and Tree-sitter AST impact analysis. | Jules | ✅ Done | `docs/specs/phase-13/p13-t04-e2e-validation.md` |
 
 ---
 
@@ -101,8 +92,6 @@
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
 | **P14-T01** | 🚀 P1 | **AI Contract Negotiation** — Upgrade P7-T04 Auto-Fix PRs with an async team negotiation workflow. When a breaking change is detected, Substrate posts a structured GitHub comment tagging all affected consumer leads, tracks their approval/rejection reactions, and only turns the provider PR green when all consumers have acknowledged. | Unassigned | 💡 Backlog | `docs/specs/phase-14/p14-t01-contract-negotiation.md` |
-| **P14-T02** | 🚀 P1 | **"Time to Break" Predictive Scoring** — Upgrade P4b anomaly detection with a concrete user-facing output: a color-coded risk score per graph node indicating the probability of a breaking change in the next N sprints, plus a weekly digest to Platform teams. | Jules & Stitch | ✅ Done | `docs/specs/phase-14/p14-t02-predictive-scoring.md` |
-| **P14-T03** | 🔴 P1 | **Living API Changelog (Auto-Generated Public Page)** — Auto-generate a beautiful, public-facing versioned changelog page (like Stripe's API Changelog) from every tracked schema change. Shareable at `substrate.io/myorg/payments-api/changelog`. Embeddable via iframe/JS widget. | Jules | ✅ Done | `docs/specs/phase-14/p14-t03-living-changelog.md` |
 | **P14-T04** | 🟡 P2 | **Contract Score Badge (Viral Growth Mechanism)** — A `shields.io`-style embeddable README badge showing a repo's API contract reliability score (`CONTRACT: A+ \| 98% \| 0 breaks in 90 days`). Score calculated from breaking change frequency, blast radius, and spec-first adoption rate. | Unassigned | 💡 Backlog | `docs/specs/phase-14/p14-t04-contract-score-badge.md` |
 | **P14-T05** | 🟡 P2 | **Retroactive Dependency Archaeology (Paid Onboarding Service)** — `substrate archaeology --since 2-years` scans full git history of all connected repos and generates a paid audit report showing every historical breaking change and its estimated incident cost. Priced as a one-time add-on ($500–$2,000/org). | Unassigned | 💡 Backlog | `docs/specs/phase-14/p14-t05-archaeology.md` |
 | **P14-T06** | 🟢 P3 | **Substrate Cloud Public Schema Registry (The npm for APIs)** — A hosted public registry where OSS projects and SaaS companies publish versioned API schemas. Teams monitor public APIs (Stripe, GitHub, Twilio) and get alerts on breaking changes. Free: 5 public APIs. Paid: unlimited + private. | Unassigned | 💡 Backlog | `docs/specs/phase-14/p14-t06-public-schema-registry.md` |

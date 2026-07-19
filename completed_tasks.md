@@ -577,3 +577,19 @@ See the full spec: `docs/specs/enterprise-vision.md`
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
 | **P13-T03** | 🤯 P1 | **AI Chaos Engineering Auto-Tests** — Automatically write Playwright/Jest tests that prove an API breakage, run them in a sandbox, and post the failing test logs to the PR. | Jules | ✅ Complete | `docs/specs/phase-13/p13-t03-ai-chaos-tests.md` |
+
+### 📥 Archived from tasks.md
+
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|---|---|---|---|---|---|
+| **P9-T00** | 🚀 P1 | **GitHub Marketplace Launch (WASI)** — Build the `substrate-action` wrapper using `GOOS=wasip1 GOARCH=wasm`. Execute via Node/Wasmtime for sub-second, highly secure, Docker-less CI/CD diffing, and publish to the Marketplace. | Jules | ✅ Done | `docs/specs/phase-9/p9-t00-wasi-action.md` |
+| **P9-T01** | 🔴 P1 | **Shift-Left IDE Plugins** — VSCode/IntelliJ extensions powered by the MCP server to underline breaking changes as the developer types. | Jules | ✅ Done | `docs/specs/phase-9/p9-t01-ide-plugins.md` |
+| **P10-T02** | 🟡 P2 | **API Gateway Auto-Sync** — Automatically push validated OpenAPI schemas to AWS API Gateway, Kong, or Cloudflare API Shield on merge to `main`. | Jules | ✅ Done | `docs/specs/phase-10/p10-t02-api-gateway.md` |
+| **P10-T09** | 🚀 P1 | **Protobuf & gRPC Schema Registry** — Add native support for parsing, diffing, and visualizing Protobufs to capture backend-to-backend enterprise microservices. | Jules | ✅ Done | `docs/specs/phase-10/p10-t09-protobuf-grpc.md` |
+| **P10-T12** | 🚀 P1 | **Tree-sitter Deterministic Impact Analysis** — Parse downstream consumer repositories using Tree-sitter AST to deterministically pinpoint exactly *which lines of code* are broken by an upstream API change. | Jules | ✅ Done | `docs/specs/phase-10/p10-t12-treesitter-analysis.md` |
+| **P12-T09** | 🟢 P3 | **AI Support Copilot** — A floating AI chat widget in the dashboard that uses our existing Phase 4 Intelligence Layer to answer questions, generate `substrate.yaml` configs, and troubleshoot user graphs in real-time. | Jules | ✅ Done | `docs/specs/phase-12/p12-t09-ai-copilot.md` |
+| **P13-T01** | 🤯 P1 | **FinOps Cost Prediction** — Connect schema diffs to Datadog traffic to calculate the exact USD egress cost increase of payload size changes. | Jules | ✅ Done | `docs/specs/phase-13/p13-t01-finops.md` |
+| **P13-T02** | 🤯 P1 | **DB Performance Breakages** — Dry-run Prisma/PlanetScale migrations to predict table-locks and performance outages before they merge. | Jules | ✅ Done | `docs/specs/phase-13/p13-t02-db-performance.md` |
+| **P13-T04** | 🔴 P1 | **Enterprise E2E Validation** — Create a `phase10_13_e2e_test.go` suite to programmatically validate Protobuf diffing, Embedded JS Governance Rules, FinOps egress calculations, and Tree-sitter AST impact analysis. | Jules | ✅ Done | `docs/specs/phase-13/p13-t04-e2e-validation.md` |
+| **P14-T02** | 🚀 P1 | **"Time to Break" Predictive Scoring** — Upgrade P4b anomaly detection with a concrete user-facing output: a color-coded risk score per graph node indicating the probability of a breaking change in the next N sprints, plus a weekly digest to Platform teams. | Jules & Stitch | ✅ Done | `docs/specs/phase-14/p14-t02-predictive-scoring.md` |
+| **P14-T03** | 🔴 P1 | **Living API Changelog (Auto-Generated Public Page)** — Auto-generate a beautiful, public-facing versioned changelog page (like Stripe's API Changelog) from every tracked schema change. Shareable at `substrate.io/myorg/payments-api/changelog`. Embeddable via iframe/JS widget. | Jules | ✅ Done | `docs/specs/phase-14/p14-t03-living-changelog.md` |
