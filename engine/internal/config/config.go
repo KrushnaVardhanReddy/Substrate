@@ -58,6 +58,23 @@ type CustomRule struct {
 	Match       string `yaml:"match" json:"match"`
 }
 
+type AWSGatewayConfig struct {
+	Region    string `yaml:"region"`
+	RestAPIID string `yaml:"rest_api_id"`
+	StageName string `yaml:"stage_name"`
+}
+
+type KongGatewayConfig struct {
+	AdminURL  string `yaml:"admin_url"`
+	Token     string `yaml:"token,omitempty"`
+	ServiceID string `yaml:"service_id"`
+}
+
+type GatewayConfig struct {
+	AWS  []AWSGatewayConfig  `yaml:"aws,omitempty"`
+	Kong []KongGatewayConfig `yaml:"kong,omitempty"`
+}
+
 type SubstrateConfig struct {
 	Version     string               `yaml:"version"`
 	Service     string               `yaml:"service"`
@@ -70,6 +87,7 @@ type SubstrateConfig struct {
 	Avro        *AvroConfig          `yaml:"avro,omitempty"`
 	Traffic     TrafficConfig        `yaml:"traffic,omitempty"`
 	CustomRules []CustomRule         `yaml:"custom_rules,omitempty" json:"custom_rules,omitempty"`
+	Gateway     *GatewayConfig       `yaml:"gateway,omitempty"`
 }
 
 func (c *SubstrateConfig) HasConsumers() bool {
