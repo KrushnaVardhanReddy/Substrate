@@ -29,8 +29,9 @@ type MockStore struct {
 	GetROIMetricsFunc                  func(ctx context.Context, orgID string) (ROIMetrics, error)
 	UpdateStripeCustomerIDFunc         func(ctx context.Context, orgID uuid.UUID, stripeID string) error
 	GetBillingStatusFunc               func(ctx context.Context, orgName string) (time.Time, *string, error)
-	SaveDiffReportFunc                 func(ctx context.Context, diffReport json.RawMessage, isAuditMode bool) (uuid.UUID, error)
+	SaveDiffReportFunc                 func(ctx context.Context, diffReport json.RawMessage, isAuditMode bool, orgName, repoName string) (uuid.UUID, error)
 	GetDiffReportFunc                  func(ctx context.Context, id uuid.UUID) (json.RawMessage, error)
+	GetDiffReportsByRepoFunc           func(ctx context.Context, orgName, repoName string, limit int) ([]DiffReportRecord, error)
 	UpdateDependencyStatusFunc         func(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, status string) error
 }
 
@@ -69,11 +70,18 @@ func (m *MockStore) GetContractsByProviderFullName(ctx context.Context, provider
 	return nil, nil
 }
 
-func (m *MockStore) SaveDiffReport(ctx context.Context, diffReport json.RawMessage, isAuditMode bool) (uuid.UUID, error) {
+func (m *MockStore) SaveDiffReport(ctx context.Context, diffReport json.RawMessage, isAuditMode bool, orgName, repoName string) (uuid.UUID, error) {
 	if m.SaveDiffReportFunc != nil {
-		return m.SaveDiffReportFunc(ctx, diffReport, isAuditMode)
+		return m.SaveDiffReportFunc(ctx, diffReport, isAuditMode, orgName, repoName)
 	}
 	return uuid.New(), nil
+}
+
+func (m *MockStore) GetDiffReportsByRepo(ctx context.Context, orgName, repoName string, limit int) ([]DiffReportRecord, error) {
+	if m.GetDiffReportsByRepoFunc != nil {
+		return m.GetDiffReportsByRepoFunc(ctx, orgName, repoName, limit)
+	}
+	return nil, nil
 }
 
 func (m *MockStore) GetDiffReport(ctx context.Context, id uuid.UUID) (json.RawMessage, error) {

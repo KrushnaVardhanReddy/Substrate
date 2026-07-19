@@ -35,6 +35,11 @@ type ConsumerDependency struct {
 	ContractRawContent string
 }
 
+type DiffReportRecord struct {
+	ReportData json.RawMessage
+	CreatedAt  time.Time
+}
+
 type DependencyEdge struct {
 	ConsumerFullName string          `json:"consumer"`
 	ProviderFullName string          `json:"provider"`
@@ -93,8 +98,9 @@ type Store interface {
 	GetBreakingChangeHistory(ctx context.Context, orgName, repoName string, limit int) ([]BreakingChangeRecord, error)
 	UpdateDependencyConfidence(ctx context.Context, consumerFullName, providerURL string, boostAmount float64) error
 	UpdateDependencyStatus(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, status string) error
-	SaveDiffReport(ctx context.Context, diffReport json.RawMessage, isAuditMode bool) (uuid.UUID, error)
+	SaveDiffReport(ctx context.Context, diffReport json.RawMessage, isAuditMode bool, orgName, repoName string) (uuid.UUID, error)
 	GetDiffReport(ctx context.Context, id uuid.UUID) (json.RawMessage, error)
+	GetDiffReportsByRepo(ctx context.Context, orgName, repoName string, limit int) ([]DiffReportRecord, error)
 	RecordDriftAnomaly(ctx context.Context, anomaly DriftAnomaly) error
 	GetDriftAnomalies(ctx context.Context, orgName, repoName string) ([]DriftAnomaly, error)
 	RegisterWebhook(ctx context.Context, config WebhookConfig) error

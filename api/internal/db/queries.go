@@ -366,18 +366,45 @@ func UpdateDependencyConfidence(ctx context.Context, pool *pgxpool.Pool, consume
 	return nil
 }
 
-func (s *PGStore) SaveDiffReport(ctx context.Context, diffReport json.RawMessage, isAuditMode bool) (uuid.UUID, error) {
-	return SaveDiffReport(ctx, s.pool, diffReport, isAuditMode)
+func (s *PGStore) SaveDiffReport(ctx context.Context, diffReport json.RawMessage, isAuditMode bool, orgName, repoName string) (uuid.UUID, error) {
+	return SaveDiffReport(ctx, s.pool, diffReport, isAuditMode, orgName, repoName)
 }
 
-func SaveDiffReport(ctx context.Context, pool *pgxpool.Pool, diffReport json.RawMessage, isAuditMode bool) (uuid.UUID, error) {
+func SaveDiffReport(ctx context.Context, pool *pgxpool.Pool, diffReport json.RawMessage, isAuditMode bool, orgName, repoName string) (uuid.UUID, error) {
 	var id uuid.UUID
 	err := pool.QueryRow(ctx, `
-		INSERT INTO diff_reports (report_data, is_audit_mode)
-		VALUES ($1, $2)
+		INSERT INTO diff_reports (report_data, is_audit_mode, org_name, repo_name)
+		VALUES ($1, $2, $3, $4)
 		RETURNING id
-	`, diffReport, isAuditMode).Scan(&id)
+	`, diffReport, isAuditMode, orgName, repoName).Scan(&id)
 	return id, err
+}
+
+func (s *PGStore) GetDiffReportsByRepo(ctx context.Context, orgName, repoName string, limit int) ([]DiffReportRecord, error) {
+	rows, err := s.pool.Query(ctx, `
+		SELECT report_data, created_at
+		FROM diff_reports
+		WHERE org_name = $1 AND repo_name = $2
+		ORDER BY created_at DESC
+		LIMIT $3
+	`, orgName, repoName, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get diff reports: %w", err)
+	}
+	defer rows.Close()
+
+	var reports []DiffReportRecord
+	for rows.Next() {
+		var record DiffReportRecord
+		if err := rows.Scan(&record.ReportData, &record.CreatedAt); err != nil {
+			return nil, fmt.Errorf("failed to scan report: %w", err)
+		}
+		reports = append(reports, record)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows iteration error: %w", err)
+	}
+	return reports, nil
 }
 
 func (s *PGStore) GetDiffReport(ctx context.Context, id uuid.UUID) (json.RawMessage, error) {
