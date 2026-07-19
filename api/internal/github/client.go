@@ -15,7 +15,7 @@ type Client interface {
 	CreateDraftPR(ctx context.Context, owner, repo, branch, patch, title, body string) (url string, err error)
 	SearchCode(ctx context.Context, owner, repo, query string) (path string, err error)
 	GetFileContent(ctx context.Context, owner, repo, path string) (string, error)
-	CreateCheckRun(ctx context.Context, owner, repo, commitSHA, name, title, summary string) error
+	CreateCheckRun(ctx context.Context, owner, repo, commitSHA, name, title, summary, conclusion string) error
 	CreatePendingCheckRun(ctx context.Context, owner, repo, commitSHA, name, title, summary string) error
 	GetIssueCommentReactions(ctx context.Context, owner, repo string, issueNumber int, commentID int64) ([]string, error)
 	GetPullRequestHeadSHA(ctx context.Context, owner, repo string, issueNumber int) (string, error)
@@ -335,14 +335,14 @@ func (c *RESTClient) GetPullRequestHeadSHA(ctx context.Context, owner, repo stri
 	return result.Head.SHA, nil
 }
 
-func (c *RESTClient) CreateCheckRun(ctx context.Context, owner, repo, commitSHA, name, title, summary string) error {
+func (c *RESTClient) CreateCheckRun(ctx context.Context, owner, repo, commitSHA, name, title, summary, conclusion string) error {
 	url := fmt.Sprintf("%s/repos/%s/%s/check-runs", c.apiURL, owner, repo)
 
 	payload := map[string]interface{}{
 		"name":       name,
 		"head_sha":   commitSHA,
 		"status":     "completed",
-		"conclusion": "success",
+		"conclusion": conclusion,
 		"output": map[string]string{
 			"title":   title,
 			"summary": summary,
@@ -449,7 +449,7 @@ type MockClient struct {
 	CreateDraftPRFunc  func(ctx context.Context, owner, repo, branch, patch, title, body string) (string, error)
 	SearchCodeFunc     func(ctx context.Context, owner, repo, query string) (string, error)
 	GetFileContentFunc func(ctx context.Context, owner, repo, path string) (string, error)
-	CreateCheckRunFunc func(ctx context.Context, owner, repo, commitSHA, name, title, summary string) error
+	CreateCheckRunFunc func(ctx context.Context, owner, repo, commitSHA, name, title, summary, conclusion string) error
 	CreatePendingCheckRunFunc func(ctx context.Context, owner, repo, commitSHA, name, title, summary string) error
 	GetIssueCommentReactionsFunc func(ctx context.Context, owner, repo string, issueNumber int, commentID int64) ([]string, error)
 	GetPullRequestHeadSHAFunc func(ctx context.Context, owner, repo string, issueNumber int) (string, error)
@@ -490,9 +490,9 @@ func (m *MockClient) GetPullRequestHeadSHA(ctx context.Context, owner, repo stri
 	return "mock_head_sha", nil
 }
 
-func (m *MockClient) CreateCheckRun(ctx context.Context, owner, repo, commitSHA, name, title, summary string) error {
+func (m *MockClient) CreateCheckRun(ctx context.Context, owner, repo, commitSHA, name, title, summary, conclusion string) error {
 	if m.CreateCheckRunFunc != nil {
-		return m.CreateCheckRunFunc(ctx, owner, repo, commitSHA, name, title, summary)
+		return m.CreateCheckRunFunc(ctx, owner, repo, commitSHA, name, title, summary, conclusion)
 	}
 	return nil
 }

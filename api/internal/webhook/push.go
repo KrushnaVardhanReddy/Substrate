@@ -35,6 +35,7 @@ func PushHandler(store db.Store, ghClient github.Client, riverClient workers.Job
 					"substrate",
 					"Substrate Trial Expired",
 					"Substrate 90-day trial has expired. Please visit the dashboard to upgrade to the Enterprise plan and resume API protection.",
+					"failure",
 				)
 				if err != nil {
 					// Log the error but continue returning the paused response

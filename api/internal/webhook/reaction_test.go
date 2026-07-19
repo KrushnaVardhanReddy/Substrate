@@ -16,7 +16,7 @@ func TestReactionHandler(t *testing.T) {
 	mockGh := &github.MockClient{}
 
 	checkRunCalled := false
-	mockGh.CreateCheckRunFunc = func(ctx context.Context, owner, repo, commitSHA, name, title, summary string) error {
+	mockGh.CreateCheckRunFunc = func(ctx context.Context, owner, repo, commitSHA, name, title, summary, conclusion string) error {
 		checkRunCalled = true
 		return nil
 	}
