@@ -17,11 +17,11 @@
 * **New Specs Created:** Created new markdown specs and updated `openapi.yaml` to strictly align the API schema with the frontend implementation for the Impact and Telemetry APIs.
 
 * **New Tasks Dispatched:** We just fired off another massive wave of Enterprise expansion tasks to Jules via `jules_submit.py`:
-    * **P9-T01:** Shift-Left IDE Plugins — *(Still Running)*
+    * **P9-T01:** Shift-Left IDE Plugins — *(✅ Done & Merged)*
     * **P13-T04:** Enterprise E2E Validation — *(Running)*
     * **P9-T00:** GitHub Marketplace Launch (WASI) — *(✅ Done & Merged)*
-    * **P14-T03:** Living API Changelog — *(Running)*
-    * **P14-T02:** "Time to Break" Predictive Scoring — *(Running split: Backend Jules + Frontend Stitch)*
+    * **P14-T03:** Living API Changelog — *(✅ Done & Merged)*
+    * **P14-T02:** "Time to Break" Predictive Scoring — *(✅ Done & Merged)*
 
 ## Next Steps
 1. **Monitor Jules PRs:** Track the progress of P9-T01.
