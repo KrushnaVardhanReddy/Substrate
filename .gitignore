@@ -47,3 +47,7 @@ forgejo-data/*
 auto_merge.sh
 auto_merge_latest.sh
 mark_ready_and_merge.sh
+
+# WASM
+engine/substrate-cli.wasm
+packages/cli/node_modules/

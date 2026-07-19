@@ -4,11 +4,34 @@ package main
 
 import (
 	"os"
-	"strings"
+	"syscall/js"
 	"testing"
+	"strings"
 
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/diff"
 )
+
+func TestSubstrateDiffWrapper_MissingArgs(t *testing.T) {
+	// Create dummy args with length < 2
+	args := []js.Value{js.ValueOf("base")}
+
+	res := substrateDiffWrapper(js.Undefined(), args)
+
+	if resStr := res.(js.Value).String(); !strings.Contains(resStr, "expected 2 arguments") {
+		t.Errorf("Expected error message for missing args, got %v", resStr)
+	}
+}
+
+func TestSubstrateDiffWrapper_InvalidJSON(t *testing.T) {
+	args := []js.Value{js.ValueOf("{ invalid: base }"), js.ValueOf("{ invalid: head }")}
+
+	res := substrateDiffWrapper(js.Undefined(), args)
+
+	if resStr := res.(js.Value).String(); !strings.Contains(resStr, "error") {
+		t.Errorf("Expected error message for invalid input, got %v", resStr)
+	}
+}
+
 
 // A WASM-specific test suite for the engine logic in GOOS=js GOARCH=wasm.
 func TestWASMBridgeResilience(t *testing.T) {
