@@ -11,6 +11,8 @@ import (
 
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/config"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/diff"
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/graphql"
+
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 	sqlpkg "github.com/KrushnaVardhanReddy/substrate/engine/internal/sql"
 )
@@ -197,7 +199,7 @@ func setupMux() *http.ServeMux {
 		var rep *report.DiffReport
 		switch req.SchemaType {
 		case "graphql":
-			rep, err = diff.CompareGraphQL(baseTarget, headTarget)
+			rep, err = graphql.CompareGraphQL(baseTarget, headTarget)
 			if err == nil {
 				rep = applyConfig(rep, configPath, req.ProviderOrg, req.ProviderRepo)
 			}

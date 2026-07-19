@@ -1,14 +1,14 @@
-package diff_test
+package graphql_test
 
 import (
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/KrushnaVardhanReddy/substrate/engine/internal/diff"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/graphql"
 )
 
 func TestCompareGraphQL(t *testing.T) {
@@ -163,7 +163,7 @@ func TestCompareGraphQL(t *testing.T) {
 			err = os.WriteFile(headPath, []byte(tt.headSchema), 0644)
 			require.NoError(t, err)
 
-			rep, err := diff.CompareGraphQL(basePath, headPath)
+			rep, err := graphql.CompareGraphQL(basePath, headPath)
 			if tt.expectErr {
 				assert.Error(t, err)
 				return

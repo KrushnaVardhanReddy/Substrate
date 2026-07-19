@@ -1,8 +1,9 @@
-package diff
+package graphql
 
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/compliance"
@@ -10,6 +11,24 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/parser"
 )
+
+func injectFederation(schema string) string {
+	if !strings.Contains(schema, "directive @key") {
+		schema += `
+scalar _FieldSet
+directive @key(fields: _FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+directive @requires(fields: _FieldSet!) on FIELD_DEFINITION
+directive @provides(fields: _FieldSet!) on FIELD_DEFINITION
+directive @external on FIELD_DEFINITION | OBJECT
+directive @shareable on FIELD_DEFINITION | OBJECT
+directive @link(url: String!, as: String, for: String, import: [String]) repeatable on SCHEMA
+directive @override(from: String!) on FIELD_DEFINITION
+directive @inaccessible on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+directive @tag(name: String!) repeatable on FIELD_DEFINITION | INTERFACE | OBJECT | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+`
+	}
+	return schema
+}
 
 // CompareGraphQL compares two GraphQL schemas and returns a DiffReport.
 func CompareGraphQL(basePath, headPath string) (*report.DiffReport, error) {
@@ -22,11 +41,11 @@ func CompareGraphQL(basePath, headPath string) (*report.DiffReport, error) {
 		return nil, fmt.Errorf("failed to read head schema: %w", err)
 	}
 
-	baseSchemaAST, err := parser.ParseSchema(&ast.Source{Input: string(baseData)})
+	baseSchemaAST, err := parser.ParseSchema(&ast.Source{Input: injectFederation(string(baseData))})
 	if err != nil {
 		return nil, err
 	}
-	headSchemaAST, err := parser.ParseSchema(&ast.Source{Input: string(headData)})
+	headSchemaAST, err := parser.ParseSchema(&ast.Source{Input: injectFederation(string(headData))})
 	if err != nil {
 		return nil, err
 	}
@@ -203,13 +222,37 @@ func diffUnion(rep *report.DiffReport, baseType, headType *ast.Definition) {
 	}
 }
 
+func isKeyField(baseType *ast.Definition, fieldName string) bool {
+	for _, dir := range baseType.Directives {
+		if dir.Name == "key" {
+			fieldsArg := dir.Arguments.ForName("fields")
+			if fieldsArg != nil && fieldsArg.Value != nil {
+				keyFields := strings.Fields(fieldsArg.Value.Raw)
+				for _, kf := range keyFields {
+					if kf == fieldName {
+						return true
+					}
+				}
+			}
+		}
+	}
+	return false
+}
+
 func diffFields(rep *report.DiffReport, baseType, headType *ast.Definition) {
 	for _, baseField := range baseType.Fields {
 		headField := headType.Fields.ForName(baseField.Name)
 		if headField == nil {
+			isKey := isKeyField(baseType, baseField.Name)
+			ruleID := "GQL_FIELD_REMOVED"
+			id := fmt.Sprintf("gql-field-removed-%s-%s", baseType.Name, baseField.Name)
+			if isKey {
+				ruleID = "FederationKeyBroken"
+				id = fmt.Sprintf("gql-federation-key-broken-%s-%s", baseType.Name, baseField.Name)
+			}
 			rep.BreakingChanges = append(rep.BreakingChanges, report.Change{
-				ID:          fmt.Sprintf("gql-field-removed-%s-%s", baseType.Name, baseField.Name),
-				RuleID:      "GQL_FIELD_REMOVED",
+				ID:          id,
+				RuleID:      ruleID,
 				Severity:    report.ChangeSeverityBreaking,
 				Path:        fmt.Sprintf("%s.%s", baseType.Name, baseField.Name),
 				Description: fmt.Sprintf("Field '%s' was removed from '%s'.", baseField.Name, baseType.Name),
@@ -224,9 +267,16 @@ func diffFields(rep *report.DiffReport, baseType, headType *ast.Definition) {
 		headTypeStr := headField.Type.String()
 		if baseTypeStr != headTypeStr {
 			if baseTypeStr+"!" != headTypeStr {
+				isKey := isKeyField(baseType, baseField.Name)
+				ruleID := "GQL_FIELD_TYPE_CHANGED"
+				id := fmt.Sprintf("gql-field-type-changed-%s-%s", baseType.Name, baseField.Name)
+				if isKey {
+					ruleID = "FederationKeyBroken"
+					id = fmt.Sprintf("gql-federation-key-broken-%s-%s", baseType.Name, baseField.Name)
+				}
 				rep.BreakingChanges = append(rep.BreakingChanges, report.Change{
-					ID:          fmt.Sprintf("gql-field-type-changed-%s-%s", baseType.Name, baseField.Name),
-					RuleID:      "GQL_FIELD_TYPE_CHANGED",
+					ID:          id,
+					RuleID:      ruleID,
 					Severity:    report.ChangeSeverityBreaking,
 					Path:        fmt.Sprintf("%s.%s", baseType.Name, baseField.Name),
 					Description: fmt.Sprintf("Return type of field '%s' changed from '%s' to '%s'.", baseField.Name, baseTypeStr, headTypeStr),
