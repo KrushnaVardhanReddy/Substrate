@@ -1,0 +1,29 @@
+TASK: P14-T03 — Living API Changelog
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Generate a beautiful, public-facing versioned changelog page (similar to Stripe's API Changelog) by fetching historical schema diffs.
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- This is strictly an API and UI task. Do not modify the CLI engine.
+- Create a new public endpoint in the `api` module.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: api/internal/handlers/changelog.go (NEW)
+   a. Implement `GET /api/v1/changelog/{org}/{repo}`.
+   b. Fetch the last 20 `DiffReports` from the database.
+   c. Transform the raw diffs into a chronological summary JSON array containing dates, endpoints added, and endpoints removed.
+
+2. FILE: api/internal/server/server.go (EXPAND)
+   a. Register the `/api/v1/changelog/{org}/{repo}` route to the new handler.
+
+3. FILE: api/internal/handlers/changelog_test.go (NEW)
+   a. Write a unit test ensuring the endpoint returns 200 OK and properly formatted JSON.
+
+Commit: "feat: P14-T03 implement living API changelog endpoint"
+Target branch: feature/dev

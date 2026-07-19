@@ -25,7 +25,7 @@
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **P9-T00** | 🚀 P1 | **GitHub Marketplace Launch (WASI)** — Build the `substrate-action` wrapper using `GOOS=wasip1 GOARCH=wasm`. Execute via Node/Wasmtime for sub-second, highly secure, Docker-less CI/CD diffing, and publish to the Marketplace. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P9-T00** | 🚀 P1 | **GitHub Marketplace Launch (WASI)** — Build the `substrate-action` wrapper using `GOOS=wasip1 GOARCH=wasm`. Execute via Node/Wasmtime for sub-second, highly secure, Docker-less CI/CD diffing, and publish to the Marketplace. | Jules | 🔄 Running | `(Pending)` |
 | **P9-T01** | 🔴 P1 | **Shift-Left IDE Plugins** — VSCode/IntelliJ extensions powered by the MCP server to underline breaking changes as the developer types. | Jules | 🔄 Running (`4464514889206753571`) | `docs/specs/phase-9/p9-t01-ide-plugins.md` |
 | **P9-T02** | 🟡 P2 | **Continuous AI Sync (`watch`)** — Background daemon that monitors code changes in the IDE and updates the local OpenAPI spec in real-time. | Unassigned | 💡 Backlog | `docs/specs/go-to-market-strategy.md` |
 | **P9-T03** | 🟢 P3 | **Compliance Mapping** — Auto-tag schemas with SOC2/GDPR/HIPAA warnings when fields like `ssn` or `medical_history` are detected. | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
@@ -90,7 +90,7 @@
 |---|---|---|---|---|---|
 | **P13-T01** | 🤯 P1 | **FinOps Cost Prediction** — Connect schema diffs to Datadog traffic to calculate the exact USD egress cost increase of payload size changes. | Jules | ✅ Done | `docs/specs/phase-13/p13-t01-finops.md` |
 | **P13-T02** | 🤯 P1 | **DB Performance Breakages** — Dry-run Prisma/PlanetScale migrations to predict table-locks and performance outages before they merge. | Jules | ✅ Done | `docs/specs/phase-13/p13-t02-db-performance.md` |
-| **P13-T04** | 🔴 P1 | **Enterprise E2E Validation** — Create a `phase10_13_e2e_test.go` suite to programmatically validate Protobuf diffing, Embedded JS Governance Rules, FinOps egress calculations, and Tree-sitter AST impact analysis. | Unassigned | ⏳ Ready | `(Pending)` |
+| **P13-T04** | 🔴 P1 | **Enterprise E2E Validation** — Create a `phase10_13_e2e_test.go` suite to programmatically validate Protobuf diffing, Embedded JS Governance Rules, FinOps egress calculations, and Tree-sitter AST impact analysis. | Jules | 🔄 Running | `(Pending)` |
 
 ---
 
@@ -102,7 +102,7 @@
 |---|---|---|---|---|---|
 | **P14-T01** | 🚀 P1 | **AI Contract Negotiation** — Upgrade P7-T04 Auto-Fix PRs with an async team negotiation workflow. When a breaking change is detected, Substrate posts a structured GitHub comment tagging all affected consumer leads, tracks their approval/rejection reactions, and only turns the provider PR green when all consumers have acknowledged. | Unassigned | 💡 Backlog | `docs/specs/phase-14/p14-t01-contract-negotiation.md` |
 | **P14-T02** | 🚀 P1 | **"Time to Break" Predictive Scoring** — Upgrade P4b anomaly detection with a concrete user-facing output: a color-coded risk score per graph node indicating the probability of a breaking change in the next N sprints, plus a weekly digest to Platform teams. | Unassigned | 💡 Backlog | `docs/specs/phase-14/p14-t02-predictive-scoring.md` |
-| **P14-T03** | 🔴 P1 | **Living API Changelog (Auto-Generated Public Page)** — Auto-generate a beautiful, public-facing versioned changelog page (like Stripe's API Changelog) from every tracked schema change. Shareable at `substrate.io/myorg/payments-api/changelog`. Embeddable via iframe/JS widget. | Unassigned | 💡 Backlog | `docs/specs/phase-14/p14-t03-living-changelog.md` |
+| **P14-T03** | 🔴 P1 | **Living API Changelog (Auto-Generated Public Page)** — Auto-generate a beautiful, public-facing versioned changelog page (like Stripe's API Changelog) from every tracked schema change. Shareable at `substrate.io/myorg/payments-api/changelog`. Embeddable via iframe/JS widget. | Jules | 🔄 Running | `docs/specs/phase-14/p14-t03-living-changelog.md` |
 | **P14-T04** | 🟡 P2 | **Contract Score Badge (Viral Growth Mechanism)** — A `shields.io`-style embeddable README badge showing a repo's API contract reliability score (`CONTRACT: A+ \| 98% \| 0 breaks in 90 days`). Score calculated from breaking change frequency, blast radius, and spec-first adoption rate. | Unassigned | 💡 Backlog | `docs/specs/phase-14/p14-t04-contract-score-badge.md` |
 | **P14-T05** | 🟡 P2 | **Retroactive Dependency Archaeology (Paid Onboarding Service)** — `substrate archaeology --since 2-years` scans full git history of all connected repos and generates a paid audit report showing every historical breaking change and its estimated incident cost. Priced as a one-time add-on ($500–$2,000/org). | Unassigned | 💡 Backlog | `docs/specs/phase-14/p14-t05-archaeology.md` |
 | **P14-T06** | 🟢 P3 | **Substrate Cloud Public Schema Registry (The npm for APIs)** — A hosted public registry where OSS projects and SaaS companies publish versioned API schemas. Teams monitor public APIs (Stripe, GitHub, Twilio) and get alerts on breaking changes. Free: 5 public APIs. Paid: unlimited + private. | Unassigned | 💡 Backlog | `docs/specs/phase-14/p14-t06-public-schema-registry.md` |
