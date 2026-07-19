@@ -109,3 +109,90 @@ func TestSyncFromRemote(t *testing.T) {
 	// Reset GlobalCache for other tests
 	GlobalCache = nil
 }
+
+func TestGetGraphAndGetSchema(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "substrate-cache-test-methods")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	dbPath := filepath.Join(tmpDir, "cache.db")
+	cache, err := InitCache(dbPath)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	defer cache.DB.Close()
+
+	// Insert test data
+	_, err = cache.DB.Exec("INSERT INTO dependencies (provider, consumer, status) VALUES (?, ?, ?)", "org/repo1", "org/repo2", "SAFE")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = cache.DB.Exec("INSERT INTO dependencies (provider, consumer, status) VALUES (?, ?, ?)", "org/repo1", "org/repo3", "WARNING")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = cache.DB.Exec("INSERT INTO dependencies (provider, consumer, status) VALUES (?, ?, ?)", "otherorg/repo1", "otherorg/repo2", "SAFE")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = cache.DB.Exec("INSERT INTO schemas (repo, content) VALUES (?, ?)", "org/repo1", "schema_content")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Test GetGraph
+	edges, err := cache.GetGraph("org")
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if len(edges) != 2 {
+		t.Fatalf("expected 2 edges for 'org', got %d", len(edges))
+	}
+
+	// Check content
+	found1 := false
+	found2 := false
+	for _, r := range edges {
+		if r.Provider == "org/repo1" && r.Consumer == "org/repo2" && r.Status == "SAFE" {
+			found1 = true
+		}
+		if r.Provider == "org/repo1" && r.Consumer == "org/repo3" && r.Status == "WARNING" {
+			found2 = true
+		}
+	}
+	if !found1 || !found2 {
+		t.Errorf("missing expected edges")
+	}
+
+	// Test GetSchema
+	schema, err := cache.GetSchema("org/repo1")
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if string(schema) != "schema_content" {
+		t.Fatalf("expected 'schema_content', got %s", string(schema))
+	}
+
+	// Test GetSchema miss
+	schema, err = cache.GetSchema("org/missing")
+	if err != nil {
+		t.Fatalf("expected no error on miss, got %v", err)
+	}
+	if schema != nil {
+		t.Fatalf("expected nil for missing schema, got %v", string(schema))
+	}
+
+	// Test GetBreakingChangeHistory
+	history, err := cache.GetBreakingChangeHistory("org/repo1")
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if history != nil {
+		t.Fatalf("expected nil for history, got %v", history)
+	}
+
+	GlobalCache = nil
+}
