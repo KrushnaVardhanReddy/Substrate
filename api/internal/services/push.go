@@ -17,6 +17,7 @@ import (
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/sandbox"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/github"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/discovery"
+	"github.com/KrushnaVardhanReddy/substrate/engine/pkg/schemaowners"
 )
 
 type File struct {
@@ -162,6 +163,20 @@ func ProcessPush(ctx context.Context, store db.Store, ghClient github.Client, re
 				statusToSet := "SAFE"
 				if diffReport.Summary.BreakingCount > 0 {
 					statusToSet = "BREAKING"
+
+					// Set the initial GitHub Check Suite status to pending
+					parts := strings.Split(req.Repo, "/")
+					if len(parts) == 2 {
+						_ = ghClient.CreatePendingCheckRun(
+							ctx,
+							parts[0],
+							parts[1],
+							req.CommitSHA,
+							"Substrate Contract Negotiation",
+							"Waiting for Consumer Approval",
+							"A breaking change was detected. Waiting for affected consumers to approve.",
+						)
+					}
 				}
 
 				consumers, _ := store.GetConsumersByProviderContract(ctx, contract.ID)
@@ -235,7 +250,31 @@ func ProcessPush(ctx context.Context, store db.Store, ghClient github.Client, re
 								chaosOutput = stderr
 							}
 
-							prBody := fmt.Sprintf("Substrate AI detected a breaking change in %s and generated this patch to fix it.\n\n**Reasoning:**\n%s\n\n%s", providerRepo, autofixResp.Explanation, github.GeneratePRComment(chaosOutput))
+
+							schemaOwnersContent, err := ghClient.GetFileContent(bgCtx, owner, repo, "SCHEMAOWNERS")
+							var mentions []string
+							if err == nil {
+								parsed := schemaowners.Parse(schemaOwnersContent)
+								for _, owners := range parsed {
+									mentions = append(mentions, owners...)
+								}
+							}
+
+							uniqueMentions := make(map[string]bool)
+							var finalMentions []string
+							for _, m := range mentions {
+								if !uniqueMentions[m] {
+									uniqueMentions[m] = true
+									finalMentions = append(finalMentions, m)
+								}
+							}
+
+							var prBody string
+							if len(finalMentions) > 0 {
+								prBody = fmt.Sprintf("Substrate AI detected a breaking change in %s and generated this patch to fix it.\n\n**Reasoning:**\n%s\n\n%s", providerRepo, autofixResp.Explanation, github.GenerateNegotiationComment(chaosOutput, finalMentions))
+							} else {
+								prBody = fmt.Sprintf("Substrate AI detected a breaking change in %s and generated this patch to fix it.\n\n**Reasoning:**\n%s\n\n%s", providerRepo, autofixResp.Explanation, github.GeneratePRComment(chaosOutput))
+							}
 
 							_, err = ghClient.CreateDraftPR(bgCtx, owner, repo, "substrate-autofix-"+fmt.Sprint(time.Now().Unix()), autofixResp.SafePatch, title, prBody)
 							if err != nil {

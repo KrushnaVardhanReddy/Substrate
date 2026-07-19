@@ -16,6 +16,9 @@ type Client interface {
 	SearchCode(ctx context.Context, owner, repo, query string) (path string, err error)
 	GetFileContent(ctx context.Context, owner, repo, path string) (string, error)
 	CreateCheckRun(ctx context.Context, owner, repo, commitSHA, name, title, summary string) error
+	CreatePendingCheckRun(ctx context.Context, owner, repo, commitSHA, name, title, summary string) error
+	GetIssueCommentReactions(ctx context.Context, owner, repo string, issueNumber int, commentID int64) ([]string, error)
+	GetPullRequestHeadSHA(ctx context.Context, owner, repo string, issueNumber int) (string, error)
 }
 
 type RESTClient struct {
@@ -304,6 +307,34 @@ func (c *RESTClient) CreateDraftPR(ctx context.Context, owner, repo, branch, pat
 }
 
 
+func (c *RESTClient) GetPullRequestHeadSHA(ctx context.Context, owner, repo string, issueNumber int) (string, error) {
+	url := fmt.Sprintf("%s/repos/%s/%s/pulls/%d", c.apiURL, owner, repo, issueNumber)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return "", err
+	}
+	c.addHeaders(req)
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("get pull request failed with status: %d", resp.StatusCode)
+	}
+
+	var result struct {
+		Head struct {
+			SHA string `json:"sha"`
+		} `json:"head"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return "", err
+	}
+	return result.Head.SHA, nil
+}
+
 func (c *RESTClient) CreateCheckRun(ctx context.Context, owner, repo, commitSHA, name, title, summary string) error {
 	url := fmt.Sprintf("%s/repos/%s/%s/check-runs", c.apiURL, owner, repo)
 
@@ -311,7 +342,7 @@ func (c *RESTClient) CreateCheckRun(ctx context.Context, owner, repo, commitSHA,
 		"name":       name,
 		"head_sha":   commitSHA,
 		"status":     "completed",
-		"conclusion": "neutral",
+		"conclusion": "success",
 		"output": map[string]string{
 			"title":   title,
 			"summary": summary,
@@ -338,6 +369,75 @@ func (c *RESTClient) CreateCheckRun(ctx context.Context, owner, repo, commitSHA,
 	return nil
 }
 
+func (c *RESTClient) CreatePendingCheckRun(ctx context.Context, owner, repo, commitSHA, name, title, summary string) error {
+	url := fmt.Sprintf("%s/repos/%s/%s/check-runs", c.apiURL, owner, repo)
+
+	payload := map[string]interface{}{
+		"name":       name,
+		"head_sha":   commitSHA,
+		"status":     "in_progress",
+		"output": map[string]string{
+			"title":   title,
+			"summary": summary,
+		},
+	}
+
+	payloadBytes, _ := json.Marshal(payload)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		return err
+	}
+	c.addHeaders(req)
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("create check run failed with status: %d, body: %s", resp.StatusCode, string(bodyBytes))
+	}
+	return nil
+}
+
+func (c *RESTClient) GetIssueCommentReactions(ctx context.Context, owner, repo string, issueNumber int, commentID int64) ([]string, error) {
+	url := fmt.Sprintf("%s/repos/%s/%s/issues/comments/%d/reactions", c.apiURL, owner, repo, commentID)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	c.addHeaders(req)
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("get issue comment reactions failed with status: %d", resp.StatusCode)
+	}
+
+	var reactions []struct {
+		Content string `json:"content"`
+		User    struct {
+			Login string `json:"login"`
+		} `json:"user"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&reactions); err != nil {
+		return nil, err
+	}
+
+	var users []string
+	for _, r := range reactions {
+		if r.Content == "+1" {
+			users = append(users, "@" + r.User.Login)
+		}
+	}
+	return users, nil
+}
+
 func (c *RESTClient) addHeaders(req *http.Request) {
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
 	if c.token != "" {
@@ -350,6 +450,9 @@ type MockClient struct {
 	SearchCodeFunc     func(ctx context.Context, owner, repo, query string) (string, error)
 	GetFileContentFunc func(ctx context.Context, owner, repo, path string) (string, error)
 	CreateCheckRunFunc func(ctx context.Context, owner, repo, commitSHA, name, title, summary string) error
+	CreatePendingCheckRunFunc func(ctx context.Context, owner, repo, commitSHA, name, title, summary string) error
+	GetIssueCommentReactionsFunc func(ctx context.Context, owner, repo string, issueNumber int, commentID int64) ([]string, error)
+	GetPullRequestHeadSHAFunc func(ctx context.Context, owner, repo string, issueNumber int) (string, error)
 }
 
 func (m *MockClient) CreateDraftPR(ctx context.Context, owner, repo, branch, patch, title, body string) (string, error) {
@@ -364,6 +467,27 @@ func (m *MockClient) SearchCode(ctx context.Context, owner, repo, query string) 
 		return m.SearchCodeFunc(ctx, owner, repo, query)
 	}
 	return "src/consumer.go", nil
+}
+
+func (m *MockClient) CreatePendingCheckRun(ctx context.Context, owner, repo, commitSHA, name, title, summary string) error {
+	if m.CreatePendingCheckRunFunc != nil {
+		return m.CreatePendingCheckRunFunc(ctx, owner, repo, commitSHA, name, title, summary)
+	}
+	return nil
+}
+
+func (m *MockClient) GetIssueCommentReactions(ctx context.Context, owner, repo string, issueNumber int, commentID int64) ([]string, error) {
+	if m.GetIssueCommentReactionsFunc != nil {
+		return m.GetIssueCommentReactionsFunc(ctx, owner, repo, issueNumber, commentID)
+	}
+	return []string{}, nil
+}
+
+func (m *MockClient) GetPullRequestHeadSHA(ctx context.Context, owner, repo string, issueNumber int) (string, error) {
+	if m.GetPullRequestHeadSHAFunc != nil {
+		return m.GetPullRequestHeadSHAFunc(ctx, owner, repo, issueNumber)
+	}
+	return "mock_head_sha", nil
 }
 
 func (m *MockClient) CreateCheckRun(ctx context.Context, owner, repo, commitSHA, name, title, summary string) error {

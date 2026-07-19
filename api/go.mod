@@ -3,6 +3,7 @@ module github.com/KrushnaVardhanReddy/substrate/api
 go 1.26
 
 require (
+	github.com/KrushnaVardhanReddy/substrate/engine v0.0.0-00010101000000-000000000000
 	github.com/go-chi/chi/v5 v5.3.1
 	github.com/go-chi/cors v1.2.2
 	github.com/golang-jwt/jwt/v5 v5.3.1
@@ -63,3 +64,5 @@ require (
 	google.golang.org/grpc v1.81.1 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )
+
+replace github.com/KrushnaVardhanReddy/substrate/engine => ../engine
