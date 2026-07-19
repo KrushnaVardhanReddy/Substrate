@@ -76,6 +76,7 @@ var gatewaySyncCmd = &cobra.Command{
 }
 
 func init() {
+	gatewaySyncCmd.Flags().String("config", "substrate.yaml", "Path to config file")
 	gatewayCmd.AddCommand(gatewaySyncCmd)
 	// rootCmd is defined in main.go and we add it there or here explicitly if it's exported.
 	// We'll export it in main.go by assigning it or we can just keep it as var if it's in the same package.
