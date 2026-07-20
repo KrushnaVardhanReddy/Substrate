@@ -28,7 +28,12 @@
    - ✅ P9-T14: Preview URLs (PR #179)
    - ✅ P9-T17: Phase 9 E2E (PR #176)
 
-5. **All Remaining Tasks Have Specs + Prompts**
+5. **Wave 9 Merged (Compliance & Zombies)**
+   - ✅ P9-T03: Compliance Mapping (PR #182)
+   - ✅ P10-T03: AI Mock Data Gen (PR #180)
+   - ✅ P10-T06: Zombie Pruning (PR #181)
+
+6. **All Remaining Tasks Have Specs + Prompts**
    Every remaining backlog task now has a `docs/specs/` file and a `prompts/` file registered in `scripts/jules_submit.py`.
 
 ---
@@ -41,12 +46,9 @@
 
 
 
-### Wave 9 — RUNNING (Phase 9+10 — 1 formatter.ts touch)
+### Wave 9 — RUNNING
 | Task ID | Jules ID |
 |---|---|
-| P9-T03 Compliance Mapping | `12516193455558776042` |
-| P10-T03 AI Mock Data Gen | `11452104386150269310` |
-| P10-T06 Zombie Pruning | `7125582862868825714` |
 | P15-T11 Startups Free Tier | `4492224178310041874` |
 
 ### Wave 10 — (Phase 9+10 — 1 formatter.ts touch)
