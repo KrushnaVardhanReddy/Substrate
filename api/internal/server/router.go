@@ -86,6 +86,9 @@ func NewRouter(store db.Store, riverClient workers.JobEnqueuer, authConfig handl
 	// SSE endpoint for live graph updates
 	r.Method("GET", "/api/v1/events", authMW(http.HandlerFunc(handlers.EventsHandler)))
 
+	// Governance Rules Generate CEL endpoint
+	r.Method("POST", "/api/governance/generate-cel", authMW(handlers.GenerateCELHandler()))
+
 	// Route uses GitHub OAuth token directly, not the internal JWT, so we skip authMW.
 	// The endpoint validates the token by making a call to GitHub.
 	r.Method("POST", "/api/v1/org/{org}/enforce", authzMW(http.HandlerFunc(handlers.EnforceGlobalHandler())))
