@@ -1,0 +1,1 @@
+ALTER TABLE organizations ADD COLUMN is_oss BOOLEAN DEFAULT FALSE;

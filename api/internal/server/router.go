@@ -17,6 +17,7 @@ import (
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/services"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/webhook"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/workers"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/handler"
 )
 
 func ServiceTokenMiddleware(registryApiToken string) func(http.Handler) http.Handler {
@@ -52,6 +53,10 @@ func NewRouter(store db.Store, riverClient workers.JobEnqueuer, authConfig handl
 	// Unprotected Auth routes
 	r.Get("/api/v1/auth/github/login", handlers.HandleGitHubLogin(authConfig))
 	r.Get("/api/v1/auth/github/callback", handlers.HandleGitHubCallback(authConfig))
+
+	// Public Profile
+	publicProfileHandler := handler.NewPublicProfileHandler(store.Pool())
+	r.Get("/api/v1/public/profile/{org}", publicProfileHandler.GetPublicProfile)
 
 	// Stripe Webhook (unprotected, validates Stripe signature internally)
 	r.Method("POST", "/api/v1/webhooks/stripe", http.HandlerFunc(handlers.StripeWebhookHandler(store)))
