@@ -25,7 +25,7 @@
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **P9-T02** | 🟡 P2 | **Continuous AI Sync (`watch`)** — Background daemon that monitors code changes in the IDE and updates the local OpenAPI spec in real-time. | Unassigned | 💡 Backlog | `docs/specs/go-to-market-strategy.md` |
+| **P9-T02** | 🟡 P2 | **Continuous AI Sync (`watch`)** — Background daemon that monitors code changes in the IDE and updates the local OpenAPI spec in real-time. | Jules | 🔄 Running (`11519299272742667108`) | `docs/specs/go-to-market-strategy.md` |
 | **P9-T03** | 🟢 P3 | **Compliance Mapping** — Auto-tag schemas with SOC2/GDPR/HIPAA warnings when fields like `ssn` or `medical_history` are detected. | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
 | **P9-T04** | 🔵 P4 | **Quality Gates (SonarQube-style)** — Allow setting different failure thresholds based on service tier (e.g., Tier 1 allows 0 warnings, Beta allows breakages). | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
 | **P9-T05** | ⚪ P5 | **Hexagonal Architecture & `sqlc` Refactor** — Formally isolate engines from HTTP transports, migrate raw `pgx` queries to `sqlc` for type-safe DB layer generation. *(Note: Must split `Store` interface to be per-table, not per-project, to avoid merge conflicts)*. | Unassigned | 💡 Backlog | `(Pending)` |
@@ -33,11 +33,11 @@
 | **P9-T07** | 🔴 P1 | **AI Migration Planner** — Upgrade AI Autofix to generate safe, multi-step migration plans for complex schema/database changes with minimal downtime. | Jules | ✅ Complete | `docs/specs/phase-9/p9-t07-ai-migration-planner.md` |
 | **P9-T08** | 🟡 P2 | **Deployment Risk Scoring** — Synthesize breaking change data, infrastructure changes, and downstream blast radius into a holistic "Deployment Risk Score". | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T09** | 🟢 P3 | **AI Impact Analysis Summaries** — Pass cross-repo blast radius checks to the AI handler to generate a plain-English impact summary on PRs. | Unassigned | 💡 Backlog | `(Pending)` |
-| **P9-T11** | 🚀 P1 | **Automated Deprecation Campaigns** — Track sunsetting endpoints, auto-open issues in downstream consumer repos, and nag them until 0% usage is reached. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P9-T11** | 🚀 P1 | **Automated Deprecation Campaigns** — Track sunsetting endpoints, auto-open issues in downstream consumer repos, and nag them until 0% usage is reached. | Jules | 🔄 Running (`5098444174646188824`) | `(Pending)` |
 | **P9-T13** | 🟡 P2 | **Embedded Mermaid Blast Radius** — Upgrade the GitHub PR comment bot to render a visual Mermaid.js flowchart of the exact blast radius directly inside the PR, eliminating the need to click away. | Unassigned | 💡 Backlog | `(Pending)` |
-| **P9-T14** | 🟢 P3 | **Ephemeral API Preview URLs** — Generate temporary, shareable Substrate dashboard URLs for PRs so engineers can share proposed schema changes and interactive diffs with frontend teams before merging. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P9-T14** | 🟢 P3 | **Ephemeral API Preview URLs** — Generate temporary, shareable Substrate dashboard URLs for PRs so engineers can share proposed schema changes and interactive diffs with frontend teams before merging. | Jules | 🔄 Running (`10016048861773282024`) | `(Pending)` |
 | **P9-T16** | 🚀 P1 | **WASM Git Pre-Commit Hooks** — Blazing fast local Git hooks that run `substrate diff` in 0.02s before code ever leaves the developer's laptop. | Jules | ✅ Complete | `docs/specs/phase-9/p9-t16-wasm-hooks.md` |
-| **P9-T17** | 🔴 P1 | **Phase 9 E2E Validation (No Mocks)** — Comprehensive end-to-end testing suite for all Phase 9 compliance, DX, and hook features. Must spin up real Postgres DBs, real Substrate CLI integrations, and real Git repositories—strictly no mocking. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P9-T17** | 🔴 P1 | **Phase 9 E2E Validation (No Mocks)** — Comprehensive end-to-end testing suite for all Phase 9 compliance, DX, and hook features. Must spin up real Postgres DBs, real Substrate CLI integrations, and real Git repositories—strictly no mocking. | Jules | 🔄 Running (`16186326342507630943`) | `(Pending)` |
 
 ---
 

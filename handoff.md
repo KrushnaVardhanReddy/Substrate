@@ -34,19 +34,13 @@
 
 
 
-### Wave 8 — (Phase 9 — All New Files)
-| Task ID | Script Key | Conflict Notes |
-|---|---|---|
-| P9-T02 AI Sync Watch | `902` | New `engine/watcher/` pkg ✓ |
-| P9-T11 Deprecation Campaigns | `911` | New `engine/deprecation/` pkg ✓ |
-| P9-T14 Preview URLs | `914` | New handler + public route ✓ |
-| P9-T17 Phase 9 E2E | `917` | New `scripts/e2e/` file ✓ |
-```bash
-python3 scripts/jules_submit.py --task 902 && \
-python3 scripts/jules_submit.py --task 911 && \
-python3 scripts/jules_submit.py --task 914 && \
-python3 scripts/jules_submit.py --task 917
-```
+### Wave 8 — RUNNING (Phase 9 — All New Files)
+| Task ID | Jules ID |
+|---|---|
+| P9-T02 AI Sync Watch | `11519299272742667108` |
+| P9-T11 Deprecation Campaigns | `5098444174646188824` |
+| P9-T14 Preview URLs | `10016048861773282024` |
+| P9-T17 Phase 9 E2E | `16186326342507630943` |
 
 ### Wave 9 — (Phase 9+10 — 1 formatter.ts touch)
 | Task ID | Script Key | Conflict Notes |
