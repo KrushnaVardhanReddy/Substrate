@@ -1,0 +1,64 @@
+TASK: P15-T12 — Enterprise BYOK (KMS & LLM)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement a dual-BYOK architecture (Data-at-Rest Encryption + LLM Workload Routing) to satisfy the strictest enterprise InfoSec requirements.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-15/p15-t12-enterprise-byok.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- You MUST mock all network calls. Do not make actual HTTP requests to OpenAI or AWS KMS in the unit tests.
+- Ensure you test the database fallback logic thoroughly.
+- Ensure the diff engine remains completely unaware of the encryption layer.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+The repository uses PostgreSQL for data persistence in `api/internal/db/`.
+AI/LLM functionality is located in `engine/pkg/ai/`.
+Configuration parsing from `substrate.yaml` happens in the main application setup.
+
+⚠️ CRITICAL CONTEXT: DB ENCRYPTION FALLBACK ⚠️
+To avoid maintaining separate schemas for standard vs. enterprise tiers, the PostgreSQL schema uses a dual-column fallback (`raw_schema` vs `encrypted_schema`). The `api/internal/db/` repository layer must dynamically choose which column to write to/read from based on `is_encrypted`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. CREATE: `api/internal/crypto/kms.go`
+   - Implement Envelope Encryption via mocked KMS/Vault interfaces.
+
+2. MODIFY: `api/internal/db/migrations/..._add_encryption_columns.up.sql`
+   - Add `encrypted_schema` (BYTEA), `is_encrypted` (BOOLEAN), and `kms_key_arn` (VARCHAR) to `schema_revisions`.
+
+3. MODIFY: `api/internal/db/store.go` (or similar DB layer)
+   - Update read/write operations to seamlessly handle the dual-column logic.
+
+4. MODIFY: `engine/pkg/ai/client.go`
+   - Refactor to use an `AIClient` interface.
+   - Implement handlers for OpenAI, Azure, Bedrock, and Ollama based on `substrate.yaml` config block.
+
+5. CREATE: `api/internal/crypto/kms_test.go` and `engine/pkg/ai/client_test.go`
+   - Unit tests covering cryptographic round-trips and AI provider switching. Mock all network boundaries!
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- api/internal/crypto/kms.go
+- api/internal/crypto/kms_test.go
+- engine/pkg/ai/client_test.go
+- api/internal/db/migrations/20260720000000_add_encryption_columns.up.sql
+- api/internal/db/migrations/20260720000000_add_encryption_columns.down.sql
+
+FILES TO MODIFY:
+- api/internal/db/store.go
+- engine/pkg/ai/client.go
+
+Commit: "feat: P15-T12 implement Enterprise BYOK (KMS & LLM)"
+Target branch: feature/dev

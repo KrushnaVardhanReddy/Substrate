@@ -1,0 +1,64 @@
+TASK: P10-T15 — Zero-Latency Drift Detection (eBPF)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Extend runtime drift detection with a zero-latency `cilium/ebpf` kernel probe to capture HTTP/gRPC traffic without sidecar proxies.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-10/p10-t15-ebpf-drift.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Do not require root to run `make test-all`. Mock the eBPF ring buffer reader in unit tests to simulate incoming traffic.
+- Use `cilium/ebpf` and `bpf2go` to compile the C programs.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+The Substrate engine is written in Go. The eBPF code will reside in a new `probe/` directory at the root, separated into `ebpf` (C code) and `userspace` (Go loader).
+Helm charts should be added to `charts/substrate-ebpf/`.
+
+⚠️ CRITICAL CONTEXT: KUBERNETES AUTO-DISCOVERY ⚠️
+The Go userspace application must watch for Kubernetes Pod events and automatically attach/detach eBPF socket filters based on labels like `substrate.io/monitor: "true"`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. CREATE: `probe/ebpf/http_capture.c`
+   - Write a simple eBPF C program hooking into socket filters to capture L7 traffic.
+
+2. CREATE: `probe/userspace/loader.go`
+   - Use `bpf2go` directives.
+   - Load the eBPF objects and read from the perf ring buffer.
+
+3. CREATE: `probe/userspace/stream.go`
+   - Stream captured payloads into the Substrate diff engine for validation.
+
+4. CREATE: `charts/substrate-ebpf/`
+   - Helm chart deploying the daemonset with `hostNetwork: true` and RBAC for kernel tracing.
+
+5. CREATE: `probe/userspace/loader_test.go`
+   - Mocked unit tests that do not require kernel tracing capabilities.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- probe/ebpf/http_capture.c
+- probe/userspace/loader.go
+- probe/userspace/stream.go
+- probe/userspace/loader_test.go
+- charts/substrate-ebpf/Chart.yaml
+- charts/substrate-ebpf/values.yaml
+- charts/substrate-ebpf/templates/daemonset.yaml
+- charts/substrate-ebpf/templates/rbac.yaml
+
+FILES TO MODIFY:
+- (None existing)
+
+Commit: "feat: P10-T15 implement zero-latency eBPF drift detection"
+Target branch: feature/dev

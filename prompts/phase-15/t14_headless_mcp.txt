@@ -1,0 +1,57 @@
+TASK: P15-T14 — Headless Substrate (Full MCP Server Parity)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Ensure 100% of Substrate's functionality is accessible and controllable exclusively via the Model Context Protocol (MCP) for autonomous agents.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-15/p15-t14-headless-mcp.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- All HTTP route handlers must have an equivalent MCP Tool or Resource definition.
+- Mock any external API/GitHub calls in tests.
+- Standard Stdio mode must be supported for the MCP server.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+The main API entrypoint is likely `api/cmd/server/main.go`.
+HTTP routes are currently registered in `api/internal/server/`.
+We need a parallel MCP routing layer in `api/internal/mcp/`.
+
+⚠️ CRITICAL CONTEXT: HEADLESS MODE ⚠️
+When the `--headless-mcp` flag is passed to the Substrate binary, the standard HTTP server and Web UI must be entirely disabled. The application should only listen and respond over Stdio (or SSE) using the MCP protocol.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. CREATE: `api/internal/mcp/tools.go`
+   - Auto-generation mapping layer or manual definitions converting standard HTTP route handlers into MCP Tool definitions (e.g., `bypass_breaking_change`).
+
+2. CREATE: `api/internal/mcp/resources.go`
+   - Dynamic URI resolution for Substrate's database models (e.g., `substrate://schemas/{org}/{repo}`).
+
+3. MODIFY: `api/cmd/server/main.go`
+   - Introduce `--headless-mcp` flag to skip HTTP/UI initialization and launch the MCP server instead.
+
+4. CREATE: `api/internal/mcp/server_test.go`
+   - Complete E2E testing of the MCP server ensuring an agent can successfully configure and operate Substrate via Stdio.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- api/internal/mcp/tools.go
+- api/internal/mcp/resources.go
+- api/internal/mcp/server_test.go
+
+FILES TO MODIFY:
+- api/cmd/server/main.go
+
+Commit: "feat: P15-T14 implement Headless Substrate MCP server"
+Target branch: feature/dev
