@@ -22,7 +22,13 @@
    - ✅ P15-T08: Substrate Marketplace (PR #174)
    - ✅ P15-T10: Schema Insurance (PR #172)
 
-4. **All 26 Remaining Tasks Have Specs + Prompts**
+4. **Wave 8 Merged (Phase 9 — All New Files)**
+   - ✅ P9-T02: AI Sync Watch (PR #178)
+   - ✅ P9-T11: Deprecation Campaigns (PR #177)
+   - ✅ P9-T14: Preview URLs (PR #179)
+   - ✅ P9-T17: Phase 9 E2E (PR #176)
+
+5. **All Remaining Tasks Have Specs + Prompts**
    Every remaining backlog task now has a `docs/specs/` file and a `prompts/` file registered in `scripts/jules_submit.py`.
 
 ---
@@ -34,13 +40,6 @@
 
 
 
-### Wave 8 — RUNNING (Phase 9 — All New Files)
-| Task ID | Jules ID |
-|---|---|
-| P9-T02 AI Sync Watch | `11519299272742667108` |
-| P9-T11 Deprecation Campaigns | `5098444174646188824` |
-| P9-T14 Preview URLs | `10016048861773282024` |
-| P9-T17 Phase 9 E2E | `16186326342507630943` |
 
 ### Wave 9 — (Phase 9+10 — 1 formatter.ts touch)
 | Task ID | Script Key | Conflict Notes |
