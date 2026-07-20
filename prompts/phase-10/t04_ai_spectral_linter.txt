@@ -16,6 +16,13 @@ CONSTRAINTS & RULES
 - You MUST write unit tests for the AI linter and the CRUD API.
 
 ═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- API handlers are located in `api/internal/handlers/` (plural). Name it `api/internal/handlers/governance_rules.go`.
+- Engine code is in `engine/`. `engine/spectral/` should invoke the AI client via `engine/pkg/ai`. Do not write your own OpenAI HTTP client.
+- The Dashboard SvelteKit routes are in `dashboard/src/routes/(app)/`. Use existing CSS tokens like `var(--bg-card)` and `var(--text-muted)`.
+
+═══════════════════════════════════════════════════════════════
 IMPLEMENTATION TIPS
 ═══════════════════════════════════════════════════════════════
 - Add `api/internal/handler/governance_rules.go` for the CRUD endpoints.

@@ -16,6 +16,13 @@ CONSTRAINTS & RULES
 - You MUST write unit tests for the spec serving endpoint.
 
 ═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- API handlers are located in `api/internal/handlers/` (plural). Name your file `api/internal/handlers/spec.go`.
+- The Dashboard SvelteKit routes are in `dashboard/src/routes/(app)/`.
+- `Stoplight Elements` provides a web component (`<elements-api>`). You can safely use it inside SvelteKit by importing it in a `+page.svelte` file.
+
+═══════════════════════════════════════════════════════════════
 IMPLEMENTATION TIPS
 ═══════════════════════════════════════════════════════════════
 - Add `api/internal/handler/spec.go` to serve the raw spec JSON.

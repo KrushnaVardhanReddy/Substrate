@@ -16,6 +16,13 @@ CONSTRAINTS & RULES
 - You MUST write unit tests for the scoring algorithm.
 
 ═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The Go backend API handlers are located in `api/internal/handlers/` (note the plural). Your new handler should be `api/internal/handlers/risk.go`.
+- The engine logic goes in `engine/risk/`.
+- The GitHub App worker lives in `github-app/src/`. You will edit `formatter.ts` to prepend the risk badge string to the comment template.
+
+═══════════════════════════════════════════════════════════════
 IMPLEMENTATION TIPS
 ═══════════════════════════════════════════════════════════════
 - Add `engine/risk/scorer.go` with the composite scoring logic.
