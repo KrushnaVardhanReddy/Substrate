@@ -131,6 +131,14 @@ python3 scripts/jules_submit.py --task 1019 && \
 python3 scripts/jules_submit.py --task 905
 ```
 
+### Wave 14 — (Phase 15 — On-Premise)
+| Task ID | Script Key | Conflict Notes |
+|---|---|---|
+| P15-T15 Air-Gapped License | `1515` | New `engine/licensing/` pkg ✓ |
+```bash
+python3 scripts/jules_submit.py --task 1515
+```
+
 ---
 
 ## 🤖 How to Submit Tasks to Jules

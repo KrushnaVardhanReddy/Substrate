@@ -872,6 +872,11 @@ TASKS = {
         "phase": "phase-15",
         "prompt": _load_prompt("prompts/phase-15/t13_e2e_validation.txt"),
     },
+    1515: {
+        "name": "P15-T15 — Air-Gapped License Validator",
+        "phase": "phase-15",
+        "prompt": _load_prompt("prompts/phase-15/t15_license_validator.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
