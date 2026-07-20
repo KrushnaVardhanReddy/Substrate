@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Contract struct {
@@ -149,6 +150,11 @@ type Store interface {
 	GetOrgKMSConfig(ctx context.Context, orgName string) (string, string, error) // Returns provider, keyARN
 	PublishPlugin(ctx context.Context, name, description string, schemaContent json.RawMessage) (uuid.UUID, error)
 	ListPlugins(ctx context.Context) ([]MarketplacePlugin, error)
+	UpsertInsurancePolicy(ctx context.Context, orgID uuid.UUID, policyLimitCents int64) (uuid.UUID, error)
+	GetInsurancePolicy(ctx context.Context, orgID uuid.UUID) (*InsurancePolicy, error)
+	CreateInsuranceClaim(ctx context.Context, claim InsuranceClaim) (uuid.UUID, error)
+	GetInsuranceClaims(ctx context.Context, orgID uuid.UUID) ([]InsuranceClaim, error)
+	Pool() *pgxpool.Pool
 }
 
 type PublicNamespace struct {
@@ -175,4 +181,24 @@ type MarketplacePlugin struct {
 	SchemaContent json.RawMessage `json:"schema_content"`
 	CreatedAt     time.Time       `json:"created_at"`
 	UpdatedAt     time.Time       `json:"updated_at"`
+}
+
+type InsurancePolicy struct {
+	ID               uuid.UUID `json:"id"`
+	OrgID            uuid.UUID `json:"org_id"`
+	PolicyLimitCents int64     `json:"policy_limit_cents"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
+}
+
+type InsuranceClaim struct {
+	ID           uuid.UUID `json:"id"`
+	OrgID        uuid.UUID `json:"org_id"`
+	PolicyID     uuid.UUID `json:"policy_id"`
+	GithubPRUrl  string    `json:"github_pr_url"`
+	IncidentDate time.Time `json:"incident_date"`
+	Status       string    `json:"status"`
+	AmountCents  int64     `json:"amount_cents"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
 }

@@ -1,8 +1,8 @@
 package db
 
 import (
-	"testing"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/crypto"
+	"testing"
 )
 
 // In lieu of testing pgxpool directly without a test database setup,

@@ -11,6 +11,11 @@ import (
 	"os"
 )
 
+type CheckRun struct {
+	Name       string `json:"name"`
+	Conclusion string `json:"conclusion"`
+}
+
 type Client interface {
 	RequestReviewers(ctx context.Context, owner, repo string, pullNumber int, reviewers []string) error
 	CreateDraftPR(ctx context.Context, owner, repo, branch, patch, title, body string) (url string, err error)
@@ -20,6 +25,7 @@ type Client interface {
 	CreatePendingCheckRun(ctx context.Context, owner, repo, commitSHA, name, title, summary string) error
 	GetIssueCommentReactions(ctx context.Context, owner, repo string, issueNumber int, commentID int64) ([]string, error)
 	GetPullRequestHeadSHA(ctx context.Context, owner, repo string, issueNumber int) (string, error)
+	ListCheckRunsForRef(ctx context.Context, owner, repo, ref string) ([]CheckRun, error)
 }
 
 type RESTClient struct {
@@ -307,7 +313,6 @@ func (c *RESTClient) CreateDraftPR(ctx context.Context, owner, repo, branch, pat
 	return result.HTMLURL, nil
 }
 
-
 func (c *RESTClient) GetPullRequestHeadSHA(ctx context.Context, owner, repo string, issueNumber int) (string, error) {
 	url := fmt.Sprintf("%s/repos/%s/%s/pulls/%d", c.apiURL, owner, repo, issueNumber)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
@@ -374,9 +379,9 @@ func (c *RESTClient) CreatePendingCheckRun(ctx context.Context, owner, repo, com
 	url := fmt.Sprintf("%s/repos/%s/%s/check-runs", c.apiURL, owner, repo)
 
 	payload := map[string]interface{}{
-		"name":       name,
-		"head_sha":   commitSHA,
-		"status":     "in_progress",
+		"name":     name,
+		"head_sha": commitSHA,
+		"status":   "in_progress",
 		"output": map[string]string{
 			"title":   title,
 			"summary": summary,
@@ -433,7 +438,7 @@ func (c *RESTClient) GetIssueCommentReactions(ctx context.Context, owner, repo s
 	var users []string
 	for _, r := range reactions {
 		if r.Content == "+1" {
-			users = append(users, "@" + r.User.Login)
+			users = append(users, "@"+r.User.Login)
 		}
 	}
 	return users, nil
@@ -447,14 +452,15 @@ func (c *RESTClient) addHeaders(req *http.Request) {
 }
 
 type MockClient struct {
-	RequestReviewersFunc func(ctx context.Context, owner, repo string, pullNumber int, reviewers []string) error
-	CreateDraftPRFunc  func(ctx context.Context, owner, repo, branch, patch, title, body string) (string, error)
-	SearchCodeFunc     func(ctx context.Context, owner, repo, query string) (string, error)
-	GetFileContentFunc func(ctx context.Context, owner, repo, path string) (string, error)
-	CreateCheckRunFunc func(ctx context.Context, owner, repo, commitSHA, name, title, summary, conclusion string) error
-	CreatePendingCheckRunFunc func(ctx context.Context, owner, repo, commitSHA, name, title, summary string) error
+	RequestReviewersFunc         func(ctx context.Context, owner, repo string, pullNumber int, reviewers []string) error
+	CreateDraftPRFunc            func(ctx context.Context, owner, repo, branch, patch, title, body string) (string, error)
+	SearchCodeFunc               func(ctx context.Context, owner, repo, query string) (string, error)
+	GetFileContentFunc           func(ctx context.Context, owner, repo, path string) (string, error)
+	CreateCheckRunFunc           func(ctx context.Context, owner, repo, commitSHA, name, title, summary, conclusion string) error
+	CreatePendingCheckRunFunc    func(ctx context.Context, owner, repo, commitSHA, name, title, summary string) error
 	GetIssueCommentReactionsFunc func(ctx context.Context, owner, repo string, issueNumber int, commentID int64) ([]string, error)
-	GetPullRequestHeadSHAFunc func(ctx context.Context, owner, repo string, issueNumber int) (string, error)
+	GetPullRequestHeadSHAFunc    func(ctx context.Context, owner, repo string, issueNumber int) (string, error)
+	ListCheckRunsForRefFunc      func(ctx context.Context, owner, repo, ref string) ([]CheckRun, error)
 }
 
 func (m *MockClient) RequestReviewers(ctx context.Context, owner, repo string, pullNumber int, reviewers []string) error {
@@ -511,4 +517,39 @@ func (m *MockClient) GetFileContent(ctx context.Context, owner, repo, path strin
 		return m.GetFileContentFunc(ctx, owner, repo, path)
 	}
 	return "mock source code", nil
+}
+
+func (c *RESTClient) ListCheckRunsForRef(ctx context.Context, owner, repo, ref string) ([]CheckRun, error) {
+	url := fmt.Sprintf("%s/repos/%s/%s/commits/%s/check-runs", c.apiURL, owner, repo, ref)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	c.addHeaders(req)
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to list check runs, status: %d", resp.StatusCode)
+	}
+
+	var result struct {
+		CheckRuns []CheckRun `json:"check_runs"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	return result.CheckRuns, nil
+}
+
+func (m *MockClient) ListCheckRunsForRef(ctx context.Context, owner, repo, ref string) ([]CheckRun, error) {
+	if m.ListCheckRunsForRefFunc != nil {
+		return m.ListCheckRunsForRefFunc(ctx, owner, repo, ref)
+	}
+	return nil, nil
 }
