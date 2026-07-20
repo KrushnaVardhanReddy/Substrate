@@ -12,7 +12,7 @@ Spec (READ ONLY — implement from it, never edit):
 CONSTRAINTS & RULES
 ═══════════════════════════════════════════════════════════════
 - No `mock.On(...)` or fake HTTP handlers for external services.
-- All external GitHub calls use `GITHUB_TEST_TOKEN` env var.
+- All external git interactions should hit the local Forgejo instance.
 - Tests must clean up resources after themselves.
 
 ═══════════════════════════════════════════════════════════════

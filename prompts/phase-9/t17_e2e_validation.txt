@@ -12,7 +12,7 @@ Spec (READ ONLY — implement from it, never edit):
 CONSTRAINTS & RULES
 ═══════════════════════════════════════════════════════════════
 - No `mock.On(...)` or fake HTTP handlers for external services.
-- All tests must clean up (DB teardown, GitHub issues deleted) after themselves.
+- All tests must clean up (DB teardown, Forgejo issues deleted) after themselves.
 - Guard all tests with `if testing.Short() { t.Skip(...) }`.
 
 ═══════════════════════════════════════════════════════════════
