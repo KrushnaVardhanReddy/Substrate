@@ -63,4 +63,10 @@ type DiffReport struct {
 	Warnings         []Change          `json:"warnings"`
 	SafeChanges      []Change          `json:"safe_changes"`
 	ComplianceAlerts []ComplianceAlert `json:"compliance_alerts,omitempty"`
+	Deprecations     []Deprecation     `json:"deprecations,omitempty"`
+}
+
+type Deprecation struct {
+	Endpoint   string `json:"endpoint"`
+	SunsetDate string `json:"sunset_date"`
 }

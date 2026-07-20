@@ -87,8 +87,14 @@ type SubstrateConfig struct {
 	Consumers   []ConsumerDependency `yaml:"consumers,omitempty"`
 	Avro        *AvroConfig          `yaml:"avro,omitempty"`
 	Traffic     TrafficConfig        `yaml:"traffic,omitempty"`
-	CustomRules []CustomRule         `yaml:"custom_rules,omitempty" json:"custom_rules,omitempty"`
-	Gateway     *GatewayConfig       `yaml:"gateway,omitempty"`
+	CustomRules  []CustomRule         `yaml:"custom_rules,omitempty" json:"custom_rules,omitempty"`
+	Gateway      *GatewayConfig       `yaml:"gateway,omitempty"`
+	Deprecations []Deprecation        `yaml:"deprecations,omitempty"`
+}
+
+type Deprecation struct {
+	Endpoint   string `yaml:"endpoint"`
+	SunsetDate string `yaml:"sunset_date"`
 }
 
 func (c *SubstrateConfig) HasConsumers() bool {

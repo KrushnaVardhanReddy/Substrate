@@ -17,12 +17,18 @@ export interface ComplianceAlert {
   message: string;
 }
 
+export interface Deprecation {
+  endpoint: string;
+  sunset_date: string;
+}
+
 export interface DiffReport {
   breaking_changes: DiffChange[];
   warnings: DiffChange[];
   safe_changes: DiffChange[];
   summary: DiffSummary;
   compliance_alerts?: ComplianceAlert[];
+  deprecations?: Deprecation[];
 }
 
 export interface SubstrateConfig {
