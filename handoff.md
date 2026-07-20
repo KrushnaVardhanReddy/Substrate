@@ -11,11 +11,11 @@
    - ✅ P11-T03: Edge Tooltips (PR #167)
    - ✅ P11-T04: Volatility Heatmap (PR #164)
 
-2. **Wave 6 Running (Phase 15 — Enterprise)**
-   - 🔄 P15-T03: Dependency SLA Tracking (Session: `11792690738245850426`)
-   - 🔄 P15-T04: Schema Smell Detector (Session: `2377768681235846971`)
-   - 🔄 P15-T05: AI Incident Post-Mortem Generator (Session: `7617790351664607704`)
-   - 🔄 P15-T06: Natural Language Governance Rules (Session: `13121575222699399289`)
+2. **Wave 6 Merged (Phase 15 — Enterprise)**
+   - ✅ P15-T03: Dependency SLA Tracking (PR #170)
+   - ✅ P15-T04: Schema Smell Detector (PR #171)
+   - ✅ P15-T05: AI Incident Post-Mortem Generator (PR #168)
+   - ✅ P15-T06: Natural Language Governance Rules (PR #169)
 
 3. **All 26 Remaining Tasks Have Specs + Prompts**
    Every remaining backlog task now has a `docs/specs/` file and a `prompts/` file registered in `scripts/jules_submit.py`.
@@ -27,13 +27,6 @@
 > Tasks within each wave are **safe to run in parallel** — they touch different files and won't cause merge conflicts.
 > Tasks that modify `github-app/src/formatter.ts` are limited to **one per wave** (marked ⚠️).
 
-### Wave 6 — RUNNING (Phase 15 Enterprise)
-| Task ID | Jules ID |
-|---|---|
-| P15-T03 Dependency SLA | `11792690738245850426` |
-| P15-T04 Schema Smell | `2377768681235846971` |
-| P15-T05 Post-Mortem Gen | `7617790351664607704` |
-| P15-T06 NL Governance | `13121575222699399289` |
 
 ### Wave 7 — READY TO TRIGGER (Viral Growth + Enterprise)
 | Task ID | Script Key | Conflict Notes |
