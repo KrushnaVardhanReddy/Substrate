@@ -66,19 +66,20 @@ func RunArchitect(in io.Reader, out io.Writer) error {
 	}
 
 	if apiKey == "" {
-		return ErrMissingAPIKey
+		provider := os.Getenv("SUBSTRATE_AI_PROVIDER")
+		if provider != "ollama" {
+			return ErrMissingAPIKey
+		}
 	}
 
 	if model == "" {
 		model = openai.GPT4o
 	}
 
-	config := openai.DefaultConfig(apiKey)
-	if baseURL != "" {
-		config.BaseURL = baseURL
+	client, err := NewAIClient()
+	if err != nil {
+		return fmt.Errorf("failed to initialize AI client: %w", err)
 	}
-
-	client := openai.NewClientWithConfig(config)
 	ctx := context.Background()
 
 	systemPrompt := "You are Substrate AI Architect. The user will describe an API they want. " +
@@ -112,7 +113,7 @@ func RunArchitect(in io.Reader, out io.Writer) error {
 	var fullResponse strings.Builder
 
 	for {
-		resp, err := stream.Recv()
+		chunk, err := stream.Recv()
 		if errors.Is(err, io.EOF) {
 			break
 		}
@@ -120,7 +121,6 @@ func RunArchitect(in io.Reader, out io.Writer) error {
 			return fmt.Errorf("stream error: %w", err)
 		}
 
-		chunk := resp.Choices[0].Delta.Content
 		fullResponse.WriteString(chunk)
 		fmt.Fprint(out, chunk)
 	}

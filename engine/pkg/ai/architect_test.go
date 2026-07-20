@@ -36,6 +36,26 @@ func TestRunArchitect(t *testing.T) {
 			expectedError: "SUBSTRATE_AI_API_KEY environment variable is required",
 		},
 		{
+			name:          "Missing API key allowed for Ollama",
+			input:         "test\n",
+			apiKey:        "",
+			baseURL:       "MOCK_SERVER", // We use mock server for this to avoid actual network call
+			mockResponse:  "data: {\"choices\": [{\"delta\": {\"content\": \"```yaml\\nopenapi: 3.0.0\\n```\"}}]}\n\ndata: [DONE]\n\n",
+			expectedError: "",
+			expectedFile:   "openapi: 3.0.0\n",
+			expectedOutput: "openapi: 3.0.0",
+		},
+		{
+			name:          "Bedrock mock server",
+			input:          "users api\n",
+			apiKey:         "test-key",
+			baseURL:        "MOCK_SERVER", // Will be replaced in test setup
+			mockResponse:   "```yaml\nopenapi: 3.0.0\n```",
+			expectedError:  "",
+			expectedFile:   "openapi: 3.0.0\n",
+			expectedOutput: "openapi: 3.0.0",
+		},
+		{
 			name:           "Fallback triggered when baseURL is unset",
 			input:          "blog api\n",
 			apiKey:         "",
@@ -66,6 +86,14 @@ func TestRunArchitect(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Setenv("SUBSTRATE_AI_API_KEY", tt.apiKey)
 			t.Setenv("SUBSTRATE_AI_MODEL", tt.model)
+
+			if tt.name == "Missing API key allowed for Ollama" {
+				t.Setenv("SUBSTRATE_AI_PROVIDER", "ollama")
+			} else if tt.name == "Bedrock mock server" {
+				t.Setenv("SUBSTRATE_AI_PROVIDER", "bedrock")
+			} else {
+				t.Setenv("SUBSTRATE_AI_PROVIDER", "openai")
+			}
 
 			var mockServer *httptest.Server
 			if tt.baseURL == "MOCK_SERVER" {

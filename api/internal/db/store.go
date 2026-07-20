@@ -17,6 +17,8 @@ type Contract struct {
 	LatestCommitSHA string    `json:"latest_commit_sha"`
 	RawContent      string    `json:"raw_content"`
 	SyncedAt        time.Time `json:"synced_at"`
+	IsEncrypted     bool      `json:"is_encrypted"`
+	KMSKeyARN       string    `json:"kms_key_arn,omitempty"`
 }
 
 type Repository struct {
