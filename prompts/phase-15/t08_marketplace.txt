@@ -1,0 +1,33 @@
+TASK: P15-T08 — Substrate Marketplace (Community Rules & Plugins)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement a community marketplace for governance rule packs.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-15/p15-t08-marketplace.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Implement `substrate plugin publish` and `substrate plugin install <name>`.
+- Create API endpoints for publishing and fetching plugins.
+- Provide a simple UI in the dashboard for browsing plugins.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Add a new `marketplace` package in the `api/internal` directory to handle logic.
+- Use a Postgres table `marketplace_plugins` to track published rule packs.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: api/internal/marketplace/handler.go (CREATE)
+2. FILE: engine/cmd/plugin.go (CREATE)
+3. FILE: dashboard/src/routes/(app)/marketplace/+page.svelte (CREATE)
+4. Add DB migrations for `marketplace_plugins`.
+
+Commit: "feat: P15-T08 implement substrate marketplace"
+Target branch: feature/dev

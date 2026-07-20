@@ -742,6 +742,26 @@ TASKS = {
         "phase": "phase-15",
         "prompt": _load_prompt("prompts/phase-15/t06_nl_governance.txt"),
     },
+    1508: {
+        "name": "P15-T08 — Substrate Marketplace",
+        "phase": "phase-15",
+        "prompt": _load_prompt("prompts/phase-15/t08_marketplace.txt"),
+    },
+    1510: {
+        "name": "P15-T10 — Schema Insurance",
+        "phase": "phase-15",
+        "prompt": _load_prompt("prompts/phase-15/t10_schema_insurance.txt"),
+    },
+    1404: {
+        "name": "P14-T04 — Contract Score Badge",
+        "phase": "phase-14",
+        "prompt": _load_prompt("prompts/phase-14/t04_contract_score_badge.txt"),
+    },
+    1405: {
+        "name": "P14-T05 — Retroactive Dependency Archaeology",
+        "phase": "phase-14",
+        "prompt": _load_prompt("prompts/phase-14/t05_archaeology.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────

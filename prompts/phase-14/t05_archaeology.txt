@@ -1,0 +1,33 @@
+TASK: P14-T05 — Retroactive Dependency Archaeology
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement `substrate archaeology --since 2-years` to scan full git history and generate a historical audit report of breaking changes.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-14/p14-t05-archaeology.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Iterate through git tags/commits locally.
+- Run AST diffs on historical specs.
+- Output a Markdown report summarizing incidents and estimated financial costs.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Add `engine/cmd/archaeology.go` to the CLI.
+- Leverage `go-git` to walk the commit tree and extract versions of the OpenAPI spec for diffing.
+- Re-use the FinOps model in `engine/finops/` if available, or stub a simple cost multiplier.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: engine/cmd/archaeology.go (CREATE)
+2. FILE: engine/archaeology/scanner.go (CREATE)
+3. Include unit tests `engine/archaeology/scanner_test.go`.
+
+Commit: "feat: P14-T05 implement retroactive dependency archaeology"
+Target branch: feature/dev
