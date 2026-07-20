@@ -390,3 +390,11 @@ func (m *MockStore) GetInsuranceClaims(ctx context.Context, orgID uuid.UUID) ([]
 	}
 	return nil, nil
 }
+
+func (m *MockStore) UpsertEndpointTraffic(ctx context.Context, repoID uuid.UUID, method, path string, timestamp time.Time) error {
+	return nil
+}
+
+func (m *MockStore) GetZeroTrafficEndpoints(ctx context.Context, orgName string, since time.Time) ([]EndpointTraffic, error) {
+	return nil, nil
+}

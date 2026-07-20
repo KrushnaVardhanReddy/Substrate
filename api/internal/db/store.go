@@ -88,6 +88,16 @@ type WebhookConfig struct {
 	CreatedAt time.Time
 }
 
+
+type EndpointTraffic struct {
+	ID           uuid.UUID `json:"id"`
+	RepoID       uuid.UUID `json:"repo_id"`
+	Method       string    `json:"method"`
+	Path         string    `json:"path"`
+	LastSeenAt   time.Time `json:"last_seen_at"`
+	RequestCount int64     `json:"request_count"`
+}
+
 type ROIMetrics struct {
 	TotalPreventedOutages      int `json:"total_prevented_outages"`
 	TotalUndocumentedEndpoints int `json:"total_undocumented_endpoints"`
@@ -147,6 +157,8 @@ type Store interface {
 	GetConsumerManifests(ctx context.Context, providerRepo, consumerRepo string) (json.RawMessage, error)
 	RegisterAgent(ctx context.Context, repoName, owner string, tools []AgentToolDependency) (uuid.UUID, error)
 	GetAgentsByTool(ctx context.Context, toolName string) ([]AgentConsumer, error)
+	UpsertEndpointTraffic(ctx context.Context, repoID uuid.UUID, method, path string, timestamp time.Time) error
+	GetZeroTrafficEndpoints(ctx context.Context, orgName string, since time.Time) ([]EndpointTraffic, error)
 	GetPublicSchema(ctx context.Context, namespace, name, version string) (*PublicSchema, error)
 	PublishPublicSchema(ctx context.Context, namespace, name, version, schemaType, content string) error
 	UpsertOrgKMSConfig(ctx context.Context, orgName, provider, keyARN string) error

@@ -1,6 +1,7 @@
 package db
 
 import (
+	"time"
 	"context"
 	"github.com/google/uuid"
 )
@@ -172,4 +173,42 @@ func (s *PGStore) GetInsuranceClaims(ctx context.Context, orgID uuid.UUID) ([]In
 		claims = append(claims, c)
 	}
 	return claims, nil
+}
+
+func (s *PGStore) UpsertEndpointTraffic(ctx context.Context, repoID uuid.UUID, method, path string, timestamp time.Time) error {
+	query := `
+		INSERT INTO endpoint_traffic (repo_id, method, path, last_seen_at, request_count)
+		VALUES ($1, $2, $3, $4, 1)
+		ON CONFLICT (repo_id, method, path)
+		DO UPDATE SET
+			last_seen_at = GREATEST(endpoint_traffic.last_seen_at, EXCLUDED.last_seen_at),
+			request_count = endpoint_traffic.request_count + 1
+	`
+	_, err := s.pool.Exec(ctx, query, repoID, method, path, timestamp)
+	return err
+}
+
+func (s *PGStore) GetZeroTrafficEndpoints(ctx context.Context, orgName string, since time.Time) ([]EndpointTraffic, error) {
+	query := `
+		SELECT et.id, et.repo_id, et.method, et.path, et.last_seen_at, et.request_count
+		FROM endpoint_traffic et
+		JOIN repositories r ON et.repo_id = r.id
+		JOIN organizations o ON r.org_id = o.id
+		WHERE o.name = $1 AND (et.last_seen_at IS NULL OR et.last_seen_at < $2)
+	`
+	rows, err := s.pool.Query(ctx, query, orgName, since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var results []EndpointTraffic
+	for rows.Next() {
+		var et EndpointTraffic
+		if err := rows.Scan(&et.ID, &et.RepoID, &et.Method, &et.Path, &et.LastSeenAt, &et.RequestCount); err != nil {
+			return nil, err
+		}
+		results = append(results, et)
+	}
+	return results, nil
 }
