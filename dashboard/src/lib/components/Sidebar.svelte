@@ -17,8 +17,9 @@
 			</a>
 			<a href="/org/{org}/matrix" class="nav-item {pathname === `/org/${org}/matrix` ? 'active' : ''}">Compatibility Matrix</a>
 		{:else}
-			<div class="nav-item active">Dashboard</div>
+			<a href="/" class="nav-item {pathname === '/' ? 'active' : ''}">Dashboard</a>
 		{/if}
+		<a href="/marketplace" class="nav-item {pathname === '/marketplace' ? 'active' : ''}">Marketplace</a>
 		<a href="/playground" class="nav-item {pathname === '/playground' ? 'active' : ''}" style="text-decoration:none;">✨ AI Playground</a>
 		<div class="nav-item">API Keys</div>
 		{#if isAdmin}

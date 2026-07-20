@@ -790,3 +790,40 @@ func GetBreakingChangesBetween(ctx context.Context, pool *pgxpool.Pool, since, u
 
 	return records, nil
 }
+
+func (s *PGStore) PublishPlugin(ctx context.Context, name, description string, schemaContent json.RawMessage) (uuid.UUID, error) {
+	query := `
+		INSERT INTO marketplace_plugins (id, name, description, schema_content)
+		VALUES ($1, $2, $3, $4)
+		ON CONFLICT (name) DO UPDATE
+		SET description = EXCLUDED.description, schema_content = EXCLUDED.schema_content, updated_at = NOW()
+		RETURNING id
+	`
+	id := uuid.New()
+	var returnedID uuid.UUID
+	err := s.pool.QueryRow(ctx, query, id, name, description, schemaContent).Scan(&returnedID)
+	return returnedID, err
+}
+
+func (s *PGStore) ListPlugins(ctx context.Context) ([]MarketplacePlugin, error) {
+	query := `
+		SELECT id, name, description, schema_content, created_at, updated_at
+		FROM marketplace_plugins
+		ORDER BY created_at DESC
+	`
+	rows, err := s.pool.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var plugins []MarketplacePlugin
+	for rows.Next() {
+		var p MarketplacePlugin
+		if err := rows.Scan(&p.ID, &p.Name, &p.Description, &p.SchemaContent, &p.CreatedAt, &p.UpdatedAt); err != nil {
+			return nil, err
+		}
+		plugins = append(plugins, p)
+	}
+	return plugins, rows.Err()
+}

@@ -31,7 +31,6 @@ require (
 	cel.dev/expr v0.25.1 // indirect
 	cloud.google.com/go v0.123.0 // indirect
 	github.com/TwiN/go-color v1.4.1 // indirect
-	github.com/agnivade/levenshtein v1.2.1 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/asyncapi/converter-go v0.3.0 // indirect
 	github.com/asyncapi/spec-json-schemas/v4 v4.3.1 // indirect
