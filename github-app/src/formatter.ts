@@ -108,8 +108,8 @@ export function formatPRComment(
 
   }
 
-  if (report.compliance_alerts && report.compliance_alerts.length > 0) {
-    comment += `\n### 🛡️ Compliance & PII Alerts\n\n`;
+if (report.compliance_alerts && report.compliance_alerts.length > 0) {
+    comment += `\n### ⚠️ Compliance Flags\n\n`;
     comment += `| Type | Path | Message |\n`;
     comment += `|---|---|---|\n`;
     for (const alert of report.compliance_alerts) {
