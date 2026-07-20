@@ -26,7 +26,8 @@ export function formatPRComment(
   prNumber?: number,
   aiExplanation?: string,
   aiSafePatch?: string,
-  diffId?: string
+  diffId?: string,
+  riskScore?: string
 ): string {
   const breakingCount = report.summary?.breaking_count || 0;
   const warningCount = report.summary?.warning_count || 0;
@@ -37,6 +38,18 @@ export function formatPRComment(
   const infoChanges = report.safe_changes || [];
 
   let comment = '';
+
+  if (riskScore) {
+    let riskColor = '🟢';
+    if (riskScore === 'CRITICAL') {
+      riskColor = '🔴';
+    } else if (riskScore === 'HIGH') {
+      riskColor = '🟠';
+    } else if (riskScore === 'MEDIUM') {
+      riskColor = '🟡';
+    }
+    comment += `## ${riskColor} DEPLOYMENT RISK: ${riskScore}\n\n`;
+  }
 
   if (config.mode === 'audit') {
     comment += `> ℹ️ **Substrate is running in Audit Mode.** This breaking change has been recorded, but this PR is NOT blocked.\n\n`;

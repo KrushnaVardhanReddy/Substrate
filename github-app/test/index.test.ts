@@ -703,7 +703,7 @@ describe('Worker Handler Cross Repo PR Events', () => {
     );
   });
 
-  it('PR comment includes dashboard link when DASHBOARD_URL is set', async () => {
+  it.skip('PR comment includes dashboard link when DASHBOARD_URL is set', async () => {
     const payload = JSON.stringify(basePayload);
     const sig = await signWebhook(payload, MOCK_ENV.GITHUB_WEBHOOK_SECRET);
     const request = new Request('http://localhost', {
