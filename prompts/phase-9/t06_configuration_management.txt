@@ -1,0 +1,36 @@
+TASK: P9-T06 — Configuration Management (Viper)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Migrate all `os.Getenv` calls to Viper for layered config loading from `.env`, environment variables, and YAML.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-9/p9-t06-configuration-management.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Every `os.Getenv` call in the codebase must be replaced.
+- CLI flags must take highest precedence, then env vars, then YAML.
+- You MUST write unit tests verifying precedence order.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Initialize Viper in `engine/cmd/root.go`.
+- Use `viper.BindPFlag` for each Cobra flag.
+- Use `viper.AutomaticEnv()` to bind environment variables.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: engine/cmd/root.go (MODIFY)
+   - Initialize Viper.
+2. All files using `os.Getenv` (MODIFY)
+   - Replace with `viper.GetString`.
+3. Include `engine/config/config_test.go`
+4. Run `go test ./...`.
+
+Commit: "refactor: P9-T06 migrate to Viper config management"
+Target branch: feature/dev

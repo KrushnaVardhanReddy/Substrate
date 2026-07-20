@@ -1,0 +1,34 @@
+TASK: P9-T05 — Hexagonal Architecture & `sqlc` Refactor
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Formally isolate the engine from HTTP transports and migrate raw `pgx` queries to `sqlc`.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-9/p9-t05-hexagonal-architecture.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- CRITICAL: Split the `Store` interface into per-table interfaces (e.g. `RepoStore`, `ChangeStore`, `OrgStore`). Do NOT keep a single monolithic Store interface.
+- HTTP handlers must only call port interfaces, never the DB package directly.
+- You MUST write unit tests (`_test.go`) for each new port interface.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Create `api/internal/ports/` to house the interface definitions.
+- Create `api/internal/db/queries/` for `sqlc` query files.
+- Run `sqlc generate` after writing queries.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. DIR: api/internal/ports/ (CREATE)
+2. DIR: api/internal/db/queries/ (CREATE)
+3. Update all HTTP handlers to use port interfaces.
+4. Run `go test ./...`.
+
+Commit: "refactor: P9-T05 hexagonal architecture and sqlc migration"
+Target branch: feature/dev

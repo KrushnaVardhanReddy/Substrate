@@ -1,0 +1,34 @@
+TASK: P9-T11 — Automated Deprecation Campaigns
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Track sunsetting endpoints and auto-open GitHub issues in downstream consumer repos until usage reaches 0%.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-9/p9-t11-automated-deprecation.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Parse `sunset_date` from `substrate.yaml`.
+- Use the GitHub API to open issues in consumer repos.
+- You MUST write unit tests for the deprecation detection logic.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Add `engine/deprecation/campaign.go` to manage campaigns.
+- Extend the existing blast radius traversal to feed consumers into the campaign manager.
+- Use the existing GitHub App credentials to open issues via the Octokit client in the GitHub App.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: engine/deprecation/campaign.go (CREATE)
+   - Include `engine/deprecation/campaign_test.go`
+2. FILE: github-app/src/deprecation.ts (CREATE)
+3. Run `go test ./...`.
+
+Commit: "feat: P9-T11 implement automated deprecation campaigns"
+Target branch: feature/dev

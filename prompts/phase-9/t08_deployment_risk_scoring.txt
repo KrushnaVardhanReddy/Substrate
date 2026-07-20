@@ -1,0 +1,35 @@
+TASK: P9-T08 — Deployment Risk Scoring
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Synthesize breaking change data and blast radius into a holistic "Deployment Risk Score" shown prominently in PR comments.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-9/p9-t08-deployment-risk-scoring.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Score must be one of: `LOW`, `MEDIUM`, `HIGH`, `CRITICAL`.
+- Score must appear at the TOP of the PR comment, above all other sections.
+- You MUST write unit tests for the scoring algorithm.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Add `engine/risk/scorer.go` with the composite scoring logic.
+- In `github-app/src/formatter.ts`, prepend the risk badge to the comment template.
+- Add `GET /api/v1/risk/:org/:repo/:pr` in `api/internal/handler/risk.go`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: engine/risk/scorer.go (CREATE)
+   - Include `engine/risk/scorer_test.go`
+2. FILE: api/internal/handler/risk.go (CREATE)
+3. FILE: github-app/src/formatter.ts (MODIFY)
+4. Run `go test ./...` and `npm run check`.
+
+Commit: "feat: P9-T08 implement deployment risk scoring"
+Target branch: feature/dev

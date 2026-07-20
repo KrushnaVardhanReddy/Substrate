@@ -762,6 +762,116 @@ TASKS = {
         "phase": "phase-14",
         "prompt": _load_prompt("prompts/phase-14/t05_archaeology.txt"),
     },
+    1407: {
+        "name": "P14-T07 — Phase 14 E2E Validation",
+        "phase": "phase-14",
+        "prompt": _load_prompt("prompts/phase-14/t07_e2e_validation.txt"),
+    },
+    902: {
+        "name": "P9-T02 — Continuous AI Sync (watch)",
+        "phase": "phase-9",
+        "prompt": _load_prompt("prompts/phase-9/t02_continuous_ai_sync.txt"),
+    },
+    903: {
+        "name": "P9-T03 — Compliance Mapping",
+        "phase": "phase-9",
+        "prompt": _load_prompt("prompts/phase-9/t03_compliance_mapping.txt"),
+    },
+    904: {
+        "name": "P9-T04 — Quality Gates",
+        "phase": "phase-9",
+        "prompt": _load_prompt("prompts/phase-9/t04_quality_gates.txt"),
+    },
+    905: {
+        "name": "P9-T05 — Hexagonal Architecture & sqlc Refactor",
+        "phase": "phase-9",
+        "prompt": _load_prompt("prompts/phase-9/t05_hexagonal_architecture.txt"),
+    },
+    906: {
+        "name": "P9-T06 — Configuration Management (Viper)",
+        "phase": "phase-9",
+        "prompt": _load_prompt("prompts/phase-9/t06_configuration_management.txt"),
+    },
+    908: {
+        "name": "P9-T08 — Deployment Risk Scoring",
+        "phase": "phase-9",
+        "prompt": _load_prompt("prompts/phase-9/t08_deployment_risk_scoring.txt"),
+    },
+    909: {
+        "name": "P9-T09 — AI Impact Analysis Summaries",
+        "phase": "phase-9",
+        "prompt": _load_prompt("prompts/phase-9/t09_ai_impact_analysis.txt"),
+    },
+    911: {
+        "name": "P9-T11 — Automated Deprecation Campaigns",
+        "phase": "phase-9",
+        "prompt": _load_prompt("prompts/phase-9/t11_automated_deprecation.txt"),
+    },
+    913: {
+        "name": "P9-T13 — Embedded Mermaid Blast Radius",
+        "phase": "phase-9",
+        "prompt": _load_prompt("prompts/phase-9/t13_mermaid_blast_radius.txt"),
+    },
+    914: {
+        "name": "P9-T14 — Ephemeral API Preview URLs",
+        "phase": "phase-9",
+        "prompt": _load_prompt("prompts/phase-9/t14_preview_urls.txt"),
+    },
+    917: {
+        "name": "P9-T17 — Phase 9 E2E Validation",
+        "phase": "phase-9",
+        "prompt": _load_prompt("prompts/phase-9/t17_e2e_validation.txt"),
+    },
+    1003: {
+        "name": "P10-T03 — AI Mock Data Generator",
+        "phase": "phase-10",
+        "prompt": _load_prompt("prompts/phase-10/t03_ai_mock_data_generator.txt"),
+    },
+    1004: {
+        "name": "P10-T04 — AI Spectral Linter",
+        "phase": "phase-10",
+        "prompt": _load_prompt("prompts/phase-10/t04_ai_spectral_linter.txt"),
+    },
+    1005: {
+        "name": "P10-T05 — Auto-SDK Generator PRs",
+        "phase": "phase-10",
+        "prompt": _load_prompt("prompts/phase-10/t05_auto_sdk_generator.txt"),
+    },
+    1006: {
+        "name": "P10-T06 — Traffic-Aware Pruning (Zombies)",
+        "phase": "phase-10",
+        "prompt": _load_prompt("prompts/phase-10/t06_traffic_aware_pruning.txt"),
+    },
+    1013: {
+        "name": "P10-T13 — Integrated API Documentation Catalog",
+        "phase": "phase-10",
+        "prompt": _load_prompt("prompts/phase-10/t13_api_documentation_catalog.txt"),
+    },
+    1019: {
+        "name": "P10-T19 — CRM/Billing Blast Radius",
+        "phase": "phase-10",
+        "prompt": _load_prompt("prompts/phase-10/t19_crm_billing_blast_radius.txt"),
+    },
+    1020: {
+        "name": "P10-T20 — Phase 10 E2E Validation",
+        "phase": "phase-10",
+        "prompt": _load_prompt("prompts/phase-10/t20_e2e_validation.txt"),
+    },
+    1509: {
+        "name": "P15-T09 — Substrate Certified Partner Program",
+        "phase": "phase-15",
+        "prompt": _load_prompt("prompts/phase-15/t09_partner_program.txt"),
+    },
+    1511: {
+        "name": "P15-T11 — Substrate for Startups Free Tier",
+        "phase": "phase-15",
+        "prompt": _load_prompt("prompts/phase-15/t11_startups_free_tier.txt"),
+    },
+    1513: {
+        "name": "P15-T13 — Phase 15 E2E Validation",
+        "phase": "phase-15",
+        "prompt": _load_prompt("prompts/phase-15/t13_e2e_validation.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────

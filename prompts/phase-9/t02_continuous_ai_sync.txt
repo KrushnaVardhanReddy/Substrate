@@ -1,0 +1,34 @@
+TASK: P9-T02 — Continuous AI Sync (`watch`)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement `substrate watch` — a background daemon that monitors source files and auto-updates the local OpenAPI spec on every save.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-9/p9-t02-continuous-ai-sync.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Use `fsnotify` for file watching.
+- Debounce changes with a 500ms window.
+- You MUST write unit tests for the debounce logic (`_test.go`).
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Add `engine/cmd/watch.go` for the Cobra command.
+- The watcher logic lives in `engine/watcher/watcher.go`.
+- Re-use the existing spec extraction logic from `engine/extractor/`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: engine/cmd/watch.go (CREATE)
+2. FILE: engine/watcher/watcher.go (CREATE)
+   - Include `engine/watcher/watcher_test.go`
+3. Run `go test ./...`.
+
+Commit: "feat: P9-T02 implement continuous AI sync watch daemon"
+Target branch: feature/dev

@@ -1,0 +1,35 @@
+TASK: P10-T13 — Integrated API Documentation Catalog
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Evolve the registry into an internal Developer Portal with an interactive API reference viewer embedded in the dashboard.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-10/p10-t13-api-documentation-catalog.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Embed Stoplight Elements or ReDoc as a Svelte component.
+- Serve the OpenAPI spec via `GET /api/v1/spec/:org/:repo`.
+- You MUST write unit tests for the spec serving endpoint.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Add `api/internal/handler/spec.go` to serve the raw spec JSON.
+- In the dashboard, install `@stoplight/elements` via npm and render it in a new `catalog/[repo]/docs/+page.svelte`.
+- Add a "Docs" link to the repo detail view sidebar.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: api/internal/handler/spec.go (CREATE)
+   - Include `api/internal/handler/spec_test.go`
+2. FILE: dashboard/src/routes/(app)/org/[org]/catalog/[repo]/docs/+page.svelte (CREATE)
+   - Include `+page.test.ts`
+3. Run `go test ./...` and `npm run test`.
+
+Commit: "feat: P10-T13 implement integrated API documentation catalog"
+Target branch: feature/dev

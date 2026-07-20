@@ -1,0 +1,32 @@
+TASK: P10-T03 — AI Mock Data Generator (QA)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Scan QA repos for JSON test fixtures and auto-update mock data when the upstream API schema changes.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-10/p10-t03-ai-mock-data-generator.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Scan `__fixtures__/` and `testdata/` directories for JSON files.
+- Open a PR in the QA repo with the regenerated fixtures.
+- You MUST write unit tests for the fixture scanner and AI prompt builder.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Add `engine/mockgen/generator.go` for fixture scanning and AI calls.
+- Use `engine/ai_analyze.go` patterns for structuring the AI prompt.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: engine/mockgen/generator.go (CREATE)
+   - Include `engine/mockgen/generator_test.go`
+2. Run `go test ./...`.
+
+Commit: "feat: P10-T03 implement AI mock data generator"
+Target branch: feature/dev
