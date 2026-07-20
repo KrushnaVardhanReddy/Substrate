@@ -23,7 +23,7 @@ func TestDiscoveryWorker_Work(t *testing.T) {
 		UpsertContractFunc: func(ctx context.Context, providerRepoID uuid.UUID, schemaType, format, commitSha, version, rawContent string) (uuid.UUID, error) {
 			return uuid.New(), nil
 		},
-		UpsertDependencyFunc: func(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, confidenceScore int) error {
+		UpsertDependencyFunc: func(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, confidenceScore int, requiredNoticeDays int) error {
 			return nil
 		},
 	}

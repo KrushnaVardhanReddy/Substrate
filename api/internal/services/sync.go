@@ -19,6 +19,7 @@ type DependencyPayload struct {
 	SpecPath             string `json:"spec_path"`
 	Branch               string `json:"branch"`
 	RawContent           string `json:"raw_content"`
+	RequiredNoticeDays   int    `json:"required_notice_days,omitempty"`
 }
 
 type SyncRequest struct {
@@ -117,7 +118,7 @@ func ProcessSync(ctx context.Context, store db.Store, req SyncRequest) (int, err
 		}
 
 		// For manual yaml configs, confidence score is implicitly 100 since it is explicitly declared
-		if err := store.UpsertDependency(ctx, consumerRepoID, contractID, 100); err != nil {
+		if err := store.UpsertDependency(ctx, consumerRepoID, contractID, 100, dep.RequiredNoticeDays); err != nil {
 			return 0, err
 		}
 

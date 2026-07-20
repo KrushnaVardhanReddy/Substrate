@@ -18,17 +18,24 @@ export async function parseConsumersFromYaml(yamlContent: string): Promise<Consu
     const schemaTypeMatch = block.match(/schema_type:\s*(.+)/);
     const providerSpecPathMatch = block.match(/provider_spec_path:\s*(.+)/);
     const providerBranchMatch = block.match(/provider_branch:\s*(.+)/);
+    const requiredNoticeDaysMatch = block.match(/required_notice_days:\s*(\d+)/);
 
     const stripQuotes = (val: string) => val.replace(/^["']|["']$/g, '').trim();
 
     if (nameMatch && providerRepoMatch && schemaTypeMatch && providerSpecPathMatch) {
-      consumers.push({
+      const consumer: ConsumerEntry = {
         name: stripQuotes(nameMatch[1]),
         provider_repo: stripQuotes(providerRepoMatch[1]),
         schema_type: stripQuotes(schemaTypeMatch[1]),
         provider_spec_path: stripQuotes(providerSpecPathMatch[1]),
         provider_branch: providerBranchMatch ? stripQuotes(providerBranchMatch[1]) : 'main'
-      });
+      };
+
+      if (requiredNoticeDaysMatch) {
+        consumer.required_notice_days = parseInt(requiredNoticeDaysMatch[1], 10);
+      }
+
+      consumers.push(consumer);
     }
   }
 

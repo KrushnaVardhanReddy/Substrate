@@ -35,6 +35,7 @@ type ConsumerDependency struct {
 	ConsumerRepoID     uuid.UUID
 	ConsumerFullName   string
 	ContractRawContent string
+	RequiredNoticeDays int
 }
 
 type DiffReportRecord struct {
@@ -112,7 +113,7 @@ type Store interface {
 	UpsertOrg(ctx context.Context, installationID int64, orgName string) (uuid.UUID, error)
 	UpsertRepo(ctx context.Context, orgID uuid.UUID, githubRepoID int64, name, fullName string, metadata json.RawMessage) (uuid.UUID, error)
 	UpsertContract(ctx context.Context, repoID uuid.UUID, schemaType, specPath, branch, commitSHA, rawContent string) (uuid.UUID, error)
-	UpsertDependency(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, confidenceScore int) error
+	UpsertDependency(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, confidenceScore int, requiredNoticeDays int) error
 	GetContractsByProviderFullName(ctx context.Context, providerFullName string) ([]Contract, error)
 	GetConsumersByProviderContract(ctx context.Context, providerContractID uuid.UUID) ([]ConsumerDependency, error)
 	ListReposByOrg(ctx context.Context, orgName string) ([]Repository, error)

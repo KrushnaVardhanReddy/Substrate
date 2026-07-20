@@ -109,7 +109,8 @@ func ProcessPush(ctx context.Context, store db.Store, ghClient github.Client, re
 				continue
 			}
 
-			err = store.UpsertDependency(ctx, consumerRepoID, contractID, dep.ConfidenceScore)
+			// For autodiscovered dependencies, required notice days defaults to 0
+			err = store.UpsertDependency(ctx, consumerRepoID, contractID, dep.ConfidenceScore, 0)
 			if err == nil {
 				discoveredCount++
 			}

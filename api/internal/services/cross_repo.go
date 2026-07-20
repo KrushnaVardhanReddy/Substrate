@@ -47,11 +47,17 @@ type ConsumerResult struct {
 	DiffReport   *DiffReport `json:"diff_report"`
 }
 
+type SLABreach struct {
+	Consumer     string `json:"consumer"`
+	RequiredDays int    `json:"required_days"`
+}
+
 type CrossRepoCheckResponse struct {
 	TotalConsumers  int              `json:"total_consumers"`
 	BrokenConsumers int              `json:"broken_consumers"`
 	IsSafe          bool             `json:"is_safe"`
 	Results         []ConsumerResult `json:"results"`
+	SLABreaches     []SLABreach      `json:"sla_breaches,omitempty"`
 }
 
 // PerformCrossRepoCheck extracts the core logic of CrossRepoCheckHandler.
@@ -62,8 +68,9 @@ func PerformCrossRepoCheck(ctx context.Context, store db.Store, req CrossRepoChe
 	}
 
 	response := CrossRepoCheckResponse{
-		IsSafe:  true,
-		Results: []ConsumerResult{},
+		IsSafe:      true,
+		Results:     []ConsumerResult{},
+		SLABreaches: []SLABreach{},
 	}
 
 	contracts, err := store.GetContractsByProviderFullName(ctx, req.ProviderRepo)
@@ -226,6 +233,14 @@ func PerformCrossRepoCheck(ctx context.Context, store db.Store, req CrossRepoChe
 				status = "breaking"
 				response.BrokenConsumers++
 				response.IsSafe = false
+
+				// Evaluate SLA Breach
+				if consumer.RequiredNoticeDays > 0 {
+					response.SLABreaches = append(response.SLABreaches, SLABreach{
+						Consumer:     consumer.ConsumerFullName,
+						RequiredDays: consumer.RequiredNoticeDays,
+					})
+				}
 			}
 
 			if diffReport.Breaking == nil {
