@@ -12,6 +12,7 @@ import (
 )
 
 type Client interface {
+	RequestReviewers(ctx context.Context, owner, repo string, pullNumber int, reviewers []string) error
 	CreateDraftPR(ctx context.Context, owner, repo, branch, patch, title, body string) (url string, err error)
 	SearchCode(ctx context.Context, owner, repo, query string) (path string, err error)
 	GetFileContent(ctx context.Context, owner, repo, path string) (string, error)
@@ -446,6 +447,7 @@ func (c *RESTClient) addHeaders(req *http.Request) {
 }
 
 type MockClient struct {
+	RequestReviewersFunc func(ctx context.Context, owner, repo string, pullNumber int, reviewers []string) error
 	CreateDraftPRFunc  func(ctx context.Context, owner, repo, branch, patch, title, body string) (string, error)
 	SearchCodeFunc     func(ctx context.Context, owner, repo, query string) (string, error)
 	GetFileContentFunc func(ctx context.Context, owner, repo, path string) (string, error)
@@ -453,6 +455,13 @@ type MockClient struct {
 	CreatePendingCheckRunFunc func(ctx context.Context, owner, repo, commitSHA, name, title, summary string) error
 	GetIssueCommentReactionsFunc func(ctx context.Context, owner, repo string, issueNumber int, commentID int64) ([]string, error)
 	GetPullRequestHeadSHAFunc func(ctx context.Context, owner, repo string, issueNumber int) (string, error)
+}
+
+func (m *MockClient) RequestReviewers(ctx context.Context, owner, repo string, pullNumber int, reviewers []string) error {
+	if m.RequestReviewersFunc != nil {
+		return m.RequestReviewersFunc(ctx, owner, repo, pullNumber, reviewers)
+	}
+	return nil
 }
 
 func (m *MockClient) CreateDraftPR(ctx context.Context, owner, repo, branch, patch, title, body string) (string, error) {
