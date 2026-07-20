@@ -28,19 +28,13 @@
 > Tasks that modify `github-app/src/formatter.ts` are limited to **one per wave** (marked ⚠️).
 
 
-### Wave 7 — READY TO TRIGGER (Viral Growth + Enterprise)
-| Task ID | Script Key | Conflict Notes |
-|---|---|---|
-| P15-T08 Marketplace | `1508` | All new files ✓ |
-| P15-T10 Schema Insurance | `1510` | All new files ✓ |
-| P14-T04 Contract Badge | `1404` | All new files ✓ |
-| P14-T05 Archaeology CLI | `1405` | All new files ✓ |
-```bash
-python3 scripts/jules_submit.py --task 1508 && \
-python3 scripts/jules_submit.py --task 1510 && \
-python3 scripts/jules_submit.py --task 1404 && \
-python3 scripts/jules_submit.py --task 1405
-```
+### Wave 7 — RUNNING (Viral Growth + Enterprise)
+| Task ID | Jules ID |
+|---|---|
+| P15-T08 Marketplace | `13975671091067464539` |
+| P15-T10 Schema Insurance | `16979089870785470024` |
+| P14-T04 Contract Badge | `12765288448818719108` |
+| P14-T05 Archaeology CLI | `14134495198760945095` |
 
 ### Wave 8 — (Phase 9 — All New Files)
 | Task ID | Script Key | Conflict Notes |
