@@ -18,6 +18,7 @@
    - ✅ P15-T06: Natural Language Governance Rules (PR #169)
 3. **Wave 7 Merged (Viral Growth + Enterprise)**
    - ✅ P14-T04: Contract Score Badge (PR #173)
+   - ✅ P14-T05: Retroactive Dependency Archaeology (PR #175)
    - ✅ P15-T08: Substrate Marketplace (PR #174)
    - ✅ P15-T10: Schema Insurance (PR #172)
 
@@ -31,10 +32,7 @@
 > Tasks within each wave are **safe to run in parallel** — they touch different files and won't cause merge conflicts.
 > Tasks that modify `github-app/src/formatter.ts` are limited to **one per wave** (marked ⚠️).
 
-### Wave 7 — RUNNING (Viral Growth + Enterprise)
-| Task ID | Jules ID |
-|---|---|
-| P14-T05 Archaeology CLI | `11342243673025757125` |
+
 
 ### Wave 8 — (Phase 9 — All New Files)
 | Task ID | Script Key | Conflict Notes |
