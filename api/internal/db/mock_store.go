@@ -3,12 +3,15 @@ package db
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type MockStore struct {
+	pool                           *pgxpool.Pool
 	UpsertRepoMetricFunc           func(ctx context.Context, repoID uuid.UUID, score int) error
 	GetAllRepositoriesFunc         func(ctx context.Context) ([]Repository, error)
 	CountRecentBreakingChangesFunc func(ctx context.Context, repoID uuid.UUID, since time.Time) (int, error)
@@ -40,13 +43,24 @@ type MockStore struct {
 	GetDiffReportFunc                  func(ctx context.Context, id uuid.UUID) (json.RawMessage, error)
 	GetDiffReportsByRepoFunc           func(ctx context.Context, orgName, repoName string, limit int) ([]DiffReportRecord, error)
 	UpdateDependencyStatusFunc         func(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, status string) error
-	GetConsumerManifestsFunc             func(ctx context.Context, providerRepo, consumerRepo string) (json.RawMessage, error)
+	GetConsumerManifestsFunc           func(ctx context.Context, providerRepo, consumerRepo string) (json.RawMessage, error)
 	RegisterAgentFunc                  func(ctx context.Context, repoName, owner string, tools []AgentToolDependency) (uuid.UUID, error)
 	GetAgentsByToolFunc                func(ctx context.Context, toolName string) ([]AgentConsumer, error)
 	GetPublicSchemaFunc                func(ctx context.Context, namespace, name, version string) (*PublicSchema, error)
 	PublishPublicSchemaFunc            func(ctx context.Context, namespace, name, version, schemaType, content string) error
-	UpsertOrgKMSConfigFunc               func(ctx context.Context, orgName, provider, keyARN string) error
-	GetOrgKMSConfigFunc                  func(ctx context.Context, orgName string) (string, string, error)
+	UpsertOrgKMSConfigFunc             func(ctx context.Context, orgName, provider, keyARN string) error
+	GetOrgKMSConfigFunc                func(ctx context.Context, orgName string) (string, string, error)
+	UpsertInsurancePolicyFunc          func(ctx context.Context, orgID uuid.UUID, policyLimitCents int64) (uuid.UUID, error)
+	GetInsurancePolicyFunc             func(ctx context.Context, orgID uuid.UUID) (*InsurancePolicy, error)
+	CreateInsuranceClaimFunc           func(ctx context.Context, claim InsuranceClaim) (uuid.UUID, error)
+	GetInsuranceClaimsFunc             func(ctx context.Context, orgID uuid.UUID) ([]InsuranceClaim, error)
+}
+
+func (m *MockStore) Pool() *pgxpool.Pool {
+	// In memory pool for tests. We can just create a basic dummy or return nil.
+	// Or we use pgxpool for real tests. Actually we use a local pool connected to postgres test database.
+	// We'll add this to MockStore.
+	return m.pool
 }
 
 func (m *MockStore) GetPublicSchema(ctx context.Context, namespace, name, version string) (*PublicSchema, error) {
@@ -174,7 +188,6 @@ func (m *MockStore) RecordBreakingChange(ctx context.Context, repoID uuid.UUID, 
 	}
 	return nil
 }
-
 
 func (m *MockStore) GetBreakingChangesBetween(ctx context.Context, since, until time.Time) ([]BreakingChangeRecord, error) {
 	if m.GetBreakingChangesBetweenFunc != nil {
@@ -306,6 +319,34 @@ func (m *MockStore) RegisterAgent(ctx context.Context, repoName, owner string, t
 func (m *MockStore) GetAgentsByTool(ctx context.Context, toolName string) ([]AgentConsumer, error) {
 	if m.GetAgentsByToolFunc != nil {
 		return m.GetAgentsByToolFunc(ctx, toolName)
+	}
+	return nil, nil
+}
+
+func (m *MockStore) UpsertInsurancePolicy(ctx context.Context, orgID uuid.UUID, policyLimitCents int64) (uuid.UUID, error) {
+	if m.UpsertInsurancePolicyFunc != nil {
+		return m.UpsertInsurancePolicyFunc(ctx, orgID, policyLimitCents)
+	}
+	return uuid.Nil, nil
+}
+
+func (m *MockStore) GetInsurancePolicy(ctx context.Context, orgID uuid.UUID) (*InsurancePolicy, error) {
+	if m.GetInsurancePolicyFunc != nil {
+		return m.GetInsurancePolicyFunc(ctx, orgID)
+	}
+	return nil, fmt.Errorf("not found")
+}
+
+func (m *MockStore) CreateInsuranceClaim(ctx context.Context, claim InsuranceClaim) (uuid.UUID, error) {
+	if m.CreateInsuranceClaimFunc != nil {
+		return m.CreateInsuranceClaimFunc(ctx, claim)
+	}
+	return claim.ID, nil
+}
+
+func (m *MockStore) GetInsuranceClaims(ctx context.Context, orgID uuid.UUID) ([]InsuranceClaim, error) {
+	if m.GetInsuranceClaimsFunc != nil {
+		return m.GetInsuranceClaimsFunc(ctx, orgID)
 	}
 	return nil, nil
 }

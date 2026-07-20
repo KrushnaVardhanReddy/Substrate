@@ -116,3 +116,60 @@ func (s *PGStore) PublishPublicSchema(ctx context.Context, namespace, name, vers
 
 	return tx.Commit(ctx)
 }
+
+func (s *PGStore) UpsertInsurancePolicy(ctx context.Context, orgID uuid.UUID, policyLimitCents int64) (uuid.UUID, error) {
+	var id uuid.UUID
+	err := s.pool.QueryRow(ctx, `
+		INSERT INTO insurance_policies (org_id, policy_limit_cents)
+		VALUES ($1, $2)
+		ON CONFLICT (org_id) DO UPDATE SET policy_limit_cents = $2, updated_at = NOW()
+		RETURNING id
+	`, orgID, policyLimitCents).Scan(&id)
+	return id, err
+}
+
+func (s *PGStore) GetInsurancePolicy(ctx context.Context, orgID uuid.UUID) (*InsurancePolicy, error) {
+	var p InsurancePolicy
+	err := s.pool.QueryRow(ctx, `
+		SELECT id, org_id, policy_limit_cents, created_at, updated_at
+		FROM insurance_policies
+		WHERE org_id = $1
+	`, orgID).Scan(&p.ID, &p.OrgID, &p.PolicyLimitCents, &p.CreatedAt, &p.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &p, nil
+}
+
+func (s *PGStore) CreateInsuranceClaim(ctx context.Context, claim InsuranceClaim) (uuid.UUID, error) {
+	var id uuid.UUID
+	err := s.pool.QueryRow(ctx, `
+		INSERT INTO insurance_claims (id, org_id, policy_id, github_pr_url, incident_date, status, amount_cents)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		RETURNING id
+	`, claim.ID, claim.OrgID, claim.PolicyID, claim.GithubPRUrl, claim.IncidentDate, claim.Status, claim.AmountCents).Scan(&id)
+	return id, err
+}
+
+func (s *PGStore) GetInsuranceClaims(ctx context.Context, orgID uuid.UUID) ([]InsuranceClaim, error) {
+	rows, err := s.pool.Query(ctx, `
+		SELECT id, org_id, policy_id, github_pr_url, incident_date, status, amount_cents, created_at, updated_at
+		FROM insurance_claims
+		WHERE org_id = $1
+		ORDER BY created_at DESC
+	`, orgID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var claims []InsuranceClaim
+	for rows.Next() {
+		var c InsuranceClaim
+		if err := rows.Scan(&c.ID, &c.OrgID, &c.PolicyID, &c.GithubPRUrl, &c.IncidentDate, &c.Status, &c.AmountCents, &c.CreatedAt, &c.UpdatedAt); err != nil {
+			return nil, err
+		}
+		claims = append(claims, c)
+	}
+	return claims, nil
+}

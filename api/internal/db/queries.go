@@ -20,6 +20,10 @@ type PGStore struct {
 	kmsClient crypto.KMSClient
 }
 
+func (s *PGStore) Pool() *pgxpool.Pool {
+	return s.pool
+}
+
 // NewPGStore creates a new PostgreSQL store implementation
 func NewPGStore(pool *pgxpool.Pool) *PGStore {
 	return &PGStore{pool: pool}
