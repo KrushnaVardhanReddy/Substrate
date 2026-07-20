@@ -40,6 +40,8 @@ type MockStore struct {
 	GetDiffReportsByRepoFunc           func(ctx context.Context, orgName, repoName string, limit int) ([]DiffReportRecord, error)
 	UpdateDependencyStatusFunc         func(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, status string) error
 	GetConsumerManifestsFunc             func(ctx context.Context, providerRepo, consumerRepo string) (json.RawMessage, error)
+	RegisterAgentFunc                  func(ctx context.Context, repoName, owner string, tools []AgentToolDependency) (uuid.UUID, error)
+	GetAgentsByToolFunc                func(ctx context.Context, toolName string) ([]AgentConsumer, error)
 }
 
 func (m *MockStore) UpsertOrg(ctx context.Context, installationID int64, orgName string) (uuid.UUID, error) {
@@ -249,6 +251,20 @@ func (m *MockStore) GetTimeSinceLastBreak(ctx context.Context, repoID uuid.UUID)
 func (m *MockStore) GetConsumerManifests(ctx context.Context, providerRepo, consumerRepo string) (json.RawMessage, error) {
 	if m.GetConsumerManifestsFunc != nil {
 		return m.GetConsumerManifestsFunc(ctx, providerRepo, consumerRepo)
+	}
+	return nil, nil
+}
+
+func (m *MockStore) RegisterAgent(ctx context.Context, repoName, owner string, tools []AgentToolDependency) (uuid.UUID, error) {
+	if m.RegisterAgentFunc != nil {
+		return m.RegisterAgentFunc(ctx, repoName, owner, tools)
+	}
+	return uuid.New(), nil
+}
+
+func (m *MockStore) GetAgentsByTool(ctx context.Context, toolName string) ([]AgentConsumer, error) {
+	if m.GetAgentsByToolFunc != nil {
+		return m.GetAgentsByToolFunc(ctx, toolName)
 	}
 	return nil, nil
 }

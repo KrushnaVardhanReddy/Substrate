@@ -91,6 +91,21 @@ type ROIMetrics struct {
 	EstimatedDollarValueSaved  int `json:"estimated_dollar_value_saved"`
 }
 
+type AgentConsumer struct {
+	ID        uuid.UUID `json:"id"`
+	RepoName  string    `json:"repo_name"`
+	Owner     string    `json:"owner"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+type AgentToolDependency struct {
+	ID             uuid.UUID       `json:"id"`
+	AgentID        uuid.UUID       `json:"agent_id"`
+	ToolName       string          `json:"tool_name"`
+	ParametersJSON json.RawMessage `json:"parameters_json"`
+	CreatedAt      time.Time       `json:"created_at"`
+}
+
 type Store interface {
 	UpsertOrg(ctx context.Context, installationID int64, orgName string) (uuid.UUID, error)
 	UpsertRepo(ctx context.Context, orgID uuid.UUID, githubRepoID int64, name, fullName string, metadata json.RawMessage) (uuid.UUID, error)
@@ -122,4 +137,6 @@ type Store interface {
 	UpdateStripeCustomerID(ctx context.Context, orgID uuid.UUID, stripeID string) error
 	GetBillingStatus(ctx context.Context, orgName string) (time.Time, *string, error)
 	GetConsumerManifests(ctx context.Context, providerRepo, consumerRepo string) (json.RawMessage, error)
+	RegisterAgent(ctx context.Context, repoName, owner string, tools []AgentToolDependency) (uuid.UUID, error)
+	GetAgentsByTool(ctx context.Context, toolName string) ([]AgentConsumer, error)
 }
