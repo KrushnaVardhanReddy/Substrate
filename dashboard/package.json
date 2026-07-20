@@ -36,6 +36,7 @@
 	},
 	"dependencies": {
 		"@lucide/svelte": "^1.24.0",
+		"@stoplight/elements": "^9.0.24",
 		"@types/diff": "^7.0.2",
 		"@xyflow/svelte": "^1.6.2",
 		"d3": "^7.9.0",

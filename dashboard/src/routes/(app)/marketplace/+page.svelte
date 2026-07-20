@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	// @ts-ignore
 	import { PUBLIC_API_URL } from '$env/static/public';
 
 	let plugins: any[] = $state([]);
