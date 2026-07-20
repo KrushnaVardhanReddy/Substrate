@@ -122,4 +122,6 @@ type Store interface {
 	UpdateStripeCustomerID(ctx context.Context, orgID uuid.UUID, stripeID string) error
 	GetBillingStatus(ctx context.Context, orgName string) (time.Time, *string, error)
 	GetConsumerManifests(ctx context.Context, providerRepo, consumerRepo string) (json.RawMessage, error)
+	UpsertOrgKMSConfig(ctx context.Context, orgName, provider, keyARN string) error
+	GetOrgKMSConfig(ctx context.Context, orgName string) (string, string, error) // Returns provider, keyARN
 }

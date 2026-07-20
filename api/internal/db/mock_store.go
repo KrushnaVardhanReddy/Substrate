@@ -40,6 +40,8 @@ type MockStore struct {
 	GetDiffReportsByRepoFunc           func(ctx context.Context, orgName, repoName string, limit int) ([]DiffReportRecord, error)
 	UpdateDependencyStatusFunc         func(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, status string) error
 	GetConsumerManifestsFunc             func(ctx context.Context, providerRepo, consumerRepo string) (json.RawMessage, error)
+	UpsertOrgKMSConfigFunc               func(ctx context.Context, orgName, provider, keyARN string) error
+	GetOrgKMSConfigFunc                  func(ctx context.Context, orgName string) (string, string, error)
 }
 
 func (m *MockStore) UpsertOrg(ctx context.Context, installationID int64, orgName string) (uuid.UUID, error) {
@@ -75,6 +77,20 @@ func (m *MockStore) GetContractsByProviderFullName(ctx context.Context, provider
 		return m.GetContractsByProviderFullNameFunc(ctx, providerFullName)
 	}
 	return nil, nil
+}
+
+func (m *MockStore) UpsertOrgKMSConfig(ctx context.Context, orgName, provider, keyARN string) error {
+	if m.UpsertOrgKMSConfigFunc != nil {
+		return m.UpsertOrgKMSConfigFunc(ctx, orgName, provider, keyARN)
+	}
+	return nil
+}
+
+func (m *MockStore) GetOrgKMSConfig(ctx context.Context, orgName string) (string, string, error) {
+	if m.GetOrgKMSConfigFunc != nil {
+		return m.GetOrgKMSConfigFunc(ctx, orgName)
+	}
+	return "", "", nil
 }
 
 func (m *MockStore) SaveDiffReport(ctx context.Context, diffReport json.RawMessage, isAuditMode bool, orgName, repoName string) (uuid.UUID, error) {
