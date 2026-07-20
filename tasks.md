@@ -68,10 +68,10 @@
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **P11-T01** | 🚀 P1 | **Blast Radius** — Highlight blast radius in the dependency graph. | Jules | 🔄 Running (`12193261936187499354`) | `docs/specs/phase-11/p11-t01-blast-radius.md` |
-| **P11-T02** | 🟡 P2 | **Team Neighborhoods** — Group nodes by team ownership. | Jules | 🔄 Running (`17538853514204707543`) | `docs/specs/phase-11/p11-t02-team-neighborhoods.md` |
-| **P11-T03** | 🟢 P3 | **Edge Tooltips** — Show connection details on hover. | Jules | 🔄 Running (`14503619652158989034`) | `docs/specs/phase-11/p11-t03-edge-tooltips.md` |
-| **P11-T04** | 🟡 P2 | **Volatility Heatmap** — Heatmap showing frequently broken APIs. | Jules | 🔄 Running (`314721909243820577`) | `docs/specs/phase-11/p11-t04-volatility-heatmap.md` |
+| **P11-T01** | 🚀 P1 | **Blast Radius** — Highlight blast radius in the dependency graph. | Jules | ✅ PR Merged | `docs/specs/phase-11/p11-t01-blast-radius.md` |
+| **P11-T02** | 🟡 P2 | **Team Neighborhoods** — Group nodes by team ownership. | Jules | ✅ PR Merged | `docs/specs/phase-11/p11-t02-team-neighborhoods.md` |
+| **P11-T03** | 🟢 P3 | **Edge Tooltips** — Show connection details on hover. | Jules | ✅ PR Merged | `docs/specs/phase-11/p11-t03-edge-tooltips.md` |
+| **P11-T04** | 🟡 P2 | **Volatility Heatmap** — Heatmap showing frequently broken APIs. | Jules | ✅ PR Merged | `docs/specs/phase-11/p11-t04-volatility-heatmap.md` |
 
 ### Phase 12: V2.0 Public Launch & Quality Assurance
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
