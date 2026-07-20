@@ -472,6 +472,7 @@ func main() {
 	rootCmd.AddCommand(gatewayCmd)
 	rootCmd.AddCommand(lintCmd)
 	rootCmd.AddCommand(cmd.PluginCmd)
+	rootCmd.AddCommand(archaeologyCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
