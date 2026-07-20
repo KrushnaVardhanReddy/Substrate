@@ -1,45 +1,63 @@
 # Substrate — Shift Handoff Document
 
-> **Date:** 2026-07-19
-> **Current Focus:** Enterprise Architectural Expansion (Wave 4) & Agentic Infrastructure
+> **Date:** 2026-07-20
+> **Current Focus:** 3-Day Sprint to Crush Backlog (Wave 5 & Wave 6)
 
 ## 🚀 Accomplishments from This Session
 
-**1. Wave 3 Successfully Merged!**
-All four high-priority Wave 3 tasks were validated and successfully merged into `feature/dev`:
-- ✅ `P9-T07`: AI Migration Planner (PR #157)
-- ✅ `P10-T07`: MCP Runtime Diffing (PR #158)
-- ✅ `P15-T01`: Schema Review Assignments (PR #159)
-- ✅ `P15-T07`: Agent Contract Registry (PR #156)
+1. **Wave 5 Tasks Triggered (Phase 11 - UI/UX)**
+   We have successfully submitted the following tasks to the Jules automation engine to generate PRs:
+   - 🔄 **P11-T01: Blast Radius** (Session: `12193261936187499354`)
+   - 🔄 **P11-T02: Team Neighborhoods** (Session: `17538853514204707543`)
+   - 🔄 **P11-T03: Edge Tooltips** (Session: `14503619652158989034`)
+   - 🔄 **P11-T04: Volatility Heatmap** (Session: `314721909243820577`)
 
-**2. Wave 4 Specs Formalized**
-We fully detailed and formalized the strict Spec-First markdown documentation for all Wave 4 tasks in `docs/specs/`, ensuring Jules has exact implementation guidelines.
-
-**3. Wave 4 Successfully Merged!**
-All four high-priority Wave 4 tasks were validated and successfully merged into `feature/dev`:
-- ✅ **P15-T12: Enterprise BYOK (KMS & LLM)** (PR #161)
-- ✅ **P15-T14: Headless Substrate (Full MCP Server Parity)** (PR #163)
-- ✅ **P10-T15: Zero-Latency Drift Detection (eBPF)** (PR #160)
-- ✅ **P14-T06: Substrate Cloud Public Schema Registry** (PR #162)
+2. **Wave 6 Prepped (Phase 15 - Enterprise)**
+   We created the specs and prompts for the next batch (Wave 6) and added them to `scripts/jules_submit.py`:
+   - 📝 `P15-T03` Dependency SLA Tracking (Task `1503`)
+   - 📝 `P15-T04` Schema Smell Detector (Task `1504`)
+   - 📝 `P15-T05` AI Incident Post-Mortem Generator (Task `1505`)
+   - 📝 `P15-T06` Natural Language Governance Rules (Task `1506`)
 
 ---
 
 ## 🎯 Next Steps for Tomorrow
 
-1. **Wave 4 Validation Completed:**
-   All Wave 4 PRs were reviewed and merged successfully, respecting strict architectural constraints.
-   
-2. **Wave 5 Launched (The 3-Day Sprint):**
-   We have selected and dispatched the first batch of 4 tasks (Wave 5) from Phase 11 to Jules to begin crushing the backlog:
-   - 🔄 **P11-T01: Blast Radius Visualization** (Session: `12193261936187499354`)
-   - 🔄 **P11-T02: Team Neighborhoods** (Session: `17538853514204707543`)
-   - 🔄 **P11-T03: Edge Tooltips** (Session: `14503619652158989034`)
-   - 🔄 **P11-T04: Volatility Heatmap** (Session: `314721909243820577`)
-   Monitor GitHub for the incoming PRs for these UI features.
+1. **Review Wave 5 PRs:**
+   Check GitHub for the incoming PRs for the Phase 11 UI/UX tasks. Validate that Svelte Flow was implemented correctly according to the specs.
 
-3. **Defer E2E Testing:**
-   We are pausing the "No Mocks" E2E infrastructure prep for now. We will add E2E tests per phase *after* the 30-task sprint is complete.
+2. **Trigger Wave 6 (Phase 15):**
+   Once Wave 5 is merged, trigger the Wave 6 tasks using the Jules submission script.
 
-## ⚠️ Notes & Gotchas
-- The new Wave 4 tasks have strict rules regarding database schemas (dual columns for BYOK), eBPF daemonsets, and public registries. Ensure Jules didn't take shortcuts like dropping standard DB columns.
-- `tasks.md` is 100% up-to-date and reflects all current Wave 3 and Wave 4 merges.
+3. **Continue 3-Day Sprint:**
+   Select the next 4 tasks (Wave 7) from the backlog, generate their specs and prompts, and trigger them.
+
+---
+
+## 🤖 How to Submit Tasks to Jules
+
+Substrate uses a batch submission script (`scripts/jules_submit.py`) to dispatch AI agent coding sessions.
+
+### Step-by-Step Submission:
+1. **Ensure your API key is set:** Your `.env.local` must contain `JULES_API_KEY`.
+2. **List available tasks:**
+   ```bash
+   python3 scripts/jules_submit.py --list
+   ```
+3. **Trigger a specific task:** (e.g. Task `1503` for Dependency SLA)
+   ```bash
+   python3 scripts/jules_submit.py --task 1503
+   ```
+4. **Trigger multiple tasks concurrently:**
+   ```bash
+   python3 scripts/jules_submit.py --task 1503 && \
+   python3 scripts/jules_submit.py --task 1504 && \
+   python3 scripts/jules_submit.py --task 1505 && \
+   python3 scripts/jules_submit.py --task 1506
+   ```
+
+### Adding New Tasks to the Script:
+When preparing a new wave:
+1. Create the `docs/specs/...md` and `prompts/...txt` files.
+2. Edit `scripts/jules_submit.py` and add a new entry to the `TASKS` dictionary, linking to the new prompt file.
+3. Commit and push the changes, then use the commands above to submit.
