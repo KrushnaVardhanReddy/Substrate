@@ -42,6 +42,22 @@ type MockStore struct {
 	GetConsumerManifestsFunc             func(ctx context.Context, providerRepo, consumerRepo string) (json.RawMessage, error)
 	RegisterAgentFunc                  func(ctx context.Context, repoName, owner string, tools []AgentToolDependency) (uuid.UUID, error)
 	GetAgentsByToolFunc                func(ctx context.Context, toolName string) ([]AgentConsumer, error)
+	GetPublicSchemaFunc                func(ctx context.Context, namespace, name, version string) (*PublicSchema, error)
+	PublishPublicSchemaFunc            func(ctx context.Context, namespace, name, version, schemaType, content string) error
+}
+
+func (m *MockStore) GetPublicSchema(ctx context.Context, namespace, name, version string) (*PublicSchema, error) {
+	if m.GetPublicSchemaFunc != nil {
+		return m.GetPublicSchemaFunc(ctx, namespace, name, version)
+	}
+	return nil, nil
+}
+
+func (m *MockStore) PublishPublicSchema(ctx context.Context, namespace, name, version, schemaType, content string) error {
+	if m.PublishPublicSchemaFunc != nil {
+		return m.PublishPublicSchemaFunc(ctx, namespace, name, version, schemaType, content)
+	}
+	return nil
 }
 
 func (m *MockStore) UpsertOrg(ctx context.Context, installationID int64, orgName string) (uuid.UUID, error) {

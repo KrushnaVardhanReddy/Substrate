@@ -12,6 +12,7 @@ import (
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/github"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/handlers"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/registry"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/services"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/webhook"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/workers"
@@ -94,6 +95,12 @@ func NewRouter(store db.Store, riverClient workers.JobEnqueuer, authConfig handl
 	// AI routes (public — no auth required, BYOK model)
 	r.Post("/api/v1/ai/analyze", services.AIAnalyzeHandler())
 	r.Post("/api/v1/ai/autofix", services.AIAutofixHandler())
+
+	// Public registry routes
+	r.Route("/api/v1/registry/public", func(r chi.Router) {
+		r.Post("/{namespace}/{name}/{version}", registry.HandlePublishSchema(store))
+		r.Get("/{namespace}/{name}/{version}", registry.HandleFetchSchema(store))
+	})
 
 	// Public routes
 	r.Get("/api/v1/diff/{id}", handlers.GetDiffHandler(store))
