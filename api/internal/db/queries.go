@@ -748,3 +748,40 @@ func GetAgentsByTool(ctx context.Context, pool *pgxpool.Pool, toolName string) (
 
 	return agents, nil
 }
+
+// GetBreakingChangesBetween retrieves breaking changes that occurred between since and until.
+func (s *PGStore) GetBreakingChangesBetween(ctx context.Context, since, until time.Time) ([]BreakingChangeRecord, error) {
+	return GetBreakingChangesBetween(ctx, s.pool, since, until)
+}
+
+func GetBreakingChangesBetween(ctx context.Context, pool *pgxpool.Pool, since, until time.Time) ([]BreakingChangeRecord, error) {
+	rows, err := pool.Query(ctx, `
+		SELECT id, repo_id, org_name, repo_name, git_sha, timestamp, breaking_changes
+		FROM breaking_change_history
+		WHERE timestamp >= $1 AND timestamp <= $2
+		ORDER BY timestamp DESC
+	`, since, until)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get breaking changes between: %w", err)
+	}
+	defer rows.Close()
+
+	var records []BreakingChangeRecord
+	for rows.Next() {
+		var r BreakingChangeRecord
+		if err := rows.Scan(&r.ID, &r.RepoID, &r.OrgName, &r.RepoName, &r.GitSHA, &r.Timestamp, &r.BreakingChanges); err != nil {
+			return nil, fmt.Errorf("failed to scan breaking change record: %w", err)
+		}
+		records = append(records, r)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating over breaking change history: %w", err)
+	}
+
+	if records == nil {
+		records = []BreakingChangeRecord{}
+	}
+
+	return records, nil
+}
