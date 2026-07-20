@@ -9,22 +9,19 @@
    We have successfully submitted, validated, and merged the following tasks from Jules:
    - ✅ **P11-T01: Blast Radius** (PR #166)
    - ✅ **P11-T02: Team Neighborhoods** (PR #165)
-   - ✅ **P11-T03: Edge Tooltips** (PR #167)
-   - ✅ **P11-T04: Volatility Heatmap** (PR #164)
-
-2. **Wave 6 Prepped (Phase 15 - Enterprise)**
-   We created the specs and prompts for the next batch (Wave 6) and added them to `scripts/jules_submit.py`:
-   - 📝 `P15-T03` Dependency SLA Tracking (Task `1503`)
-   - 📝 `P15-T04` Schema Smell Detector (Task `1504`)
-   - 📝 `P15-T05` AI Incident Post-Mortem Generator (Task `1505`)
-   - 📝 `P15-T06` Natural Language Governance Rules (Task `1506`)
+2. **Wave 6 Tasks Triggered (Phase 15 - Enterprise)**
+   We have dispatched the next batch (Wave 6) to Jules. Keep an eye out for these PRs:
+   - 🔄 **P15-T03: Dependency SLA Tracking** (Session: `11792690738245850426`)
+   - 🔄 **P15-T04: Schema Smell Detector** (Session: `2377768681235846971`)
+   - 🔄 **P15-T05: AI Incident Post-Mortem Generator** (Session: `7617790351664607704`)
+   - 🔄 **P15-T06: Natural Language Governance Rules** (Session: `13121575222699399289`)
 
 ---
 
 ## 🎯 Next Steps for Tomorrow
 
-1. **Trigger Wave 6 (Phase 15):**
-   Wave 5 is completely merged. Next step is to trigger the Wave 6 tasks using the Jules submission script.
+1. **Review Wave 6 PRs:**
+   Wave 6 is currently running in Jules. Monitor GitHub for the incoming PRs and validate their implementations.
 
 2. **Continue 3-Day Sprint:**
    Select the next 4 tasks (Wave 7) from the backlog, generate their specs and prompts, and trigger them.
