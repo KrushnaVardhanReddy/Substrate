@@ -47,7 +47,7 @@
 | P9-T03 Compliance Mapping | `12516193455558776042` |
 | P10-T03 AI Mock Data Gen | `11452104386150269310` |
 | P10-T06 Zombie Pruning | `7125582862868825714` |
-| P15-T11 Startups Free Tier | `8677596145765129741` |
+| P15-T11 Startups Free Tier | `4492224178310041874` |
 
 ### Wave 10 — (Phase 9+10 — 1 formatter.ts touch)
 | Task ID | Script Key | Conflict Notes |
