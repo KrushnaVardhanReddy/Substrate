@@ -41,19 +41,13 @@
 
 
 
-### Wave 9 — (Phase 9+10 — 1 formatter.ts touch)
-| Task ID | Script Key | Conflict Notes |
-|---|---|---|
-| P9-T03 Compliance Mapping | `903` | ⚠️ modifies `formatter.ts` |
-| P10-T03 AI Mock Data Gen | `1003` | New `engine/mockgen/` pkg ✓ |
-| P10-T06 Zombie Pruning | `1006` | New `engine/zombie/` + route ✓ |
-| P15-T11 Startups Free Tier | `1511` | New public profile route ✓ |
-```bash
-python3 scripts/jules_submit.py --task 903 && \
-python3 scripts/jules_submit.py --task 1003 && \
-python3 scripts/jules_submit.py --task 1006 && \
-python3 scripts/jules_submit.py --task 1511
-```
+### Wave 9 — RUNNING (Phase 9+10 — 1 formatter.ts touch)
+| Task ID | Jules ID |
+|---|---|
+| P9-T03 Compliance Mapping | `12516193455558776042` |
+| P10-T03 AI Mock Data Gen | `11452104386150269310` |
+| P10-T06 Zombie Pruning | `7125582862868825714` |
+| P15-T11 Startups Free Tier | `8677596145765129741` |
 
 ### Wave 10 — (Phase 9+10 — 1 formatter.ts touch)
 | Task ID | Script Key | Conflict Notes |
