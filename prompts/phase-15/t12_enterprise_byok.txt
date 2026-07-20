@@ -23,7 +23,7 @@ AI/LLM functionality is located in `engine/pkg/ai/`.
 Configuration parsing from `substrate.yaml` happens in the main application setup.
 
 ⚠️ CRITICAL CONTEXT: DB ENCRYPTION FALLBACK ⚠️
-To avoid maintaining separate schemas for standard vs. enterprise tiers, the PostgreSQL schema uses a dual-column fallback (`raw_schema` vs `encrypted_schema`). The `api/internal/db/` repository layer must dynamically choose which column to write to/read from based on `is_encrypted`.
+To avoid maintaining separate schemas for standard vs. enterprise tiers, the PostgreSQL schema uses a dual-column fallback (`raw_content` vs `encrypted_content`). The `api/internal/db/` repository layer must dynamically choose which column to write to/read from based on `is_encrypted`.
 
 ═══════════════════════════════════════════════════════════════
 DELIVERABLES
@@ -33,7 +33,7 @@ DELIVERABLES
    - Implement Envelope Encryption via mocked KMS/Vault interfaces.
 
 2. MODIFY: `api/internal/db/migrations/..._add_encryption_columns.up.sql`
-   - Add `encrypted_schema` (BYTEA), `is_encrypted` (BOOLEAN), and `kms_key_arn` (VARCHAR) to `schema_revisions`.
+   - Add `encrypted_content` (BYTEA), `is_encrypted` (BOOLEAN), and `kms_key_arn` (VARCHAR) to `contracts`.
 
 3. MODIFY: `api/internal/db/store.go` (or similar DB layer)
    - Update read/write operations to seamlessly handle the dual-column logic.

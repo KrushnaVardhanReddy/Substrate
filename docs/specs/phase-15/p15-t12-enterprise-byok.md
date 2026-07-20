@@ -12,9 +12,8 @@ When an enterprise deploys the Substrate single-binary, they can configure it to
 ### Database Architecture: Toggled Payload Columns
 To ensure we do not need separate databases for Free/Pro vs. Enterprise users, the PostgreSQL schema must use a dual-column fallback strategy:
 ```sql
-ALTER TABLE schema_revisions
-  ADD COLUMN raw_schema JSONB,           -- For Standard users (fast indexing)
-  ADD COLUMN encrypted_schema BYTEA,     -- For Enterprise BYOK users (AES-256-GCM)
+ALTER TABLE contracts
+  ADD COLUMN encrypted_content BYTEA,    -- For Enterprise BYOK users (AES-256-GCM)
   ADD COLUMN is_encrypted BOOLEAN DEFAULT false,
   ADD COLUMN kms_key_arn VARCHAR(255);
 ```
