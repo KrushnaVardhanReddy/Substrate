@@ -32,5 +32,8 @@ paths:
                       type: string
 `;
 
-	return { org, repo, yamlString: dummyYaml };
+	const apiBaseUrl = import.meta.env.VITE_API_URL || 'https://api.substrate.com';
+	const dashboardUrl = import.meta.env.VITE_DASHBOARD_URL || 'https://app.substrate.com';
+
+	return { org, repo, yamlString: dummyYaml, apiBaseUrl, dashboardUrl };
 };

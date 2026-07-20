@@ -14,6 +14,8 @@ describe('Detail Page Load Function', () => {
 		expect(result.repo).toBe('myrepo');
 		expect(result.yamlString).toContain('openapi: 3.0.0');
 		expect(result.yamlString).toContain('title: myrepo API');
+		expect(result.apiBaseUrl).toBe('https://api.substrate.com');
+		expect(result.dashboardUrl).toBe('https://app.substrate.com');
 	});
 });
 
@@ -26,7 +28,7 @@ describe('Detail Page Component', () => {
 
 	it('renders elements-api component with dummy data', () => {
 		const { container, getByText } = render(Page, {
-			data: { org: 'myorg', repo: 'myrepo', yamlString: 'dummy-yaml', repos: [] }
+			data: { org: 'myorg', repo: 'myrepo', yamlString: 'dummy-yaml', repos: [], apiBaseUrl: 'https://api.substrate.com', dashboardUrl: 'https://app.substrate.com' }
 		});
 
 		// Check basic title presence
@@ -38,5 +40,14 @@ describe('Detail Page Component', () => {
 		expect(elementsApi).toBeTruthy();
 		expect(elementsApi?.getAttribute('apiDescriptionDocument')).toBe('dummy-yaml');
 		expect(elementsApi?.getAttribute('router')).toBe('hash');
+	});
+
+	it('renders the badge snippet correctly', () => {
+		const { getAllByTestId } = render(Page, {
+			data: { org: 'myorg', repo: 'myrepo', yamlString: 'dummy-yaml', repos: [], apiBaseUrl: 'https://api.substrate.com', dashboardUrl: 'https://app.substrate.com' }
+		});
+
+		const badgeCodes = getAllByTestId('badge-snippet');
+		expect(badgeCodes[0].textContent).toBe('[![Contract Score](https://api.substrate.com/api/badges/myorg/myrepo)](https://app.substrate.com/org/myorg/catalog/myrepo)');
 	});
 });
