@@ -6,6 +6,7 @@ import { parseConsumersFromYaml, syncToRegistry, crossRepoCheck } from './regist
 import { processAutoDiscovery } from './discovery.js';
 import { parseGitHubPREvent, parseGitHubPushEvent, GitHubProvider } from './providers/github/index.js';
 import { parseGiteaPREvent, parseGiteaPushEvent, GiteaProvider } from './providers/gitea/index.js';
+import { processDeprecations } from './deprecation.js';
 
 
 // YAML parser mock/regex for the stub phase
@@ -453,6 +454,17 @@ export default {
       }
 
       const crossRepoSection = formatCrossRepoImpact(crossRepoResponse);
+
+      // Trigger Deprecation Campaign
+      if (diffReport.deprecations && diffReport.deprecations.length > 0) {
+        let consumers: string[] = [];
+        if (crossRepoResponse && crossRepoResponse.results) {
+          consumers = crossRepoResponse.results.map(r => r.consumer_repo);
+        }
+        if (consumers.length > 0) {
+          await processDeprecations(token, diffReport.deprecations, consumers);
+        }
+      }
 
       // Step 9.75: AI Autofix
       let aiExplanation: string | undefined;

@@ -137,6 +137,13 @@ func ApplyConfigAndTraffic(rep *report.DiffReport, cfg *config.SubstrateConfig, 
 	rep.BreakingChanges = activeBreaking
 	rep.Summary.BreakingCount = len(rep.BreakingChanges)
 
+	for _, dep := range cfg.Deprecations {
+		rep.Deprecations = append(rep.Deprecations, report.Deprecation{
+			Endpoint:   dep.Endpoint,
+			SunsetDate: dep.SunsetDate,
+		})
+	}
+
 	if rep.Summary.BreakingCount > 0 {
 		rep.Summary.OverallSeverity = report.SeverityBreaking
 	} else if rep.Summary.WarningCount > 0 {
