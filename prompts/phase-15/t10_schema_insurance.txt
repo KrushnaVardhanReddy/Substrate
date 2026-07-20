@@ -14,6 +14,7 @@ CONSTRAINTS & RULES
 - Track insurance policies and claims in Postgres.
 - Add an API to automatically verify if a claim is valid (e.g., checks weren't overridden).
 - Implement a dashboard UI for enterprise users to manage insurance.
+- You MUST write unit tests for both Go logic (`_test.go`) and Svelte components (`.test.ts`).
 
 ═══════════════════════════════════════════════════════════════
 IMPLEMENTATION TIPS
@@ -25,8 +26,11 @@ IMPLEMENTATION TIPS
 DELIVERABLES
 ═══════════════════════════════════════════════════════════════
 1. FILE: api/internal/handler/insurance.go (CREATE)
+   - Include `api/internal/handler/insurance_test.go`
 2. FILE: dashboard/src/routes/(app)/org/[org]/settings/insurance/+page.svelte (CREATE)
+   - Include `dashboard/src/routes/(app)/org/[org]/settings/insurance/+page.test.ts`
 3. Add DB migrations.
+4. Run `go test ./...` and `npm run test`.
 
 Commit: "feat: P15-T10 implement schema insurance"
 Target branch: feature/dev

@@ -14,6 +14,7 @@ CONSTRAINTS & RULES
 - Implement `substrate plugin publish` and `substrate plugin install <name>`.
 - Create API endpoints for publishing and fetching plugins.
 - Provide a simple UI in the dashboard for browsing plugins.
+- You MUST write unit tests for both Go logic (`_test.go`) and Svelte components (`.test.ts`).
 
 ═══════════════════════════════════════════════════════════════
 IMPLEMENTATION TIPS
@@ -25,9 +26,13 @@ IMPLEMENTATION TIPS
 DELIVERABLES
 ═══════════════════════════════════════════════════════════════
 1. FILE: api/internal/marketplace/handler.go (CREATE)
+   - Include `api/internal/marketplace/handler_test.go`
 2. FILE: engine/cmd/plugin.go (CREATE)
+   - Include `engine/cmd/plugin_test.go`
 3. FILE: dashboard/src/routes/(app)/marketplace/+page.svelte (CREATE)
+   - Include `dashboard/src/routes/(app)/marketplace/+page.test.ts`
 4. Add DB migrations for `marketplace_plugins`.
+5. Run `go test ./...` and `npm run test`.
 
 Commit: "feat: P15-T08 implement substrate marketplace"
 Target branch: feature/dev

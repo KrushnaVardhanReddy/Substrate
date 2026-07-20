@@ -14,6 +14,7 @@ CONSTRAINTS & RULES
 - Iterate through git tags/commits locally.
 - Run AST diffs on historical specs.
 - Output a Markdown report summarizing incidents and estimated financial costs.
+- You MUST write unit tests for the Go logic (`_test.go`).
 
 ═══════════════════════════════════════════════════════════════
 IMPLEMENTATION TIPS
@@ -26,8 +27,10 @@ IMPLEMENTATION TIPS
 DELIVERABLES
 ═══════════════════════════════════════════════════════════════
 1. FILE: engine/cmd/archaeology.go (CREATE)
+   - Include `engine/cmd/archaeology_test.go`
 2. FILE: engine/archaeology/scanner.go (CREATE)
 3. Include unit tests `engine/archaeology/scanner_test.go`.
+4. Run `go test ./...`.
 
 Commit: "feat: P14-T05 implement retroactive dependency archaeology"
 Target branch: feature/dev

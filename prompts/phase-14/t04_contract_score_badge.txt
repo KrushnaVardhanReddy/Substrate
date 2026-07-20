@@ -14,6 +14,7 @@ CONSTRAINTS & RULES
 - Implement a scoring algorithm based on historical breaking changes.
 - Return an SVG image with caching headers.
 - Show the copyable markdown snippet in the dashboard.
+- You MUST write unit tests for both Go logic (`_test.go`) and Svelte components (`.test.ts`).
 
 ═══════════════════════════════════════════════════════════════
 IMPLEMENTATION TIPS
@@ -25,8 +26,11 @@ IMPLEMENTATION TIPS
 DELIVERABLES
 ═══════════════════════════════════════════════════════════════
 1. FILE: api/internal/handler/badges.go (CREATE)
+   - Include `api/internal/handler/badges_test.go`
 2. FILE: dashboard/src/routes/(app)/org/[org]/catalog/[repo]/+page.svelte (MODIFY)
    - Add the markdown snippet.
+   - Include `dashboard/src/routes/(app)/org/[org]/catalog/[repo]/+page.test.ts` (CREATE if needed)
+3. Run `go test ./...` and `npm run test`.
 
 Commit: "feat: P14-T04 implement contract score badge"
 Target branch: feature/dev
