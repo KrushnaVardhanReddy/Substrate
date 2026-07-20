@@ -29,11 +29,11 @@ We authored highly detailed, implementation-focused prompts and dispatched **Wav
 1. **Review Wave 4 PRs:**
    Monitor GitHub for the incoming PRs from Jules for the 4 running tasks. Ensure they respect the strict "mock all network boundaries" and database fallback constraints defined in the prompts.
    
-2. **Launch Wave 5:**
-   Identify and select the next batch of 4 tasks to continue our aggressive roadmap execution.
+2. **Launch Wave 5 (The 3-Day Sprint):**
+   Identify and select the next batch of 4 tasks. Our goal is to crush the remaining 30 backlog tasks over the next 3 days.
 
-3. **E2E Infrastructure Prep:**
-   Begin laying the groundwork for the "No Mocks" E2E tests for Phase 9/10/14/15. We must start scripting real Postgres containers and live external API environments (GitHub/AWS/Vault).
+3. **Defer E2E Testing:**
+   We are pausing the "No Mocks" E2E infrastructure prep for now. We will add E2E tests per phase *after* the 30-task sprint is complete.
 
 ## ⚠️ Notes & Gotchas
 - The new Wave 4 tasks have strict rules regarding database schemas (dual columns for BYOK), eBPF daemonsets, and public registries. Ensure Jules didn't take shortcuts like dropping standard DB columns.
