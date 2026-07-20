@@ -57,15 +57,7 @@
 		const affectedNodes = new Set<string>();
 		const affectedEdges = new Set<string>();
 		
-		// 1. Add immediate upstream providers so they are highlighted
-		for (const edge of rawEdges) {
-			if (edge.target === selectedNode.id) {
-				affectedEdges.add(edge.id);
-				affectedNodes.add(edge.source);
-			}
-		}
-
-		// 2. Add downstream consumers recursively (Blast Radius)
+		// 1. Add downstream consumers recursively (Blast Radius)
 		const queue = [selectedNode.id];
 
 		while (queue.length > 0) {
@@ -270,19 +262,27 @@
 
 		// Apply blast radius highlighting and fading
 		if (selectedNode) {
-			dNodes = dNodes.map(n => ({
-				...n,
-				data: {
-					...n.data,
-					isOrigin: n.id === selectedNode.id,
-					isAffected: blastRadius.nodes.has(n.id),
-					isFaded: n.id !== selectedNode.id && !blastRadius.nodes.has(n.id)
-				}
-			}));
+			dNodes = dNodes.map(n => {
+				const isOrigin = n.id === selectedNode.id;
+				const isAffected = blastRadius.nodes.has(n.id);
+				const isFaded = !isOrigin && !isAffected;
+				return {
+					...n,
+					data: {
+						...n.data,
+						isOrigin,
+						isAffected,
+						isFaded
+					},
+					style: (n.type === 'teamGroup' && isFaded)
+						? `${n.style || ""}; opacity: 0.2;`
+						: n.style
+				};
+			});
 
 			dEdges = dEdges.map(e => ({
 				...e,
-				style: (blastRadius.edges.has(e.id) || e.source === selectedNode.id || e.target === selectedNode.id)
+				style: (blastRadius.edges.has(e.id) || (e.source === selectedNode.id && blastRadius.nodes.has(e.target)))
 					? e.style
 					: `${e.style || ""}; opacity: 0.2;`
 			}));
