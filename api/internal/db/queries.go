@@ -10,14 +10,25 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+import (
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/crypto"
+)
+
 // PGStore implements the Store interface
 type PGStore struct {
-	pool *pgxpool.Pool
+	pool      *pgxpool.Pool
+	kmsClient crypto.KMSClient
 }
 
 // NewPGStore creates a new PostgreSQL store implementation
 func NewPGStore(pool *pgxpool.Pool) *PGStore {
 	return &PGStore{pool: pool}
+}
+
+// WithKMSClient adds a KMS client to the store for Enterprise BYOK encryption
+func (s *PGStore) WithKMSClient(client crypto.KMSClient) *PGStore {
+	s.kmsClient = client
+	return s
 }
 
 // UpsertOrg finds or creates an organization by github_installation_id.
@@ -90,10 +101,49 @@ func UpsertRepo(ctx context.Context, pool *pgxpool.Pool, orgID uuid.UUID, github
 
 // UpsertContract stores (or updates) a schema snapshot for a repo/path/branch.
 func (s *PGStore) UpsertContract(ctx context.Context, repoID uuid.UUID, schemaType, specPath, branch, commitSHA, rawContent string) (uuid.UUID, error) {
-	return UpsertContract(ctx, s.pool, repoID, schemaType, specPath, branch, commitSHA, rawContent)
+	var id uuid.UUID
+
+	isEncrypted := false
+	var kmsKeyARN string
+	var encryptedContent []byte
+	var finalRawContent *string
+
+	if s.kmsClient != nil {
+		ciphertext, arn, err := s.kmsClient.Encrypt([]byte(rawContent))
+		if err != nil {
+			return uuid.Nil, fmt.Errorf("failed to encrypt contract content: %w", err)
+		}
+		isEncrypted = true
+		kmsKeyARN = arn
+		encryptedContent = ciphertext
+		finalRawContent = nil
+	} else {
+		finalRawContent = &rawContent
+	}
+
+	err := s.pool.QueryRow(ctx, `
+		INSERT INTO contracts (repo_id, schema_type, spec_path, branch, latest_commit_sha, raw_content, encrypted_content, is_encrypted, kms_key_arn, synced_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+		ON CONFLICT (repo_id, spec_path, branch) DO UPDATE
+		SET schema_type = EXCLUDED.schema_type,
+		    latest_commit_sha = EXCLUDED.latest_commit_sha,
+		    raw_content = EXCLUDED.raw_content,
+		    encrypted_content = EXCLUDED.encrypted_content,
+		    is_encrypted = EXCLUDED.is_encrypted,
+		    kms_key_arn = EXCLUDED.kms_key_arn,
+		    synced_at = EXCLUDED.synced_at
+		RETURNING id
+	`, repoID, schemaType, specPath, branch, commitSHA, finalRawContent, encryptedContent, isEncrypted, kmsKeyARN).Scan(&id)
+
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("failed to upsert contract: %w", err)
+	}
+	return id, nil
 }
 
 func UpsertContract(ctx context.Context, pool *pgxpool.Pool, repoID uuid.UUID, schemaType, specPath, branch, commitSHA, rawContent string) (uuid.UUID, error) {
+	// This function is kept for backwards compatibility but is essentially what PGStore used to call.
+	// Since encryption requires the kmsClient, package-level UpsertContract won't encrypt.
 	var id uuid.UUID
 	err := pool.QueryRow(ctx, `
 		INSERT INTO contracts (repo_id, schema_type, spec_path, branch, latest_commit_sha, raw_content, synced_at)
@@ -131,12 +181,9 @@ func UpsertDependency(ctx context.Context, pool *pgxpool.Pool, consumerRepoID, p
 
 // GetContractsByProviderFullName returns all contracts stored for a provider repo.
 func (s *PGStore) GetContractsByProviderFullName(ctx context.Context, providerFullName string) ([]Contract, error) {
-	return GetContractsByProviderFullName(ctx, s.pool, providerFullName)
-}
-
-func GetContractsByProviderFullName(ctx context.Context, pool *pgxpool.Pool, providerFullName string) ([]Contract, error) {
-	rows, err := pool.Query(ctx, `
-		SELECT c.id, c.repo_id, c.schema_type, c.spec_path, c.branch, c.latest_commit_sha, c.raw_content, c.synced_at
+	rows, err := s.pool.Query(ctx, `
+		SELECT c.id, c.repo_id, c.schema_type, c.spec_path, c.branch, c.latest_commit_sha,
+		       c.raw_content, c.encrypted_content, c.is_encrypted, c.kms_key_arn, c.synced_at
 		FROM contracts c
 		JOIN repositories r ON c.repo_id = r.id
 		WHERE r.full_name = $1
@@ -150,11 +197,74 @@ func GetContractsByProviderFullName(ctx context.Context, pool *pgxpool.Pool, pro
 	for rows.Next() {
 		var c Contract
 		var commitSHA *string
-		if err := rows.Scan(&c.ID, &c.RepoID, &c.SchemaType, &c.SpecPath, &c.Branch, &commitSHA, &c.RawContent, &c.SyncedAt); err != nil {
+		var rawContent *string
+		var encryptedContent []byte
+		var isEncrypted bool
+		var kmsKeyARN *string
+
+		if err := rows.Scan(&c.ID, &c.RepoID, &c.SchemaType, &c.SpecPath, &c.Branch, &commitSHA,
+			&rawContent, &encryptedContent, &isEncrypted, &kmsKeyARN, &c.SyncedAt); err != nil {
+			return nil, fmt.Errorf("failed to scan contract: %w", err)
+		}
+
+		if commitSHA != nil {
+			c.LatestCommitSHA = *commitSHA
+		}
+
+		c.IsEncrypted = isEncrypted
+		if kmsKeyARN != nil {
+			c.KMSKeyARN = *kmsKeyARN
+		}
+
+		if isEncrypted {
+			if s.kmsClient == nil {
+				return nil, fmt.Errorf("contract is encrypted but KMS client is not configured")
+			}
+			decrypted, err := s.kmsClient.Decrypt(encryptedContent, c.KMSKeyARN)
+			if err != nil {
+				return nil, fmt.Errorf("failed to decrypt contract content: %w", err)
+			}
+			c.RawContent = string(decrypted)
+		} else if rawContent != nil {
+			c.RawContent = *rawContent
+		}
+
+		contracts = append(contracts, c)
+	}
+	return contracts, rows.Err()
+}
+
+func GetContractsByProviderFullName(ctx context.Context, pool *pgxpool.Pool, providerFullName string) ([]Contract, error) {
+	// This function is kept for backwards compatibility but does not decrypt.
+	// Users of PGStore should call s.GetContractsByProviderFullName directly to ensure decryption works.
+	rows, err := pool.Query(ctx, `
+		SELECT c.id, c.repo_id, c.schema_type, c.spec_path, c.branch, c.latest_commit_sha, c.raw_content, c.is_encrypted, c.synced_at
+		FROM contracts c
+		JOIN repositories r ON c.repo_id = r.id
+		WHERE r.full_name = $1
+	`, providerFullName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query contracts: %w", err)
+	}
+	defer rows.Close()
+
+	var contracts []Contract
+	for rows.Next() {
+		var c Contract
+		var commitSHA *string
+		var rawContent *string
+		var isEncrypted bool
+		if err := rows.Scan(&c.ID, &c.RepoID, &c.SchemaType, &c.SpecPath, &c.Branch, &commitSHA, &rawContent, &isEncrypted, &c.SyncedAt); err != nil {
 			return nil, fmt.Errorf("failed to scan contract: %w", err)
 		}
 		if commitSHA != nil {
 			c.LatestCommitSHA = *commitSHA
+		}
+		if isEncrypted {
+			return nil, fmt.Errorf("contract %s is encrypted; must use PGStore method to decrypt", c.ID)
+		}
+		if rawContent != nil {
+			c.RawContent = *rawContent
 		}
 		contracts = append(contracts, c)
 	}
@@ -163,12 +273,8 @@ func GetContractsByProviderFullName(ctx context.Context, pool *pgxpool.Pool, pro
 
 // GetConsumersByProviderContract returns all consumer repos for a given provider contract ID.
 func (s *PGStore) GetConsumersByProviderContract(ctx context.Context, providerContractID uuid.UUID) ([]ConsumerDependency, error) {
-	return GetConsumersByProviderContract(ctx, s.pool, providerContractID)
-}
-
-func GetConsumersByProviderContract(ctx context.Context, pool *pgxpool.Pool, providerContractID uuid.UUID) ([]ConsumerDependency, error) {
-	rows, err := pool.Query(ctx, `
-		SELECT r.id, r.full_name, c.raw_content
+	rows, err := s.pool.Query(ctx, `
+		SELECT r.id, r.full_name, c.raw_content, c.encrypted_content, c.is_encrypted, c.kms_key_arn
 		FROM dependencies d
 		JOIN repositories r ON d.consumer_repo_id = r.id
 		JOIN contracts c ON d.provider_contract_id = c.id
@@ -182,8 +288,65 @@ func GetConsumersByProviderContract(ctx context.Context, pool *pgxpool.Pool, pro
 	var consumers []ConsumerDependency
 	for rows.Next() {
 		var c ConsumerDependency
-		if err := rows.Scan(&c.ConsumerRepoID, &c.ConsumerFullName, &c.ContractRawContent); err != nil {
+		var rawContent *string
+		var encryptedContent []byte
+		var isEncrypted bool
+		var kmsKeyARN *string
+
+		if err := rows.Scan(&c.ConsumerRepoID, &c.ConsumerFullName, &rawContent, &encryptedContent, &isEncrypted, &kmsKeyARN); err != nil {
 			return nil, fmt.Errorf("failed to scan consumer: %w", err)
+		}
+
+		if isEncrypted {
+			if s.kmsClient == nil {
+				return nil, fmt.Errorf("contract is encrypted but KMS client is not configured")
+			}
+			arn := ""
+			if kmsKeyARN != nil {
+				arn = *kmsKeyARN
+			}
+			decrypted, err := s.kmsClient.Decrypt(encryptedContent, arn)
+			if err != nil {
+				return nil, fmt.Errorf("failed to decrypt contract content: %w", err)
+			}
+			c.ContractRawContent = string(decrypted)
+		} else if rawContent != nil {
+			c.ContractRawContent = *rawContent
+		}
+
+		consumers = append(consumers, c)
+	}
+	return consumers, rows.Err()
+}
+
+func GetConsumersByProviderContract(ctx context.Context, pool *pgxpool.Pool, providerContractID uuid.UUID) ([]ConsumerDependency, error) {
+	// This function is kept for backwards compatibility but does not decrypt.
+	// Users of PGStore should call s.GetConsumersByProviderContract directly to ensure decryption works.
+	rows, err := pool.Query(ctx, `
+		SELECT r.id, r.full_name, c.raw_content, c.is_encrypted
+		FROM dependencies d
+		JOIN repositories r ON d.consumer_repo_id = r.id
+		JOIN contracts c ON d.provider_contract_id = c.id
+		WHERE d.provider_contract_id = $1
+	`, providerContractID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query consumers: %w", err)
+	}
+	defer rows.Close()
+
+	var consumers []ConsumerDependency
+	for rows.Next() {
+		var c ConsumerDependency
+		var rawContent *string
+		var isEncrypted bool
+		if err := rows.Scan(&c.ConsumerRepoID, &c.ConsumerFullName, &rawContent, &isEncrypted); err != nil {
+			return nil, fmt.Errorf("failed to scan consumer: %w", err)
+		}
+		if isEncrypted {
+			return nil, fmt.Errorf("contract %s is encrypted; must use PGStore method to decrypt", providerContractID)
+		}
+		if rawContent != nil {
+			c.ContractRawContent = *rawContent
 		}
 		consumers = append(consumers, c)
 	}
