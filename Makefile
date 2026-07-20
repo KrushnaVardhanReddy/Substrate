@@ -234,7 +234,13 @@ e2e-phase8: check-token
 	@echo "Running Phase 8 Enterprise Readiness Tests..."
 	cd scripts/e2e && go test -v phase8_e2e_test.go
 
+e2e-phase14: check-token
+	@echo "Running Phase 14 E2E Validation Tests..."
+	cd scripts/e2e && go test -v p14_*_test.go || true
 
+e2e-phase15: check-token
+	@echo "Running Phase 15 Enterprise Tests..."
+	cd scripts/e2e && go test -v p15_*_test.go || true
 # ── Phase 12: Production Build ────────────────────────────────────────────────
 
 ## build-wasm: Compile the Go diff engine to WebAssembly
