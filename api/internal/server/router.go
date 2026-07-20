@@ -65,7 +65,7 @@ func NewRouter(store db.Store, riverClient workers.JobEnqueuer, authConfig handl
 	r.Method("POST", "/api/v1/history", serviceTokenMW(http.HandlerFunc(handlers.HistoryHandler(store))))
 	r.Method("GET", "/api/v1/registry/can-deploy", serviceTokenMW(http.HandlerFunc(handlers.CanDeployHandler(store))))
 	r.Method("GET", "/api/v1/registry/can-rollback", serviceTokenMW(http.HandlerFunc(handlers.CanRollbackHandler(store))))
-	r.Method("POST", "/api/v1/diff", serviceTokenMW(http.HandlerFunc(handlers.SaveDiffHandler(store, riverClient))))
+	r.Method("POST", "/api/v1/diff", serviceTokenMW(http.HandlerFunc(handlers.SaveDiffHandler(store, riverClient, github.NewRESTClient()))))
 
 	// Protected routes (Service Token OR JWT)
 	authMW := AuthMiddleware(registryApiToken, jwtSecret)

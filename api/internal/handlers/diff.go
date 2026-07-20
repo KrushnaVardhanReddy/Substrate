@@ -1,21 +1,23 @@
 package handlers
 
+
 import (
 	"encoding/json"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 	"github.com/google/uuid"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/github"
 	"net/http"
-)
-
-import (
+	"strings"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/governance"
 	"context"
 	"fmt"
 	"time"
-
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/egress"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/services"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/workers"
 )
+
+
 
 type SaveDiffRequest struct {
 	DiffReport        json.RawMessage `json:"diff_report"`
@@ -34,7 +36,7 @@ type SaveDiffResponse struct {
 	ID string `json:"id"`
 }
 
-func SaveDiffHandler(store db.Store, riverClient workers.JobEnqueuer) http.HandlerFunc {
+func SaveDiffHandler(store db.Store, riverClient workers.JobEnqueuer, ghClient github.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req SaveDiffRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -57,6 +59,25 @@ func SaveDiffHandler(store db.Store, riverClient workers.JobEnqueuer) http.Handl
 		// Check for breaking changes and dispatch webhook
 		var diffReport services.DiffReport
 		if err := json.Unmarshal(req.DiffReport, &diffReport); err == nil {
+			// P15-T01: SCHEMAOWNERS logic
+			if !req.IsAuditMode && req.Org != "" && req.ProviderRepo != "" && ghClient != nil {
+				parts := strings.Split(req.ProviderRepo, "/")
+				if len(parts) == 2 {
+					owner, repo := parts[0], parts[1]
+					bgCtx := context.Background()
+					content, err := ghClient.GetFileContent(bgCtx, owner, repo, ".substrate/SCHEMAOWNERS.yaml")
+					if err == nil {
+						rules, err := governance.ParseSchemaOwners([]byte(content))
+						if err == nil {
+							reviewers := governance.GetReviewersForChanges(rules, &diffReport)
+							if len(reviewers) > 0 && req.PRNumber > 0 {
+								_ = ghClient.RequestReviewers(bgCtx, owner, repo, req.PRNumber, reviewers)
+							}
+						}
+					}
+				}
+			}
+
 			if diffReport.Summary.BreakingCount > 0 && req.Org != "" {
 				// We need to trigger webhook asynchronously
 				go func(diffId string, diffReq SaveDiffRequest) {
