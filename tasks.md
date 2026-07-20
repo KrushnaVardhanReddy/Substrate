@@ -28,7 +28,7 @@
 | **P9-T02** | 🟡 P2 | **Continuous AI Sync (`watch`)** — Background daemon that monitors code changes in the IDE and updates the local OpenAPI spec in real-time. | Unassigned | 💡 Backlog | `docs/specs/go-to-market-strategy.md` |
 | **P9-T03** | 🟢 P3 | **Compliance Mapping** — Auto-tag schemas with SOC2/GDPR/HIPAA warnings when fields like `ssn` or `medical_history` are detected. | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
 | **P9-T04** | 🔵 P4 | **Quality Gates (SonarQube-style)** — Allow setting different failure thresholds based on service tier (e.g., Tier 1 allows 0 warnings, Beta allows breakages). | Unassigned | 💡 Backlog | `docs/specs/enterprise-vision.md` |
-| **P9-T05** | ⚪ P5 | **Hexagonal Architecture & `sqlc` Refactor** — Formally isolate engines from HTTP transports, migrate raw `pgx` queries to `sqlc` for type-safe DB layer generation. | Unassigned | 💡 Backlog | `(Pending)` |
+| **P9-T05** | ⚪ P5 | **Hexagonal Architecture & `sqlc` Refactor** — Formally isolate engines from HTTP transports, migrate raw `pgx` queries to `sqlc` for type-safe DB layer generation. *(Note: Must split `Store` interface to be per-table, not per-project, to avoid merge conflicts)*. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T06** | ⚪ P6 | **Configuration Management (Viper)** — Migrate `os.Getenv` calls to Viper for robust `.env`, CLI flag, and YAML configuration loading. | Unassigned | 💡 Backlog | `(Pending)` |
 | **P9-T07** | 🔴 P1 | **AI Migration Planner** — Upgrade AI Autofix to generate safe, multi-step migration plans for complex schema/database changes with minimal downtime. | Jules | ✅ Complete | `docs/specs/phase-9/p9-t07-ai-migration-planner.md` |
 | **P9-T08** | 🟡 P2 | **Deployment Risk Scoring** — Synthesize breaking change data, infrastructure changes, and downstream blast radius into a holistic "Deployment Risk Score". | Unassigned | 💡 Backlog | `(Pending)` |
@@ -68,6 +68,10 @@
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
+| **P11-T01** | 🚀 P1 | **Blast Radius** — Highlight blast radius in the dependency graph. | Jules | 🔄 Running | `docs/specs/phase-11/p11-t01-blast-radius.md` |
+| **P11-T02** | 🟡 P2 | **Team Neighborhoods** — Group nodes by team ownership. | Jules | 🔄 Running | `docs/specs/phase-11/p11-t02-team-neighborhoods.md` |
+| **P11-T03** | 🟢 P3 | **Edge Tooltips** — Show connection details on hover. | Jules | 🔄 Running | `docs/specs/phase-11/p11-t03-edge-tooltips.md` |
+| **P11-T04** | 🟡 P2 | **Volatility Heatmap** — Heatmap showing frequently broken APIs. | Jules | 🔄 Running | `docs/specs/phase-11/p11-t04-volatility-heatmap.md` |
 
 ### Phase 12: V2.0 Public Launch & Quality Assurance
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
