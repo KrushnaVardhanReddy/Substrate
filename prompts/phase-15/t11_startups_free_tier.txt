@@ -27,6 +27,7 @@ CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
 IMPLEMENTATION TIPS
 ═══════════════════════════════════════════════════════════════
 - Add `GET /api/v1/public/profile/:org` in `api/internal/handler/public_profile.go` to serve the 90-day reliability metrics.
+- CRITICAL: To prevent getting stuck on complex SQL aggregations, your `public_profile.go` handler should just return mock/hardcoded JSON array data for the 90-day charts (e.g., `breaking_changes`, `blast_radius_trend`, `uptime`). Focus on getting the SvelteKit frontend wired up to the handler.
 - Add the SvelteKit page at `dashboard/src/routes/(public)/profile/[org]/+page.svelte`.
 - Use the existing `var(--bg-card)` and `var(--text-muted)` CSS tokens for consistent styling.
 
