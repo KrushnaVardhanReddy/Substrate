@@ -3,9 +3,11 @@ package diff
 import (
 	"fmt"
 	"strings"
+	"sort"
 	"time"
 
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/compliance"
+	extcompliance "github.com/KrushnaVardhanReddy/substrate/engine/compliance"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/config"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 	"github.com/getkin/kin-openapi/openapi3"
@@ -38,6 +40,10 @@ func CompareOpenAPI(basePath, revisionPath string, flattenAllOf bool, customRule
 		return nil, fmt.Errorf("invalid revision spec: %w", err)
 	}
 
+	alerts1 := extcompliance.ScanOpenAPISchema(base, nil)
+	alerts2 := extcompliance.ScanOpenAPISchema(revision, nil)
+
+
 	// Step 3: Compute structural diff using diff.Get()
 	// flattenAllOf is accepted for API compatibility but is not currently wired —
 	// oasdiff v1.22.0 diff.Config does not expose a FlattenAllOf option.
@@ -65,6 +71,21 @@ func CompareOpenAPI(basePath, revisionPath string, flattenAllOf bool, customRule
 		Warnings:        []report.Change{},
 		SafeChanges:     []report.Change{},
 	}
+	// Merge unique compliance alerts
+	alertMap := make(map[string]report.ComplianceAlert)
+	for _, a := range append(alerts1, alerts2...) {
+		alertMap[a.Path+a.ComplianceType] = a
+	}
+	for _, a := range alertMap {
+		rep.ComplianceAlerts = append(rep.ComplianceAlerts, a)
+	}
+
+	sort.Slice(rep.ComplianceAlerts, func(i, j int) bool {
+		if rep.ComplianceAlerts[i].Path == rep.ComplianceAlerts[j].Path {
+			return rep.ComplianceAlerts[i].ComplianceType < rep.ComplianceAlerts[j].ComplianceType
+		}
+		return rep.ComplianceAlerts[i].Path < rep.ComplianceAlerts[j].Path
+	})
 
 	if diffObj.Empty() {
 		compliance.Audit(rep)

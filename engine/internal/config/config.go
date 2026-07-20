@@ -90,6 +90,12 @@ type SubstrateConfig struct {
 	CustomRules  []CustomRule         `yaml:"custom_rules,omitempty" json:"custom_rules,omitempty"`
 	Gateway      *GatewayConfig       `yaml:"gateway,omitempty"`
 	Deprecations []Deprecation        `yaml:"deprecations,omitempty"`
+	Compliance   *ComplianceConfig    `yaml:"compliance,omitempty"`
+}
+
+
+type ComplianceConfig struct {
+	Patterns map[string]string `yaml:"patterns,omitempty"`
 }
 
 type Deprecation struct {
