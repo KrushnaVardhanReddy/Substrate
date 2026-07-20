@@ -16,6 +16,14 @@ CONSTRAINTS & RULES
 - You MUST write unit tests for the zombie detection logic.
 
 ═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The Dashboard is a SvelteKit app located in `dashboard/`. Authenticated routes are under `dashboard/src/routes/(app)/`.
+- The API is in `api/`. Handlers are in `api/internal/handlers/`. You'll need to add a new `otel_webhook.go` there.
+- The Engine code is in `engine/`. Add `engine/zombie/detector.go` to house the logic for calculating if an endpoint is a zombie.
+- You will need to add a database migration to `api/migrations/` to store endpoint traffic stats, and update `api/internal/db/store.go` with the queries.
+
+═══════════════════════════════════════════════════════════════
 IMPLEMENTATION TIPS
 ═══════════════════════════════════════════════════════════════
 - Add `api/internal/handler/otel_webhook.go` for ingesting OTel metrics via webhook.

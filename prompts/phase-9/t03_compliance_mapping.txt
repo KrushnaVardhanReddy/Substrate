@@ -17,6 +17,13 @@ CONSTRAINTS & RULES
 - You MUST write unit tests for the field scanner (`_test.go`).
 
 ═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The GitHub App worker lives in `github-app/src/`. You will need to edit `formatter.ts` to add a new section for Compliance Flags below the Breaking Changes section.
+- The Engine code lives in `engine/`. You should create `engine/compliance/scanner.go` which accepts an OpenAPI schema and returns a list of compliance flags.
+- You do NOT need to modify the Git pre-commit hooks. Just the engine package and the GitHub PR comment formatter.
+
+═══════════════════════════════════════════════════════════════
 IMPLEMENTATION TIPS
 ═══════════════════════════════════════════════════════════════
 - Add `engine/compliance/scanner.go` with the pattern matching logic.
