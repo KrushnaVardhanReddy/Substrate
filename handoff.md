@@ -31,10 +31,10 @@ All four high-priority Wave 4 tasks were validated and successfully merged into 
    
 2. **Wave 5 Launched (The 3-Day Sprint):**
    We have selected and dispatched the first batch of 4 tasks (Wave 5) from Phase 11 to Jules to begin crushing the backlog:
-   - 🔄 **P11-T01: Blast Radius Visualization**
-   - 🔄 **P11-T02: Team Neighborhoods**
-   - 🔄 **P11-T03: Edge Tooltips**
-   - 🔄 **P11-T04: Volatility Heatmap**
+   - 🔄 **P11-T01: Blast Radius Visualization** (Session: `12193261936187499354`)
+   - 🔄 **P11-T02: Team Neighborhoods** (Session: `17538853514204707543`)
+   - 🔄 **P11-T03: Edge Tooltips** (Session: `14503619652158989034`)
+   - 🔄 **P11-T04: Volatility Heatmap** (Session: `314721909243820577`)
    Monitor GitHub for the incoming PRs for these UI features.
 
 3. **Defer E2E Testing:**
