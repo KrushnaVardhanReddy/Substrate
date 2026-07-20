@@ -44,6 +44,8 @@ type MockStore struct {
 	GetAgentsByToolFunc                func(ctx context.Context, toolName string) ([]AgentConsumer, error)
 	GetPublicSchemaFunc                func(ctx context.Context, namespace, name, version string) (*PublicSchema, error)
 	PublishPublicSchemaFunc            func(ctx context.Context, namespace, name, version, schemaType, content string) error
+	UpsertOrgKMSConfigFunc               func(ctx context.Context, orgName, provider, keyARN string) error
+	GetOrgKMSConfigFunc                  func(ctx context.Context, orgName string) (string, string, error)
 }
 
 func (m *MockStore) GetPublicSchema(ctx context.Context, namespace, name, version string) (*PublicSchema, error) {
@@ -93,6 +95,20 @@ func (m *MockStore) GetContractsByProviderFullName(ctx context.Context, provider
 		return m.GetContractsByProviderFullNameFunc(ctx, providerFullName)
 	}
 	return nil, nil
+}
+
+func (m *MockStore) UpsertOrgKMSConfig(ctx context.Context, orgName, provider, keyARN string) error {
+	if m.UpsertOrgKMSConfigFunc != nil {
+		return m.UpsertOrgKMSConfigFunc(ctx, orgName, provider, keyARN)
+	}
+	return nil
+}
+
+func (m *MockStore) GetOrgKMSConfig(ctx context.Context, orgName string) (string, string, error) {
+	if m.GetOrgKMSConfigFunc != nil {
+		return m.GetOrgKMSConfigFunc(ctx, orgName)
+	}
+	return "", "", nil
 }
 
 func (m *MockStore) SaveDiffReport(ctx context.Context, diffReport json.RawMessage, isAuditMode bool, orgName, repoName string) (uuid.UUID, error) {

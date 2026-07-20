@@ -1,53 +1,5 @@
-# Secrets — never commit
-.env.local
-.env
-.dev.vars
-
-# Go build artifacts
-engine/bin/
-
-# Node / npm
-node_modules/
-dist/
-.wrangler/
-
-# Stitch downloaded mockups (temporary)
-temp_mockups/
-
-# OS
-.DS_Store
-LAUNCH_PLAN.md
-HANDOFF.md
-
-api.log
-api.pid
-engine.log
-engine.pid
-ngrok.log
-ngrok.pid
-worker.log
-worker.pid
-dashboard.log
-dashboard.pid
-
-engine/substrate
-coverage.out
-
-# Scratch test files
-github-app/test_parse.ts
-test-comment.js
-
-# Large upstream demo repos (only substrate.yaml configs are tracked)
-demo-repos/graphql-schema/
-demo-repos/jaffle_shop/
-demo-repos/openai-openapi/
-demo-repos/slack-api-specs/
-
-forgejo-data/*
-auto_merge.sh
-auto_merge_latest.sh
-mark_ready_and_merge.sh
-
-# WASM
-engine/substrate-cli.wasm
-packages/cli/node_modules/
+test-server
+*.test
+api/server
+api/cmd/server/server
+api/internal/mcp/testdata/test-server

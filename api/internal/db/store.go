@@ -143,6 +143,8 @@ type Store interface {
 	GetAgentsByTool(ctx context.Context, toolName string) ([]AgentConsumer, error)
 	GetPublicSchema(ctx context.Context, namespace, name, version string) (*PublicSchema, error)
 	PublishPublicSchema(ctx context.Context, namespace, name, version, schemaType, content string) error
+	UpsertOrgKMSConfig(ctx context.Context, orgName, provider, keyARN string) error
+	GetOrgKMSConfig(ctx context.Context, orgName string) (string, string, error) // Returns provider, keyARN
 }
 
 type PublicNamespace struct {

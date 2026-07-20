@@ -638,6 +638,26 @@ func (s *PGStore) GetConsumerManifests(ctx context.Context, providerRepo, consum
 	return GetConsumerManifests(ctx, s.pool, providerRepo, consumerRepo)
 }
 
+func (s *PGStore) UpsertOrgKMSConfig(ctx context.Context, orgName, provider, keyARN string) error {
+	_, err := s.pool.Exec(ctx, `
+		INSERT INTO org_kms_config (org_name, provider, key_arn)
+		VALUES ($1, $2, $3)
+		ON CONFLICT (org_name) DO UPDATE
+		SET provider = EXCLUDED.provider, key_arn = EXCLUDED.key_arn`,
+		orgName, provider, keyARN,
+	)
+	return err
+}
+
+func (s *PGStore) GetOrgKMSConfig(ctx context.Context, orgName string) (string, string, error) {
+	var provider, keyARN string
+	err := s.pool.QueryRow(ctx, `
+		SELECT provider, key_arn
+		FROM org_kms_config
+		WHERE org_name = $1`, orgName).Scan(&provider, &keyARN)
+	return provider, keyARN, err
+}
+
 func GetConsumerManifests(ctx context.Context, pool *pgxpool.Pool, providerRepo, consumerRepo string) (json.RawMessage, error) {
 	var consumedFields json.RawMessage
 	err := pool.QueryRow(ctx, `

@@ -14,9 +14,10 @@ import (
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/github"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/handlers"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/mcp"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/server"
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/workers"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/telemetry"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/workers"
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/riverqueue/river"
@@ -24,6 +25,14 @@ import (
 )
 
 func main() {
+	headlessMCP := false
+	for _, arg := range os.Args {
+		if arg == "--headless-mcp" {
+			headlessMCP = true
+			break
+		}
+	}
+
 	databaseURL := os.Getenv("DATABASE_URL")
 	if databaseURL == "" {
 		log.Fatal("DATABASE_URL environment variable is required")
@@ -55,10 +64,12 @@ func main() {
 		log.Fatal("GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, and DASHBOARD_URL environment variables are required")
 	}
 
-	if err := db.RunMigrations(databaseURL); err != nil {
-		log.Fatalf("failed to apply migrations: %v", err)
+	if os.Getenv("SKIP_MIGRATIONS") != "true" {
+		if err := db.RunMigrations(databaseURL); err != nil {
+			log.Fatalf("failed to apply migrations: %v", err)
+		}
+		fmt.Println("[substrate-api] migrations applied successfully")
 	}
-	fmt.Println("[substrate-api] migrations applied successfully")
 
 	tp, err := telemetry.InitTracer(context.Background(), "substrate-api")
 	if err != nil {
@@ -81,6 +92,17 @@ func main() {
 	defer pool.Close()
 
 	store := db.NewPGStore(pool)
+
+	if headlessMCP {
+		mcpServer := mcp.NewServer()
+		mcp.RegisterTools(mcpServer, store)
+		mcp.RegisterResources(mcpServer, store)
+		mcp.RegisterPrompts(mcpServer)
+
+		fmt.Fprintf(os.Stderr, "[substrate-api] starting headless mcp server on stdio\n")
+		mcpServer.ServeStdio()
+		os.Exit(0)
+	}
 
 	// Initialize River job queue
 	workersPool, pushWorker := workers.RegisterWorkers(store, github.NewRESTClient())

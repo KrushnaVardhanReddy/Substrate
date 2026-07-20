@@ -3,11 +3,14 @@ package services
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 )
 
 type AIAnalyzeRequest struct {
@@ -37,6 +40,22 @@ func loadAIConfig() AIConfig {
 		APIKey:  os.Getenv("SUBSTRATE_AI_API_KEY"),
 		Model:   os.Getenv("SUBSTRATE_AI_MODEL"),
 	}
+}
+
+func loadAIConfigForOrg(ctx context.Context, store db.Store, orgName string) AIConfig {
+	provider, keyARN, err := store.GetOrgKMSConfig(ctx, orgName)
+	cfg := loadAIConfig()
+
+	// If the DB has KMS config, we'd theoretically use the keyARN to decrypt or assume a role.
+	// For MVP, if a provider is configured, we can assume it overrides base env if needed,
+	// or we attach it to the config to show BYOK is active.
+	// We'll augment the APIKey/URL if the BYOK provider is custom.
+	// (In a real system, we'd fetch the decrypted BYOK secret here).
+	if err == nil && provider != "" {
+		cfg.APIKey = keyARN // Mocking the decrypted BYOK token for now
+	}
+
+	return cfg
 }
 
 func writeSSE(w http.ResponseWriter, f http.Flusher, event SSEEvent) error {
@@ -272,4 +291,116 @@ func AIAnalyzeHandler() http.HandlerFunc {
 
 		writeSSE(w, flusher, SSEEvent{Type: "done"})
 	}
+}
+
+// AnalyzeSchema returns a structural analysis result for a schema change.
+func AnalyzeSchema(req AIAnalyzeRequest, store db.Store) (map[string]interface{}, error) {
+	ctx := context.Background()
+	cfg := loadAIConfigForOrg(ctx, store, req.Org)
+	if cfg.BaseURL == "" {
+		return map[string]interface{}{"status": "mock_review_completed"}, nil
+	}
+
+	userMessage := fmt.Sprintf("Schema type: %s\n\nCurrent schema:\n%s\n\nProposed schema:\n%s", req.SchemaType, req.CurrentSchema, req.ProposedSchema)
+
+	messages := []chatMessage{
+		{Role: "system", Content: systemPrompt},
+		{Role: "user", Content: userMessage},
+	}
+
+	body := chatRequest{
+		Model:    cfg.Model,
+		Stream:   false,
+		Messages: messages,
+		Tools:    mcpTools,
+	}
+
+	bodyBytes, err := json.Marshal(body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal body: %w", err)
+	}
+
+	httpReq, err := http.NewRequest("POST", cfg.BaseURL+"/chat/completions", bytes.NewBuffer(bodyBytes))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	httpReq.Header.Set("Authorization", "Bearer "+cfg.APIKey)
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var llmResp struct {
+		Choices []struct {
+			Message struct {
+				Content string `json:"content"`
+			} `json:"message"`
+		} `json:"choices"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&llmResp); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	content := ""
+	if len(llmResp.Choices) > 0 {
+		content = llmResp.Choices[0].Message.Content
+	}
+
+	return map[string]interface{}{
+		"status":   "review_completed",
+		"analysis": content,
+	}, nil
+}
+
+// GeneratePostmortem uses the LLM to write a postmortem based on db history.
+func GeneratePostmortem(org, repo, historyJSON, diffsJSON string, store db.Store) (string, error) {
+	ctx := context.Background()
+	cfg := loadAIConfigForOrg(ctx, store, org)
+	if cfg.BaseURL == "" {
+		return "Mock Postmortem: No AI config available.", nil
+	}
+
+	systemStr := "You are a Site Reliability Engineer. Generate a postmortem in markdown based on the historical breaking changes and diff reports."
+	userStr := fmt.Sprintf("Repo: %s/%s\n\nHistory:\n%s\n\nDiffs:\n%s", org, repo, historyJSON, diffsJSON)
+
+	payload := map[string]interface{}{
+		"model":  cfg.Model,
+		"stream": false,
+		"messages": []map[string]string{
+			{"role": "system", "content": systemStr},
+			{"role": "user", "content": userStr},
+		},
+	}
+
+	bodyBytes, _ := json.Marshal(payload)
+	reqObj, _ := http.NewRequest(http.MethodPost, cfg.BaseURL+"/chat/completions", bytes.NewBuffer(bodyBytes))
+	reqObj.Header.Set("Authorization", "Bearer "+cfg.APIKey)
+	reqObj.Header.Set("Content-Type", "application/json")
+
+	resp, err := (&http.Client{}).Do(reqObj)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	var llmResp struct {
+		Choices []struct {
+			Message struct {
+				Content string `json:"content"`
+			} `json:"message"`
+		} `json:"choices"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&llmResp); err != nil {
+		return "", err
+	}
+	if len(llmResp.Choices) > 0 {
+		return llmResp.Choices[0].Message.Content, nil
+	}
+	return "No content generated.", nil
 }
