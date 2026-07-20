@@ -1,0 +1,33 @@
+TASK: P15-T06 — Natural Language Governance Rules
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Extend the Custom Rules Engine with a plain-English interface. Convert natural language into CEL expressions using the AI engine.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-15/p15-t06-nl-governance.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Create a new API endpoint `POST /api/governance/generate-cel`.
+- Validate the generated CEL before returning it to the client.
+- Create a UI component in SvelteKit to consume this API and display the preview.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Use `google/cel-go` for syntax validation in the Go API.
+- The UI should have a simple textarea and a "Generate Rule" button, displaying the raw CEL below it before submission.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: api/internal/handler/governance.go (MODIFY)
+   - Add `GenerateCEL` handler.
+2. FILE: dashboard/src/routes/(app)/org/[org]/governance/+page.svelte (MODIFY)
+   - Add natural language input and preview.
+
+Commit: "feat: P15-T06 implement natural language governance rules"
+Target branch: feature/dev

@@ -1,0 +1,33 @@
+TASK: P15-T05 — AI Incident Post-Mortem Generator
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement `substrate postmortem --incident <date>` to correlate an incident window with schema changes and generate a Markdown post-mortem document.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-15/p15-t05-postmortem-generator.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Query the Postgres database for breaking changes near the given date.
+- Use the AI engine to draft a Blameless Post-Mortem.
+- Output must be Markdown formatted.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Add a new CLI command `postmortem` in `engine/cmd/postmortem.go`.
+- You will need to hit the `api` service or directly connect to Postgres depending on the CLI architecture (preferably use the API `GET /api/changes?since=...`).
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: engine/cmd/postmortem.go (CREATE)
+2. FILE: engine/postmortem/generator.go (CREATE)
+   - Handles data collection and AI prompt generation.
+3. Unit tests `engine/postmortem/generator_test.go`.
+
+Commit: "feat: P15-T05 implement postmortem generator"
+Target branch: feature/dev

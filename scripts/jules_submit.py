@@ -722,6 +722,26 @@ TASKS = {
         "phase": "phase-13-god-mode",
         "prompt": _load_prompt("prompts/phase-13/t01_finops.txt"),
     },
+    1503: {
+        "name": "P15-T03 — Dependency SLA Tracking",
+        "phase": "phase-15",
+        "prompt": _load_prompt("prompts/phase-15/t03_dependency_sla.txt"),
+    },
+    1504: {
+        "name": "P15-T04 — Schema Smell Detector",
+        "phase": "phase-15",
+        "prompt": _load_prompt("prompts/phase-15/t04_schema_smell.txt"),
+    },
+    1505: {
+        "name": "P15-T05 — AI Incident Post-Mortem Generator",
+        "phase": "phase-15",
+        "prompt": _load_prompt("prompts/phase-15/t05_postmortem_generator.txt"),
+    },
+    1506: {
+        "name": "P15-T06 — Natural Language Governance Rules",
+        "phase": "phase-15",
+        "prompt": _load_prompt("prompts/phase-15/t06_nl_governance.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────

@@ -1,0 +1,34 @@
+TASK: P15-T04 — "Schema Smell" Detector (AI API Design Linter)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Proactively detect API design anti-patterns beyond breaking changes (e.g., over-fat endpoints, non-descriptive field names). Scores APIs 0–100.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-15/p15-t04-schema-smell.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Implement a new command `substrate lint --schema <path>`.
+- Use the standard AI client library to pass the OpenAPI schema to the LLM.
+- Output a clear JSON or Markdown report of the smell issues with a score out of 100.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Create a new package `engine/linter` for this logic.
+- Use the same AI parsing techniques established in `engine/ai_analyze.go`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: engine/cmd/lint.go (CREATE)
+   - Add the `lint` Cobra command.
+2. FILE: engine/linter/linter.go (CREATE)
+   - Add the LLM analysis logic for the schema.
+3. Include unit tests `engine/linter/linter_test.go`.
+
+Commit: "feat: P15-T04 implement schema smell detector"
+Target branch: feature/dev
