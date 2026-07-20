@@ -51,6 +51,7 @@ export interface ConsumerEntry {
   schema_type: string;
   provider_spec_path: string;
   provider_branch: string;
+  required_notice_days?: number;
 }
 
 export interface SubstrateConsumerConfig {
@@ -64,6 +65,7 @@ export interface SyncDependency {
   spec_path: string;
   branch: string;
   raw_content: string;
+  required_notice_days?: number;
 }
 
 export interface SyncRequest {
@@ -120,11 +122,17 @@ export interface CrossRepoCheckRequest {
   config_content?: string;
 }
 
+export interface SLABreach {
+  consumer: string;
+  required_days: number;
+}
+
 export interface CrossRepoCheckResponse {
   total_consumers: number;
   broken_consumers: number;
   is_safe: boolean;
   results: ConsumerResult[];
+  sla_breaches?: SLABreach[];
 }
 
 export interface AIAutofixRequest {

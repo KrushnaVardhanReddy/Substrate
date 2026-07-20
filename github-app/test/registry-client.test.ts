@@ -49,6 +49,26 @@ consumers:
     }]);
   });
 
+  it('parses required_notice_days', async () => {
+    const yaml = `
+consumers:
+  - name: my-consumer
+    provider_repo: acme/api
+    schema_type: openapi
+    provider_spec_path: openapi.yaml
+    required_notice_days: 30
+    `;
+    const res = await parseConsumersFromYaml(yaml);
+    expect(res).toEqual([{
+      name: 'my-consumer',
+      provider_repo: 'acme/api',
+      schema_type: 'openapi',
+      provider_spec_path: 'openapi.yaml',
+      provider_branch: 'main',
+      required_notice_days: 30
+    }]);
+  });
+
   it('returns two entries when two valid consumers present', async () => {
     const yaml = `
 consumers:

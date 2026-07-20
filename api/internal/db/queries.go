@@ -162,17 +162,22 @@ func UpsertContract(ctx context.Context, pool *pgxpool.Pool, repoID uuid.UUID, s
 }
 
 // UpsertDependency links a consumer repo to a provider contract.
-func (s *PGStore) UpsertDependency(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, confidenceScore int) error {
-	return UpsertDependency(ctx, s.pool, consumerRepoID, providerContractID, confidenceScore)
+func (s *PGStore) UpsertDependency(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, confidenceScore int, requiredNoticeDays int) error {
+	return UpsertDependency(ctx, s.pool, consumerRepoID, providerContractID, confidenceScore, requiredNoticeDays)
 }
 
-func UpsertDependency(ctx context.Context, pool *pgxpool.Pool, consumerRepoID, providerContractID uuid.UUID, confidenceScore int) error {
+func UpsertDependency(ctx context.Context, pool *pgxpool.Pool, consumerRepoID, providerContractID uuid.UUID, confidenceScore int, requiredNoticeDays int) error {
 	_, err := pool.Exec(ctx, `
-		INSERT INTO dependencies (consumer_repo_id, provider_contract_id, last_checked_at, confidence_score)
-		VALUES ($1, $2, NOW(), $3)
+		INSERT INTO dependencies (consumer_repo_id, provider_contract_id, last_checked_at, confidence_score, required_notice_days)
+		VALUES ($1, $2, NOW(), $3, $4)
 		ON CONFLICT (consumer_repo_id, provider_contract_id) DO UPDATE
-		SET last_checked_at = EXCLUDED.last_checked_at, confidence_score = EXCLUDED.confidence_score
-	`, consumerRepoID, providerContractID, confidenceScore)
+		SET last_checked_at = EXCLUDED.last_checked_at,
+		    confidence_score = EXCLUDED.confidence_score,
+		    required_notice_days = CASE
+		        WHEN EXCLUDED.required_notice_days = 0 THEN dependencies.required_notice_days
+		        ELSE EXCLUDED.required_notice_days
+		    END
+	`, consumerRepoID, providerContractID, confidenceScore, requiredNoticeDays)
 	if err != nil {
 		return fmt.Errorf("failed to upsert dependency: %w", err)
 	}
@@ -274,7 +279,7 @@ func GetContractsByProviderFullName(ctx context.Context, pool *pgxpool.Pool, pro
 // GetConsumersByProviderContract returns all consumer repos for a given provider contract ID.
 func (s *PGStore) GetConsumersByProviderContract(ctx context.Context, providerContractID uuid.UUID) ([]ConsumerDependency, error) {
 	rows, err := s.pool.Query(ctx, `
-		SELECT r.id, r.full_name, c.raw_content, c.encrypted_content, c.is_encrypted, c.kms_key_arn
+		SELECT r.id, r.full_name, c.raw_content, c.encrypted_content, c.is_encrypted, c.kms_key_arn, COALESCE(d.required_notice_days, 0)
 		FROM dependencies d
 		JOIN repositories r ON d.consumer_repo_id = r.id
 		JOIN contracts c ON d.provider_contract_id = c.id
@@ -293,7 +298,7 @@ func (s *PGStore) GetConsumersByProviderContract(ctx context.Context, providerCo
 		var isEncrypted bool
 		var kmsKeyARN *string
 
-		if err := rows.Scan(&c.ConsumerRepoID, &c.ConsumerFullName, &rawContent, &encryptedContent, &isEncrypted, &kmsKeyARN); err != nil {
+		if err := rows.Scan(&c.ConsumerRepoID, &c.ConsumerFullName, &rawContent, &encryptedContent, &isEncrypted, &kmsKeyARN, &c.RequiredNoticeDays); err != nil {
 			return nil, fmt.Errorf("failed to scan consumer: %w", err)
 		}
 
@@ -323,7 +328,7 @@ func GetConsumersByProviderContract(ctx context.Context, pool *pgxpool.Pool, pro
 	// This function is kept for backwards compatibility but does not decrypt.
 	// Users of PGStore should call s.GetConsumersByProviderContract directly to ensure decryption works.
 	rows, err := pool.Query(ctx, `
-		SELECT r.id, r.full_name, c.raw_content, c.is_encrypted
+		SELECT r.id, r.full_name, c.raw_content, c.is_encrypted, COALESCE(d.required_notice_days, 0)
 		FROM dependencies d
 		JOIN repositories r ON d.consumer_repo_id = r.id
 		JOIN contracts c ON d.provider_contract_id = c.id
@@ -339,7 +344,7 @@ func GetConsumersByProviderContract(ctx context.Context, pool *pgxpool.Pool, pro
 		var c ConsumerDependency
 		var rawContent *string
 		var isEncrypted bool
-		if err := rows.Scan(&c.ConsumerRepoID, &c.ConsumerFullName, &rawContent, &isEncrypted); err != nil {
+		if err := rows.Scan(&c.ConsumerRepoID, &c.ConsumerFullName, &rawContent, &isEncrypted, &c.RequiredNoticeDays); err != nil {
 			return nil, fmt.Errorf("failed to scan consumer: %w", err)
 		}
 		if isEncrypted {

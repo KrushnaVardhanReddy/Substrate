@@ -10,11 +10,12 @@ import (
 )
 
 type ConsumerDependency struct {
-	Name             string `yaml:"name"`
-	ProviderRepo     string `yaml:"provider_repo"`
-	SchemaType       string `yaml:"schema_type"`
-	ProviderSpecPath string `yaml:"provider_spec_path"`
-	ProviderBranch   string `yaml:"provider_branch"`
+	Name               string `yaml:"name"`
+	ProviderRepo       string `yaml:"provider_repo"`
+	SchemaType         string `yaml:"schema_type"`
+	ProviderSpecPath   string `yaml:"provider_spec_path"`
+	ProviderBranch     string `yaml:"provider_branch"`
+	RequiredNoticeDays int    `yaml:"required_notice_days,omitempty"`
 }
 
 func (d *ConsumerDependency) DefaultedBranch() string {

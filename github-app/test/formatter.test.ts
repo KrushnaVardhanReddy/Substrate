@@ -204,6 +204,29 @@ describe('formatCrossRepoImpact', () => {
     expect(md).toContain('⚠️ **Action required:**');
   });
 
+  it('prints SLA breach warning if present', () => {
+    const res: CrossRepoCheckResponse = {
+      total_consumers: 1,
+      broken_consumers: 1,
+      is_safe: false,
+      results: [{
+        consumer_repo: 'myorg/frontend',
+        status: 'breaking',
+        diff_report: {
+          breaking_changes: [{ rule_id: 'rule', path: 'GET /users/{id}', description: 'field email removed' }],
+          warnings: [],
+          safe_changes: [],
+          summary: { breaking_count: 1, warning_count: 0, info_count: 0 }
+        }
+      }],
+      sla_breaches: [
+        { consumer: 'myorg/frontend', required_days: 30 }
+      ]
+    };
+    const md = formatCrossRepoImpact(res);
+    expect(md).toContain('⚠️ **SLA Breach**: `myorg/frontend` requires 30 days notice for breaking changes');
+  });
+
   it('one safe consumer', () => {
     const res: CrossRepoCheckResponse = {
       total_consumers: 1,

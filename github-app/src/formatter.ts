@@ -238,6 +238,12 @@ export function formatCrossRepoImpact(response: CrossRepoCheckResponse): string 
       .join(', ');
 
     text += `\n> ⚠️ **Action required:** Coordinate with the ${brokenRepos} team before merging.\n> The \`substrate/breaking-changes\` check is now **FAILING**.\n`;
+
+    if (response.sla_breaches && response.sla_breaches.length > 0) {
+      for (const breach of response.sla_breaches) {
+        text += `> ⚠️ **SLA Breach**: \`${escapeMarkdown(breach.consumer)}\` requires ${breach.required_days} days notice for breaking changes.\n`;
+      }
+    }
   } else {
     text += `\n> ✅ All registered consumers are compatible with this change.\n`;
   }

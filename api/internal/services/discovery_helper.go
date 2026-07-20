@@ -45,7 +45,8 @@ func ProcessDiscoveredEdges(ctx context.Context, store db.Store, req PushPayload
 			continue
 		}
 
-		_ = store.UpsertDependency(ctx, consumerRepoID, contractID, edge.Confidence)
+		// Autodiscovered dependencies do not have SLAs configured, so pass 0
+		_ = store.UpsertDependency(ctx, consumerRepoID, contractID, edge.Confidence, 0)
 	}
 
 	return nil

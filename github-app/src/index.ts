@@ -203,7 +203,8 @@ export default {
                   schema_type: entry.schema_type,
                   spec_path: entry.provider_spec_path,
                   branch: entry.provider_branch,
-                  raw_content: providerSpecContent
+                  raw_content: providerSpecContent,
+                  required_notice_days: entry.required_notice_days
                 }]
               });
               if (syncResult && syncResult.synced !== undefined) {

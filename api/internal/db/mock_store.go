@@ -20,7 +20,7 @@ type MockStore struct {
 	UpsertOrgFunc                      func(ctx context.Context, installationID int64, orgName string) (uuid.UUID, error)
 	UpsertRepoFunc                     func(ctx context.Context, orgID uuid.UUID, githubRepoID int64, name, fullName string, metadata json.RawMessage) (uuid.UUID, error)
 	UpsertContractFunc                 func(ctx context.Context, repoID uuid.UUID, schemaType, specPath, branch, commitSHA, rawContent string) (uuid.UUID, error)
-	UpsertDependencyFunc               func(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, confidenceScore int) error
+	UpsertDependencyFunc               func(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, confidenceScore int, requiredNoticeDays int) error
 	GetContractsByProviderFullNameFunc func(ctx context.Context, providerFullName string) ([]Contract, error)
 	GetConsumersByProviderContractFunc func(ctx context.Context, providerContractID uuid.UUID) ([]ConsumerDependency, error)
 	ListReposByOrgFunc                 func(ctx context.Context, orgName string) ([]Repository, error)
@@ -83,9 +83,9 @@ func (m *MockStore) UpsertContract(ctx context.Context, repoID uuid.UUID, schema
 	return uuid.New(), nil
 }
 
-func (m *MockStore) UpsertDependency(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, confidenceScore int) error {
+func (m *MockStore) UpsertDependency(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, confidenceScore int, requiredNoticeDays int) error {
 	if m.UpsertDependencyFunc != nil {
-		return m.UpsertDependencyFunc(ctx, consumerRepoID, providerContractID, confidenceScore)
+		return m.UpsertDependencyFunc(ctx, consumerRepoID, providerContractID, confidenceScore, requiredNoticeDays)
 	}
 	return nil
 }
