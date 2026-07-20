@@ -8,6 +8,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/apigateway v1.41.1
 	github.com/dop251/goja v0.0.0-20260701091749-b07b74453ea9
 	github.com/emicklei/proto v1.14.3
+	github.com/fsnotify/fsnotify v1.10.1
 	github.com/getkin/kin-openapi v0.140.0
 	github.com/go-git/go-git/v5 v5.19.1
 	github.com/google/cel-go v0.29.2
