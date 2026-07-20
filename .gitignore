@@ -3,3 +3,41 @@ test-server
 api/server
 api/cmd/server/server
 api/internal/mcp/testdata/test-server
+
+# Logs and PIDs
+*.log
+*.pid
+
+# Environment variables
+.env.local
+.dev.vars
+
+# Node
+node_modules/
+
+# Go Build artifacts
+engine/bin/
+engine/substrate
+engine/substrate-mcp
+engine/substrate-mcp.wasm
+api/substrate
+test.wasm
+
+# Data directories
+forgejo-data/
+test-mcp-dir/
+test-results/
+
+# Temp mockups
+temp_mockups/
+scratch/
+
+# Scratch scripts
+test-comment.js
+github-app/test_parse.ts
+
+# Demo Repos (untracked)
+demo-repos/graphql-schema/
+demo-repos/jaffle_shop/
+demo-repos/openai-openapi/
+demo-repos/slack-api-specs/
