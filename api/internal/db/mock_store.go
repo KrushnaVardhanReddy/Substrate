@@ -42,6 +42,9 @@ type MockStore struct {
 	SaveDiffReportFunc                 func(ctx context.Context, diffReport json.RawMessage, isAuditMode bool, orgName, repoName string) (uuid.UUID, error)
 	GetDiffReportFunc                  func(ctx context.Context, id uuid.UUID) (json.RawMessage, error)
 	GetDiffReportsByRepoFunc           func(ctx context.Context, orgName, repoName string, limit int) ([]DiffReportRecord, error)
+	CreatePreviewSessionFunc           func(ctx context.Context, prNumber int, diffID uuid.UUID, expiresAt time.Time) (uuid.UUID, error)
+	GetPreviewSessionFunc              func(ctx context.Context, token uuid.UUID) (json.RawMessage, time.Time, error)
+	ExpirePreviewSessionsForPRFunc     func(ctx context.Context, prNumber int, orgName string, repoName string) error
 	UpdateDependencyStatusFunc         func(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, status string) error
 	GetConsumerManifestsFunc           func(ctx context.Context, providerRepo, consumerRepo string) (json.RawMessage, error)
 	RegisterAgentFunc                  func(ctx context.Context, repoName, owner string, tools []AgentToolDependency) (uuid.UUID, error)
@@ -147,6 +150,27 @@ func (m *MockStore) SaveDiffReport(ctx context.Context, diffReport json.RawMessa
 		return m.SaveDiffReportFunc(ctx, diffReport, isAuditMode, orgName, repoName)
 	}
 	return uuid.New(), nil
+}
+
+func (m *MockStore) CreatePreviewSession(ctx context.Context, prNumber int, diffID uuid.UUID, expiresAt time.Time) (uuid.UUID, error) {
+	if m.CreatePreviewSessionFunc != nil {
+		return m.CreatePreviewSessionFunc(ctx, prNumber, diffID, expiresAt)
+	}
+	return uuid.New(), nil
+}
+
+func (m *MockStore) GetPreviewSession(ctx context.Context, token uuid.UUID) (json.RawMessage, time.Time, error) {
+	if m.GetPreviewSessionFunc != nil {
+		return m.GetPreviewSessionFunc(ctx, token)
+	}
+	return json.RawMessage("{}"), time.Now().Add(7 * 24 * time.Hour), nil
+}
+
+func (m *MockStore) ExpirePreviewSessionsForPR(ctx context.Context, prNumber int, orgName string, repoName string) error {
+	if m.ExpirePreviewSessionsForPRFunc != nil {
+		return m.ExpirePreviewSessionsForPRFunc(ctx, prNumber, orgName, repoName)
+	}
+	return nil
 }
 
 func (m *MockStore) GetDiffReportsByRepo(ctx context.Context, orgName, repoName string, limit int) ([]DiffReportRecord, error) {
