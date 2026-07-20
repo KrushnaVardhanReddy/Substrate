@@ -468,6 +468,7 @@ func main() {
 	rootCmd.AddCommand(checkDeployCmd)
 	rootCmd.AddCommand(checkRollbackCmd)
 	rootCmd.AddCommand(gatewayCmd)
+	rootCmd.AddCommand(lintCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
