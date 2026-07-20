@@ -21,6 +21,7 @@ import (
 	"time"
 
 	initcmd "github.com/KrushnaVardhanReddy/substrate/engine/internal/init"
+	"github.com/KrushnaVardhanReddy/substrate/engine/cmd"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 	sqlpkg "github.com/KrushnaVardhanReddy/substrate/engine/internal/sql"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/telemetry"
@@ -470,6 +471,7 @@ func main() {
 	rootCmd.AddCommand(checkRollbackCmd)
 	rootCmd.AddCommand(gatewayCmd)
 	rootCmd.AddCommand(lintCmd)
+	rootCmd.AddCommand(cmd.PluginCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)

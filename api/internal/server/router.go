@@ -12,6 +12,7 @@ import (
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/github"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/handlers"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/marketplace"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/registry"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/services"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/webhook"
@@ -105,6 +106,10 @@ func NewRouter(store db.Store, riverClient workers.JobEnqueuer, authConfig handl
 		r.Post("/{namespace}/{name}/{version}", registry.HandlePublishSchema(store))
 		r.Get("/{namespace}/{name}/{version}", registry.HandleFetchSchema(store))
 	})
+
+	// Marketplace routes
+	r.Method("POST", "/api/marketplace/publish", http.HandlerFunc(marketplace.PublishHandler(store)))
+	r.Method("GET", "/api/marketplace/plugins", http.HandlerFunc(marketplace.ListPluginsHandler(store)))
 
 	// Public routes
 	r.Get("/api/v1/diff/{id}", handlers.GetDiffHandler(store))

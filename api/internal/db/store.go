@@ -147,6 +147,8 @@ type Store interface {
 	PublishPublicSchema(ctx context.Context, namespace, name, version, schemaType, content string) error
 	UpsertOrgKMSConfig(ctx context.Context, orgName, provider, keyARN string) error
 	GetOrgKMSConfig(ctx context.Context, orgName string) (string, string, error) // Returns provider, keyARN
+	PublishPlugin(ctx context.Context, name, description string, schemaContent json.RawMessage) (uuid.UUID, error)
+	ListPlugins(ctx context.Context) ([]MarketplacePlugin, error)
 }
 
 type PublicNamespace struct {
@@ -164,4 +166,13 @@ type PublicSchema struct {
 	SchemaType    string    `json:"schema_type"`
 	SchemaContent string    `json:"schema_content"`
 	CreatedAt     time.Time `json:"created_at"`
+}
+
+type MarketplacePlugin struct {
+	ID            uuid.UUID       `json:"id"`
+	Name          string          `json:"name"`
+	Description   string          `json:"description"`
+	SchemaContent json.RawMessage `json:"schema_content"`
+	CreatedAt     time.Time       `json:"created_at"`
+	UpdatedAt     time.Time       `json:"updated_at"`
 }

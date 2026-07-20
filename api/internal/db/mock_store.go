@@ -47,6 +47,8 @@ type MockStore struct {
 	PublishPublicSchemaFunc            func(ctx context.Context, namespace, name, version, schemaType, content string) error
 	UpsertOrgKMSConfigFunc               func(ctx context.Context, orgName, provider, keyARN string) error
 	GetOrgKMSConfigFunc                  func(ctx context.Context, orgName string) (string, string, error)
+	PublishPluginFunc                  func(ctx context.Context, name, description string, schemaContent json.RawMessage) (uuid.UUID, error)
+	ListPluginsFunc                    func(ctx context.Context) ([]MarketplacePlugin, error)
 }
 
 func (m *MockStore) GetPublicSchema(ctx context.Context, namespace, name, version string) (*PublicSchema, error) {
@@ -110,6 +112,20 @@ func (m *MockStore) GetOrgKMSConfig(ctx context.Context, orgName string) (string
 		return m.GetOrgKMSConfigFunc(ctx, orgName)
 	}
 	return "", "", nil
+}
+
+func (m *MockStore) PublishPlugin(ctx context.Context, name, description string, schemaContent json.RawMessage) (uuid.UUID, error) {
+	if m.PublishPluginFunc != nil {
+		return m.PublishPluginFunc(ctx, name, description, schemaContent)
+	}
+	return uuid.Nil, nil
+}
+
+func (m *MockStore) ListPlugins(ctx context.Context) ([]MarketplacePlugin, error) {
+	if m.ListPluginsFunc != nil {
+		return m.ListPluginsFunc(ctx)
+	}
+	return nil, nil
 }
 
 func (m *MockStore) SaveDiffReport(ctx context.Context, diffReport json.RawMessage, isAuditMode bool, orgName, repoName string) (uuid.UUID, error) {
