@@ -19,15 +19,15 @@ CONSTRAINTS & RULES
 ═══════════════════════════════════════════════════════════════
 IMPLEMENTATION TIPS
 ═══════════════════════════════════════════════════════════════
-- Add `engine/cmd/archaeology.go` to the CLI.
-- Leverage `go-git` to walk the commit tree and extract versions of the OpenAPI spec for diffing.
+- Add `engine/cmd/substrate/archaeology.go` to the CLI.
+- Run `go get github.com/go-git/go-git/v5` inside the `engine` directory to leverage `go-git` to walk the commit tree and extract versions of the OpenAPI spec for diffing.
 - Re-use the FinOps model in `engine/finops/` if available, or stub a simple cost multiplier.
 
 ═══════════════════════════════════════════════════════════════
 DELIVERABLES
 ═══════════════════════════════════════════════════════════════
-1. FILE: engine/cmd/archaeology.go (CREATE)
-   - Include `engine/cmd/archaeology_test.go`
+1. FILE: engine/cmd/substrate/archaeology.go (CREATE)
+   - Include `engine/cmd/substrate/archaeology_test.go`
 2. FILE: engine/archaeology/scanner.go (CREATE)
 3. Include unit tests `engine/archaeology/scanner_test.go`.
 4. Run `go test ./...`.
