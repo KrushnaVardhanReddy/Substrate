@@ -40,6 +40,22 @@ type MockStore struct {
 	GetDiffReportsByRepoFunc           func(ctx context.Context, orgName, repoName string, limit int) ([]DiffReportRecord, error)
 	UpdateDependencyStatusFunc         func(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, status string) error
 	GetConsumerManifestsFunc             func(ctx context.Context, providerRepo, consumerRepo string) (json.RawMessage, error)
+	GetPublicSchemaFunc                func(ctx context.Context, namespace, name, version string) (*PublicSchema, error)
+	PublishPublicSchemaFunc            func(ctx context.Context, namespace, name, version, schemaType, content string) error
+}
+
+func (m *MockStore) GetPublicSchema(ctx context.Context, namespace, name, version string) (*PublicSchema, error) {
+	if m.GetPublicSchemaFunc != nil {
+		return m.GetPublicSchemaFunc(ctx, namespace, name, version)
+	}
+	return nil, nil
+}
+
+func (m *MockStore) PublishPublicSchema(ctx context.Context, namespace, name, version, schemaType, content string) error {
+	if m.PublishPublicSchemaFunc != nil {
+		return m.PublishPublicSchemaFunc(ctx, namespace, name, version, schemaType, content)
+	}
+	return nil
 }
 
 func (m *MockStore) UpsertOrg(ctx context.Context, installationID int64, orgName string) (uuid.UUID, error) {

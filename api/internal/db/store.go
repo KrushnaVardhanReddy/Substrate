@@ -122,4 +122,23 @@ type Store interface {
 	UpdateStripeCustomerID(ctx context.Context, orgID uuid.UUID, stripeID string) error
 	GetBillingStatus(ctx context.Context, orgName string) (time.Time, *string, error)
 	GetConsumerManifests(ctx context.Context, providerRepo, consumerRepo string) (json.RawMessage, error)
+	GetPublicSchema(ctx context.Context, namespace, name, version string) (*PublicSchema, error)
+	PublishPublicSchema(ctx context.Context, namespace, name, version, schemaType, content string) error
+}
+
+type PublicNamespace struct {
+	ID        uuid.UUID `json:"id"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+type PublicSchema struct {
+	ID            uuid.UUID `json:"id"`
+	NamespaceID   uuid.UUID `json:"namespace_id"`
+	NamespaceName string    `json:"namespace_name,omitempty"`
+	Name          string    `json:"name"`
+	Version       string    `json:"version"`
+	SchemaType    string    `json:"schema_type"`
+	SchemaContent string    `json:"schema_content"`
+	CreatedAt     time.Time `json:"created_at"`
 }
