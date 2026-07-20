@@ -14,6 +14,12 @@
 		<div>
 			<h1 class="page-title">{data.repo}</h1>
 			<p class="page-subtitle">API Documentation and Service Details</p>
+
+			<div class="badge-snippet">
+				<span class="badge-label">Embed Badge:</span>
+				<code class="badge-code" data-testid="badge-snippet">[![Contract Score]({data.apiBaseUrl}/api/badges/{data.org}/{data.repo})]({data.dashboardUrl}/org/{data.org}/catalog/{data.repo})</code>
+				<button class="btn-copy" onclick={() => navigator.clipboard.writeText(`[![Contract Score](${data.apiBaseUrl}/api/badges/${data.org}/${data.repo})](${data.dashboardUrl}/org/${data.org}/catalog/${data.repo})`)}>Copy</button>
+			</div>
 		</div>
 		<a href={`https://github.com/${data.org}/${data.repo}`} target="_blank" rel="noopener noreferrer" class="btn-github">
 			View on GitHub
@@ -68,6 +74,48 @@
 	}
 
 	.btn-github:hover {
+		background-color: var(--bg-hover);
+	}
+
+	.badge-snippet {
+		margin-top: 16px;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		background: var(--bg-card);
+		border: 1px solid var(--border);
+		padding: 8px 12px;
+		border-radius: 6px;
+	}
+
+	.badge-label {
+		font-weight: 500;
+		color: var(--text-main);
+		font-size: 14px;
+	}
+
+	.badge-code {
+		font-family: monospace;
+		color: var(--text-muted);
+		font-size: 13px;
+		background: rgba(0,0,0,0.05);
+		padding: 4px 8px;
+		border-radius: 4px;
+		user-select: all;
+	}
+
+	.btn-copy {
+		background-color: var(--bg-card);
+		border: 1px solid var(--border);
+		color: var(--text-main);
+		padding: 4px 10px;
+		border-radius: 4px;
+		cursor: pointer;
+		font-size: 13px;
+		transition: background-color 0.2s;
+	}
+
+	.btn-copy:hover {
 		background-color: var(--bg-hover);
 	}
 

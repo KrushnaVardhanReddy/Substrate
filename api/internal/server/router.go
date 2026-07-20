@@ -114,6 +114,7 @@ func NewRouter(store db.Store, riverClient workers.JobEnqueuer, authConfig handl
 	// Public routes
 	r.Get("/api/v1/diff/{id}", handlers.GetDiffHandler(store))
 	r.Get("/api/v1/changelog/{org}/{repo}", handlers.ChangelogHandler(store))
+	r.Get("/api/badges/{org}/{repo}", handlers.BadgesHandler(store))
 
 	// Webhook for Postman integrations
 	ServeDashboard(r)
