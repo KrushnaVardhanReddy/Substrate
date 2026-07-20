@@ -134,6 +134,9 @@ type Store interface {
 	SaveDiffReport(ctx context.Context, diffReport json.RawMessage, isAuditMode bool, orgName, repoName string) (uuid.UUID, error)
 	GetDiffReport(ctx context.Context, id uuid.UUID) (json.RawMessage, error)
 	GetDiffReportsByRepo(ctx context.Context, orgName, repoName string, limit int) ([]DiffReportRecord, error)
+	CreatePreviewSession(ctx context.Context, prNumber int, diffID uuid.UUID, expiresAt time.Time) (uuid.UUID, error)
+	GetPreviewSession(ctx context.Context, token uuid.UUID) (json.RawMessage, time.Time, error)
+	ExpirePreviewSessionsForPR(ctx context.Context, prNumber int, orgName string, repoName string) error
 	RecordDriftAnomaly(ctx context.Context, anomaly DriftAnomaly) error
 	GetDriftAnomalies(ctx context.Context, orgName, repoName string) ([]DriftAnomaly, error)
 	RegisterWebhook(ctx context.Context, config WebhookConfig) error

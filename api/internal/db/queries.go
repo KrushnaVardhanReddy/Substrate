@@ -553,6 +553,41 @@ func SaveDiffReport(ctx context.Context, pool *pgxpool.Pool, diffReport json.Raw
 	return id, err
 }
 
+func (s *PGStore) CreatePreviewSession(ctx context.Context, prNumber int, diffID uuid.UUID, expiresAt time.Time) (uuid.UUID, error) {
+	var token uuid.UUID
+	err := s.pool.QueryRow(ctx, `
+		INSERT INTO preview_sessions (pr_number, diff_id, expires_at)
+		VALUES ($1, $2, $3)
+		RETURNING token
+	`, prNumber, diffID, expiresAt).Scan(&token)
+	return token, err
+}
+
+func (s *PGStore) GetPreviewSession(ctx context.Context, token uuid.UUID) (json.RawMessage, time.Time, error) {
+	var reportData json.RawMessage
+	var expiresAt time.Time
+	err := s.pool.QueryRow(ctx, `
+		SELECT d.report_data, p.expires_at
+		FROM preview_sessions p
+		JOIN diff_reports d ON p.diff_id = d.id
+		WHERE p.token = $1
+	`, token).Scan(&reportData, &expiresAt)
+	return reportData, expiresAt, err
+}
+
+func (s *PGStore) ExpirePreviewSessionsForPR(ctx context.Context, prNumber int, orgName string, repoName string) error {
+	_, err := s.pool.Exec(ctx, `
+		UPDATE preview_sessions p
+		SET expires_at = NOW() + INTERVAL '7 days'
+		FROM diff_reports d
+		WHERE p.diff_id = d.id
+		  AND p.pr_number = $1
+		  AND d.org_name = $2
+		  AND d.repo_name = $3
+	`, prNumber, orgName, repoName)
+	return err
+}
+
 func (s *PGStore) GetDiffReportsByRepo(ctx context.Context, orgName, repoName string, limit int) ([]DiffReportRecord, error) {
 	rows, err := s.pool.Query(ctx, `
 		SELECT report_data, created_at

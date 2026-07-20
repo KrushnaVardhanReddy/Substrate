@@ -119,6 +119,37 @@ export default {
     const pushEvent = isGitea ? parseGiteaPushEvent(request.headers, body) : parseGitHubPushEvent(request.headers, body);
     const prEvent = isGitea ? parseGiteaPREvent(request.headers, body) : parseGitHubPREvent(request.headers, body);
 
+    let payloadStr = body;
+    let prAction = '';
+    let eventType = request.headers.get('X-GitHub-Event');
+    try {
+      const parsed = JSON.parse(payloadStr);
+      prAction = parsed.action;
+    } catch(e) {}
+
+    // Handle PR Close specifically for expiring preview tokens
+    if (eventType === 'pull_request' && (prAction === 'closed' || prAction === 'merged') && prEvent) {
+      if (env.REGISTRY_API_URL) {
+        try {
+          await fetch(`${env.REGISTRY_API_URL}/api/v1/preview/expire-pr`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${env.REGISTRY_API_TOKEN}`
+            },
+            body: JSON.stringify({
+              org: prEvent.owner,
+              repo: prEvent.repo,
+              pr_number: prEvent.prNumber
+            })
+          });
+        } catch (e) {
+          console.error("Failed to expire preview session:", e);
+        }
+      }
+      return new Response('PR Closed/Merged Processed', { status: 200 });
+    }
+
     if (!pushEvent && !prEvent) {
       console.log('Ignored: No valid push or PR event parsed');
       return new Response('Ignored', { status: 200 });
@@ -368,6 +399,7 @@ export default {
       }
 
       // Save diff report to the API
+      let previewToken: string | undefined;
       let diffId: string | undefined;
       const schemaType = config.schema_type || 'openapi';
       if (env.REGISTRY_API_URL) {
@@ -394,6 +426,7 @@ export default {
           if (saveRes.ok) {
             const saveData = await saveRes.json() as any;
             diffId = saveData.id;
+            previewToken = saveData.preview_token;
           } else {
             console.error(`Failed to save diff, status: ${saveRes.status}`);
           }
@@ -457,7 +490,7 @@ export default {
       }
 
       // Step 10: Post PR comment
-      let commentBody = formatPRComment(diffReport, config, env.DASHBOARD_URL, event.owner, event.repo, event.prNumber, aiExplanation, aiSafePatch, diffId);
+      let commentBody = formatPRComment(diffReport, config, env.DASHBOARD_URL, event.owner, event.repo, event.prNumber, aiExplanation, aiSafePatch, previewToken);
       if (crossRepoSection) {
         commentBody += "\n" + crossRepoSection;
       }
