@@ -490,3 +490,78 @@ func GetConsumerManifests(ctx context.Context, pool *pgxpool.Pool, providerRepo,
 	}
 	return consumedFields, nil
 }
+
+func (s *PGStore) RegisterAgent(ctx context.Context, repoName, owner string, tools []AgentToolDependency) (uuid.UUID, error) {
+	return RegisterAgent(ctx, s.pool, repoName, owner, tools)
+}
+
+func RegisterAgent(ctx context.Context, pool *pgxpool.Pool, repoName, owner string, tools []AgentToolDependency) (uuid.UUID, error) {
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	var agentID uuid.UUID
+	err = tx.QueryRow(ctx, `
+		INSERT INTO agent_consumers (repo_name, owner)
+		VALUES ($1, $2)
+		ON CONFLICT (owner, repo_name) DO UPDATE SET repo_name = EXCLUDED.repo_name
+		RETURNING id
+	`, repoName, owner).Scan(&agentID)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("failed to insert agent consumer: %w", err)
+	}
+
+	_, err = tx.Exec(ctx, "DELETE FROM agent_tool_dependencies WHERE agent_id = $1", agentID)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("failed to delete old tools: %w", err)
+	}
+
+	for _, tool := range tools {
+		_, err = tx.Exec(ctx, `
+			INSERT INTO agent_tool_dependencies (agent_id, tool_name, parameters_jsonb)
+			VALUES ($1, $2, $3)
+		`, agentID, tool.ToolName, tool.ParametersJSON)
+		if err != nil {
+			return uuid.Nil, fmt.Errorf("failed to insert agent tool dependency: %w", err)
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return uuid.Nil, fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return agentID, nil
+}
+
+func (s *PGStore) GetAgentsByTool(ctx context.Context, toolName string) ([]AgentConsumer, error) {
+	return GetAgentsByTool(ctx, s.pool, toolName)
+}
+
+func GetAgentsByTool(ctx context.Context, pool *pgxpool.Pool, toolName string) ([]AgentConsumer, error) {
+	rows, err := pool.Query(ctx, `
+		SELECT ac.id, ac.repo_name, ac.owner, ac.created_at
+		FROM agent_consumers ac
+		JOIN agent_tool_dependencies atd ON ac.id = atd.agent_id
+		WHERE atd.tool_name = $1
+	`, toolName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query agents by tool: %w", err)
+	}
+	defer rows.Close()
+
+	var agents []AgentConsumer
+	for rows.Next() {
+		var a AgentConsumer
+		if err := rows.Scan(&a.ID, &a.RepoName, &a.Owner, &a.CreatedAt); err != nil {
+			return nil, fmt.Errorf("failed to scan agent consumer: %w", err)
+		}
+		agents = append(agents, a)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows iteration error: %w", err)
+	}
+
+	return agents, nil
+}
