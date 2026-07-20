@@ -34,7 +34,7 @@
 | P15-T08 Marketplace | `13975671091067464539` |
 | P15-T10 Schema Insurance | `16979089870785470024` |
 | P14-T04 Contract Badge | `12765288448818719108` |
-| P14-T05 Archaeology CLI | `14134495198760945095` |
+| P14-T05 Archaeology CLI | `11342243673025757125` |
 
 ### Wave 8 — (Phase 9 — All New Files)
 | Task ID | Script Key | Conflict Notes |
