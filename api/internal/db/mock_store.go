@@ -30,6 +30,7 @@ type MockStore struct {
 	CountDownstreamDependenciesFunc    func(ctx context.Context, providerFullName string) (int, error)
 	RecordBreakingChangeFunc           func(ctx context.Context, repoID uuid.UUID, orgName, repoName, gitSHA string, breakingChanges json.RawMessage) error
 	GetBreakingChangeHistoryFunc       func(ctx context.Context, orgName, repoName string, limit int) ([]BreakingChangeRecord, error)
+	GetBreakingChangesBetweenFunc      func(ctx context.Context, since, until time.Time) ([]BreakingChangeRecord, error)
 	RegisterWebhookFunc                func(ctx context.Context, config WebhookConfig) error
 	GetWebhooksFunc                    func(ctx context.Context, org string) ([]WebhookConfig, error)
 	GetROIMetricsFunc                  func(ctx context.Context, orgID string) (ROIMetrics, error)
@@ -172,6 +173,14 @@ func (m *MockStore) RecordBreakingChange(ctx context.Context, repoID uuid.UUID, 
 		return m.RecordBreakingChangeFunc(ctx, repoID, orgName, repoName, gitSHA, breakingChanges)
 	}
 	return nil
+}
+
+
+func (m *MockStore) GetBreakingChangesBetween(ctx context.Context, since, until time.Time) ([]BreakingChangeRecord, error) {
+	if m.GetBreakingChangesBetweenFunc != nil {
+		return m.GetBreakingChangesBetweenFunc(ctx, since, until)
+	}
+	return nil, nil
 }
 
 func (m *MockStore) GetBreakingChangeHistory(ctx context.Context, orgName, repoName string, limit int) ([]BreakingChangeRecord, error) {

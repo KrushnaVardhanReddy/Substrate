@@ -466,6 +466,7 @@ func main() {
 	rootCmd.AddCommand(generateTestsCmd)
 	rootCmd.AddCommand(mockCmd)
 	rootCmd.AddCommand(checkDeployCmd)
+	rootCmd.AddCommand(postmortemCmd)
 	rootCmd.AddCommand(checkRollbackCmd)
 	rootCmd.AddCommand(gatewayCmd)
 	rootCmd.AddCommand(lintCmd)
