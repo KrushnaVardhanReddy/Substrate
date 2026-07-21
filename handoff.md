@@ -64,19 +64,13 @@
 | P15-T13 Phase 15 E2E | `1513` | New `scripts/e2e/` file ✓ |
 
 
-### Wave 12 — (Phase 9+10 — 1 formatter.ts touch)
-| Task ID | Script Key | Conflict Notes |
-|---|---|---|
-| P9-T13 Mermaid Blast Radius | `913` | ⚠️ modifies `formatter.ts` |
-| P9-T04 Quality Gates | `904` | New `engine/gates/` + `checks.ts` ✓ |
-| P10-T20 Phase 10 E2E | `1020` | New `scripts/e2e/` file ✓ |
-| P9-T06 Viper Config | `906` | Modifies all `os.Getenv` Go files |
-```bash
-python3 scripts/jules_submit.py --task 913 && \
-python3 scripts/jules_submit.py --task 904 && \
-python3 scripts/jules_submit.py --task 1020 && \
-python3 scripts/jules_submit.py --task 906
-```
+### Wave 12 — RUNNING (Phase 9+10 — 1 formatter.ts touch)
+| Task ID | Jules ID |
+|---|---|
+| P9-T13 Mermaid Blast Radius | `9797585847433362378` |
+| P9-T04 Quality Gates | `17462911419978641490` |
+| P10-T20 Phase 10 E2E | `8954309360691061006` |
+| P9-T06 Viper Config | `5081940009452583220` |
 
 ### Wave 13 — (High-Risk Refactors — Trigger Last)
 > ⚠️ These two tasks are the highest conflict risk. Trigger them together after all other waves are merged.
