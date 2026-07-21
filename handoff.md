@@ -72,17 +72,13 @@
 | P10-T20 Phase 10 E2E | `8954309360691061006` |
 | P9-T06 Viper Config | `5081940009452583220` |
 
-### Wave 13 — (High-Risk Refactors — Trigger Last)
+### Wave 13 — RUNNING (High-Risk Refactors — Trigger Last)
 > ⚠️ These two tasks are the highest conflict risk. Trigger them together after all other waves are merged.
 
-| Task ID | Script Key | Conflict Notes |
-|---|---|---|
-| P10-T19 CRM/Billing Blast Radius | `1019` | ⚠️ modifies `formatter.ts` |
-| P9-T05 Hexagonal Architecture | `905` | Refactors many Go handler files |
-```bash
-python3 scripts/jules_submit.py --task 1019 && \
-python3 scripts/jules_submit.py --task 905
-```
+| Task ID | Jules ID |
+|---|---|
+| P10-T19 CRM/Billing Blast Radius | `1883281273610373932` |
+| P9-T05 Hexagonal Architecture | `17783096233236153624` |
 
 ### Wave 14 — (Phase 15 — On-Premise)
 | Task ID | Script Key | Conflict Notes |
