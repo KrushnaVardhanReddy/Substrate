@@ -2,8 +2,10 @@ package main
 
 import (
 	"bytes"
+	"github.com/spf13/viper"
 	"net/http"
 	"os/exec"
+	"strings"
 	"testing"
 	"time"
 )
@@ -35,7 +37,7 @@ func TestMockCmdE2E(t *testing.T) {
 		}
 	}()
 
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(2000 * time.Millisecond)
 
 	resp, err := http.Get("http://localhost:8091/")
 	if err != nil {
@@ -46,4 +48,9 @@ func TestMockCmdE2E(t *testing.T) {
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("expected status 200, got %d", resp.StatusCode)
 	}
+}
+
+func init() {
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/spf13/viper"
 	"log"
 	"os"
 
@@ -22,6 +23,7 @@ var gatewaySyncCmd = &cobra.Command{
 	Short: "Push local schema to configured API Gateways",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfgPath, _ := cmd.Flags().GetString("config")
+		viper.BindPFlags(cmd.Flags())
 		cfg, err := config.LoadConfig(cfgPath)
 		if err != nil {
 			return fmt.Errorf("failed to load config: %w", err)
@@ -77,6 +79,7 @@ var gatewaySyncCmd = &cobra.Command{
 
 func init() {
 	gatewaySyncCmd.Flags().String("config", "substrate.yaml", "Path to config file")
+	viper.BindPFlags(gatewaySyncCmd.Flags())
 	gatewayCmd.AddCommand(gatewaySyncCmd)
 	// rootCmd is defined in main.go and we add it there or here explicitly if it's exported.
 	// We'll export it in main.go by assigning it or we can just keep it as var if it's in the same package.

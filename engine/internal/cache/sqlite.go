@@ -24,8 +24,8 @@ type Cache struct {
 }
 
 type GraphNode struct {
-	Repo     string `json:"repo"`
-	Type     string `json:"type"`
+	Repo string `json:"repo"`
+	Type string `json:"type"`
 }
 
 type GraphEdge struct {

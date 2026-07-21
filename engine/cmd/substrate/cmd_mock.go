@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/KrushnaVardhanReddy/substrate/engine/pkg/mockserver"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var mockTimestamp string
@@ -26,4 +27,5 @@ var mockCmd = &cobra.Command{
 func init() {
 	mockCmd.Flags().StringVar(&mockTimestamp, "timestamp", "", "Historical timestamp (YYYY-MM-DD)")
 	mockCmd.Flags().IntVar(&mockPort, "port", 8081, "Port to run the mock server on")
+	viper.BindPFlags(mockCmd.Flags())
 }

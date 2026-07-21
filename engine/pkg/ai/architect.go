@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/spf13/viper"
 	"io"
 	"os"
 	"strings"
@@ -48,9 +49,9 @@ func RunArchitect(in io.Reader, out io.Writer) error {
 		return errors.New("input cannot be empty")
 	}
 
-	apiKey := os.Getenv("SUBSTRATE_AI_API_KEY")
-	baseURL := os.Getenv("SUBSTRATE_AI_BASE_URL")
-	model := os.Getenv("SUBSTRATE_AI_MODEL")
+	apiKey := viper.GetString("SUBSTRATE_AI_API_KEY")
+	baseURL := viper.GetString("SUBSTRATE_AI_BASE_URL")
+	model := viper.GetString("SUBSTRATE_AI_MODEL")
 
 	// Apply Fallback behavior: "must implement deterministic fallback mock responses when SUBSTRATE_AI_BASE_URL is unset"
 	// However, if the API key is set, maybe it's just meant for local OpenAI? The memory specifically says "when SUBSTRATE_AI_BASE_URL is unset" for AI endpoints...
@@ -66,7 +67,7 @@ func RunArchitect(in io.Reader, out io.Writer) error {
 	}
 
 	if apiKey == "" {
-		provider := os.Getenv("SUBSTRATE_AI_PROVIDER")
+		provider := viper.GetString("SUBSTRATE_AI_PROVIDER")
 		if provider != "ollama" {
 			return ErrMissingAPIKey
 		}

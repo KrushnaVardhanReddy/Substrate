@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/spf13/viper"
 	"net/http"
-	"os"
 	"regexp"
 
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
@@ -56,7 +56,7 @@ func Audit(rep *report.DiffReport) {
 }
 
 func notifySecurityTeam(alert report.ComplianceAlert) {
-	webhookURL := os.Getenv("SUBSTRATE_SLACK_WEBHOOK")
+	webhookURL := viper.GetString("SUBSTRATE_SLACK_WEBHOOK")
 	if webhookURL == "" {
 		return
 	}

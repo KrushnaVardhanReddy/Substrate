@@ -5,10 +5,10 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/graphql"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/KrushnaVardhanReddy/substrate/engine/internal/graphql"
 )
 
 func TestCompareGraphQL(t *testing.T) {

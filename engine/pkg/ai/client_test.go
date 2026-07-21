@@ -1,8 +1,9 @@
 package ai
 
 import (
+	"github.com/spf13/viper"
+	"strings"
 	"testing"
-
 )
 
 // Ensure we test the AI provider switching without making actual HTTP calls
@@ -96,4 +97,9 @@ func TestNewAIClient(t *testing.T) {
 			}
 		})
 	}
+}
+
+func init() {
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 }

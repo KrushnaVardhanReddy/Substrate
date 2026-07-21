@@ -3,6 +3,7 @@ package mcp
 import (
 	"context"
 	"encoding/json"
+	"github.com/spf13/viper"
 	"os"
 	"os/exec"
 	"testing"
@@ -244,7 +245,7 @@ func TestDiffMCPState(t *testing.T) {
 
 // TestHelperProcess isn't a real test; it's a helper process for TestCaptureMCPState.
 func TestHelperProcess(t *testing.T) {
-	if os.Getenv("GO_WANT_HELPER_PROCESS") != "1" {
+	if viper.GetString("GO_WANT_HELPER_PROCESS") != "1" {
 		return
 	}
 

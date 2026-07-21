@@ -44,11 +44,11 @@ func TestGenerateImpactSummary(t *testing.T) {
 		expected  string
 	}{
 		{
-			name: "no changes",
-			changes: []Change{},
+			name:      "no changes",
+			changes:   []Change{},
 			consumers: []Repo{{Name: "repo1"}},
-			mockResp: []string{},
-			expected: "No breaking changes detected.",
+			mockResp:  []string{},
+			expected:  "No breaking changes detected.",
 		},
 		{
 			name: "with changes",
@@ -56,8 +56,8 @@ func TestGenerateImpactSummary(t *testing.T) {
 				{RuleID: "TEST", Path: "/test", Description: "removed"},
 			},
 			consumers: []Repo{{Name: "repo1"}},
-			mockResp: []string{"Impact ", "is ", "bad."},
-			expected: "Impact is bad.",
+			mockResp:  []string{"Impact ", "is ", "bad."},
+			expected:  "Impact is bad.",
 		},
 	}
 

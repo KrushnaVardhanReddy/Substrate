@@ -3,10 +3,14 @@ package config
 import (
 	"errors"
 	"fmt"
+	"github.com/joho/godotenv"
 	"os"
 	"time"
 
 	"gopkg.in/yaml.v3"
+
+	"github.com/spf13/viper"
+	"strings"
 )
 
 type ConsumerDependency struct {
@@ -94,7 +98,6 @@ type SubstrateConfig struct {
 	Deprecations []Deprecation        `yaml:"deprecations,omitempty"`
 	Compliance   *ComplianceConfig    `yaml:"compliance,omitempty"`
 }
-
 
 type ComplianceConfig struct {
 	Patterns map[string]string `yaml:"patterns,omitempty"`
@@ -343,4 +346,29 @@ func (c *SubstrateConfig) IsOverrideActive(ruleID, path string) bool {
 		}
 	}
 	return false
+}
+
+// InitConfig initializes Viper for the CLI application
+func InitConfig() {
+	// Load .env if it exists
+	_ = godotenv.Load()
+
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+
+	// Default paths for substrate.yaml
+	viper.SetConfigName("substrate")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath(".")
+
+	// Ignore err if file doesn't exist
+	_ = viper.ReadInConfig()
+}
+
+func init() {
+	// Load .env if it exists
+	_ = godotenv.Load()
+
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 }

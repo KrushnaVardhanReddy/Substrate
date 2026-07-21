@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
+	"github.com/spf13/viper"
 
 	"github.com/sashabaranov/go-openai"
 )
@@ -53,9 +53,9 @@ func (c *openaiClientWrapper) CreateChatCompletionStream(ctx context.Context, re
 }
 
 func NewAIClient() (AIClient, error) {
-	provider := os.Getenv("SUBSTRATE_AI_PROVIDER")
-	apiKey := os.Getenv("SUBSTRATE_AI_API_KEY")
-	baseURL := os.Getenv("SUBSTRATE_AI_BASE_URL")
+	provider := viper.GetString("SUBSTRATE_AI_PROVIDER")
+	apiKey := viper.GetString("SUBSTRATE_AI_API_KEY")
+	baseURL := viper.GetString("SUBSTRATE_AI_BASE_URL")
 
 	if provider == "" || provider == "openai" {
 		config := openai.DefaultConfig(apiKey)

@@ -3,6 +3,7 @@ package ai
 import (
 	"bytes"
 	"fmt"
+	"github.com/spf13/viper"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -36,17 +37,17 @@ func TestRunArchitect(t *testing.T) {
 			expectedError: "SUBSTRATE_AI_API_KEY environment variable is required",
 		},
 		{
-			name:          "Missing API key allowed for Ollama",
-			input:         "test\n",
-			apiKey:        "",
-			baseURL:       "MOCK_SERVER", // We use mock server for this to avoid actual network call
-			mockResponse:  "data: {\"choices\": [{\"delta\": {\"content\": \"```yaml\\nopenapi: 3.0.0\\n```\"}}]}\n\ndata: [DONE]\n\n",
-			expectedError: "",
+			name:           "Missing API key allowed for Ollama",
+			input:          "test\n",
+			apiKey:         "",
+			baseURL:        "MOCK_SERVER", // We use mock server for this to avoid actual network call
+			mockResponse:   "data: {\"choices\": [{\"delta\": {\"content\": \"```yaml\\nopenapi: 3.0.0\\n```\"}}]}\n\ndata: [DONE]\n\n",
+			expectedError:  "",
 			expectedFile:   "openapi: 3.0.0\n",
 			expectedOutput: "openapi: 3.0.0",
 		},
 		{
-			name:          "Bedrock mock server",
+			name:           "Bedrock mock server",
 			input:          "users api\n",
 			apiKey:         "test-key",
 			baseURL:        "MOCK_SERVER", // Will be replaced in test setup
@@ -185,4 +186,9 @@ func TestExtractYAML(t *testing.T) {
 			}
 		})
 	}
+}
+
+func init() {
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 }

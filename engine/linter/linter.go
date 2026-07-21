@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/spf13/viper"
 	"io"
-	"os"
 	"strings"
 	"time"
 
@@ -38,10 +38,10 @@ const FallbackMockResponse = `{
 }`
 
 func Analyze(ctx context.Context, schema []byte) (int, []Issue, error) {
-	baseURL := os.Getenv("SUBSTRATE_AI_BASE_URL")
-	apiKey := os.Getenv("OPENAI_API_KEY")
+	baseURL := viper.GetString("SUBSTRATE_AI_BASE_URL")
+	apiKey := viper.GetString("OPENAI_API_KEY")
 	if apiKey == "" {
-		apiKey = os.Getenv("SUBSTRATE_AI_API_KEY")
+		apiKey = viper.GetString("SUBSTRATE_AI_API_KEY")
 	}
 
 	if baseURL == "" && apiKey == "" {

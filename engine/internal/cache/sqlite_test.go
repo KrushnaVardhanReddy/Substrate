@@ -25,7 +25,7 @@ func TestInitCache(t *testing.T) {
 	if cache == nil {
 		t.Fatal("expected cache to not be nil")
 	}
-	
+
 	// Reset GlobalCache for other tests
 	GlobalCache = nil
 }
@@ -50,7 +50,7 @@ func TestSyncFromRemote(t *testing.T) {
 		{Provider: "org/repo1", Consumer: "org/repo2", Status: "SAFE"},
 		{Provider: "org/repo1", Consumer: "org/repo3", Status: "WARNING"},
 	}
-	
+
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/api/v1/graph/org" {
 			t.Errorf("expected path /api/v1/graph/org, got %s", r.URL.Path)
@@ -87,7 +87,7 @@ func TestSyncFromRemote(t *testing.T) {
 	if len(results) != 2 {
 		t.Fatalf("expected 2 results, got %d", len(results))
 	}
-	
+
 	// Check content
 	found1 := false
 	found2 := false

@@ -10,10 +10,10 @@ import (
 
 func TestScanOpenAPISchema(t *testing.T) {
 	tests := []struct {
-		name          string
-		schema        *openapi3.Schema
-		cfg           *config.SubstrateConfig
-		expectedTags  map[string][]string
+		name         string
+		schema       *openapi3.Schema
+		cfg          *config.SubstrateConfig
+		expectedTags map[string][]string
 	}{
 		{
 			name: "Detect GDPR from property name",

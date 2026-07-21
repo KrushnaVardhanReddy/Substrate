@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/spf13/viper"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -78,4 +80,9 @@ func TestGeneratePostMortem_NoChanges(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Contains(t, buf.String(), "No breaking changes found")
+}
+
+func init() {
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 }

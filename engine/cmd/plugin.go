@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/spf13/viper"
 	"io"
 	"net/http"
 	"os"
@@ -34,7 +35,7 @@ var publishCmd = &cobra.Command{
 			return fmt.Errorf("invalid plugin json: %w", err)
 		}
 
-		apiURL := os.Getenv("SUBSTRATE_API_URL")
+		apiURL := viper.GetString("SUBSTRATE_API_URL")
 		if apiURL == "" {
 			apiURL = "http://localhost:8090"
 		}
@@ -73,7 +74,7 @@ var installCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		pluginName := args[0]
 
-		apiURL := os.Getenv("SUBSTRATE_API_URL")
+		apiURL := viper.GetString("SUBSTRATE_API_URL")
 		if apiURL == "" {
 			apiURL = "http://localhost:8090"
 		}

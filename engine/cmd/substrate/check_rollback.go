@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/spf13/viper"
 	"net/http"
 	"os"
 	"strings"
@@ -25,7 +26,7 @@ var checkRollbackCmd = &cobra.Command{
 	Use:   "check-rollback",
 	Short: "Check if a rollback is safe by verifying its downstream providers",
 	Run: func(cmd *cobra.Command, args []string) {
-		registryApiToken := os.Getenv("REGISTRY_API_TOKEN")
+		registryApiToken := viper.GetString("REGISTRY_API_TOKEN")
 		if registryApiToken == "" {
 			fmt.Fprintln(os.Stderr, "Error: REGISTRY_API_TOKEN environment variable is not set")
 			os.Exit(3)
@@ -48,7 +49,7 @@ var checkRollbackCmd = &cobra.Command{
 		org := parts[0]
 		repo := parts[1]
 
-		apiURL := os.Getenv("SUBSTRATE_API_URL")
+		apiURL := viper.GetString("SUBSTRATE_API_URL")
 		if apiURL == "" {
 			apiURL = "http://localhost:8090"
 		}
@@ -104,4 +105,5 @@ var checkRollbackCmd = &cobra.Command{
 func init() {
 	checkRollbackCmd.Flags().StringVar(&rollbackRepoArg, "repo", "", "The provider repository (e.g., org/repo)")
 	checkRollbackCmd.Flags().StringVar(&rollbackTargetSha, "target-sha", "", "The target commit SHA to rollback to")
+	viper.BindPFlags(checkRollbackCmd.Flags())
 }

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/KrushnaVardhanReddy/substrate/engine/spectral"
+	"github.com/spf13/viper"
 	"log"
 	"os"
 	"os/exec"
@@ -39,6 +40,7 @@ var modeFlag string
 var governanceRules []string
 
 func main() {
+	config.InitConfig()
 	tp, err := telemetry.InitTracer(context.Background(), "substrate-engine")
 	if err != nil {
 		log.Printf("[substrate-engine] failed to init tracer: %v\n", err)
@@ -50,17 +52,17 @@ func main() {
 		}()
 	}
 
-	cacheDir := filepath.Join(os.Getenv("HOME"), ".substrate")
+	cacheDir := filepath.Join(viper.GetString("HOME"), ".substrate")
 	os.MkdirAll(cacheDir, 0755)
 	c, err := cache.InitCache(filepath.Join(cacheDir, "cache.db"))
-	if err == nil && os.Getenv("SUBSTRATE_DISABLE_CACHE_SYNC") != "1" {
+	if err == nil && viper.GetString("SUBSTRATE_DISABLE_CACHE_SYNC") != "1" {
 		go func() {
-			apiURL := os.Getenv("SUBSTRATE_API_URL")
+			apiURL := viper.GetString("SUBSTRATE_API_URL")
 			if apiURL == "" {
 				apiURL = "http://localhost:8090"
 			}
-			apiToken := os.Getenv("REGISTRY_API_TOKEN")
-			org := os.Getenv("SUBSTRATE_ORG")
+			apiToken := viper.GetString("REGISTRY_API_TOKEN")
+			org := viper.GetString("SUBSTRATE_ORG")
 			if org == "" {
 				org = "default"
 			}
@@ -262,8 +264,8 @@ func main() {
 				fmt.Println(string(output))
 
 				// Post to API if configured
-				apiURL := os.Getenv("SUBSTRATE_API_URL")
-				apiToken := os.Getenv("REGISTRY_API_TOKEN")
+				apiURL := viper.GetString("SUBSTRATE_API_URL")
+				apiToken := viper.GetString("REGISTRY_API_TOKEN")
 				if apiURL != "" && apiToken != "" {
 					payload := map[string]interface{}{
 						"diff_report":   rep,
@@ -423,6 +425,7 @@ func main() {
 	diffCmd.Flags().StringVar(&schemaType, "schema-type", "", "Force schema type")
 	diffCmd.Flags().StringVar(&modeFlag, "mode", "", "Execution mode: strict, legacy, or audit")
 	diffCmd.Flags().StringSliceVar(&governanceRules, "governance-rules", []string{}, "Governance rules to apply")
+	viper.BindPFlags(diffCmd.Flags())
 
 	var validateCmd = &cobra.Command{
 		Use:   "validate [spec-file]",
@@ -471,6 +474,7 @@ func main() {
 	initCmd.Flags().BoolVar(&initOptions.NoWorkflow, "no-workflow", false, "Skip generating .github/workflows/substrate.yml")
 	initCmd.Flags().BoolVar(&initOptions.NoConfig, "no-config", false, "Skip generating substrate.yaml")
 	initCmd.Flags().BoolVar(&designFlag, "design", false, "Start AI architect to scaffold your API spec")
+	viper.BindPFlags(initCmd.Flags())
 
 	var port string
 	var serveCmd = &cobra.Command{
@@ -484,6 +488,7 @@ func main() {
 		},
 	}
 	serveCmd.Flags().StringVar(&port, "port", "8080", "Port to listen on")
+	viper.BindPFlags(serveCmd.Flags())
 
 	rootCmd.AddCommand(diffCmd)
 	rootCmd.AddCommand(validateCmd)

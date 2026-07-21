@@ -95,9 +95,9 @@ func TestRunJSRule(t *testing.T) {
 			wantErr:    true,
 		},
 		{
-			name:   "Returns undefined implicit pass",
-			script: "function validate(schema) { }",
-			schema: map[string]interface{}{},
+			name:       "Returns undefined implicit pass",
+			script:     "function validate(schema) { }",
+			schema:     map[string]interface{}{},
 			wantErrMsg: "",
 			wantErr:    false,
 		},

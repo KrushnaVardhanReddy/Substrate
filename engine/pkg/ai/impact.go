@@ -50,7 +50,7 @@ Limit your response to 200 tokens.`, changesJSON, consumersJSON)
 			},
 		},
 		MaxTokens: 200,
-		Stream: true,
+		Stream:    true,
 	}
 
 	stream, err := llmClient.CreateChatCompletionStream(ctx, req)
