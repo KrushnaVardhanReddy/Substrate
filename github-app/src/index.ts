@@ -462,7 +462,7 @@ export default {
           consumers = crossRepoResponse.results.map(r => r.consumer_repo);
         }
         if (consumers.length > 0) {
-          await processDeprecations(token, diffReport.deprecations, consumers);
+          await processDeprecations((provider as any).token || '', diffReport.deprecations, crossRepoResponse);
         }
       }
 
@@ -501,8 +501,46 @@ export default {
         }
       }
 
+      // Step 9.5: Fetch Risk Score
+      let riskScore: string | undefined = undefined;
+      try {
+        const breaking_changes_count = diffReport?.summary?.breaking_count || 0;
+        const blast_radius_node_count = crossRepoResponse?.total_consumers || 0;
+        const riskInputs = {
+          breaking_changes_count,
+          blast_radius_node_count,
+          has_db_migrations: false,
+          e2e_tests_pass: true
+        };
+
+        if (env.CONTAINER_SERVICE_URL) {
+          const riskUrlStr = `${env.CONTAINER_SERVICE_URL}/api/v1/risk/${eventOwner}/${eventRepo}/${event.prNumber}?breaking_changes_count=${riskInputs.breaking_changes_count}&blast_radius_node_count=${riskInputs.blast_radius_node_count}&has_db_migrations=${riskInputs.has_db_migrations}&e2e_tests_pass=${riskInputs.e2e_tests_pass}`;
+
+          try {
+            const riskRes = await fetch(riskUrlStr, {
+              headers: { 'Content-Type': 'application/json' }
+            });
+            if (riskRes && typeof riskRes.json === 'function') {
+              try {
+                const riskData = await riskRes.json() as any;
+                if (riskData && riskData.score) {
+                  riskScore = riskData.score;
+                }
+              } catch (e) {
+                // ignore
+              }
+            }
+          } catch (e) {
+            // ignore network errors
+          }
+        }
+      } catch (e) {
+        console.error("Failed to fetch risk score:", e);
+      }
+
       // Step 10: Post PR comment
-      let commentBody = formatPRComment(diffReport, config, env.DASHBOARD_URL, event.owner, event.repo, event.prNumber, aiExplanation, aiSafePatch, previewToken);
+      let commentBody = formatPRComment(diffReport, config, env.DASHBOARD_URL, event.owner, event.repo, event.prNumber, aiExplanation, aiSafePatch, previewToken, riskScore);
+
       if (crossRepoSection) {
         commentBody += "\n" + crossRepoSection;
       }
