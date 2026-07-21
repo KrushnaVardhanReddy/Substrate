@@ -160,60 +160,6 @@ This generates a \`substrate.yaml\` in 30 seconds. [View setup guide →](https:
 
 
 
-export function getCommitStatusState(
-  report: DiffReport,
-  config: SubstrateConfig,
-  crossRepo?: CrossRepoCheckResponse
-): 'success' | 'failure' {
-  if (config.mode === 'audit') {
-    return 'success';
-  }
-
-  const breakingCount = report.summary?.breaking_count || 0;
-
-  if (crossRepo?.is_safe === false) {
-    return 'failure';
-  }
-
-  if (breakingCount === 0) {
-    return 'success';
-  }
-
-  const onBreakingChange = config.on_breaking_change || 'block';
-
-  if (onBreakingChange === 'warn') {
-    return 'success';
-  }
-
-  return 'failure';
-}
-
-export function getCommitStatusDescription(
-  report: DiffReport,
-  crossRepo?: CrossRepoCheckResponse,
-  config?: SubstrateConfig
-): string {
-  const breakingCount = report.summary?.breaking_count || 0;
-
-  let description = '';
-
-  if (breakingCount > 0 && crossRepo?.is_safe === false) {
-    description = `${breakingCount} breaking change(s) detected — ${crossRepo.broken_consumers} consumer(s) affected`;
-  } else if (breakingCount > 0) {
-    description = `${breakingCount} breaking change(s) detected`;
-  } else if (crossRepo?.is_safe === false) {
-    description = `${crossRepo.broken_consumers} downstream consumer(s) affected by this change`;
-  } else {
-    description = 'All clear — no breaking changes';
-  }
-
-  if (config?.mode === 'audit' && breakingCount > 0) {
-    description += ' (Audit Mode: Non-blocking)';
-  }
-
-  return description;
-}
-
 export function formatCrossRepoImpact(response: CrossRepoCheckResponse): string {
   if (response.total_consumers === 0) {
     return '';
