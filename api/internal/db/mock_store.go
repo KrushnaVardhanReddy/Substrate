@@ -430,3 +430,8 @@ func (m *MockStore) DeleteGovernanceRule(ctx context.Context, ruleID uuid.UUID, 
 	}
 	return nil
 }
+
+
+func (m *MockStore) GetCRMSecrets(ctx context.Context, orgName string) (stripeKey, sfURL, sfToken, sfClientID, sfClientSecret, sfUsername, sfPassword string, err error) {
+	return "", "", "", "", "", "", "", nil
+}

@@ -10,6 +10,8 @@ import (
 
 	pkgconsumers "github.com/KrushnaVardhanReddy/substrate/api/internal/consumers"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/engine/crm"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/crypto"
 )
 
 type CrossRepoCheckRequest struct {
@@ -58,6 +60,8 @@ type CrossRepoCheckResponse struct {
 	IsSafe          bool             `json:"is_safe"`
 	Results         []ConsumerResult `json:"results"`
 	SLABreaches     []SLABreach      `json:"sla_breaches,omitempty"`
+	AffectedCustomers int            `json:"affected_customers,omitempty"`
+	AffectedMRR       float64        `json:"affected_mrr,omitempty"`
 }
 
 // PerformCrossRepoCheck extracts the core logic of CrossRepoCheckHandler.
@@ -71,6 +75,36 @@ func PerformCrossRepoCheck(ctx context.Context, store db.Store, req CrossRepoChe
 		IsSafe:      true,
 		Results:     []ConsumerResult{},
 		SLABreaches: []SLABreach{},
+	}
+
+
+	// P10-T19: CRM/Billing Blast Radius
+	var affectedCustomers int
+	var affectedMRR float64
+	var stripeClient *crm.StripeClient
+	var sfClient *crm.SalesforceClient
+
+	stripeKeyEnc, sfURLEnc, sfTokenEnc, sfClientIDEnc, sfClientSecretEnc, sfUserEnc, sfPassEnc, err := store.GetCRMSecrets(ctx, req.Org)
+	if err == nil {
+		mockKMS, _ := crypto.NewMockKMSClient("")
+		// Initialize Stripe if configured
+		if stripeKeyEnc != "" {
+			key, err := mockKMS.Decrypt([]byte(stripeKeyEnc), "")
+			if err == nil {
+				stripeClient = crm.NewStripeClient(string(key))
+			}
+		}
+
+		// Initialize Salesforce if configured
+		if sfURLEnc != "" && sfTokenEnc != "" && sfClientIDEnc != "" && sfClientSecretEnc != "" && sfUserEnc != "" && sfPassEnc != "" {
+			url, _ := mockKMS.Decrypt([]byte(sfURLEnc), "")
+			token, _ := mockKMS.Decrypt([]byte(sfTokenEnc), "")
+			clientID, _ := mockKMS.Decrypt([]byte(sfClientIDEnc), "")
+			clientSecret, _ := mockKMS.Decrypt([]byte(sfClientSecretEnc), "")
+			user, _ := mockKMS.Decrypt([]byte(sfUserEnc), "")
+			pass, _ := mockKMS.Decrypt([]byte(sfPassEnc), "")
+			sfClient, _ = crm.NewSalesforceClient(string(url), string(clientID), string(clientSecret), string(user), string(pass), string(token))
+		}
 	}
 
 	contracts, err := store.GetContractsByProviderFullName(ctx, req.ProviderRepo)
@@ -234,6 +268,25 @@ func PerformCrossRepoCheck(ctx context.Context, store db.Store, req CrossRepoChe
 				response.BrokenConsumers++
 				response.IsSafe = false
 
+
+				// If CRM clients are configured and there's a breaking change, compute blast radius
+				if stripeClient != nil {
+					// We'd ideally have a way to map consumer to stripe customer ID.
+					// For demonstration in P10-T19, we will use a derived customer ID from consumer name
+					// e.g., consumer.ConsumerFullName -> "cus_" + hash
+					mrr, err := stripeClient.GetCustomerMRR(ctx, "cus_demo_" + consumer.ConsumerFullName)
+					if err == nil {
+						affectedCustomers++
+						affectedMRR += mrr
+					}
+				} else if sfClient != nil {
+					rev, err := sfClient.GetCustomerRevenue(ctx, "acc_demo_" + consumer.ConsumerFullName)
+					if err == nil {
+						affectedCustomers++
+						affectedMRR += rev
+					}
+				}
+
 				// Evaluate SLA Breach
 				if consumer.RequiredNoticeDays > 0 {
 					response.SLABreaches = append(response.SLABreaches, SLABreach{
@@ -261,5 +314,9 @@ func PerformCrossRepoCheck(ctx context.Context, store db.Store, req CrossRepoChe
 		}
 	}
 
+		if response.BrokenConsumers > 0 && affectedCustomers > 0 {
+		response.AffectedCustomers = affectedCustomers
+		response.AffectedMRR = affectedMRR
+	}
 	return response, nil
 }

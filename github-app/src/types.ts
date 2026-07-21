@@ -143,6 +143,8 @@ export interface CrossRepoCheckResponse {
   is_safe: boolean;
   results: ConsumerResult[];
   sla_breaches?: SLABreach[];
+  affected_customers?: number;
+  affected_mrr?: number;
 }
 
 export interface AIAutofixRequest {

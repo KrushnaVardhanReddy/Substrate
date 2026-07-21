@@ -12,13 +12,17 @@ require (
 	github.com/getkin/kin-openapi v0.140.0
 	github.com/go-git/go-git/v5 v5.19.1
 	github.com/google/cel-go v0.29.2
+	github.com/joho/godotenv v1.5.1
 	github.com/mattn/go-sqlite3 v1.14.48
 	github.com/oasdiff/oasdiff v1.22.0
 	github.com/pganalyze/pg_query_go/v6 v6.2.2
 	github.com/sashabaranov/go-openai v1.41.2
+	github.com/simpleforce/simpleforce v0.0.0-20220429021116-acf4ac67ef68
 	github.com/smacker/go-tree-sitter v0.0.0-20240827094217-dd81d9e9be82
 	github.com/spf13/cobra v1.10.2
+	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
+	github.com/stripe/stripe-go/v78 v78.12.0
 	github.com/vektah/gqlparser/v2 v2.5.36
 	github.com/wasilibs/go-pgquery v0.0.0-20260623022807-b68b28131ed3
 	go.opentelemetry.io/otel v1.44.0
@@ -73,7 +77,6 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.29.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
-	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/oasdiff/yaml v0.1.0 // indirect
@@ -89,7 +92,6 @@ require (
 	github.com/spf13/afero v1.15.0 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
-	github.com/spf13/viper v1.21.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tetratelabs/wazero v1.12.0 // indirect
 	github.com/tidwall/gjson v1.18.0 // indirect
