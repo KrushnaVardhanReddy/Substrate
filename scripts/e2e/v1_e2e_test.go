@@ -125,7 +125,7 @@ func TestV1SystemE2E(t *testing.T) {
 			assert.Equal(t, "/chat/completions", r.URL.Path)
 
 			w.Header().Set("Content-Type", "text/event-stream")
-			
+
 			resp := map[string]interface{}{
 				"choices": []map[string]interface{}{
 					{

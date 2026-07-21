@@ -21,8 +21,8 @@ const (
 )
 
 type Summary struct {
-	TotalChanges    int      `json:"total_changes"`
-	BreakingCount   int      `json:"breaking_count"`
+	TotalChanges  int `json:"total_changes"`
+	BreakingCount int `json:"breaking_count"`
 }
 
 type Change struct {
@@ -35,12 +35,12 @@ type Change struct {
 }
 
 type DiffReport struct {
-	SubstrateVersion string            `json:"substrate_version"`
-	SchemaType       string            `json:"schema_type"`
-	ComparedAt       string            `json:"compared_at"`
-	Mode             string            `json:"mode"`
-	Summary          Summary           `json:"summary"`
-	BreakingChanges  []Change          `json:"breaking_changes"`
+	SubstrateVersion string   `json:"substrate_version"`
+	SchemaType       string   `json:"schema_type"`
+	ComparedAt       string   `json:"compared_at"`
+	Mode             string   `json:"mode"`
+	Summary          Summary  `json:"summary"`
+	BreakingChanges  []Change `json:"breaking_changes"`
 }
 
 func TestPhase10_13_EnterpriseE2E(t *testing.T) {

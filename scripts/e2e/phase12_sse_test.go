@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"context"
 	"net/http"
+	"net/http/httptest"
 	"reflect"
 	"runtime"
 	"strings"
 	"sync"
 	"testing"
-	"net/http/httptest"
 	"time"
 	"unsafe"
 

@@ -10,7 +10,7 @@ import (
 
 func SeedFile(ctx context.Context, client *github.Client, owner, repo, path, branch, content string) {
 	fileContent, _, _, err := client.Repositories.GetContents(ctx, owner, repo, path, &github.RepositoryContentGetOptions{Ref: branch})
-	
+
 	var sha *string
 	if err == nil {
 		sha = fileContent.SHA

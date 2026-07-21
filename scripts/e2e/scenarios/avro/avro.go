@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"time"
-	"net/http"
 
 	"e2e/helpers"
 	"github.com/google/go-github/v62/github"
@@ -23,7 +23,7 @@ func startMockRegistry() *http.Server {
 		if r.Method == "POST" && strings.Contains(r.URL.Path, "compatibility/subjects") {
 			w.Header().Set("Content-Type", "application/vnd.schemaregistry.v1+json")
 			w.WriteHeader(200)
-			
+
 			// We can figure out if it's breaking or safe based on a header or something, but actually
 			// just the URL or body. If it contains "new_field", we say it's compatible.
 			// Actually let's just make it a dumb mock:

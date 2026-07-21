@@ -24,6 +24,8 @@ type Client interface {
 	CreateCheckRun(ctx context.Context, owner, repo, commitSHA, name, title, summary, conclusion string) error
 	CreatePendingCheckRun(ctx context.Context, owner, repo, commitSHA, name, title, summary string) error
 	GetIssueCommentReactions(ctx context.Context, owner, repo string, issueNumber int, commentID int64) ([]string, error)
+	CreateIssueComment(ctx context.Context, owner, repo string, issueNumber int, body string) error
+	ListIssueComments(ctx context.Context, owner, repo string, issueNumber int) ([]string, error)
 	GetPullRequestHeadSHA(ctx context.Context, owner, repo string, issueNumber int) (string, error)
 	ListCheckRunsForRef(ctx context.Context, owner, repo, ref string) ([]CheckRun, error)
 }
@@ -489,6 +491,68 @@ func (m *MockClient) CreatePendingCheckRun(ctx context.Context, owner, repo, com
 		return m.CreatePendingCheckRunFunc(ctx, owner, repo, commitSHA, name, title, summary)
 	}
 	return nil
+}
+
+func (c *RESTClient) CreateIssueComment(ctx context.Context, owner, repo string, issueNumber int, body string) error {
+	url := fmt.Sprintf("%s/repos/%s/%s/issues/%d/comments", c.apiURL, owner, repo, issueNumber)
+	payload := map[string]string{"body": body}
+	payloadBytes, _ := json.Marshal(payload)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		return err
+	}
+	c.addHeaders(req)
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		return fmt.Errorf("failed to create issue comment, status: %d", resp.StatusCode)
+	}
+	return nil
+}
+
+func (c *RESTClient) ListIssueComments(ctx context.Context, owner, repo string, issueNumber int) ([]string, error) {
+	url := fmt.Sprintf("%s/repos/%s/%s/issues/%d/comments", c.apiURL, owner, repo, issueNumber)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	c.addHeaders(req)
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to list issue comments, status: %d", resp.StatusCode)
+	}
+
+	var comments []struct {
+		Body string `json:"body"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&comments); err != nil {
+		return nil, err
+	}
+
+	var bodies []string
+	for _, c := range comments {
+		bodies = append(bodies, c.Body)
+	}
+	return bodies, nil
+}
+
+func (m *MockClient) CreateIssueComment(ctx context.Context, owner, repo string, issueNumber int, body string) error {
+	return nil
+}
+
+func (m *MockClient) ListIssueComments(ctx context.Context, owner, repo string, issueNumber int) ([]string, error) {
+	return []string{}, nil
 }
 
 func (m *MockClient) GetIssueCommentReactions(ctx context.Context, owner, repo string, issueNumber int, commentID int64) ([]string, error) {

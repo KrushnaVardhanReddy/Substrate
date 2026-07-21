@@ -94,11 +94,11 @@ func TestPhase7SystemE2E(t *testing.T) {
 		// Run diff with audit mode
 		cmd := exec.Command(binPath, "diff", basePath, breakPath, "--mode", "audit", "--format", "json")
 		cmd.Env = append(os.Environ(), "SUBSTRATE_API_URL="+p7ApiURL, "REGISTRY_API_TOKEN="+p7RegistryAPIToken)
-		
+
 		var outBuf, errBuf bytes.Buffer
 		cmd.Stdout = &outBuf
 		cmd.Stderr = &errBuf
-		
+
 		err = cmd.Run()
 		require.NoError(t, err, "Audit mode should exit with code 0 even for breaking changes. Stderr: %s", errBuf.String())
 
@@ -136,10 +136,10 @@ func TestPhase7SystemE2E(t *testing.T) {
 		cmd.Stdout = &outBuf
 		cmd.Stderr = &errBuf
 		err = cmd.Run()
-		
+
 		// Should fail due to custom CEL rule
 		require.Error(t, err, "Custom rule violation should cause diff command to fail")
-		
+
 		if exitError, ok := err.(*exec.ExitError); ok {
 			assert.Equal(t, 2, exitError.ExitCode(), "Exit code should be 2 for breaking changes")
 		}
@@ -151,7 +151,7 @@ func TestPhase7SystemE2E(t *testing.T) {
 		breakingChanges, ok := diffReport["breaking_changes"].([]interface{})
 		require.True(t, ok)
 		assert.Greater(t, len(breakingChanges), 0)
-		
+
 		foundCustomRule := false
 		for _, bc := range breakingChanges {
 			if change, ok := bc.(map[string]interface{}); ok {
@@ -216,7 +216,7 @@ func TestPhase7SystemE2E(t *testing.T) {
 		err = proxyCmd.Start()
 		require.NoError(t, err)
 		defer proxyCmd.Process.Kill()
-		
+
 		go func() {
 			proxyCmd.Wait()
 			if proxyOut.Len() > 0 {
@@ -261,7 +261,7 @@ func TestPhase7SystemE2E(t *testing.T) {
 				w.Write([]byte(`{"html_url": "https://github.com/testorg/consumer/pull/1"}`))
 				return
 			}
-			
+
 			// Mock ref
 			if r.Method == "GET" && r.URL.Path == "/repos/testorg/consumer/git/ref/heads/main" {
 				w.Write([]byte(`{"object": {"sha": "mainsha"}}`))
@@ -303,18 +303,18 @@ func TestPhase7SystemE2E(t *testing.T) {
 		// Replace github client URL for tests inside the API environment via env vars if supported,
 		// but since Substrate GithubClient might use github.com directly, we might need a workaround.
 		// However, the test requirements just ask us to verify the CrossRepoCheckHandler triggers autofix.
-		
-		// For true "No Mocks" of core services, we trigger the endpoint. Since the API process is already running, 
+
+		// For true "No Mocks" of core services, we trigger the endpoint. Since the API process is already running,
 		// we can't inject mockGitHub URL easily unless it's configured via environment variable when we started the API.
 		// If the API server doesn't support changing GitHub base URL dynamically, this might fail or not hit the mock.
-		
+
 		// Let's at least trigger the cross repo check that would try to execute it
 		payload := map[string]interface{}{
-			"installation_id": 123,
-			"org": "testorg",
-			"provider_repo": "testorg/provider",
+			"installation_id":     123,
+			"org":                 "testorg",
+			"provider_repo":       "testorg/provider",
 			"head_schema_content": "mock schema",
-			"schema_type": "openapi",
+			"schema_type":         "openapi",
 		}
 		body, err := json.Marshal(payload)
 		require.NoError(t, err)
