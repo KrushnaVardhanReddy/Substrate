@@ -32,6 +32,8 @@ export interface DiffReport {
 }
 
 export interface SubstrateConfig {
+  tier?: string;
+  quality_gate?: 'strict' | 'standard' | 'permissive';
   on_breaking_change?: 'block' | 'warn';
   base_schema?: string;
   head_schema?: string;

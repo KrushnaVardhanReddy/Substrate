@@ -1,7 +1,8 @@
 import { Env, DiffReport, SyncDependency, CrossRepoCheckRequest, CrossRepoCheckResponse, AIAutofixRequest, AIAutofixResponse, VCSClient } from './types.js';
 import { validateWebhookSignature, parseInstallationRepositoriesEvent, parseInstallationEvent } from './webhook.js';
 import { generateInstallationToken } from './github-client.js';
-import { formatPRComment, formatMissingConfigComment, getCommitStatusState, getCommitStatusDescription, formatCrossRepoImpact } from './formatter.js';
+import { formatPRComment, formatMissingConfigComment, formatCrossRepoImpact } from './formatter.js';
+import { getCommitStatusState, getCommitStatusDescription } from './checks.js';
 import { parseConsumersFromYaml, syncToRegistry, crossRepoCheck } from './registry-client.js';
 import { processAutoDiscovery } from './discovery.js';
 import { parseGitHubPREvent, parseGitHubPushEvent, GitHubProvider } from './providers/github/index.js';
@@ -26,6 +27,13 @@ function parseYaml(yaml: string): any {
   if (onBreakingMatch) result.on_breaking_change = onBreakingMatch[1].trim();
   const schemaTypeMatch = yaml.match(/schema_type:\s*(.+)/);
   if (schemaTypeMatch) result.schema_type = schemaTypeMatch[1].trim();
+
+  const tierMatch = yaml.match(/tier:\s*(.+)/);
+  if (tierMatch) result.tier = tierMatch[1].trim();
+
+  const gateMatch = yaml.match(/quality_gate:\s*(.+)/);
+  if (gateMatch) result.quality_gate = gateMatch[1].trim();
+
   return result;
 }
 
@@ -500,7 +508,7 @@ export default {
       await provider.postPRComment(eventOwner, eventRepo, event.prNumber, commentBody);
 
       // Step 11: Set final commit status
-      const statusState = getCommitStatusState(diffReport, config, crossRepoResponse);
+      const statusState = await getCommitStatusState(env.CONTAINER_SERVICE_URL, diffReport, config, crossRepoResponse);
       const statusDescription = getCommitStatusDescription(diffReport, crossRepoResponse, config);
       await provider.setCommitStatus(
         eventOwner,

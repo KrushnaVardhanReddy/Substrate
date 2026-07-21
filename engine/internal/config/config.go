@@ -77,16 +77,18 @@ type GatewayConfig struct {
 }
 
 type SubstrateConfig struct {
-	Version     string               `yaml:"version"`
-	Service     string               `yaml:"service"`
-	SchemaType  string               `yaml:"schema_type,omitempty"`
-	Mode        string               `yaml:"mode,omitempty"`
-	SpecPath    string               `yaml:"spec_path"`
-	Owners      []Owner              `yaml:"owners,omitempty"`
-	Overrides   []Override           `yaml:"overrides,omitempty"`
-	Consumers   []ConsumerDependency `yaml:"consumers,omitempty"`
-	Avro        *AvroConfig          `yaml:"avro,omitempty"`
-	Traffic     TrafficConfig        `yaml:"traffic,omitempty"`
+	Version      string               `yaml:"version"`
+	Service      string               `yaml:"service"`
+	Tier         string               `yaml:"tier,omitempty"`
+	QualityGate  string               `yaml:"quality_gate,omitempty"`
+	SchemaType   string               `yaml:"schema_type,omitempty"`
+	Mode         string               `yaml:"mode,omitempty"`
+	SpecPath     string               `yaml:"spec_path"`
+	Owners       []Owner              `yaml:"owners,omitempty"`
+	Overrides    []Override           `yaml:"overrides,omitempty"`
+	Consumers    []ConsumerDependency `yaml:"consumers,omitempty"`
+	Avro         *AvroConfig          `yaml:"avro,omitempty"`
+	Traffic      TrafficConfig        `yaml:"traffic,omitempty"`
 	CustomRules  []CustomRule         `yaml:"custom_rules,omitempty" json:"custom_rules,omitempty"`
 	Gateway      *GatewayConfig       `yaml:"gateway,omitempty"`
 	Deprecations []Deprecation        `yaml:"deprecations,omitempty"`
