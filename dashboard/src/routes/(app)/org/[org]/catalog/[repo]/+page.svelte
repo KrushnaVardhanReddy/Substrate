@@ -21,9 +21,14 @@
 				<button class="btn-copy" onclick={() => navigator.clipboard.writeText(`[![Contract Score](${data.apiBaseUrl}/api/badges/${data.org}/${data.repo})](${data.dashboardUrl}/org/${data.org}/catalog/${data.repo})`)}>Copy</button>
 			</div>
 		</div>
-		<a href={`https://github.com/${data.org}/${data.repo}`} target="_blank" rel="noopener noreferrer" class="btn-github">
-			View on GitHub
-		</a>
+		<div class="header-actions">
+			<a href={`/org/${data.org}/catalog/${data.repo}/docs`} class="btn-docs">
+				View API Docs
+			</a>
+			<a href={`https://github.com/${data.org}/${data.repo}`} target="_blank" rel="noopener noreferrer" class="btn-github">
+				View on GitHub
+			</a>
+		</div>
 	</header>
 
 	<div class="elements-wrapper">
@@ -61,6 +66,13 @@
 		font-size: 1.05rem;
 	}
 
+	.header-actions {
+		display: flex;
+		gap: 12px;
+		align-items: center;
+	}
+
+	.btn-docs,
 	.btn-github {
 		background-color: var(--bg-card);
 		border: 1px solid var(--border);
@@ -73,6 +85,7 @@
 		transition: background-color 0.2s;
 	}
 
+	.btn-docs:hover,
 	.btn-github:hover {
 		background-color: var(--bg-hover);
 	}
