@@ -6,6 +6,11 @@ OBJECTIVE
 Migrate the entire Go API authentication layer from JWT to PASETO `v4.local` to ensure enterprise-grade cryptographic security.
 
 ═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- CRITICAL: Before implementing, you MUST read `docs/specs/cross-cutting/cc-t01-paseto-migration.md` and `docs/wiki/concepts/architecture.md` to understand the architectural mandate for PASETO.
+
+═══════════════════════════════════════════════════════════════
 CONSTRAINTS & RULES
 ═══════════════════════════════════════════════════════════════
 - Remove `github.com/golang-jwt/jwt/v5` from the `api/` package.
