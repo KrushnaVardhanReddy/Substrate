@@ -61,7 +61,7 @@ stop-forgejo:
 	docker-compose -f docker-compose.forgejo.yml down
 
 build:
-	cd dashboard && npm install && npm run build
+	cd dashboard && npm install --legacy-peer-deps && npm run build
 	rm -rf api/internal/server/dashboard_build
 	cp -r dashboard/build api/internal/server/dashboard_build
 
