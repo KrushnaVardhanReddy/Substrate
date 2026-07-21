@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/KrushnaVardhanReddy/substrate/engine/spectral"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"bytes"
@@ -20,8 +22,8 @@ import (
 	"net/http"
 	"time"
 
-	initcmd "github.com/KrushnaVardhanReddy/substrate/engine/internal/init"
 	"github.com/KrushnaVardhanReddy/substrate/engine/cmd"
+	initcmd "github.com/KrushnaVardhanReddy/substrate/engine/internal/init"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 	sqlpkg "github.com/KrushnaVardhanReddy/substrate/engine/internal/sql"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/telemetry"
@@ -34,6 +36,7 @@ var configPath string
 var format string
 var schemaType string
 var modeFlag string
+var governanceRules []string
 
 func main() {
 	tp, err := telemetry.InitTracer(context.Background(), "substrate-engine")
@@ -228,6 +231,27 @@ func main() {
 				finalMode = cfg.Mode
 			}
 			rep.Mode = finalMode
+			if len(governanceRules) > 0 {
+				aiClient, err := ai.NewAIClient()
+				if err == nil {
+					linter := spectral.NewLinter(aiClient)
+					// Run git diff to get plain text diff
+					cmd := exec.Command("git", "diff", "--no-index", basePath, revisionPath)
+					out, _ := cmd.CombinedOutput()
+					diffText := string(out)
+					if diffText != "" {
+						violations, err := linter.LintDiff(diffText, governanceRules)
+						if err == nil && len(violations) > 0 {
+							for _, v := range violations {
+								rep.GovernanceViolations = append(rep.GovernanceViolations, report.GovernanceViolation{
+									Rule:    v.Rule,
+									Message: v.Message,
+								})
+							}
+						}
+					}
+				}
+			}
 
 			if format == "json" {
 				output, err := json.MarshalIndent(rep, "", "  ")
@@ -398,6 +422,7 @@ func main() {
 	diffCmd.Flags().StringVar(&format, "format", "json", "Output format")
 	diffCmd.Flags().StringVar(&schemaType, "schema-type", "", "Force schema type")
 	diffCmd.Flags().StringVar(&modeFlag, "mode", "", "Execution mode: strict, legacy, or audit")
+	diffCmd.Flags().StringSliceVar(&governanceRules, "governance-rules", []string{}, "Governance rules to apply")
 
 	var validateCmd = &cobra.Command{
 		Use:   "validate [spec-file]",

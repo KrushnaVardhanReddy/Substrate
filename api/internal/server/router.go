@@ -99,6 +99,12 @@ func NewRouter(store db.Store, riverClient workers.JobEnqueuer, authConfig handl
 	// The endpoint validates the token by making a call to GitHub.
 	r.Method("POST", "/api/v1/org/{org}/enforce", authzMW(http.HandlerFunc(handlers.EnforceGlobalHandler())))
 
+	// Governance Rules API
+	governanceHandler := handlers.NewGovernanceRulesHandler(store)
+	r.Method("GET", "/api/v1/org/{org}/rules", authzMW(http.HandlerFunc(governanceHandler.ListRules)))
+	r.Method("POST", "/api/v1/org/{org}/rules", authzMW(http.HandlerFunc(governanceHandler.CreateRule)))
+	r.Method("DELETE", "/api/v1/org/{org}/rules/{ruleID}", authzMW(http.HandlerFunc(governanceHandler.DeleteRule)))
+
 	// Insurance routes
 	r.Method("GET", "/api/v1/org/{org}/insurance/policy", authzMW(http.HandlerFunc(handlers.InsuranceGetPolicyHandler(store))))
 	r.Method("GET", "/api/v1/org/{org}/insurance/claims", authzMW(http.HandlerFunc(handlers.InsuranceGetClaimsHandler(store))))
