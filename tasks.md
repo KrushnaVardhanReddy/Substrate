@@ -57,7 +57,7 @@
 | **P10-T13** | 🔴 P1 | **Integrated API Documentation Catalog** — Evolve the registry into an internal Developer Portal by embedding interactive API reference viewers (like Stoplight Elements or ReDoc) directly into the dashboard. | Jules | ✅ PR Merged | `(Pending)` |
 | **P10-T15** | 🚀 P1 | **Zero-Latency Drift Detection (eBPF)** — Extend runtime drift detection with a zero-latency `cilium/ebpf` kernel probe for high-throughput environments. *UX Goal: Provide a pre-packaged Helm chart (`helm install substrate-ebpf`) that auto-detects pods via Kubernetes labels (e.g., `substrate.io/monitor: "true"`).* | Jules | ✅ PR Merged | `docs/specs/phase-10/p10-t15-ebpf-drift.md` |
 | **P10-T18** | 🚀 P1 | **GraphQL Supergraph Federation** — Add native support for Apollo Federation to diff subgraphs and prevent routing breakages. | Jules | ✅ Complete | `docs/specs/phase-10/p10-t18-graphql-federation.md` |
-| **P10-T19** | 🚀 P1 | **CRM/Billing Blast Radius** — Integrate with Stripe and Salesforce to map external customer impact on internal API breakages. | Jules | 🔄 Running (`1883281273610373932`) | `(Pending)` |
+| **P10-T19** | 🚀 P1 | **CRM/Billing Blast Radius** — Integrate with Stripe and Salesforce to map external customer impact on internal API breakages. | Jules | ✅ PR Merged | `(Pending)` |
 | **P10-T20** | 🔴 P1 | **Phase 10 E2E Validation (No Mocks)** — End-to-end testing of GraphQL Supergraphs, CDC Manifests, eBPF probes, and MCP diffing. Must use real live gateway environments, live Git hooks, and zero mock APIs. | Jules | ✅ PR Merged | `(Pending)` |
 
 ---
