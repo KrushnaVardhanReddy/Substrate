@@ -55,19 +55,14 @@
 
 
 
-### Wave 11 — (Phase 9+10 — 1 formatter.ts touch)
-| Task ID | Script Key | Conflict Notes |
-|---|---|---|
-| P9-T09 AI Impact Analysis | `909` | ⚠️ modifies `formatter.ts` + `ai_analyze.go` |
-| P10-T05 Auto-SDK Generator | `1005` | New `engine/sdkgen/` ✓ |
+### Wave 11 — RUNNING (Phase 9+10 — 1 formatter.ts touch)
+| Task ID | Jules ID |
+|---|---|
+| P15-T13 Phase 15 E2E | `2826767874429659759` |
+| P15-T13 Phase 15 E2E | `2826767874429659759` |
 | P14-T07 Phase 14 E2E | `1407` | New `scripts/e2e/` file ✓ |
 | P15-T13 Phase 15 E2E | `1513` | New `scripts/e2e/` file ✓ |
-```bash
-python3 scripts/jules_submit.py --task 909 && \
-python3 scripts/jules_submit.py --task 1005 && \
-python3 scripts/jules_submit.py --task 1407 && \
-python3 scripts/jules_submit.py --task 1513
-```
+
 
 ### Wave 12 — (Phase 9+10 — 1 formatter.ts touch)
 | Task ID | Script Key | Conflict Notes |
