@@ -10,9 +10,9 @@ import (
 )
 
 type ChangelogEntry struct {
-	Date            string `json:"date"`
-	EndpointsAdded  int    `json:"endpoints_added"`
-	EndpointsRemoved int   `json:"endpoints_removed"`
+	Date             string `json:"date"`
+	EndpointsAdded   int    `json:"endpoints_added"`
+	EndpointsRemoved int    `json:"endpoints_removed"`
 }
 
 func ChangelogHandler(store db.Store) http.HandlerFunc {
@@ -35,7 +35,7 @@ func ChangelogHandler(store db.Store) http.HandlerFunc {
 		var changelog []ChangelogEntry
 		for _, record := range reports {
 			var report struct {
-				Summary    struct {
+				Summary struct {
 					BreakingCount int `json:"breaking_count"`
 					SafeCount     int `json:"safe_count"` // Adding is usually safe
 				} `json:"summary"`
@@ -67,8 +67,8 @@ func ChangelogHandler(store db.Store) http.HandlerFunc {
 			// but for a summary, let's include it anyway, or maybe just if there's any change?
 			// The requirements say: "chronological summary JSON array containing dates, endpoints added, and endpoints removed."
 			changelog = append(changelog, ChangelogEntry{
-				Date:            record.CreatedAt.Format("2006-01-02T15:04:05Z"),
-				EndpointsAdded:  added,
+				Date:             record.CreatedAt.Format("2006-01-02T15:04:05Z"),
+				EndpointsAdded:   added,
 				EndpointsRemoved: removed,
 			})
 		}

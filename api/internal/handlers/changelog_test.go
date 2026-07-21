@@ -31,10 +31,10 @@ func TestChangelogHandler(t *testing.T) {
 			createdAt, _ := time.Parse("2006-01-02T15:04:05Z", "2023-10-25T10:00:00Z")
 
 			return []db.DiffReportRecord{
-			    {
-			        ReportData: []byte(reportData),
-			        CreatedAt: createdAt,
-			    },
+				{
+					ReportData: []byte(reportData),
+					CreatedAt:  createdAt,
+				},
 			}, nil
 		},
 	}

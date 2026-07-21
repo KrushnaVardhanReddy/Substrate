@@ -7,11 +7,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"context"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/github"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/workers"
 	"github.com/google/uuid"
-	"context"
 )
 
 func TestSaveDiffHandler(t *testing.T) {
@@ -51,14 +51,11 @@ func TestSaveDiffHandler(t *testing.T) {
 			expectedStatus: http.StatusBadRequest,
 		},
 
-
 		{
 			name:           "Missing diff_report",
 			body:           map[string]interface{}{},
 			expectedStatus: http.StatusBadRequest,
 		},
-
-
 	}
 
 	for _, tt := range tests {
@@ -99,8 +96,6 @@ func TestGetDiffHandler(t *testing.T) {
 			id:             "invalid-uuid",
 			expectedStatus: http.StatusBadRequest,
 		},
-
-
 	}
 
 	for _, tt := range tests {

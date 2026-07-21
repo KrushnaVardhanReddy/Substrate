@@ -98,7 +98,7 @@ func TestGenerateCELHandler(t *testing.T) {
 			reqBody: map[string]interface{}{
 				"prompt": "",
 			},
-			setupEnv: func() {},
+			setupEnv:     func() {},
 			expectedCode: http.StatusBadRequest,
 			expectedErr:  "prompt is required",
 		},

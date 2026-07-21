@@ -3,8 +3,8 @@ package handlers
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"sync"

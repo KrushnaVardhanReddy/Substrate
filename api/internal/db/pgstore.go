@@ -1,9 +1,9 @@
 package db
 
 import (
-	"time"
 	"context"
 	"github.com/google/uuid"
+	"time"
 )
 
 func (s *PGStore) RegisterWebhook(ctx context.Context, config WebhookConfig) error {

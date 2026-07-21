@@ -10,7 +10,7 @@ var (
 	// High-signal patterns from the spec
 	// *_API_URL, *_SERVICE_URL, *_ENDPOINT, *_BASE_URL, *_HOST (when value is a URL), *_API_BASE, *_GATEWAY_URL
 	highSignalRegexStr = `(?i)_API_URL$|_SERVICE_URL$|_ENDPOINT$|_BASE_URL$|_HOST$|_API_BASE$|_GATEWAY_URL$`
-	highSignalRegex = regexp.MustCompile(highSignalRegexStr)
+	highSignalRegex    = regexp.MustCompile(highSignalRegexStr)
 
 	// Ensure we exclude secrets
 	secretRegex = regexp.MustCompile(`(?i)SECRET|KEY|TOKEN|PASSWORD`)

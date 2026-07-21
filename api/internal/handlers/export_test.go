@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"context"
+	"github.com/go-chi/chi/v5"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"github.com/go-chi/chi/v5"
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 	"github.com/stretchr/testify/assert"

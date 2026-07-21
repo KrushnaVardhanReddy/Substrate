@@ -67,8 +67,8 @@ func TestStripeWebhookHandler(t *testing.T) {
 		payloadBytes, _ := json.Marshal(event)
 
 		sigPayload := webhook.GenerateTestSignedPayload(&webhook.UnsignedPayload{
-			Payload: payloadBytes,
-			Secret: "whsec_test_secret",
+			Payload:   payloadBytes,
+			Secret:    "whsec_test_secret",
 			Timestamp: time.Now(),
 		})
 
@@ -78,10 +78,10 @@ func TestStripeWebhookHandler(t *testing.T) {
 
 		handler.ServeHTTP(rec, req)
 
-        if rec.Code != http.StatusOK {
-            t.Logf("Response body: %s", rec.Body.String())
-            t.Errorf("Expected status 200 OK, got %d", rec.Code)
-        }
+		if rec.Code != http.StatusOK {
+			t.Logf("Response body: %s", rec.Body.String())
+			t.Errorf("Expected status 200 OK, got %d", rec.Code)
+		}
 
 		if updatedOrgID != orgID {
 			t.Errorf("Expected updated org ID %s, got %s", orgID, updatedOrgID)

@@ -88,7 +88,6 @@ type WebhookConfig struct {
 	CreatedAt time.Time
 }
 
-
 type EndpointTraffic struct {
 	ID           uuid.UUID `json:"id"`
 	RepoID       uuid.UUID `json:"repo_id"`

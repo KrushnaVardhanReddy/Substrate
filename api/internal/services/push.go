@@ -14,9 +14,9 @@ import (
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/config"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/sandbox"
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/github"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/discovery"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/github"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/sandbox"
 	"github.com/KrushnaVardhanReddy/substrate/engine/pkg/schemaowners"
 )
 
@@ -250,7 +250,6 @@ func ProcessPush(ctx context.Context, store db.Store, ghClient github.Client, re
 								_, stderr, _ := sandbox.RunCode(chaosCode)
 								chaosOutput = stderr
 							}
-
 
 							schemaOwnersContent, err := ghClient.GetFileContent(bgCtx, owner, repo, "SCHEMAOWNERS")
 							var mentions []string
