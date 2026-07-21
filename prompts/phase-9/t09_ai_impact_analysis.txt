@@ -16,6 +16,13 @@ CONSTRAINTS & RULES
 - You MUST write unit tests mocking the LLM call to test prompt construction.
 
 ═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The `engine/ai_analyze.go` file does NOT exist yet. Please create it as `engine/pkg/ai/impact.go` instead to follow the existing structure where AI features live in `engine/pkg/ai`.
+- You can use the existing OpenAI client setup found in `engine/pkg/ai/client.go`.
+- Modifying `formatter.ts` is expected in this PR.
+
+═══════════════════════════════════════════════════════════════
 IMPLEMENTATION TIPS
 ═══════════════════════════════════════════════════════════════
 - Extend `engine/ai_analyze.go` with a new `GenerateImpactSummary(changes []Change, consumers []Repo) string` function.
