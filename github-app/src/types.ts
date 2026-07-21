@@ -58,6 +58,7 @@ export interface ConsumerEntry {
   provider_spec_path: string;
   provider_branch: string;
   required_notice_days?: number;
+  sdk_targets?: string[];
 }
 
 export interface SubstrateConsumerConfig {
@@ -72,6 +73,7 @@ export interface SyncDependency {
   branch: string;
   raw_content: string;
   required_notice_days?: number;
+  sdk_targets?: string[];
 }
 
 export interface SyncRequest {

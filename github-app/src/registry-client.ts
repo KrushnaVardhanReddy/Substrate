@@ -19,6 +19,7 @@ export async function parseConsumersFromYaml(yamlContent: string): Promise<Consu
     const providerSpecPathMatch = block.match(/provider_spec_path:\s*(.+)/);
     const providerBranchMatch = block.match(/provider_branch:\s*(.+)/);
     const requiredNoticeDaysMatch = block.match(/required_notice_days:\s*(\d+)/);
+    const sdkTargetsMatch = block.match(/sdk_targets:\s*\[([^\]]+)\]/);
 
     const stripQuotes = (val: string) => val.replace(/^["']|["']$/g, '').trim();
 
@@ -33,6 +34,10 @@ export async function parseConsumersFromYaml(yamlContent: string): Promise<Consu
 
       if (requiredNoticeDaysMatch) {
         consumer.required_notice_days = parseInt(requiredNoticeDaysMatch[1], 10);
+      }
+
+      if (sdkTargetsMatch) {
+        consumer.sdk_targets = sdkTargetsMatch[1].split(',').map(s => stripQuotes(s.trim()));
       }
 
       consumers.push(consumer);
