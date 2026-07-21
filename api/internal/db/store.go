@@ -166,6 +166,7 @@ type Store interface {
 	PublishPublicSchema(ctx context.Context, namespace, name, version, schemaType, content string) error
 	UpsertOrgKMSConfig(ctx context.Context, orgName, provider, keyARN string) error
 	GetOrgKMSConfig(ctx context.Context, orgName string) (string, string, error) // Returns provider, keyARN
+	GetCRMSecrets(ctx context.Context, orgName string) (stripeKey, sfURL, sfToken, sfClientID, sfClientSecret, sfUsername, sfPassword string, err error)
 	PublishPlugin(ctx context.Context, name, description string, schemaContent json.RawMessage) (uuid.UUID, error)
 	ListPlugins(ctx context.Context) ([]MarketplacePlugin, error)
 	UpsertInsurancePolicy(ctx context.Context, orgID uuid.UUID, policyLimitCents int64) (uuid.UUID, error)

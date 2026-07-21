@@ -5,15 +5,18 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
+
+	"github.com/spf13/viper"
 
 	"github.com/KrushnaVardhanReddy/substrate/engine/pkg/ai"
 )
 
 func TestAIImpactHandler(t *testing.T) {
-	// Unset required AI env vars to trigger mock mode in ai.NewAIClient
-	os.Setenv("SUBSTRATE_AI_PROVIDER", "unsupported-to-force-error")
+	viper.Set("SUBSTRATE_AI_PROVIDER", "unsupported-to-force-error")
+	t.Cleanup(func() {
+		viper.Set("SUBSTRATE_AI_PROVIDER", nil)
+	})
 
 	handler := AIImpactHandler()
 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5"
 )
 
 import (
@@ -865,4 +866,27 @@ func (s *PGStore) ListPlugins(ctx context.Context) ([]MarketplacePlugin, error) 
 		plugins = append(plugins, p)
 	}
 	return plugins, rows.Err()
+}
+
+
+func (s *PGStore) GetCRMSecrets(ctx context.Context, orgName string) (stripeKey, sfURL, sfToken, sfClientID, sfClientSecret, sfUsername, sfPassword string, err error) {
+	query := `
+		SELECT
+			COALESCE(stripe_api_key_encrypted, ''),
+			COALESCE(salesforce_url_encrypted, ''),
+			COALESCE(salesforce_token_encrypted, ''),
+			COALESCE(salesforce_client_id_encrypted, ''),
+			COALESCE(salesforce_client_secret_encrypted, ''),
+			COALESCE(salesforce_username_encrypted, ''),
+			COALESCE(salesforce_password_encrypted, '')
+		FROM organizations
+		WHERE github_org_name = $1
+	`
+	err = s.pool.QueryRow(ctx, query, orgName).Scan(
+		&stripeKey, &sfURL, &sfToken, &sfClientID, &sfClientSecret, &sfUsername, &sfPassword,
+	)
+	if err == pgx.ErrNoRows {
+		err = nil // If org doesn't have secrets, just return empty strings
+	}
+	return
 }

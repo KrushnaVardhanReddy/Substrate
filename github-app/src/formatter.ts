@@ -190,6 +190,7 @@ export function formatCrossRepoImpact(response: CrossRepoCheckResponse): string 
     text += `| \`${escapeMarkdown(result.consumer_repo)}\` | ${statusText} | ${breakingText} |\n`;
   }
 
+
   if (response.broken_consumers > 0) {
     const brokenRepos = response.results
       .filter(r => r.status === 'breaking')
@@ -203,9 +204,15 @@ export function formatCrossRepoImpact(response: CrossRepoCheckResponse): string 
         text += `> ⚠️ **SLA Breach**: \`${escapeMarkdown(breach.consumer)}\` requires ${breach.required_days} days notice for breaking changes.\n`;
       }
     }
+
+    if (response.affected_customers !== undefined && response.affected_mrr !== undefined) {
+      const formattedMRR = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(response.affected_mrr);
+      text += `\n### 💳 Customer Impact\n\n> 🔴 **${response.affected_customers} paying customers** (Total MRR: ${formattedMRR}) rely on the endpoints broken by this PR.\n`;
+    }
   } else {
     text += `\n> ✅ All registered consumers are compatible with this change.\n`;
   }
+
 
   return text;
 }

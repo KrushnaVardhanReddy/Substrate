@@ -261,3 +261,47 @@ describe('Formatter', () => {
     });
   });
 });
+
+  describe('formatCrossRepoImpact with Customer Impact', () => {
+    it('shows Customer Impact when data is provided', () => {
+      const cr: CrossRepoCheckResponse = {
+        total_consumers: 1,
+        broken_consumers: 1,
+        is_safe: false,
+        results: [
+          {
+            consumer_repo: 'org/c2',
+            status: 'breaking',
+            diff_report: {
+              breaking_changes: [], warnings: [], safe_changes: [], summary: { breaking_count: 1, warning_count: 0, info_count: 0 }
+            }
+          }
+        ],
+        affected_customers: 5,
+        affected_mrr: 150000.50
+      };
+      const text = formatCrossRepoImpact(cr);
+      expect(text).toContain('💳 Customer Impact');
+      expect(text).toContain('5 paying customers');
+      expect(text).toContain('$150,000.50');
+    });
+
+    it('does not show Customer Impact when data is absent', () => {
+      const cr: CrossRepoCheckResponse = {
+        total_consumers: 1,
+        broken_consumers: 1,
+        is_safe: false,
+        results: [
+          {
+            consumer_repo: 'org/c2',
+            status: 'breaking',
+            diff_report: {
+              breaking_changes: [], warnings: [], safe_changes: [], summary: { breaking_count: 1, warning_count: 0, info_count: 0 }
+            }
+          }
+        ]
+      };
+      const text = formatCrossRepoImpact(cr);
+      expect(text).not.toContain('💳 Customer Impact');
+    });
+  });
