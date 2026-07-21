@@ -16,6 +16,11 @@ CONSTRAINTS & RULES
 - You MUST write unit tests for the gate evaluation logic (`_test.go`).
 
 ═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- `github-app/src/checks.ts` does not exist yet. You should create it to extract check-writing logic out of `index.ts` and `github-client.ts`.
+
+═══════════════════════════════════════════════════════════════
 IMPLEMENTATION TIPS
 ═══════════════════════════════════════════════════════════════
 - Add `engine/gates/evaluator.go` for the gate logic.

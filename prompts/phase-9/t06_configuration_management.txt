@@ -16,6 +16,11 @@ CONSTRAINTS & RULES
 - You MUST write unit tests verifying precedence order.
 
 ═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- `engine/cmd/root.go` does not exist. Please initialize Viper in `engine/cmd/substrate/main.go` or create a new `engine/internal/config/` package.
+
+═══════════════════════════════════════════════════════════════
 IMPLEMENTATION TIPS
 ═══════════════════════════════════════════════════════════════
 - Initialize Viper in `engine/cmd/root.go`.
