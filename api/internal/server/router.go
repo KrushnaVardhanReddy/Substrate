@@ -11,13 +11,13 @@ import (
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/github"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/handler"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/handlers"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/marketplace"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/registry"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/services"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/webhook"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/workers"
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/handler"
 )
 
 func ServiceTokenMiddleware(registryApiToken string) func(http.Handler) http.Handler {
@@ -123,6 +123,7 @@ func NewRouter(store db.Store, riverClient workers.JobEnqueuer, authConfig handl
 	// AI routes (public — no auth required, BYOK model)
 	r.Post("/api/v1/ai/analyze", services.AIAnalyzeHandler())
 	r.Post("/api/v1/ai/autofix", services.AIAutofixHandler())
+	r.Post("/api/v1/ai/impact", services.AIImpactHandler())
 
 	// Public registry routes
 	r.Route("/api/v1/registry/public", func(r chi.Router) {

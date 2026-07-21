@@ -20,10 +20,10 @@ type MockStore struct {
 
 	RecordDriftAnomalyFunc             func(ctx context.Context, anomaly DriftAnomaly) error
 	GetDriftAnomaliesFunc              func(ctx context.Context, orgName, repoName string) ([]DriftAnomaly, error)
-	GetOrgIDByNameFunc             func(ctx context.Context, name string) (uuid.UUID, error)
-	UpsertGovernanceRuleFunc       func(ctx context.Context, id uuid.UUID, text string) (uuid.UUID, error)
-	GetGovernanceRulesByOrgFunc    func(ctx context.Context, id uuid.UUID) ([]GovernanceRule, error)
-	DeleteGovernanceRuleFunc       func(ctx context.Context, rid uuid.UUID, oid uuid.UUID) error
+	GetOrgIDByNameFunc                 func(ctx context.Context, name string) (uuid.UUID, error)
+	UpsertGovernanceRuleFunc           func(ctx context.Context, id uuid.UUID, text string) (uuid.UUID, error)
+	GetGovernanceRulesByOrgFunc        func(ctx context.Context, id uuid.UUID) ([]GovernanceRule, error)
+	DeleteGovernanceRuleFunc           func(ctx context.Context, rid uuid.UUID, oid uuid.UUID) error
 	UpsertOrgFunc                      func(ctx context.Context, installationID int64, orgName string) (uuid.UUID, error)
 	UpsertRepoFunc                     func(ctx context.Context, orgID uuid.UUID, githubRepoID int64, name, fullName string, metadata json.RawMessage) (uuid.UUID, error)
 	UpsertContractFunc                 func(ctx context.Context, repoID uuid.UUID, schemaType, specPath, branch, commitSHA, rawContent string) (uuid.UUID, error)

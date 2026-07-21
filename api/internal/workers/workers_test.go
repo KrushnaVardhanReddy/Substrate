@@ -8,8 +8,8 @@ import (
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/github"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/services"
-	"github.com/riverqueue/river"
 	"github.com/google/uuid"
+	"github.com/riverqueue/river"
 )
 
 func TestDiscoveryWorker_Work(t *testing.T) {

@@ -2,10 +2,10 @@ package testutils
 
 import (
 	"context"
-	"os"
-	"testing"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
+	"os"
+	"testing"
 )
 
 func SetupTestDB(t *testing.T) (*pgxpool.Pool, func()) {

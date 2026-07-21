@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/go-chi/chi/v5"
 )
 
 const badgeTemplate = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="20">

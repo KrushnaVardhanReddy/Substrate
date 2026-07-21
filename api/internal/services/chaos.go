@@ -40,8 +40,8 @@ Requirements:
 	userMessage := fmt.Sprintf("Old Schema:\n%s\n\nNew Schema:\n%s\n\nBreaking Changes:\n%s", oldSchema, newSchema, breakingChanges)
 
 	payload := map[string]interface{}{
-		"model":           s.aiConfig.Model,
-		"stream":          false,
+		"model":  s.aiConfig.Model,
+		"stream": false,
 		"messages": []map[string]string{
 			{"role": "system", "content": systemPrompt},
 			{"role": "user", "content": userMessage},

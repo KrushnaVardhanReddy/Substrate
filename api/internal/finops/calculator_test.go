@@ -59,8 +59,8 @@ func TestEstimateResponseByteSize(t *testing.T) {
 			schema: map[string]interface{}{
 				"type": "object",
 				"properties": map[string]interface{}{
-					"id":   map[string]interface{}{"type": "integer"},
-					"name": map[string]interface{}{"type": "string"},
+					"id":       map[string]interface{}{"type": "integer"},
+					"name":     map[string]interface{}{"type": "string"},
 					"isActive": map[string]interface{}{"type": "boolean"},
 				},
 			},

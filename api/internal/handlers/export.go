@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"fmt"
+	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strings"
-	"github.com/go-chi/chi/v5"
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 )

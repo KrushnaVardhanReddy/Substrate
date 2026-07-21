@@ -16,9 +16,9 @@ func TestEventBroker(t *testing.T) {
 	}
 
 	tests := []struct {
-		name       string
-		action     func()
-		wantCount  int
+		name      string
+		action    func()
+		wantCount int
 	}{
 		{
 			name: "Add client 1",

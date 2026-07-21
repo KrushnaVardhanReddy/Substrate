@@ -12,8 +12,8 @@ type SSEBroker struct {
 	mu sync.RWMutex
 
 	// Channels for managing client connections
-	clients  map[chan string]bool
-	newClients chan chan string
+	clients        map[chan string]bool
+	newClients     chan chan string
 	defunctClients chan chan string
 
 	// Channel for broadcasting messages to all clients

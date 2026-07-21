@@ -85,13 +85,13 @@ func ProcessSync(ctx context.Context, store db.Store, req SyncRequest) (int, err
 			if diffEngineURL == "" {
 				diffEngineURL = "http://localhost:8080"
 			}
-			
+
 			diffReq := DiffEngineRequest{
 				BaseSchema: baseSchema,
 				HeadSchema: dep.RawContent,
 				SchemaType: dep.SchemaType,
 			}
-			
+
 			if diffReqBytes, err := json.Marshal(diffReq); err == nil {
 				log.Printf("ProcessSync: Calling DiffEngine at %s/diff", diffEngineURL)
 				diffResp, err := http.Post(diffEngineURL+"/diff", "application/json", bytes.NewBuffer(diffReqBytes))
