@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
 	"testing"
@@ -467,5 +468,34 @@ func TestIsOverrideActive(t *testing.T) {
 				t.Errorf("IsOverrideActive() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestConfigPrecedence(t *testing.T) {
+	// Reset viper for testing
+	viper.Reset()
+	InitConfig()
+
+	// 1. Set a default value via viper
+	viper.SetDefault("TEST_KEY", "default_value")
+
+	// Ensure default is returned
+	if viper.GetString("TEST_KEY") != "default_value" {
+		t.Errorf("Expected 'default_value', got %s", viper.GetString("TEST_KEY"))
+	}
+
+	// 2. Set an environment variable (should override default/yaml)
+	os.Setenv("TEST_KEY", "env_value")
+	defer os.Unsetenv("TEST_KEY")
+
+	if viper.GetString("TEST_KEY") != "env_value" {
+		t.Errorf("Expected 'env_value', got %s", viper.GetString("TEST_KEY"))
+	}
+
+	// 3. Set a CLI flag (simulated by explicitly setting the key in viper which simulates flag binding precedence)
+	viper.Set("TEST_KEY", "flag_value")
+
+	if viper.GetString("TEST_KEY") != "flag_value" {
+		t.Errorf("Expected 'flag_value', got %s", viper.GetString("TEST_KEY"))
 	}
 }

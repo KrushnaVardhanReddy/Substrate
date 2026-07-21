@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/spf13/viper"
 	"os"
 	"time"
 
@@ -16,7 +17,7 @@ var postmortemCmd = &cobra.Command{
 	Use:   "postmortem",
 	Short: "Generate an AI-driven blameless post-mortem for an incident",
 	Run: func(cmd *cobra.Command, args []string) {
-		registryApiToken := os.Getenv("REGISTRY_API_TOKEN")
+		registryApiToken := viper.GetString("REGISTRY_API_TOKEN")
 		if registryApiToken == "" {
 			fmt.Fprintln(os.Stderr, "Error: REGISTRY_API_TOKEN environment variable is not set")
 			os.Exit(3)
@@ -33,7 +34,7 @@ var postmortemCmd = &cobra.Command{
 			os.Exit(3)
 		}
 
-		apiURL := os.Getenv("SUBSTRATE_API_URL")
+		apiURL := viper.GetString("SUBSTRATE_API_URL")
 		if apiURL == "" {
 			apiURL = "http://localhost:8090"
 		}
@@ -49,4 +50,5 @@ var postmortemCmd = &cobra.Command{
 
 func init() {
 	postmortemCmd.Flags().StringVar(&incidentDateArg, "incident", "", "The incident date in RFC3339 format (e.g., 2023-10-10T12:00:00Z)")
+	viper.BindPFlags(postmortemCmd.Flags())
 }

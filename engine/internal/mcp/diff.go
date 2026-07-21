@@ -52,7 +52,6 @@ type PromptArgument struct {
 	Required    bool   `json:"required"`
 }
 
-
 func DiffMCPState(base, current *MCPState) []BreakingChange {
 	var changes []BreakingChange
 

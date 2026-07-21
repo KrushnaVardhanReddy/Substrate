@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/config"
+	"github.com/spf13/viper"
 	"io"
 	"net/http"
 	"os"
@@ -27,6 +29,7 @@ import (
 )
 
 func main() {
+	config.InitConfig()
 	tp, err := telemetry.InitTracer(context.Background(), "substrate-mcp")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "[substrate-mcp] failed to init tracer: %v\n", err)
@@ -38,17 +41,17 @@ func main() {
 		}()
 	}
 
-	cacheDir := filepath.Join(os.Getenv("HOME"), ".substrate")
+	cacheDir := filepath.Join(viper.GetString("HOME"), ".substrate")
 	os.MkdirAll(cacheDir, 0755)
 	c, err := cache.InitCache(filepath.Join(cacheDir, "cache.db"))
 	if err == nil {
 		go func() {
-			apiURL := os.Getenv("SUBSTRATE_API_URL")
+			apiURL := viper.GetString("SUBSTRATE_API_URL")
 			if apiURL == "" {
 				apiURL = "http://localhost:8090"
 			}
-			apiToken := os.Getenv("REGISTRY_API_TOKEN")
-			org := os.Getenv("SUBSTRATE_ORG")
+			apiToken := viper.GetString("REGISTRY_API_TOKEN")
+			org := viper.GetString("SUBSTRATE_ORG")
 			if org == "" {
 				org = "default"
 			}
@@ -84,7 +87,7 @@ func main() {
 			}
 
 			// Call the live Registry API (defaulting to localhost:8090 if REGISTRY_API_URL is not set)
-			apiURL := os.Getenv("REGISTRY_API_URL")
+			apiURL := viper.GetString("REGISTRY_API_URL")
 			if apiURL == "" {
 				apiURL = "http://localhost:8090"
 			}
@@ -171,7 +174,7 @@ func main() {
 			}
 
 			if baseSchemaContent == nil {
-				apiURL := os.Getenv("REGISTRY_API_URL")
+				apiURL := viper.GetString("REGISTRY_API_URL")
 				if apiURL == "" {
 					apiURL = "http://localhost:8090"
 				}
@@ -356,7 +359,7 @@ func main() {
 				limit = *input.Limit
 			}
 
-			registryURL := os.Getenv("REGISTRY_API_URL")
+			registryURL := viper.GetString("REGISTRY_API_URL")
 			if registryURL == "" {
 				registryURL = "http://localhost:8090"
 			}
@@ -367,7 +370,7 @@ func main() {
 				return nil, fmt.Errorf("failed to create request: %w", err)
 			}
 
-			token := os.Getenv("REGISTRY_API_TOKEN")
+			token := viper.GetString("REGISTRY_API_TOKEN")
 			if token != "" {
 				req.Header.Set("Authorization", "Bearer "+token)
 			}
@@ -577,7 +580,7 @@ func main() {
 				return nil, fmt.Errorf("repo must be in 'org/repo' format")
 			}
 
-			apiURL := os.Getenv("REGISTRY_API_URL")
+			apiURL := viper.GetString("REGISTRY_API_URL")
 			if apiURL == "" {
 				apiURL = "http://localhost:8090"
 			}
@@ -592,7 +595,7 @@ func main() {
 			}
 
 			// We attach an API token if the MCP is configured with one. Substrate uses REGISTRY_API_TOKEN.
-			if token := os.Getenv("REGISTRY_API_TOKEN"); token != "" {
+			if token := viper.GetString("REGISTRY_API_TOKEN"); token != "" {
 				req.Header.Set("Authorization", "Bearer "+token)
 			}
 
@@ -754,7 +757,7 @@ func main() {
 				return nil, fmt.Errorf("repo is required (e.g. 'myorg/backend-api')")
 			}
 
-			apiURL := os.Getenv("REGISTRY_API_URL")
+			apiURL := viper.GetString("REGISTRY_API_URL")
 			if apiURL == "" {
 				apiURL = "http://localhost:8090"
 			}

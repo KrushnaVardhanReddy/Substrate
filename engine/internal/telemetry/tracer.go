@@ -2,7 +2,7 @@ package telemetry
 
 import (
 	"context"
-	"os"
+	"github.com/spf13/viper"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
@@ -13,7 +13,7 @@ import (
 
 // InitTracer initializes an OTLP exporter, and configures the corresponding trace provider.
 func InitTracer(ctx context.Context, serviceName string) (*sdktrace.TracerProvider, error) {
-	endpoint := os.Getenv("SUBSTRATE_OTEL_ENDPOINT")
+	endpoint := viper.GetString("SUBSTRATE_OTEL_ENDPOINT")
 	if endpoint == "" {
 		return nil, nil // Tracing not enabled
 	}

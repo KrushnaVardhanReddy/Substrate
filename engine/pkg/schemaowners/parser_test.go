@@ -24,9 +24,9 @@ backend/src/api/*.go @backend-lead @alice
 			},
 		},
 		{
-			name: "empty",
+			name:    "empty",
 			content: ``,
-			want: map[string][]string{},
+			want:    map[string][]string{},
 		},
 	}
 	for _, tt := range tests {

@@ -2,9 +2,11 @@ package compliance
 
 import (
 	"encoding/json"
+	"github.com/spf13/viper"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
@@ -95,4 +97,9 @@ func TestNotifySecurityTeam(t *testing.T) {
 	assert.True(t, ok)
 	assert.Contains(t, text, "PII:SSN")
 	assert.Contains(t, text, "/user/ssn")
+}
+
+func init() {
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 }

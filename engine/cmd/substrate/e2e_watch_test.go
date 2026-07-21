@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/spf13/viper"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -26,7 +27,7 @@ func TestE2EWatchCommand(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	watchCmd := exec.CommandContext(ctx, filepath.Join(os.Getenv("PWD"), "substrate"), "watch")
+	watchCmd := exec.CommandContext(ctx, filepath.Join(viper.GetString("PWD"), "substrate"), "watch")
 	watchCmd.Dir = dir
 
 	// We need to capture the output to verify it prints "spec updated"

@@ -2,12 +2,12 @@ package diff
 
 import (
 	"fmt"
-	"strings"
 	"sort"
+	"strings"
 	"time"
 
-	"github.com/KrushnaVardhanReddy/substrate/engine/internal/compliance"
 	extcompliance "github.com/KrushnaVardhanReddy/substrate/engine/compliance"
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/compliance"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/config"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 	"github.com/getkin/kin-openapi/openapi3"
@@ -42,7 +42,6 @@ func CompareOpenAPI(basePath, revisionPath string, flattenAllOf bool, customRule
 
 	alerts1 := extcompliance.ScanOpenAPISchema(base, nil)
 	alerts2 := extcompliance.ScanOpenAPISchema(revision, nil)
-
 
 	// Step 3: Compute structural diff using diff.Get()
 	// flattenAllOf is accepted for API compatibility but is not currently wired —

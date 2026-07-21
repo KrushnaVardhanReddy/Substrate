@@ -27,9 +27,9 @@ type User @key(fields: "id storeId") {
 	assert.NoError(t, err)
 
 	tests := []struct {
-		name        string
-		headSchema  string
-		expectedID  string
+		name         string
+		headSchema   string
+		expectedID   string
 		expectedRule string
 	}{
 		{
@@ -42,7 +42,7 @@ type User @key(fields: "id storeId") {
 	email: String!
 }
 `,
-			expectedID: "",
+			expectedID:   "",
 			expectedRule: "",
 		},
 		{
@@ -54,7 +54,7 @@ type User @key(fields: "id storeId") {
 	name: String! @shareable
 }
 `,
-			expectedID: "gql-field-removed-User-email",
+			expectedID:   "gql-field-removed-User-email",
 			expectedRule: "GQL_FIELD_REMOVED",
 		},
 		{
@@ -66,7 +66,7 @@ type User @key(fields: "id storeId") {
 	email: String!
 }
 `,
-			expectedID: "gql-field-removed-User-name",
+			expectedID:   "gql-field-removed-User-name",
 			expectedRule: "GQL_FIELD_REMOVED",
 		},
 		{
@@ -78,7 +78,7 @@ type User @key(fields: "id storeId") {
 	email: String!
 }
 `,
-			expectedID: "gql-federation-key-broken-User-storeId",
+			expectedID:   "gql-federation-key-broken-User-storeId",
 			expectedRule: "FederationKeyBroken",
 		},
 		{
@@ -91,7 +91,7 @@ type User @key(fields: "id storeId") {
 	email: String!
 }
 `,
-			expectedID: "gql-federation-key-broken-User-id",
+			expectedID:   "gql-federation-key-broken-User-id",
 			expectedRule: "FederationKeyBroken",
 		},
 	}

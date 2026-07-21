@@ -3,6 +3,7 @@ package mockgen
 import (
 	"context"
 	"errors"
+	"github.com/spf13/viper"
 	"io"
 	"os"
 	"path/filepath"
@@ -65,18 +66,18 @@ func TestExtractJSON(t *testing.T) {
 			expected: `{"a": 1}`,
 		},
 		{
-			name: "markdown json block",
-			input: "```json\n{\"a\": 1}\n```",
+			name:     "markdown json block",
+			input:    "```json\n{\"a\": 1}\n```",
 			expected: `{"a": 1}`,
 		},
 		{
-			name: "markdown block without language",
-			input: "```\n{\"b\": 2}\n```",
+			name:     "markdown block without language",
+			input:    "```\n{\"b\": 2}\n```",
 			expected: `{"b": 2}`,
 		},
 		{
-			name: "with surrounding whitespace",
-			input: "\n```json\n  {\"c\": 3}  \n```\n",
+			name:     "with surrounding whitespace",
+			input:    "\n```json\n  {\"c\": 3}  \n```\n",
 			expected: `{"c": 3}`,
 		},
 	}
@@ -304,10 +305,10 @@ paths: {}`
 }
 
 func TestUpdateFixture_JSONExtractFallback(t *testing.T) {
-    ctx := context.Background()
+	ctx := context.Background()
 	diffReport := &report.DiffReport{}
 
-    // No codeblocks response
+	// No codeblocks response
 	mockResponse := `{"new": "data"}`
 	client := &mockAIClient{response: mockResponse}
 
@@ -341,7 +342,12 @@ paths: {}`
 	os.WriteFile(oldSchema, []byte(schemaData), 0644)
 	os.WriteFile(newSchema, []byte(schemaData), 0644)
 
-    err := RunMockGenerator(ctx, "/does-not-exist-12345", oldSchema, newSchema, "owner", "repo", "token", "branch")
-    assert.Error(t, err)
-    assert.Contains(t, err.Error(), "failed to discover fixtures")
+	err := RunMockGenerator(ctx, "/does-not-exist-12345", oldSchema, newSchema, "owner", "repo", "token", "branch")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to discover fixtures")
+}
+
+func init() {
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 }

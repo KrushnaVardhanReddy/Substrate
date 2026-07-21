@@ -3,10 +3,14 @@ package config
 import (
 	"errors"
 	"fmt"
+	"github.com/joho/godotenv"
 	"os"
 	"time"
 
 	"gopkg.in/yaml.v3"
+
+	"github.com/spf13/viper"
+	"strings"
 )
 
 type ConsumerDependency struct {
@@ -77,22 +81,21 @@ type GatewayConfig struct {
 }
 
 type SubstrateConfig struct {
-	Version     string               `yaml:"version"`
-	Service     string               `yaml:"service"`
-	SchemaType  string               `yaml:"schema_type,omitempty"`
-	Mode        string               `yaml:"mode,omitempty"`
-	SpecPath    string               `yaml:"spec_path"`
-	Owners      []Owner              `yaml:"owners,omitempty"`
-	Overrides   []Override           `yaml:"overrides,omitempty"`
-	Consumers   []ConsumerDependency `yaml:"consumers,omitempty"`
-	Avro        *AvroConfig          `yaml:"avro,omitempty"`
-	Traffic     TrafficConfig        `yaml:"traffic,omitempty"`
+	Version      string               `yaml:"version"`
+	Service      string               `yaml:"service"`
+	SchemaType   string               `yaml:"schema_type,omitempty"`
+	Mode         string               `yaml:"mode,omitempty"`
+	SpecPath     string               `yaml:"spec_path"`
+	Owners       []Owner              `yaml:"owners,omitempty"`
+	Overrides    []Override           `yaml:"overrides,omitempty"`
+	Consumers    []ConsumerDependency `yaml:"consumers,omitempty"`
+	Avro         *AvroConfig          `yaml:"avro,omitempty"`
+	Traffic      TrafficConfig        `yaml:"traffic,omitempty"`
 	CustomRules  []CustomRule         `yaml:"custom_rules,omitempty" json:"custom_rules,omitempty"`
 	Gateway      *GatewayConfig       `yaml:"gateway,omitempty"`
 	Deprecations []Deprecation        `yaml:"deprecations,omitempty"`
 	Compliance   *ComplianceConfig    `yaml:"compliance,omitempty"`
 }
-
 
 type ComplianceConfig struct {
 	Patterns map[string]string `yaml:"patterns,omitempty"`
@@ -341,4 +344,29 @@ func (c *SubstrateConfig) IsOverrideActive(ruleID, path string) bool {
 		}
 	}
 	return false
+}
+
+// InitConfig initializes Viper for the CLI application
+func InitConfig() {
+	// Load .env if it exists
+	_ = godotenv.Load()
+
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+
+	// Default paths for substrate.yaml
+	viper.SetConfigName("substrate")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath(".")
+
+	// Ignore err if file doesn't exist
+	_ = viper.ReadInConfig()
+}
+
+func init() {
+	// Load .env if it exists
+	_ = godotenv.Load()
+
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/spf13/viper"
 	"strconv"
 	"strings"
 	"time"
@@ -47,6 +48,7 @@ var archaeologyCmd = &cobra.Command{
 		sinceStr, _ := cmd.Flags().GetString("since")
 		repoPath, _ := cmd.Flags().GetString("repo")
 		specPath, _ := cmd.Flags().GetString("spec")
+		viper.BindPFlags(cmd.Flags())
 
 		since, err := ParseCustomDuration(sinceStr)
 		if err != nil {
@@ -68,4 +70,5 @@ func init() {
 	archaeologyCmd.Flags().String("since", "2-years", "Time duration to look back (e.g., 2-years, 30-days, or 8760h)")
 	archaeologyCmd.Flags().String("repo", ".", "Path to the git repository")
 	archaeologyCmd.Flags().String("spec", "openapi.yaml", "Path to the spec file within the repo")
+	viper.BindPFlags(archaeologyCmd.Flags())
 }

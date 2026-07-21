@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/spf13/viper"
 	"os"
 
 	"github.com/KrushnaVardhanReddy/substrate/engine/linter"
@@ -47,4 +48,5 @@ var lintCmd = &cobra.Command{
 
 func init() {
 	lintCmd.Flags().StringVar(&lintSchemaPath, "schema", "", "Path to the OpenAPI schema")
+	viper.BindPFlags(lintCmd.Flags())
 }

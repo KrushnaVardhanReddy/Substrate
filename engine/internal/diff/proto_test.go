@@ -137,4 +137,3 @@ func TestCompareProto(t *testing.T) {
 		})
 	}
 }
-

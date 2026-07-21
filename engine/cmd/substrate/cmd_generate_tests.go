@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/spf13/viper"
 	"os"
 
 	"github.com/KrushnaVardhanReddy/substrate/engine/pkg/fuzzer"
@@ -27,4 +28,5 @@ var generateTestsCmd = &cobra.Command{
 
 func init() {
 	generateTestsCmd.Flags().StringVar(&generateTestsBaseURL, "url", "", "Base URL for the generated API tests")
+	viper.BindPFlags(generateTestsCmd.Flags())
 }

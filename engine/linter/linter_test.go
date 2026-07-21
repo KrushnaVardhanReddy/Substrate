@@ -3,9 +3,11 @@ package linter
 import (
 	"context"
 	"encoding/json"
+	"github.com/spf13/viper"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -70,6 +72,11 @@ func TestAnalyze(t *testing.T) {
 }
 
 func TestAnalyzeFallback(t *testing.T) {
+	viper.Reset()
+	viper.AutomaticEnv()
+	os.Unsetenv("SUBSTRATE_AI_BASE_URL")
+	os.Unsetenv("OPENAI_API_KEY")
+	os.Unsetenv("SUBSTRATE_AI_API_KEY")
 	os.Unsetenv("SUBSTRATE_AI_BASE_URL")
 	os.Unsetenv("OPENAI_API_KEY")
 	os.Unsetenv("SUBSTRATE_AI_API_KEY")
@@ -92,4 +99,9 @@ func TestAnalyzeFallback(t *testing.T) {
 	if issues[0].Rule != "FALLBACK_MODE" {
 		t.Errorf("Expected rule FALLBACK_MODE, got %s", issues[0].Rule)
 	}
+}
+
+func init() {
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 }

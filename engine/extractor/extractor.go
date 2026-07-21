@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/spf13/viper"
 	"io"
 	"os"
 	"strings"
@@ -22,9 +23,9 @@ func ExtractSpec(filePath string) error {
 
 	content := string(contentBytes)
 
-	apiKey := os.Getenv("SUBSTRATE_AI_API_KEY")
-	baseURL := os.Getenv("SUBSTRATE_AI_BASE_URL")
-	model := os.Getenv("SUBSTRATE_AI_MODEL")
+	apiKey := viper.GetString("SUBSTRATE_AI_API_KEY")
+	baseURL := viper.GetString("SUBSTRATE_AI_BASE_URL")
+	model := viper.GetString("SUBSTRATE_AI_MODEL")
 
 	if baseURL == "" {
 		fmt.Println("Using deterministic fallback response (SUBSTRATE_AI_BASE_URL is unset).")
@@ -32,7 +33,7 @@ func ExtractSpec(filePath string) error {
 	}
 
 	if apiKey == "" {
-		provider := os.Getenv("SUBSTRATE_AI_PROVIDER")
+		provider := viper.GetString("SUBSTRATE_AI_PROVIDER")
 		if provider != "ollama" {
 			return fmt.Errorf("SUBSTRATE_AI_API_KEY environment variable is required")
 		}
