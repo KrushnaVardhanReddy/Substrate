@@ -71,6 +71,7 @@ MANDATORY RULES — VIOLATION = REJECTED PR:
    A PR with no tests will be rejected, no exceptions.
 6. Commit message must start with "jules: " prefix.
 7. 100% SPEC-FIRST RULE: If your implementation deviates from the spec in docs/specs/, STOP and flag it.
+8. LLM-WIKI MANDATE: You MUST read `CLAUDE.md` and `docs/wiki/index.md` before writing code to establish project-wide architectural context.
 
 Project: Substrate — CI/CD-integrated data contract and dependency intelligence platform.
 Tech stack:
