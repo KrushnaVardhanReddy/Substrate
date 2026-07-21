@@ -16,6 +16,12 @@ CONSTRAINTS & RULES
 - You MUST write unit tests (`_test.go`) for each new port interface.
 
 ═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The monolithic `Store` interface is located in `api/internal/db/store.go`.
+- Ensure you create an `sqlc.yaml` configuration file before running `sqlc generate`.
+
+═══════════════════════════════════════════════════════════════
 IMPLEMENTATION TIPS
 ═══════════════════════════════════════════════════════════════
 - Create `api/internal/ports/` to house the interface definitions.

@@ -16,6 +16,11 @@ CONSTRAINTS & RULES
 - You MUST write unit tests for the customer impact calculation logic (mock external API calls).
 
 ═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- `github-app/src/formatter.ts` already has multiple other sections like AI Impact Analysis, Governance, etc. Append the new Customer Impact section cleanly.
+
+═══════════════════════════════════════════════════════════════
 IMPLEMENTATION TIPS
 ═══════════════════════════════════════════════════════════════
 - Add `engine/crm/stripe.go` and `engine/crm/salesforce.go` as thin client wrappers.
