@@ -34,6 +34,12 @@
    - ✅ P10-T06: Zombie Pruning (PR #181)
    - ✅ P15-T11: Startups Free Tier (PR #183)
 
+6. **Wave 10 Merged**
+   - ✅ P9-T08: Deployment Risk Score (PR #184)
+   - ✅ P10-T04: AI Spectral Linter (PR #185)
+   - ✅ P10-T13: API Docs Catalog (PR #186)
+   - ✅ P15-T09: Partner Program (PR #187)
+
 6. **All Remaining Tasks Have Specs + Prompts**
    Every remaining backlog task now has a `docs/specs/` file and a `prompts/` file registered in `scripts/jules_submit.py`.
 
@@ -48,19 +54,6 @@
 
 
 
-### Wave 10 — (Phase 9+10 — 1 formatter.ts touch)
-| Task ID | Script Key | Conflict Notes |
-|---|---|---|
-| P9-T08 Deployment Risk Score | `908` | ⚠️ modifies `formatter.ts` |
-| P10-T04 AI Spectral Linter | `1004` | New `engine/spectral/` + routes ✓ |
-| P10-T13 API Docs Catalog | `1013` | New handler + new Svelte route ✓ |
-| P15-T09 Partner Program | `1509` | New handler + admin route ✓ |
-```bash
-python3 scripts/jules_submit.py --task 908 && \
-python3 scripts/jules_submit.py --task 1004 && \
-python3 scripts/jules_submit.py --task 1013 && \
-python3 scripts/jules_submit.py --task 1509
-```
 
 ### Wave 11 — (Phase 9+10 — 1 formatter.ts touch)
 | Task ID | Script Key | Conflict Notes |
