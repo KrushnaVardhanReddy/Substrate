@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/svelte/svelte5';
 import Page from './+page.svelte';
 
-vi.mock('$env/static/public', () => ({
-	PUBLIC_API_URL: 'http://localhost:8090'
+vi.mock('$env/dynamic/public', () => ({
+	env: { PUBLIC_API_URL: 'http://localhost:8090' }
 }));
 
 describe('Marketplace Page', () => {

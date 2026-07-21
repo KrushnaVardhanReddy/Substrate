@@ -78,6 +78,12 @@ func NewRouter(store db.Store, riverClient workers.JobEnqueuer, authConfig handl
 	// Protected routes (Service Token OR JWT)
 	authMW := AuthMiddleware(registryApiToken, jwtSecret)
 	authzMW := AuthzMiddleware(registryApiToken, jwtSecret)
+
+	partnersHandler := handler.NewPartnersHandler(store.Pool())
+	r.Method("GET", "/api/v1/org/{org}/partners", authzMW(http.HandlerFunc(partnersHandler.ListPartners)))
+	r.Method("POST", "/api/v1/org/{org}/partners", authzMW(http.HandlerFunc(partnersHandler.CreatePartner)))
+	r.Method("POST", "/api/v1/org/{org}/partners/{id}/verify", authzMW(http.HandlerFunc(partnersHandler.VerifyPartner)))
+
 	r.Method("POST", "/api/v1/org/{org}/webhooks", authzMW(http.HandlerFunc(handlers.RegisterWebhookHandler(store))))
 	r.Method("GET", "/api/v1/graph/{org}", authMW(http.HandlerFunc(handlers.GraphHandler(store))))
 	r.Method("GET", "/api/v1/export/docs/{org}", authMW(http.HandlerFunc(handlers.HandleExportDocs(store))))
