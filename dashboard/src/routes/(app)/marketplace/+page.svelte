@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	// @ts-ignore
-	import { PUBLIC_API_URL } from '$env/static/public';
-
+	import { env } from '$env/dynamic/public';
+	import SubstrateCertifiedBadge from '$lib/components/SubstrateCertifiedBadge.svelte';
 	let plugins: any[] = $state([]);
 	let loading = $state(true);
 	let error: string | null = $state(null);
@@ -10,7 +9,8 @@
 
 	onMount(async () => {
 		try {
-			const res = await fetch(`${PUBLIC_API_URL}/api/marketplace/plugins`);
+			const apiUrl = env.PUBLIC_API_URL || 'http://localhost:8090';
+			const res = await fetch(`${apiUrl}/api/marketplace/plugins`);
 			if (!res.ok) throw new Error('Failed to fetch plugins');
 			plugins = await res.json();
 		} catch (e: any) {
@@ -41,9 +41,15 @@
 	{:else}
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 			{#each plugins as plugin}
-				<div class="border rounded-lg p-5 shadow-sm bg-white hover:shadow-md transition-shadow">
-					<h3 class="text-lg font-semibold text-gray-900 mb-2">{plugin.name}</h3>
-					<p class="text-sm text-gray-600 mb-4 h-10 overflow-hidden text-ellipsis">{plugin.description}</p>
+				<div class="border rounded-lg p-5 shadow-sm bg-white hover:shadow-md transition-shadow flex flex-col">
+					<div class="flex items-start justify-between mb-2">
+						<h3 class="text-lg font-semibold text-gray-900">{plugin.name}</h3>
+						<!-- For now, we simulate that vendors named 'Kong', 'AWS API Gateway', 'Apigee', 'Cloudflare' are certified -->
+						{#if ['Kong', 'AWS API Gateway', 'Apigee', 'Cloudflare'].some(v => plugin.name.includes(v) || plugin.description.includes(v))}
+							<SubstrateCertifiedBadge />
+						{/if}
+					</div>
+					<p class="text-sm text-gray-600 mb-4 flex-grow overflow-hidden text-ellipsis">{plugin.description}</p>
 
 					<div class="flex items-center justify-between border-t pt-4">
 						<code class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-800 font-mono">
