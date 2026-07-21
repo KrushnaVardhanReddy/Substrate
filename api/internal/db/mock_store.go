@@ -20,6 +20,10 @@ type MockStore struct {
 
 	RecordDriftAnomalyFunc             func(ctx context.Context, anomaly DriftAnomaly) error
 	GetDriftAnomaliesFunc              func(ctx context.Context, orgName, repoName string) ([]DriftAnomaly, error)
+	GetOrgIDByNameFunc             func(ctx context.Context, name string) (uuid.UUID, error)
+	UpsertGovernanceRuleFunc       func(ctx context.Context, id uuid.UUID, text string) (uuid.UUID, error)
+	GetGovernanceRulesByOrgFunc    func(ctx context.Context, id uuid.UUID) ([]GovernanceRule, error)
+	DeleteGovernanceRuleFunc       func(ctx context.Context, rid uuid.UUID, oid uuid.UUID) error
 	UpsertOrgFunc                      func(ctx context.Context, installationID int64, orgName string) (uuid.UUID, error)
 	UpsertRepoFunc                     func(ctx context.Context, orgID uuid.UUID, githubRepoID int64, name, fullName string, metadata json.RawMessage) (uuid.UUID, error)
 	UpsertContractFunc                 func(ctx context.Context, repoID uuid.UUID, schemaType, specPath, branch, commitSHA, rawContent string) (uuid.UUID, error)
@@ -397,4 +401,32 @@ func (m *MockStore) UpsertEndpointTraffic(ctx context.Context, repoID uuid.UUID,
 
 func (m *MockStore) GetZeroTrafficEndpoints(ctx context.Context, orgName string, since time.Time) ([]EndpointTraffic, error) {
 	return nil, nil
+}
+
+func (m *MockStore) GetOrgIDByName(ctx context.Context, orgName string) (uuid.UUID, error) {
+	if m.GetOrgIDByNameFunc != nil {
+		return m.GetOrgIDByNameFunc(ctx, orgName)
+	}
+	return uuid.Nil, nil
+}
+
+func (m *MockStore) UpsertGovernanceRule(ctx context.Context, orgID uuid.UUID, ruleText string) (uuid.UUID, error) {
+	if m.UpsertGovernanceRuleFunc != nil {
+		return m.UpsertGovernanceRuleFunc(ctx, orgID, ruleText)
+	}
+	return uuid.Nil, nil
+}
+
+func (m *MockStore) GetGovernanceRulesByOrg(ctx context.Context, orgID uuid.UUID) ([]GovernanceRule, error) {
+	if m.GetGovernanceRulesByOrgFunc != nil {
+		return m.GetGovernanceRulesByOrgFunc(ctx, orgID)
+	}
+	return nil, nil
+}
+
+func (m *MockStore) DeleteGovernanceRule(ctx context.Context, ruleID uuid.UUID, orgID uuid.UUID) error {
+	if m.DeleteGovernanceRuleFunc != nil {
+		return m.DeleteGovernanceRuleFunc(ctx, ruleID, orgID)
+	}
+	return nil
 }

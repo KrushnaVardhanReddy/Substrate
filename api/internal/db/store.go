@@ -121,6 +121,10 @@ type AgentToolDependency struct {
 }
 
 type Store interface {
+	GetOrgIDByName(ctx context.Context, orgName string) (uuid.UUID, error)
+	UpsertGovernanceRule(ctx context.Context, orgID uuid.UUID, ruleText string) (uuid.UUID, error)
+	GetGovernanceRulesByOrg(ctx context.Context, orgID uuid.UUID) ([]GovernanceRule, error)
+	DeleteGovernanceRule(ctx context.Context, ruleID uuid.UUID, orgID uuid.UUID) error
 	UpsertOrg(ctx context.Context, installationID int64, orgName string) (uuid.UUID, error)
 	UpsertRepo(ctx context.Context, orgID uuid.UUID, githubRepoID int64, name, fullName string, metadata json.RawMessage) (uuid.UUID, error)
 	UpsertContract(ctx context.Context, repoID uuid.UUID, schemaType, specPath, branch, commitSHA, rawContent string) (uuid.UUID, error)
