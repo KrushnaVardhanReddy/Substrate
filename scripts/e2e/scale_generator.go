@@ -1,7 +1,5 @@
 //go:build ignore
 
-
-
 package main
 
 import (
@@ -93,7 +91,7 @@ func GenerateScaleGraph(n, targetEdges int) []Edge {
 }
 
 var (
-	caughtPanics int32
+	caughtPanics   int32
 	totalLatencies sync.Map
 	counts         sync.Map
 )
@@ -174,10 +172,10 @@ func runEnduranceLoop(ctx context.Context, client *github.Client, owner string, 
 					return
 				default:
 					semaphore <- struct{}{}
-					
+
 					id := rand.Intn(config.Scale)
 					isPoisonPill := id < int(float64(config.Scale)*0.6)
-					
+
 					if rand.Float32() < 0.10 {
 						fireRealWebhook(id, "Mutation", false, "deleted")
 					} else {
@@ -193,7 +191,7 @@ func runEnduranceLoop(ctx context.Context, client *github.Client, owner string, 
 							updateLatency(protocolName, latency)
 						}
 					}
-					
+
 					<-semaphore
 					time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
 				}
@@ -280,13 +278,13 @@ func fireRealWebhook(id int, protocol string, isPoison bool, action string) {
 
 	payload := map[string]interface{}{
 		"installation_id": 12345,
-		"org": "chaos-org",
-		"repo": fmt.Sprintf("chaos-org/repo-%d", id),
-		"github_repo_id": id,
-		"commit_sha": "abcdef123",
+		"org":             "chaos-org",
+		"repo":            fmt.Sprintf("chaos-org/repo-%d", id),
+		"github_repo_id":  id,
+		"commit_sha":      "abcdef123",
 		"files": []map[string]interface{}{
 			{
-				"path": "schema.yaml",
+				"path":    "schema.yaml",
 				"content": getMockContent(protocol, isPoison),
 			},
 			{
@@ -406,20 +404,20 @@ func runAssertionAndReporting(totalDuration time.Duration) {
 		accuracy = fmt.Sprintf("Failed to fetch graph (Status %d)", resp.StatusCode)
 		resp.Body.Close()
 	} else {
-	    defer resp.Body.Close()
-	    bodyBytes, _ := io.ReadAll(resp.Body)
+		defer resp.Body.Close()
+		bodyBytes, _ := io.ReadAll(resp.Body)
 
-	    var graph []struct {
-	        Consumer string `json:"consumer"`
-	        Provider string `json:"provider"`
-	        Status   string `json:"status"`
-	    }
+		var graph []struct {
+			Consumer string `json:"consumer"`
+			Provider string `json:"provider"`
+			Status   string `json:"status"`
+		}
 
-	    if err := json.Unmarshal(bodyBytes, &graph); err != nil {
-	        accuracy = fmt.Sprintf("Failed to parse graph JSON (err: %v)", err)
-	    } else if len(graph) == 0 {
-	        accuracy = "Failed (0 edges in graph)"
-	    }
+		if err := json.Unmarshal(bodyBytes, &graph); err != nil {
+			accuracy = fmt.Sprintf("Failed to parse graph JSON (err: %v)", err)
+		} else if len(graph) == 0 {
+			accuracy = "Failed (0 edges in graph)"
+		}
 	}
 
 	fmt.Printf("Graph Accuracy: %s\n", accuracy)

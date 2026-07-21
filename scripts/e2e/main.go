@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"e2e/scenarios/aiml"
 	"e2e/scenarios/asyncapi"
 	"e2e/scenarios/avro"
 	"e2e/scenarios/graphql"
@@ -14,7 +15,6 @@ import (
 	"e2e/scenarios/protobuf"
 	"e2e/scenarios/sql"
 	"e2e/scenarios/terraform"
-	"e2e/scenarios/aiml"
 
 	"github.com/google/go-github/v62/github"
 )

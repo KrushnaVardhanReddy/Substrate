@@ -2,10 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"os"
 	"strings"
 	"testing"
 	"time"
-	"os"
 
 	"github.com/KrushnaVardhanReddy/substrate/engine"
 )

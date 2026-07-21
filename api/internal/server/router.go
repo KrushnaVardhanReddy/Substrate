@@ -99,6 +99,11 @@ func NewRouter(store db.Store, riverClient workers.JobEnqueuer, authConfig handl
 	// SSE endpoint for live graph updates
 	r.Method("GET", "/api/v1/events", authMW(http.HandlerFunc(handlers.EventsHandler)))
 
+	// OTel Metrics and Zombies (Phase 10)
+	r.Method("POST", "/api/v1/otel/webhook", serviceTokenMW(http.HandlerFunc(handlers.OTelMetricsHandler(store))))
+	r.Method("GET", "/api/v1/org/{org}/zombies", authzMW(http.HandlerFunc(handlers.GetZombiesHandler(store))))
+	r.Method("POST", "/api/v1/org/{org}/zombies/pr", authzMW(http.HandlerFunc(handlers.CreateZombiePRHandler(github.NewRESTClient()))))
+
 	// Governance Rules Generate CEL endpoint
 	r.Method("POST", "/api/governance/generate-cel", authMW(handlers.GenerateCELHandler()))
 
@@ -111,6 +116,7 @@ func NewRouter(store db.Store, riverClient workers.JobEnqueuer, authConfig handl
 	r.Method("GET", "/api/v1/org/{org}/rules", authzMW(http.HandlerFunc(governanceHandler.ListRules)))
 	r.Method("POST", "/api/v1/org/{org}/rules", authzMW(http.HandlerFunc(governanceHandler.CreateRule)))
 	r.Method("DELETE", "/api/v1/org/{org}/rules/{ruleID}", authzMW(http.HandlerFunc(governanceHandler.DeleteRule)))
+	r.Method("POST", "/api/v1/org/{org}/governance/rules", authzMW(http.HandlerFunc(governanceHandler.CreateRule)))
 
 	// Insurance routes
 	r.Method("GET", "/api/v1/org/{org}/insurance/policy", authzMW(http.HandlerFunc(handlers.InsuranceGetPolicyHandler(store))))

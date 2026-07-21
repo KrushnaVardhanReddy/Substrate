@@ -35,7 +35,7 @@ func (m *MockShadowAnalyzer) Analyze(logs []string) map[string]bool {
 }
 
 type MockSyncClient struct {
-	SyncedSchema string
+	SyncedSchema  string
 	SyncTriggered bool
 }
 
@@ -46,7 +46,7 @@ func (m *MockSyncClient) Sync(schema string) error {
 }
 
 func TestPhase6QAFeedbackLoop(t *testing.T) {
-	cancel := func(){}
+	cancel := func() {}
 	defer cancel()
 
 	// 1. Build the engine binary (substrate CLI)

@@ -1,3 +1,3 @@
 package helpers
 
-func UseInternal() {}
+// file to avoid use of internal pkg directly
