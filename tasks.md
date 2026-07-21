@@ -60,6 +60,11 @@
 | **P10-T19** | 🚀 P1 | **CRM/Billing Blast Radius** — Integrate with Stripe and Salesforce to map external customer impact on internal API breakages. | Jules | ✅ PR Merged | `(Pending)` |
 | **P10-T20** | 🔴 P1 | **Phase 10 E2E Validation (No Mocks)** — End-to-end testing of GraphQL Supergraphs, CDC Manifests, eBPF probes, and MCP diffing. Must use real live gateway environments, live Git hooks, and zero mock APIs. | Jules | ✅ PR Merged | `(Pending)` |
 
+### Cross-Cutting Refactors
+| Task | Priority | Title | Assignee | Status | Spec |
+|---|---|---|---|---|---|
+| **CC-T01** | 🛡️ P1 | **PASETO Security Migration** — Replace all `golang-jwt` usage in `middleware.go` with PASETO `v4.local` for internal auth, and prepare for PASETO `v4.public` in P15-T15. | Jules | 💡 Backlog | `docs/wiki/concepts/architecture.md` |
+
 ---
 
 ## 🗺️ Phase 11: Advanced Graph Visualization (V2.0 UX)
