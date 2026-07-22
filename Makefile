@@ -236,11 +236,11 @@ e2e-phase8: check-token
 
 e2e-phase14: check-token
 	@echo "Running Phase 14 E2E Validation Tests..."
-	cd scripts/e2e && go test -v p14_*_test.go || true
+	cd scripts/e2e && go test -v phase14_e2e_test.go || true
 
 e2e-phase15: check-token
 	@echo "Running Phase 15 Enterprise Tests..."
-	cd scripts/e2e && go test -v p15_*_test.go || true
+	cd scripts/e2e && go test -v phase15_e2e_test.go p15_t04_e2e_test.go || true
 # ── Phase 12: Production Build ────────────────────────────────────────────────
 
 ## build-wasm: Compile the Go diff engine to WebAssembly
@@ -267,5 +267,5 @@ test-all:
 
 ## e2e-phase12: Run Phase 12 specific Go E2E tests
 e2e-phase12:
-	go test -race -count=1 -v ./scripts/e2e/... -run "TestSSE|TestScale|TestDiff"
+	cd scripts/e2e && go test -race -count=1 -v ./... -run "TestSSE|TestScale|TestDiff"
 	cd dashboard && npx playwright test

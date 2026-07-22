@@ -69,3 +69,79 @@ paths:
       responses:
         '200':
           description: Event tracked successfully
+  /api/badges/{org}/{repo}:
+    get:
+      summary: Get Repository Badge
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: SVG Badge
+  /api/governance/generate-cel:
+    post:
+      summary: Generate CEL from Natural Language
+      responses:
+        '200':
+          description: Generated CEL rule
+  /api/v1/org/{org}/insurance/policy:
+    get:
+      summary: Get Insurance Policy
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Insurance policy details
+  /api/v1/org/{org}/insurance/claims:
+    get:
+      summary: Get Insurance Claims
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of claims
+    post:
+      summary: File an Insurance Claim
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Claim created successfully
+  /api/marketplace/plugins:
+    get:
+      summary: List Marketplace Plugins
+      responses:
+        '200':
+          description: List of plugins
+  /api/v1/public/profile/{org}:
+    get:
+      summary: Get Public Org Profile
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Public profile details

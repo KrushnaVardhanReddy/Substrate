@@ -419,7 +419,7 @@ func GetDependencyGraph(ctx context.Context, pool *pgxpool.Pool, orgName string)
 	var edges []DependencyEdge
 	for rows.Next() {
 		var e DependencyEdge
-		if err := rows.Scan(&e.ConsumerFullName, &e.ProviderFullName, &e.Status, &e.ConsumerMetadata, &e.ProviderMetadata); err != nil {
+		if err := rows.Scan(&e.ConsumerFullName, &e.ProviderFullName, &e.Status, &e.ConsumerMetadata, &e.ProviderMetadata, &e.PredictiveRiskScore); err != nil {
 			return nil, fmt.Errorf("failed to scan dependency edge: %w", err)
 		}
 		edges = append(edges, e)

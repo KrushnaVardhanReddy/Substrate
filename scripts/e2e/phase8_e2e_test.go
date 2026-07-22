@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -13,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
+	"aidanwoods.dev/go-paseto"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -65,15 +66,14 @@ func setupP8Database(t *testing.T) *pgxpool.Pool {
 }
 
 func createJWT(org, role string) string {
-	claims := jwt.MapClaims{
-		"orgs": map[string]interface{}{
-			org: role,
-		},
-		"exp": time.Now().Add(time.Hour).Unix(),
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, _ := token.SignedString([]byte(p8JWTSecret))
-	return tokenString
+	hash := sha256.Sum256([]byte(p8JWTSecret))
+	key, _ := paseto.V4SymmetricKeyFromBytes(hash[:])
+	
+	token := paseto.NewToken()
+	token.Set("orgs", map[string]string{org: role})
+	token.SetExpiration(time.Now().Add(time.Hour))
+	
+	return token.V4Encrypt(key, nil)
 }
 
 func TestPhase8SystemE2E(t *testing.T) {
@@ -197,9 +197,31 @@ info:
 paths:
   /invoices:
     post:
+      summary: Create an invoice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Invoice'
       responses:
         '200':
           description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+components:
+  schemas:
+    Invoice:
+      type: object
+      required:
+        - amount
+      properties:
+        id:
+          type: string
+        amount:
+          type: number
 `
 		var v2ContractID string
 		err = pool.QueryRow(ctx, "INSERT INTO contracts (repo_id, schema_type, spec_path, branch, latest_commit_sha, raw_content) VALUES ($1, 'openapi', 'openapi.yaml', 'main', 'v2-sha', $2) RETURNING id", billingApiRepoID, contractV2Content).Scan(&v2ContractID)
@@ -214,7 +236,25 @@ paths:
 info:
   title: Billing API
   version: 1.0.0
-paths: {}
+paths:
+  /invoices:
+    post:
+      summary: Create an invoice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              # Missing 'amount' property intentionally, making rollback to v1 a breaking change 
+              # for consumers who expect 'amount' in V2. Wait, if V1 misses it, and V2 adds it,
+              # V1 is breaking because consumer expects the schema to have it.
+              properties:
+                id:
+                  type: string
+      responses:
+        '200':
+          description: OK
 `
 		_, err = pool.Exec(ctx, "INSERT INTO contracts (repo_id, schema_type, spec_path, branch, latest_commit_sha, raw_content) VALUES ($1, 'openapi', 'openapi.yaml', 'v1-branch', 'v1-sha', $2)", billingApiRepoID, contractV1Content)
 		require.NoError(t, err)

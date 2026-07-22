@@ -139,3 +139,39 @@ func AuthzMiddleware(registryApiToken, jwtSecret string) func(http.Handler) http
 		})
 	}
 }
+
+func JWTValidMiddleware(jwtSecret string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			authHeader := r.Header.Get("Authorization")
+			if authHeader == "" {
+				http.Error(w, "missing authorization header", http.StatusUnauthorized)
+				return
+			}
+
+			parts := strings.Split(authHeader, " ")
+			if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
+				http.Error(w, "invalid authorization header format", http.StatusUnauthorized)
+				return
+			}
+
+			token := parts[1]
+
+			hash := sha256.Sum256([]byte(jwtSecret))
+			key, err := paseto.V4SymmetricKeyFromBytes(hash[:])
+			if err != nil {
+				http.Error(w, "internal server error: invalid key", http.StatusInternalServerError)
+				return
+			}
+
+			parser := paseto.NewParser()
+			_, err = parser.ParseV4Local(key, token, nil)
+			if err != nil {
+				http.Error(w, "invalid token", http.StatusUnauthorized)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}

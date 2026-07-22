@@ -44,7 +44,7 @@ func (s *PGStore) CountRecentBreakingChanges(ctx context.Context, repoID uuid.UU
 	var count int
 	err := s.pool.QueryRow(ctx, `
 		SELECT COUNT(*)
-		FROM breaking_change_records
+		FROM breaking_change_history
 		WHERE repo_id = $1 AND timestamp >= $2
 	`, repoID, since).Scan(&count)
 	return count, err
@@ -67,7 +67,7 @@ func (s *PGStore) GetTimeSinceLastBreak(ctx context.Context, repoID uuid.UUID) (
 	var lastBreak time.Time
 	err := s.pool.QueryRow(ctx, `
 		SELECT MAX(timestamp)
-		FROM breaking_change_records
+		FROM breaking_change_history
 		WHERE repo_id = $1
 	`).Scan(&lastBreak)
 
