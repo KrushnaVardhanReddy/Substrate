@@ -38,3 +38,32 @@ DELIVERABLES
 
 Commit: "refactor: P9-T05 hexagonal architecture and sqlc migration"
 Target branch: feature/dev
+
+═══════════════════════════════════════════════════════════════
+SQLC & PGX TYPE MAPPING OVERRIDES (CRITICAL FIX)
+═══════════════════════════════════════════════════════════════
+To resolve type integration issues between `sqlc`, `pgx/v5` (`pgxpool.Pool`), and standard Go types, you MUST configure `sqlc.yaml` to use type overrides.
+1. Map PostgreSQL `timestamptz` and `timestamp` to standard Go `time.Time` instead of `pgtype.Timestamptz`.
+2. Map PostgreSQL `text` and `varchar` to standard Go `string` instead of `pgtype.Text`.
+3. Use `pgx/v5` as the sqlc driver plugin.
+
+Example `sqlc.yaml` snippet for overrides:
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "api/internal/db/queries"
+    schema: "api/internal/db/schema"
+    gen:
+      go:
+        package: "db"
+        out: "api/internal/db"
+        sql_package: "pgx/v5"
+        overrides:
+          - db_type: "timestamptz"
+            go_type: "time.Time"
+          - db_type: "timestamp"
+            go_type: "time.Time"
+          - db_type: "text"
+            go_type: "string"
+          - db_type: "varchar"
+            go_type: "string"
