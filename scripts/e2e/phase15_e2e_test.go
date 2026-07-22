@@ -185,10 +185,6 @@ func TestPhase15SystemE2E(t *testing.T) {
 	t.Run("Scenario 4: Schema Insurance Claims", func(t *testing.T) {
 		adminJWT := createP15JWT("acme", "admin")
 
-		var orgID string
-		err := pool.QueryRow(context.Background(), "SELECT id FROM organizations WHERE github_org_name = 'acme'").Scan(&orgID)
-		require.NoError(t, err)
-
 		claimReq := map[string]interface{}{
 			"github_pr_url": "https://github.com/acme/repo/pull/42",
 			"incident_date": time.Now().Format(time.RFC3339),
@@ -196,7 +192,7 @@ func TestPhase15SystemE2E(t *testing.T) {
 		}
 		body, _ := json.Marshal(claimReq)
 
-		req, err := http.NewRequest("POST", p15ApiURL+"/api/v1/org/"+orgID+"/insurance/claims", bytes.NewReader(body))
+		req, err := http.NewRequest("POST", p15ApiURL+"/api/v1/org/acme/insurance/claims", bytes.NewReader(body))
 		require.NoError(t, err)
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+adminJWT)
