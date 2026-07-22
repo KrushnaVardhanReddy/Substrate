@@ -170,6 +170,130 @@ class StitchMCPClient:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
+# Repo root + prompt loader
+# ──────────────────────────────────────────────────────────────────────────────
+
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+def _load_prompt(relative_path):
+    """Load a prompt file — returns its content or raises on missing file."""
+    full_path = os.path.join(REPO_ROOT, relative_path)
+    if not os.path.exists(full_path):
+        print(f"❌ Prompt file not found: {full_path}")
+        sys.exit(1)
+    with open(full_path) as f:
+        return f.read()
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Phase 12 Stitch Tasks (Playwright / Frontend)
+# ──────────────────────────────────────────────────────────────────────────────
+
+PHASE12_STITCH_TASKS = {
+    1201: {
+        "name": "P12-T01 — Zero-to-One Onboarding E2E (Playwright)",
+        "wave": 1,
+        "owner": "Stitch",
+        "prompt_file": "prompts/phase-12/t01_onboarding_e2e.txt",
+    },
+    1202: {
+        "name": "P12-T02 — Svelte Flow Interaction E2E (Playwright)",
+        "wave": 1,
+        "owner": "Stitch",
+        "prompt_file": "prompts/phase-12/t02_svelte_flow_e2e.txt",
+    },
+    1203: {
+        "name": "P12-T03 — AI Playground & Diff Viewer E2E (Playwright)",
+        "wave": 2,
+        "owner": "Stitch",
+        "prompt_file": "prompts/phase-12/t03_studio_resilience_e2e.txt",
+    },
+    1207: {
+        "name": "P12-T07 — Telemetry & Crash Reporting (PostHog)",
+        "wave": 2,
+        "owner": "Stitch",
+        "prompt_file": "prompts/phase-12/t07_telemetry.txt",
+    },
+}
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Stitch: Generate a screen from a prompt file via the MCP API
+# ──────────────────────────────────────────────────────────────────────────────
+
+def submit_stitch_task(task_num):
+    """Submit a Phase 12 Stitch task directly via the Stitch generate API."""
+    if task_num not in PHASE12_STITCH_TASKS:
+        print(f"❌ Stitch task {task_num} not found. Available: {list(PHASE12_STITCH_TASKS.keys())}")
+        sys.exit(1)
+
+    task = PHASE12_STITCH_TASKS[task_num]
+    prompt_content = _load_prompt(task["prompt_file"])
+
+    print(f"\n🎨 Stitch Task [{task_num}]: {task['name']}")
+    print(f"   Wave: {task['wave']} | Owner: {task['owner']}")
+    print(f"   Prompt file: {task['prompt_file']}")
+
+    client = StitchMCPClient()
+    try:
+        # Step 1: Create a project for this task
+        project_title = f"Substrate {task['name']}"
+        print(f"\n  Creating Stitch project: '{project_title}'...")
+        res = client.call_tool("create_project", {"title": project_title})
+        if not res or "result" not in res:
+            print(f"❌ Failed to create project: {res}")
+            sys.exit(1)
+
+        content_text = res["result"]["content"][0]["text"]
+        data = json.loads(content_text)
+        project_name = data.get("name", "")
+        project_id = project_name.split("/")[-1]
+        print(f"  ✅ Project created: ID = {project_id}")
+
+        # Step 2: Generate the screen from the prompt
+        print(f"  🚀 Generating implementation screen...")
+        res2 = client.call_tool("generate_screen_from_text", {
+            "projectId": project_id,
+            "modelId": "GEMINI_3_1_PRO",
+            "deviceType": "DESKTOP",
+            "prompt": prompt_content,
+        })
+
+        if not res2 or "result" not in res2:
+            print(f"❌ Generation failed: {res2}")
+            sys.exit(1)
+
+        content_text2 = res2["result"]["content"][0]["text"]
+        try:
+            data2 = json.loads(content_text2)
+        except json.JSONDecodeError:
+            print("⚠️  Non-JSON response from Stitch (may still have succeeded):")
+            print(content_text2[:500])
+            return
+
+        print(f"\n  ✅ Stitch task submitted successfully!")
+        for component in data2.get("outputComponents", []):
+            design = component.get("design", {})
+            for screen in design.get("screens", []):
+                html_code = screen.get("htmlCode", {})
+                if html_code and html_code.get("downloadUrl"):
+                    print(f"  • Screen: {screen.get('title', 'Untitled')}")
+                    print(f"  • Download URL: {html_code['downloadUrl']}")
+    finally:
+        client.close()
+
+
+def list_phase12_tasks():
+    """Print all Phase 12 Stitch tasks grouped by wave."""
+    print("\n📋 Phase 12 Stitch Tasks (Playwright / Frontend):\n")
+    for wave in [1, 2]:
+        wave_tasks = [(n, t) for n, t in PHASE12_STITCH_TASKS.items() if t["wave"] == wave]
+        if wave_tasks:
+            print(f"  Wave {wave}:")
+            for num, task in sorted(wave_tasks):
+                print(f"    [{num}] {task['name']}")
+    print()
+
+
+# ──────────────────────────────────────────────────────────────────────────────
 # CLI Logic
 # ──────────────────────────────────────────────────────────────────────────────
 
@@ -190,7 +314,6 @@ def main():
                 print("❌ Failed to list projects:", res)
                 sys.exit(1)
             
-            # Extract content text
             content_text = res["result"]["content"][0]["text"]
             data = json.loads(content_text)
             projects = data.get("projects", [])
@@ -263,7 +386,7 @@ def main():
             client.close()
         sys.exit(0)
 
-    # 4. Generate Screen
+    # 4. Generate Screen (original one-off mode)
     if "--generate" in args:
         if "--project-id" not in args or "--prompt" not in args:
             print("❌ Make sure to supply both --project-id and --prompt.")
@@ -312,6 +435,41 @@ def main():
                 print("\n💡 Tip: You can download the html using curl or urllib.")
         finally:
             client.close()
+        sys.exit(0)
+
+    # 5. List Phase 12 tasks
+    if "--list-phase12" in args:
+        list_phase12_tasks()
+        sys.exit(0)
+
+    # 6. Submit a specific Phase 12 Stitch task by number
+    if "--submit-task" in args:
+        idx = args.index("--submit-task")
+        if idx + 1 >= len(args):
+            print("❌ Please specify a task number after --submit-task.")
+            sys.exit(1)
+        task_num = int(args[idx + 1])
+        submit_stitch_task(task_num)
+        sys.exit(0)
+
+    # 7. Submit Wave 1 Phase 12 tasks (T01 + T02 in parallel)
+    if "--phase12-wave1" in args:
+        print("🌊 Submitting Phase 12 Wave 1 Stitch tasks (T01 + T02)...")
+        print("   These are safe to run in parallel — no shared files.\n")
+        for task_num in [1201, 1202]:
+            submit_stitch_task(task_num)
+            print()
+        print("✅ Wave 1 submitted. Wait for PRs to merge before triggering Wave 2.")
+        sys.exit(0)
+
+    # 8. Submit Wave 2 Phase 12 tasks (T03 + T07)
+    if "--phase12-wave2" in args:
+        print("🌊 Submitting Phase 12 Wave 2 Stitch tasks (T03 + T07)...")
+        print("   ⚠️  Only run after Wave 1 PRs are merged to feature/dev.\n")
+        for task_num in [1203, 1207]:
+            submit_stitch_task(task_num)
+            print()
+        print("✅ Wave 2 submitted.")
         sys.exit(0)
 
     print("❌ Unknown arguments. Use --help to see usage.")

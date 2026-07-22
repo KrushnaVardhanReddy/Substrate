@@ -125,7 +125,7 @@ func TestV1SystemE2E(t *testing.T) {
 			assert.Equal(t, "/chat/completions", r.URL.Path)
 
 			w.Header().Set("Content-Type", "text/event-stream")
-			
+
 			resp := map[string]interface{}{
 				"choices": []map[string]interface{}{
 					{
@@ -198,6 +198,7 @@ func TestV1SystemE2E(t *testing.T) {
 		// Post DiffReport to /api/v1/diff
 		payload := map[string]interface{}{
 			"diff_report": diffReport,
+			"org":         "acme-corp", // test org
 		}
 		body, err := json.Marshal(payload)
 		require.NoError(t, err)

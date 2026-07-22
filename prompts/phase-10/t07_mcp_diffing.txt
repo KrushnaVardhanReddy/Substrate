@@ -1,0 +1,25 @@
+TASK: P10-T07 — MCP Runtime Diffing
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement MCP Runtime Diffing to spin up an MCP server during CI, query capabilities, and detect breaking changes for AI Agents.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-10/p10-t07-mcp-diffing.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Implement logic in `engine/internal/mcp/diff.go`.
+- Ensure robust unit tests.
+
+⚠️ CRITICAL CONTEXT & IMPLEMENTATION TIPS ⚠️
+1. MCP Protocol: The Model Context Protocol uses JSON-RPC 2.0 over standard input/output (stdio). 
+2. Process Execution: Use `os/exec` to spawn the target MCP server command (e.g., `npx @smithery/cli run`).
+3. JSON-RPC Handshake: You must send an `initialize` JSON-RPC request to the process stdin, wait for the response, and then send `tools/list` and `prompts/list`.
+4. Diffing Logic: Capture the returned JSON tools list and compare it structurally against the "base" branch tools list (passed via DB or files). If a tool parameter was removed or a required parameter added, flag it as a breaking change (`SEVERITY_HIGH`).
+5. Timeouts: Ensure the `exec.Cmd` has a context with a strict timeout (e.g., 10 seconds), so stalled MCP servers don't hang the Substrate CI pipeline.
+
+Commit: "feat: P10-T07 implement MCP runtime diffing"
+Target branch: feature/dev

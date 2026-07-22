@@ -1,0 +1,64 @@
+TASK: P13-T01 — FinOps Cost Prediction
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Connect schema diffs to Datadog traffic to calculate the exact USD egress cost increase of payload size changes.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-13/p13-t01-finops.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Implement the cost calculation purely in Go within the `api/internal/finops` package.
+- Do NOT hardcode AWS credentials; use a mock Datadog provider interface for now that returns a static RPS if no credentials are provided.
+- Ensure the API response matches the JSON schema expected by future frontend tasks.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+The Registry API lives in `api/`.
+New REST endpoints must be registered in `api/internal/server/routes.go`.
+Business logic should be decoupled in `api/internal/finops/`.
+
+⚠️ CRITICAL CONTEXT: JSON SCHEMA BYTE SIZING ⚠️
+Calculating the byte size of an OpenAPI schema response is non-trivial. You must recursively traverse the schema properties and estimate the byte size based on the types (e.g., `string` = 50 bytes, `integer` = 8 bytes, `boolean` = 1 byte). Implement a robust heuristic estimator in `api/internal/finops/estimator.go` rather than trying to instantiate actual JSON objects.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. CREATE: `api/internal/finops/estimator.go`
+   - Implement `EstimateResponseByteSize(schema map[string]interface{}) int64`.
+   - Traverse OpenAPI `properties` recursively.
+
+2. CREATE: `api/internal/finops/calculator.go`
+   - Implement `CalculateMonthlyCostDiff(baseBytes, proposedBytes int64, rps float64, costPerGB float64) float64`.
+   - Math: `((proposed - base) * rps * 3600 * 730) / 1024^3 * costPerGB`.
+
+3. CREATE: `api/internal/handlers/finops.go`
+   - Implement `HandlePredictCost(w http.ResponseWriter, r *http.Request)`.
+   - Accept JSON with `base_schema`, `proposed_schema`, and `endpoint_path`.
+
+4. MODIFY: `api/internal/server/routes.go`
+   - Register `POST /api/v1/finops/predict` to `HandlePredictCost`.
+
+5. CREATE: `api/internal/finops/calculator_test.go`
+   - Thoroughly test the math and the recursive schema byte estimator.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- api/internal/finops/estimator.go
+- api/internal/finops/calculator.go
+- api/internal/finops/calculator_test.go
+- api/internal/handlers/finops.go
+
+FILES TO MODIFY:
+- api/internal/server/routes.go
+
+Commit: "feat: P13-T01 implement FinOps cost prediction API"
+Target branch: feature/dev

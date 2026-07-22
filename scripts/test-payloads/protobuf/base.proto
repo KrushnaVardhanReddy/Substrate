@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package hipstershop;
+
+message CartItem {
+  string product_id = 1;
+  int32  quantity = 2;
+}
+
+message AddItemRequest {
+  string user_id = 1;
+  CartItem item = 2;
+}
+
+message Cart {
+  string user_id = 1;
+  repeated CartItem items = 2;
+}

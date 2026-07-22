@@ -1,0 +1,66 @@
+TASK: P12-T12 — Implement GraphQL E2E Test Suite (Full Git Pipeline)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+We are migrating our Substrate E2E test matrix to a true "Real-World" Git pipeline. We have already successfully implemented `microservices-demo` (Protobuf) and `stripe-api` (OpenAPI) in `dashboard/tests/e2e/system-matrix-full.spec.ts`. 
+
+Your objective is to add the **GraphQL** test suite (`github-graphql` repository) to `dashboard/tests/e2e/system-matrix-full.spec.ts` following the exact same `pushToForgejo` pattern as the OpenAPI and Protobuf suites.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-12/p12-t12-system-matrix-e2e.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Do NOT modify the existing `pushToForgejo` helper or the Protobuf/OpenAPI test suites.
+- Ensure the `BREAKING_GRAPHQL` and `SAFE_GRAPHQL` schemas perfectly map back to what the `BASE_GRAPHQL` schema establishes.
+- The WASM diff engine specifically evaluates GraphQL strictly: Adding an optional field to a type is safe. Removing a field from a type is breaking.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The Playwright tests live in `dashboard/tests/e2e/`.
+- `system-matrix-full.spec.ts` uses a local Forgejo container, pushing via actual git commands to trigger real Webhooks against a local Cloudflare Worker.
+- We must provide exactly valid schemas otherwise the WASM engine (`localhost:8080/diff`) will throw a 500 error on sync.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FILE: dashboard/tests/e2e/system-matrix-full.spec.ts (MODIFY)
+   - Add a new `test.describe.serial('Repo: github-graphql (GraphQL)', () => { ... })` at the end of the file.
+   - Setup a `BASE_SUBSTRATE_YAML` string defining 1 consumer (`github-action-runner`).
+   - Define three valid GraphQL string schemas (`BASE_GRAPHQL`, `BREAKING_GRAPHQL`, `SAFE_GRAPHQL`).
+   - Write the "Setup & Seeding" step.
+   - Write the "Red Path" step. Assert `.status-indicator.breaking` has count `1` using `waitForGraphSearch(page, 'github', 2)`.
+   - Write the "Green Path" step. Assert `.status-indicator.breaking` has count `0`.
+
+2. Run `make e2e-graphql` locally to verify the pipeline compiles and passes.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION HINTS
+═══════════════════════════════════════════════════════════════
+- Example valid BASE_GRAPHQL:
+  `type Query { user(id: ID!): User } type User { id: ID!, name: String! }`
+- Example BREAKING_GRAPHQL (breaking change: removed a field):
+  `type Query { user(id: ID!): User } type User { id: ID! }`
+- Example SAFE_GRAPHQL (safe change: added an optional field):
+  `type Query { user(id: ID!): User } type User { id: ID!, name: String!, email: String }`
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO MODIFY:
+- dashboard/tests/e2e/system-matrix-full.spec.ts
+
+FILES TO NOT TOUCH:
+- dashboard/tests/e2e/system-matrix.spec.ts
+- dashboard/src/**
+- github-app/**
+- api/**
+- engine/**
+
+Commit: "test(e2e): P12-T12 implement GraphQL E2E testing suite"
+Target branch: feature/dev

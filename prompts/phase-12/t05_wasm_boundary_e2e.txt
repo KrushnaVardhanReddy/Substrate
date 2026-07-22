@@ -1,0 +1,140 @@
+TASK: P12-T05 — WASM Engine Boundary Tests (Go)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Write Go unit and fuzz tests for the WASM diff engine to verify it handles all malformed, oversized, and adversarial inputs without panicking. Every code path must return a valid JSON payload — never a fatal crash — ensuring the browser-side WASM module is resilient against garbage data from users or external integrations.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-12/p12-t05-wasm-boundary.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Tests call the native Go `engine.DiffSchemas()` function DIRECTLY. Do NOT try to compile or load the `.wasm` binary in Go tests — WASM binary execution requires a browser or Wasmtime runtime.
+- Every test MUST use a `defer recover()` pattern to catch any unexpected panics and fail the test cleanly.
+- All return values MUST be valid JSON (parseable by `json.Valid([]byte(result))`).
+- Do NOT add external test dependencies. Use only `testing`, `encoding/json`, `strings`, `math/rand`, `time`.
+- Run tests with `-race`. Zero data races allowed.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The diff engine Go source: `engine/` directory (inspect the package name and exported function signature).
+- The core function to test is likely: `engine.DiffSchemas(a, b string) string`
+  OR it may be named `Diff(a, b string) string` or accept a struct. INSPECT the source first.
+- If the function is not exported (lowercase), you must write the tests INSIDE the `engine/` package as `engine_test.go` or in a `_test.go` file with `package engine`.
+- The WASM build tag is `//go:build js && wasm`. The tests should NOT use this build tag — they are native Go tests.
+- The existing E2E test directory is `scripts/e2e/`. WASM engine unit tests belong in `scripts/e2e/wasm_boundary_test.go`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FIRST: Inspect `engine/` source files to confirm:
+   - The exact package name (`package engine` or `package main`)
+   - The exact exported function signature for diffing schemas
+   - Whether the function is guarded by a `//go:build js` constraint (if so, the native test must use a wrapper)
+
+2. FILE: scripts/e2e/wasm_boundary_test.go (CREATE NEW)
+   Package: `package main` (same as other E2E tests in this folder)
+
+   SETUP — panic-safe wrapper to use in all tests:
+   ```go
+   func safeDiff(t *testing.T, a, b string) (result string) {
+       t.Helper()
+       defer func() {
+           if r := recover(); r != nil {
+               t.Fatalf("DiffSchemas panicked with input a=%q b=%q: %v", a[:min(len(a),50)], b[:min(len(b),50)], r)
+           }
+       }()
+       // NOTE: You will need to import the engine module here.
+       // e.g., result = engine.DiffSchemas(a, b)
+       return result // Update this
+   }
+   func assertValidJSON(t *testing.T, result string) {
+       t.Helper()
+       if !json.Valid([]byte(result)) {
+           t.Errorf("result is not valid JSON: %s", result[:min(len(result), 200)])
+       }
+   }
+   ```
+
+   TABLE TEST — `TestDiffSchemas_BoundaryInputs`:
+   ```go
+   cases := []struct {
+       name string
+       a, b string
+   }{
+       {"EmptyStrings", "", ""},
+       {"ValidOpenAPI", validOpenAPIv3, validOpenAPIv3Modified},
+       {"NullBytes", "\x00\x00\x00", "\x00"},
+       {"UnicodeGarbage", "日本語テスト\u0000☃️", "test"},
+       {"LargePayload", strings.Repeat("x", 10_000_000), strings.Repeat("y", 10_000_000)},
+       {"TruncatedYAML", "openapi: 3.0.0\ninfo:\n  title:", ""},
+       {"JSONvYAML", `{"openapi":"3.0.0"}`, "openapi: 3.0.0"},
+       {"OneSidedEmpty", validOpenAPIv3, ""},
+       {"OneSidedNil", "", validOpenAPIv3},
+   }
+   for _, tc := range cases {
+       t.Run(tc.name, func(t *testing.T) {
+           t.Parallel()
+           result := safeDiff(t, tc.a, tc.b)
+           assertValidJSON(t, result)
+       })
+   }
+   ```
+   Define `validOpenAPIv3` and `validOpenAPIv3Modified` as package-level string constants with minimal but valid OpenAPI 3.0.0 YAML.
+
+   FUZZ TEST — `FuzzDiffSchemas`:
+   ```go
+   func FuzzDiffSchemas(f *testing.F) {
+       f.Add("", "")
+       f.Add("openapi: 3.0.0", "openapi: 3.1.0")
+       f.Fuzz(func(t *testing.T, a, b string) {
+           defer func() {
+               if r := recover(); r != nil {
+                   t.Fatalf("panic on inputs a=%q b=%q: %v", a[:min(len(a),100)], b[:min(len(b),100)], r)
+               }
+           }()
+           // NOTE: You will need to import the engine module here.
+           result := "" // engine.DiffSchemas(a, b)
+           if !json.Valid([]byte(result)) {
+               t.Errorf("non-JSON result for a=%q b=%q: %s", a[:min(len(a),50)], b[:min(len(b),50)], result[:min(len(result),100)])
+           }
+       })
+   }
+   ```
+
+3. Run `go test ./scripts/e2e/... -run TestDiffSchemas` before committing. All table tests must pass.
+4. Run `go test ./scripts/e2e/... -fuzz=FuzzDiffSchemas -fuzztime=30s`. Must complete without any panic or crash.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION HINTS
+═══════════════════════════════════════════════════════════════
+- If the diff function is behind a `//go:build js` tag, you cannot call it from a native test. In that case:
+  1. Extract the core diffing logic into a new file WITHOUT the build tag (e.g., `engine/diff_core.go`).
+  2. Keep the WASM-specific JS glue (`js.Global().Set(...)`) in the original tagged file.
+  3. Write tests in `scripts/e2e/wasm_boundary_test.go` against the new `diff_core.go` function by importing the engine module.
+- The `min()` helper for string slicing is available in Go 1.21+. If not available, implement it:
+  ```go
+  func min(a, b int) int { if a < b { return a }; return b }
+  ```
+- For the LargePayload test case, the 10MB strings may cause the diff to time out. Wrap the call with a `time.AfterFunc(10*time.Second, func() { os.Exit(1) })` guard if the engine does not have a built-in timeout.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- scripts/e2e/wasm_boundary_test.go
+
+FILES TO POTENTIALLY CREATE (only if build tag extraction is needed):
+- engine/diff_core.go  (extract logic from engine/main.go or engine/diff.go)
+
+FILES TO NOT TOUCH:
+- api/**
+- dashboard/**
+
+Commit: "test: P12-T05 WASM engine boundary and fuzz tests"
+Target branch: feature/dev

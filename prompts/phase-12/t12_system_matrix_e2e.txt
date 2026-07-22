@@ -1,0 +1,59 @@
+TASK: P12-T12 — System Matrix E2E Test (Playwright + Forgejo)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement a massive, parameterized Playwright End-to-End test suite that programmatically runs `git commit` and `git push` against our local Forgejo Git server. 
+It must validate the Substrate Dashboard DOM updates in real-time via Server-Sent Events across ALL 7 schema types (OpenAPI, GraphQL, SQL, Protobuf, AsyncAPI) for Breaking, Safe, and Override scenarios.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-12/p12-t12-system-matrix-e2e.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Do NOT use `page.route` to mock API responses. This is a true Integration test.
+- Use `test.describe.serial` because the tests modify shared local Git repositories sequentially.
+- Use a parameterized loop (`for (const repo of testMatrix) { ... }`) to iterate through the 7 repo configurations to keep the test DRY.
+- Use Node's `child_process.execSync` to run `git push` commands.
+- Ensure the tests can tolerate up to 10-15 seconds of latency for the webhook pipeline to complete before asserting the DOM. Set `test.setTimeout(120000)` at the suite level.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The Playwright tests live in `dashboard/tests/e2e/`.
+- The dashboard is accessible at `http://localhost:5173/org/admin/graph`.
+- The 7 demo repositories are NOT fully committed to Git because they are gigabytes in size (e.g., Stripe API).
+- Therefore, your Playwright script MUST dynamically write minimal "stub" schema files (e.g. 10 lines of OpenAPI, GraphQL, or SQL) into a `/tmp/<repo-name>-test` directory using `fs.writeFileSync`.
+- Then use `execSync` to run `git init`, `git add .`, `git commit`, and set the remote to `http://admin:admin@localhost:3000/admin/<repo-name>.git` before pushing.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FILE: dashboard/tests/e2e/system-matrix.spec.ts (CREATE)
+   - Setup: Define a test matrix array containing the 7 repos (microservices-demo, stripe-api, realworld-api, openai-api, github-graphql, slack-webhooks, jaffle-shop-db).
+   - For each repo, implement 3 serial steps:
+     - Test A (Red Path): Drop a property from the schema, push, and assert `page.locator('.blast-radius-alert')` is visible.
+     - Test B (Green Path): Revert the break, add a safe property, push, and assert the graph remains green.
+     - Test C (Yellow Path): Break the schema again, but write an `overrides` block into `substrate.yaml`. Push, and assert the node is marked as Acknowledged.
+   - Implement the standalone Auto-Discovery vs Manual YAML tests as requested in the spec.
+
+2. Run `npx playwright test tests/e2e/system-matrix.spec.ts` in the `dashboard` folder to verify compilation before committing.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO MODIFY:
+- dashboard/tests/e2e/system-matrix.spec.ts (Create)
+
+FILES TO NOT TOUCH:
+- dashboard/src/**
+- github-app/**
+- api/**
+- engine/**
+- Makefile
+
+Commit: "test(e2e): P12-T12 implement full 7-repo system matrix automation"
+Target branch: feature/dev

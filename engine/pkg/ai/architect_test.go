@@ -3,6 +3,7 @@ package ai
 import (
 	"bytes"
 	"fmt"
+	"github.com/spf13/viper"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -23,17 +24,37 @@ func TestRunArchitect(t *testing.T) {
 		expectedFile   string
 	}{
 		{
-			name:           "Empty input",
-			input:          "\n",
-			apiKey:         "test-key",
-			expectedError:  "input cannot be empty",
+			name:          "Empty input",
+			input:         "\n",
+			apiKey:        "test-key",
+			expectedError: "input cannot be empty",
 		},
 		{
-			name:           "Missing API key without fallback URL",
+			name:          "Missing API key without fallback URL",
+			input:         "test\n",
+			apiKey:        "",
+			baseURL:       "http://some-url",
+			expectedError: "SUBSTRATE_AI_API_KEY environment variable is required",
+		},
+		{
+			name:           "Missing API key allowed for Ollama",
 			input:          "test\n",
 			apiKey:         "",
-			baseURL:        "http://some-url",
-			expectedError:  "SUBSTRATE_AI_API_KEY environment variable is required",
+			baseURL:        "MOCK_SERVER", // We use mock server for this to avoid actual network call
+			mockResponse:   "data: {\"choices\": [{\"delta\": {\"content\": \"```yaml\\nopenapi: 3.0.0\\n```\"}}]}\n\ndata: [DONE]\n\n",
+			expectedError:  "",
+			expectedFile:   "openapi: 3.0.0\n",
+			expectedOutput: "openapi: 3.0.0",
+		},
+		{
+			name:           "Bedrock mock server",
+			input:          "users api\n",
+			apiKey:         "test-key",
+			baseURL:        "MOCK_SERVER", // Will be replaced in test setup
+			mockResponse:   "```yaml\nopenapi: 3.0.0\n```",
+			expectedError:  "",
+			expectedFile:   "openapi: 3.0.0\n",
+			expectedOutput: "openapi: 3.0.0",
 		},
 		{
 			name:           "Fallback triggered when baseURL is unset",
@@ -55,10 +76,10 @@ func TestRunArchitect(t *testing.T) {
 			expectedOutput: "openapi: 3.0.0",
 		},
 		{
-			name:           "Closed input unexpectedly",
-			input:          "",
-			apiKey:         "test-key",
-			expectedError:  "input closed unexpectedly",
+			name:          "Closed input unexpectedly",
+			input:         "",
+			apiKey:        "test-key",
+			expectedError: "input closed unexpectedly",
 		},
 	}
 
@@ -66,6 +87,14 @@ func TestRunArchitect(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Setenv("SUBSTRATE_AI_API_KEY", tt.apiKey)
 			t.Setenv("SUBSTRATE_AI_MODEL", tt.model)
+
+			if tt.name == "Missing API key allowed for Ollama" {
+				t.Setenv("SUBSTRATE_AI_PROVIDER", "ollama")
+			} else if tt.name == "Bedrock mock server" {
+				t.Setenv("SUBSTRATE_AI_PROVIDER", "bedrock")
+			} else {
+				t.Setenv("SUBSTRATE_AI_PROVIDER", "openai")
+			}
 
 			var mockServer *httptest.Server
 			if tt.baseURL == "MOCK_SERVER" {
@@ -157,4 +186,9 @@ func TestExtractYAML(t *testing.T) {
 			}
 		})
 	}
+}
+
+func init() {
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 }

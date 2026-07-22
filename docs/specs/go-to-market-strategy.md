@@ -14,6 +14,12 @@ The biggest barrier to developer tool adoption is configuration friction. Substr
 - **GitHub App Auto-Discovery:** When installed on an organization, the GitHub App automatically scans repositories for existing schemas (`openapi.yaml`, `schema.graphql`).
 - **Auto-PR:** If a schema is found, the App automatically opens a Pull Request that adds a pre-configured `substrate.yaml` file. The user only needs to click "Merge" to get immediate protection.
 
+## 2.5 The "Proof of Value" Trial (3-Month Free Audit Mode)
+Enterprise software sales are notoriously slow because blocking a CI/CD pipeline is highly disruptive. Substrate bypasses this friction using a **3-Month Free Trial in Audit Mode**.
+- **The Hook:** Enterprises install Substrate for free and deploy it in "Shadow Mode" (`--mode audit`). Substrate will silently monitor PRs, but it will **never block** a deployment.
+- **The Value Realization:** For 3 months, Substrate logs every single breaking change it detects into the Management ROI Dashboard, calculating the exact engineering hours and downtime that *would* have been prevented.
+- **The Close (The Paywall Pause):** On Day 91, the trial gracefully expires. Rather than suddenly breaking pipelines, Substrate simply pauses its analysis. The dashboard displays: *"Trial Expired: Substrate detected $120,000 in potential outages over the last 90 days. Upgrade to Enterprise to unlock Blocking Mode and resume analytics."* This forces a purchasing decision based on undeniable, quantified ROI without disrupting engineering velocity.
+
 ## 3. AI-Driven Spec Generation (Solving the Missing Schema Problem)
 Many companies have REST APIs but lack an OpenAPI specification. Substrate turns this missing requirement into a feature:
 - **Framework Auto-Config:** Substrate detects the framework (e.g., Go/Gin, Node/Express) and uses an AI agent to open a PR that installs auto-generation tooling (like `swag` or `tsoa`) and CI pipeline steps.
@@ -64,3 +70,10 @@ While Substrate can auto-generate specs for legacy projects, its ultimate goal i
   ```
 - **Enforcement:** Substrate enforces that the actual code implementation matches the design contract.
 - **The Result:** If we position Substrate as the standard tool for designing new APIs, it becomes the default starting point for every new microservice globally. Teams will start using Substrate on Day 1 of a new project, rather than waiting until they have a production outage.
+
+## 6. Sales & Demo Motion: The Real-World OSS Sandbox
+When demonstrating Substrate to prospective Enterprise clients, we must avoid contrived "FooBar API" toy examples. The standard operating procedure for all sales demos and V1.0 validation testing is the **Real-World OSS Sandbox Strategy**:
+- **The Setup:** Create a demo GitHub organization and fork a recognizable open-source architecture (e.g., Google's "Online Boutique" microservices demo or Stripe's OpenAPI schema) into two distinct repositories (Upstream Provider and Downstream Consumer).
+- **The Execution:** Install the Substrate GitHub App on the organization to demonstrate the frictionless "Zero-Config" setup. 
+- **The "Aha" Moment:** Open a PR in the Upstream Provider that makes a realistic breaking change (e.g., deleting a payment field). 
+- **The Value:** Substrate will instantly analyze the PR, block it, drop an AI Autofix comment in the real GitHub UI, and illuminate the exact blast radius on the Svelte dashboard. This proves to Enterprise Engineering Managers that the tool handles real webhooks, real GitHub API rate limits, and real cross-repo dependencies flawlessly in the wild.

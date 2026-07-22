@@ -1,0 +1,40 @@
+TASK: P15-T15 — Air-Gapped License Validator
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement an air-gapped cryptographic license validator for On-Premise VPC Enterprise deployments.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-15/p15-t15-license-validator.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Use RS256 for JWT signature verification.
+- Fall back to Free Tier behavior if expired; do not panic.
+- You MUST write unit tests for the validator logic and middleware (`_test.go`).
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- HTTP Middlewares live in `api/internal/middleware/`.
+- Configuration is handled via Viper in `engine/config/`.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Add `engine/licensing/validator.go` with functions to parse and verify the JWT.
+- Add `api/internal/middleware/license.go` that injects the active feature flags into the request context.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: engine/licensing/validator.go (CREATE)
+   - Include `engine/licensing/validator_test.go`
+2. FILE: api/internal/middleware/license.go (CREATE)
+   - Include `api/internal/middleware/license_test.go`
+3. Run `go test ./...`.
+
+Commit: "feat: P15-T15 implement air-gapped license validator"
+Target branch: feature/dev

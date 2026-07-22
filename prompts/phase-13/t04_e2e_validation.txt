@@ -1,0 +1,29 @@
+TASK: P13-T04 — Enterprise E2E Validation
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Create a comprehensive Go-based E2E test suite in the `scripts/e2e` directory to programmatically validate the newly merged Phase 10/13 enterprise features: Protobuf/gRPC diffing, API Gateway Auto-Sync mock, FinOps egress calculations, and Tree-sitter AST impact analysis.
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- The test file MUST be named `scripts/e2e/phase10_13_e2e_test.go`.
+- **CRITICAL REFERENCE:** You MUST review `scripts/e2e/phase7_e2e_test.go` and `scripts/e2e/phase12_sse_test.go` to understand our existing structural patterns (e.g. how we spin up the mock server, how we execute the CLI using `os/exec`, and how we manage temporary files). Do not reinvent the wheel—copy the boilerplate setup from Phase 7.
+- Do not modify the core `engine/` or `api/` logic. This is strictly a test suite addition.
+- Use the existing `scripts/e2e/helpers/` package if applicable.
+- All Go code must pass `go fmt` and `go test` before committing.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: scripts/e2e/phase10_13_e2e_test.go (NEW)
+   a. Create standard Go testing functions (`TestProtobufDiffing`, `TestFinOpsCalculation`, etc.) that execute the Substrate CLI binary or API via `os/exec` or direct HTTP calls.
+   b. Provide minimal inline mock data (e.g., a simple `.proto` string) to write to temporary files and run `substrate diff` against.
+   c. Assert that the CLI output or API response correctly identifies breaking changes, risk scores, and FinOps costs.
+
+2. Build and Test:
+   a. Run `go test ./scripts/e2e -run TestPhase10_13` to ensure the suite compiles and executes.
+
+Commit: "test: P13-T04 implement enterprise E2E validation suite"
+Target branch: feature/dev

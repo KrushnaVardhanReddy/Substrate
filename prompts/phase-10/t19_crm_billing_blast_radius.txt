@@ -1,0 +1,38 @@
+TASK: P10-T19 — CRM/Billing Blast Radius
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Integrate with Stripe and Salesforce to surface the number of paying customers impacted by a breaking API change in the PR comment.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-10/p10-t19-crm-billing-blast-radius.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Stripe/Salesforce credentials must be stored as encrypted secrets, never in plaintext.
+- The "💳 Customer Impact" section must only render if integration is configured.
+- You MUST write unit tests for the customer impact calculation logic (mock external API calls).
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- `github-app/src/formatter.ts` already has multiple other sections like AI Impact Analysis, Governance, etc. Append the new Customer Impact section cleanly.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Add `engine/crm/stripe.go` and `engine/crm/salesforce.go` as thin client wrappers.
+- Extend `github-app/src/formatter.ts` to add the Customer Impact section.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: engine/crm/stripe.go (CREATE)
+   - Include `engine/crm/stripe_test.go`
+2. FILE: github-app/src/formatter.ts (MODIFY)
+3. Run `go test ./...`.
+
+Commit: "feat: P10-T19 implement CRM/billing blast radius"
+Target branch: feature/dev

@@ -1,0 +1,41 @@
+TASK: P9-T09 — AI Impact Analysis Summaries
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Generate a plain-English AI narrative of the blast radius impact and append it to the GitHub PR comment.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-9/p9-t09-ai-impact-analysis.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Limit AI response to 200 tokens.
+- The section must be labeled "🤖 AI Impact Analysis".
+- You MUST write unit tests mocking the LLM call to test prompt construction.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The `engine/ai_analyze.go` file does NOT exist yet. Please create it as `engine/pkg/ai/impact.go` instead to follow the existing structure where AI features live in `engine/pkg/ai`.
+- You can use the existing OpenAI client setup found in `engine/pkg/ai/client.go`.
+- Modifying `formatter.ts` is expected in this PR.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Extend `engine/ai_analyze.go` with a new `GenerateImpactSummary(changes []Change, consumers []Repo) string` function.
+- Call this from the GitHub App after blast radius traversal, before formatting the PR comment.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: engine/ai_analyze.go (MODIFY)
+   - Add `GenerateImpactSummary` function with test.
+2. FILE: github-app/src/formatter.ts (MODIFY)
+   - Append the AI section.
+3. Run `go test ./...` and `npm run check`.
+
+Commit: "feat: P9-T09 implement AI impact analysis summaries"
+Target branch: feature/dev

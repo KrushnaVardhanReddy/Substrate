@@ -1,0 +1,16 @@
+{
+  "name": "@substrate/cli",
+  "version": "1.0.0",
+  "description": "Substrate diff engine CLI wrapper via WASM",
+  "main": "cli.js",
+  "bin": {
+    "substrate": "cli.js"
+  },
+  "scripts": {
+    "test": "mocha cli.test.js"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "mocha": "^10.2.0"
+  }
+}

@@ -1,0 +1,8 @@
+dashboard/node_modules
+dashboard/.svelte-kit
+dashboard/build
+scripts/
+.git
+*.md
+
+!dashboard/static/engine.wasm

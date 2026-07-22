@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/spf13/viper"
 	"net/http"
 	"os"
 
@@ -24,7 +25,7 @@ var checkDeployCmd = &cobra.Command{
 	Use:   "check-deploy",
 	Short: "Check if a deployment is safe by verifying its downstream providers",
 	Run: func(cmd *cobra.Command, args []string) {
-		registryApiToken := os.Getenv("REGISTRY_API_TOKEN")
+		registryApiToken := viper.GetString("REGISTRY_API_TOKEN")
 		if registryApiToken == "" {
 			fmt.Fprintln(os.Stderr, "Error: REGISTRY_API_TOKEN environment variable is not set")
 			os.Exit(3)
@@ -39,7 +40,7 @@ var checkDeployCmd = &cobra.Command{
 			os.Exit(3)
 		}
 
-		apiURL := os.Getenv("SUBSTRATE_API_URL")
+		apiURL := viper.GetString("SUBSTRATE_API_URL")
 		if apiURL == "" {
 			apiURL = "http://localhost:8090"
 		}
@@ -96,4 +97,5 @@ var checkDeployCmd = &cobra.Command{
 func init() {
 	checkDeployCmd.Flags().StringVar(&repoArg, "repo", "", "The provider repository (e.g., github.com/org/repo)")
 	checkDeployCmd.Flags().StringVar(&commitArg, "commit", "", "The commit SHA to check")
+	viper.BindPFlags(checkDeployCmd.Flags())
 }

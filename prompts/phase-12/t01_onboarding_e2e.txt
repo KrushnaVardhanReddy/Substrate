@@ -1,0 +1,85 @@
+TASK: P12-T01 — Zero-to-One Onboarding E2E (Playwright)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Automate the complete new-user onboarding journey using Playwright: from the root landing page through GitHub token entry, the repository scanning progress indicator, and finally to a successfully rendered Dependency Graph. This validates the most critical "first impression" user path in the V2.0 launch.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-12/p12-t01-onboarding-e2e.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- ALL API requests MUST be intercepted via Playwright's `page.route()`. Do NOT make real GitHub API calls.
+- Do NOT modify any existing passing test. Only add new `test(...)` blocks.
+- The mock API responses must match the exact JSON shape the SvelteKit frontend expects.
+- Tests must complete in < 30 seconds. Use `page.waitForURL()` for navigation assertions instead of fixed `waitForTimeout()`.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The SvelteKit dashboard lives in `dashboard/`.
+- All Playwright E2E tests live in `dashboard/tests/e2e/`.
+- The existing `onboarding.spec.ts` already has a basic structure — expand it, do NOT rewrite from scratch.
+- The onboarding wizard lives at `dashboard/src/routes/onboarding/+page.svelte`.
+- After completing onboarding, the user is redirected to `/org/{org}/graph`.
+- The graph route fetches `GET /api/v1/graph/{org}` on mount. This MUST be mocked.
+- The graph page uses the "Search-First" model: the canvas will be empty until the user types in the search box.
+- Playwright config is in `dashboard/playwright.config.ts`. The base URL is `http://localhost:4173` in CI.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FILE: dashboard/tests/e2e/onboarding.spec.ts (EXPAND — do not rewrite from scratch)
+
+   TEST 1 — Happy Path (Full Journey):
+   a. Mock `GET /api/v1/repos/*` to return:
+      `[{ "id": "1", "name": "core-service", "full_name": "testorg/core-service", "default_branch": "main" }]`
+   b. Mock `GET /api/v1/graph/*` to return:
+      `[{ "provider": "testorg/core-service", "consumer": "testorg/frontend", "status": "SAFE", "provider_metadata": { "type": "database", "team": "Platform" } }]`
+   c. `await page.goto('/')` (or `/onboarding` if that is the root wizard route).
+   d. Assert a heading containing "Connect GitHub" or "Onboarding" is visible.
+   e. Locate the GitHub token input. Fill it with `"ghp_mock_token_12345"`.
+   f. Click the "Connect" or "Start" button.
+   g. Assert a progress bar or spinner with text like "Scanning" or "Building" appears.
+   h. `await page.waitForURL('**/org/**/graph', { timeout: 15000 })`.
+   i. Assert `page.locator('.svelte-flow')` is visible.
+   j. Assert `page.locator('.filter-panel')` is visible.
+
+   TEST 2 — Error Path (Invalid Token):
+   a. Mock `GET /api/v1/repos/*` to return HTTP 401: `{ "error": "Unauthorized" }`.
+   b. `await page.goto('/')`.
+   c. Fill the token input with `"ghp_invalid_token"`.
+   d. Click Connect.
+   e. Assert an error message is visible (e.g., `toContainText('Invalid')` or `toContainText('401')` or `toContainText('Unauthorized')`).
+   f. Assert the page does NOT navigate away from the onboarding route.
+
+2. Run `npx playwright test tests/e2e/onboarding.spec.ts --reporter=list` to verify both tests pass before committing.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION HINTS
+═══════════════════════════════════════════════════════════════
+- To locate the token input field:
+  Try `page.locator('input[type="text"]')`, `page.locator('input[placeholder*="token"]')`, or `page.locator('input[placeholder*="GitHub"]')` — inspect the actual onboarding component to find the correct selector.
+- To find the Connect button:
+  Try `page.locator('button:has-text("Connect")')` or `page.getByRole('button', { name: /connect/i })`.
+- If the onboarding wizard redirects to the graph with a real org name from the mocked repos response, the URL will be `/org/testorg/graph`. Adjust the `waitForURL` glob accordingly.
+- The error message might render inside a `<p class="error">` or similar. Use `page.locator('.error')` or `page.getByRole('alert')`.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO MODIFY:
+- dashboard/tests/e2e/onboarding.spec.ts
+
+FILES TO NOT TOUCH:
+- dashboard/tests/e2e/graph.spec.ts
+- dashboard/tests/e2e/navigation.spec.ts
+- dashboard/tests/e2e/playground.spec.ts
+- dashboard/src/**  (no production code changes)
+
+Commit: "test: P12-T01 automate zero-to-one onboarding E2E journey"
+Target branch: feature/dev

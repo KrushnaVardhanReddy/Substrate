@@ -11,9 +11,23 @@ import (
 
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/config"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/diff"
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/graphql"
+	"github.com/KrushnaVardhanReddy/substrate/engine/gates"
+
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 	sqlpkg "github.com/KrushnaVardhanReddy/substrate/engine/internal/sql"
 )
+
+type GateRequest struct {
+	Gate          string `json:"gate"`
+	BreakingCount int    `json:"breaking_count"`
+	WarningCount  int    `json:"warning_count"`
+	CrossRepoSafe bool   `json:"cross_repo_safe"`
+}
+
+type GateResponse struct {
+	Pass bool `json:"pass"`
+}
 
 type DiffRequest struct {
 	BaseSchema      string `json:"base_schema"`
@@ -38,7 +52,14 @@ func applyConfig(rep *report.DiffReport, configPath, org, repo string) *report.D
 }
 
 func runOpenAPIDiff(basePath, headPath, configPath, org, repo string) (*report.DiffReport, error) {
-	rep, err := diff.CompareOpenAPI(basePath, headPath, true)
+	var rules []config.CustomRule
+	if configPath != "" {
+		cfg, err := config.LoadConfig(configPath)
+		if err == nil && cfg != nil {
+			rules = cfg.CustomRules
+		}
+	}
+	rep, err := diff.CompareOpenAPI(basePath, headPath, true, rules)
 	if err != nil {
 		return nil, err
 	}
@@ -71,6 +92,44 @@ func setupMux() *http.ServeMux {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`{"status":"ok"}`))
+	})
+
+	mux.HandleFunc("/evaluate-gate", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
+
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"error": "internal error"}`))
+			return
+		}
+		defer r.Body.Close()
+
+		var req GateRequest
+		if err := json.Unmarshal(body, &req); err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(`{"error": "invalid JSON"}`))
+			return
+		}
+
+		pass := gates.EvaluateGate(req.Gate, req.BreakingCount, req.WarningCount, req.CrossRepoSafe)
+
+		respBody, err := json.Marshal(GateResponse{Pass: pass})
+		if err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"error": "internal error"}`))
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(respBody)
 	})
 
 	mux.HandleFunc("/diff", func(w http.ResponseWriter, r *http.Request) {
@@ -190,7 +249,7 @@ func setupMux() *http.ServeMux {
 		var rep *report.DiffReport
 		switch req.SchemaType {
 		case "graphql":
-			rep, err = diff.CompareGraphQL(baseTarget, headTarget)
+			rep, err = graphql.CompareGraphQL(baseTarget, headTarget)
 			if err == nil {
 				rep = applyConfig(rep, configPath, req.ProviderOrg, req.ProviderRepo)
 			}

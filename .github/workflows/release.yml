@@ -7,8 +7,25 @@ on:
       - "v*.*.*"
 
 jobs:
+  test:
+    name: Full Test Suite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version: '1.23' }
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - name: Install Playwright dependencies
+        run: cd dashboard && npm ci && npx playwright install --with-deps chromium
+      - name: Run Go tests
+        run: go test -race -count=1 ./...
+      - name: Run Playwright E2E
+        run: cd dashboard && npx playwright test
+
   docker:
     name: Build & Push to Docker Hub
+    needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -16,6 +33,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with: { go-version: '1.23' }
+
+      - name: Build engine.wasm
+        run: make build-wasm
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -51,3 +74,21 @@ jobs:
           git add action.yml
           git diff --staged --quiet || git commit -m "chore: pin action.yml to ${{ steps.meta.outputs.version }}"
           git push origin HEAD:main
+
+  wasi-build:
+    name: Build MCP WASI
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version: '1.23' }
+      - name: Build WASI
+        run: make build-mcp-wasi
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: engine/substrate-mcp.wasm
+          tag_name: ${{ github.ref_name }}

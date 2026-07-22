@@ -1,0 +1,36 @@
+TASK: P7-T05 — Runtime Drift Detection (Sidecar)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Provide a lightweight Sidecar (Reverse Proxy) that samples production HTTP 
+traffic and compares it against the documented Substrate schema to detect 
+undocumented "zombie" or "shadow" APIs.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-7/p7-t05-runtime-drift-detection.md
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. DIRECTORY: sidecar/cmd/substrate-proxy/ (CREATE NEW)
+   Create a new standalone Go module for the Sidecar proxy.
+
+2. FILE: sidecar/internal/proxy/proxy.go
+   Implement a standard HTTP Reverse Proxy (`httputil.ReverseProxy`).
+   Add a sampling middleware (e.g., 5% of traffic).
+   For sampled requests, capture the Method, Path, and JSON body.
+
+3. FILE: sidecar/internal/validator/validator.go
+   Periodically poll the Substrate Registry `GET /api/v1/schema/{org}/{repo}`.
+   Use `kin-openapi/openapi3filter` to validate the sampled HTTP request/response against the OpenAPI spec.
+
+4. FILE: sidecar/internal/reporter/reporter.go
+   If `openapi3filter` returns an error (e.g., endpoint not found, field missing from schema), POST the error to Substrate `POST /api/v1/telemetry/drift`.
+
+5. MODIFY: api/internal/handlers/telemetry.go
+   Add the `POST /api/v1/telemetry/drift` handler and store the anomalies in the database to be displayed on the Dashboard.
+
+Commit: "feat: P7-T05 implement runtime drift detection sidecar"
+Target branch: feature/p7-t05-runtime-drift-detection

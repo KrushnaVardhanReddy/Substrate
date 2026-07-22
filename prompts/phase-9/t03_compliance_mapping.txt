@@ -1,0 +1,41 @@
+TASK: P9-T03 — Compliance Mapping
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Auto-tag schemas with SOC2/GDPR/HIPAA warnings when sensitive field names are detected.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-9/p9-t03-compliance-mapping.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Scan field names against a curated list of sensitive patterns.
+- Inject `x-compliance` extension into matched OpenAPI fields.
+- Surface findings in the GitHub PR comment.
+- You MUST write unit tests for the field scanner (`_test.go`).
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The GitHub App worker lives in `github-app/src/`. You will need to edit `formatter.ts` to add a new section for Compliance Flags below the Breaking Changes section.
+- The Engine code lives in `engine/`. You should create `engine/compliance/scanner.go` which accepts an OpenAPI schema and returns a list of compliance flags.
+- You do NOT need to modify the Git pre-commit hooks. Just the engine package and the GitHub PR comment formatter.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Add `engine/compliance/scanner.go` with the pattern matching logic.
+- Extend `github-app/src/formatter.ts` to render the "⚠️ Compliance Flags" section.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: engine/compliance/scanner.go (CREATE)
+   - Include `engine/compliance/scanner_test.go`
+2. FILE: github-app/src/formatter.ts (MODIFY)
+3. Run `go test ./...` and `npm run check`.
+
+Commit: "feat: P9-T03 implement compliance mapping"
+Target branch: feature/dev

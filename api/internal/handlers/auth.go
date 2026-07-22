@@ -70,8 +70,8 @@ func HandleGitHubCallback(cfg AuthConfig) http.HandlerFunc {
 			return
 		}
 
-		// Fetch user orgs
-		orgsReq, err := http.NewRequest("GET", "https://api.github.com/user/orgs", nil)
+		// Fetch user org memberships
+		orgsReq, err := http.NewRequest("GET", "https://api.github.com/user/memberships/orgs", nil)
 		if err != nil {
 			http.Error(w, "internal server error", http.StatusInternalServerError)
 			return
@@ -82,27 +82,33 @@ func HandleGitHubCallback(cfg AuthConfig) http.HandlerFunc {
 
 		orgsResp, err := client.Do(orgsReq)
 		if err != nil {
-			http.Error(w, "failed to fetch user orgs", http.StatusInternalServerError)
+			http.Error(w, "failed to fetch user org memberships", http.StatusInternalServerError)
 			return
 		}
 		defer orgsResp.Body.Close()
 
 		if orgsResp.StatusCode != http.StatusOK {
-			http.Error(w, "failed to fetch user orgs", http.StatusInternalServerError)
+			http.Error(w, "failed to fetch user org memberships", http.StatusInternalServerError)
 			return
 		}
 
 		var orgsData []struct {
-			Login string `json:"login"`
+			State        string `json:"state"`
+			Role         string `json:"role"`
+			Organization struct {
+				Login string `json:"login"`
+			} `json:"organization"`
 		}
 		if err := json.NewDecoder(orgsResp.Body).Decode(&orgsData); err != nil {
 			http.Error(w, "failed to parse orgs response", http.StatusInternalServerError)
 			return
 		}
 
-		orgs := make([]string, 0, len(orgsData))
+		orgs := make(map[string]string)
 		for _, org := range orgsData {
-			orgs = append(orgs, org.Login)
+			if org.State == "active" {
+				orgs[org.Organization.Login] = org.Role
+			}
 		}
 
 		// Generate JWT

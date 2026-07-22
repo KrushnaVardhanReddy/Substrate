@@ -1,0 +1,45 @@
+TASK: P15-T11 — Substrate for Startups (Free Tier with Public Audit Trail)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement a public API reliability profile page for OSS orgs at `/(public)/profile/[org]`.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-15/p15-t11-startups-free-tier.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Public profile route must NOT require authentication.
+- Add `is_oss` boolean to `organizations` DB table via migration.
+- You MUST write unit tests for the reliability metric calculation logic.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The existing public (unauthenticated) SvelteKit route group is `dashboard/src/routes/(public)/`. Follow the pattern of existing pages there.
+- The `api/internal/handler/` directory contains all API handlers — follow `org.go` for DB interaction patterns.
+- The `organizations` table is in `api/internal/db/store.go` — add `is_oss` to the struct and the migration.
+- Existing charting components are in `dashboard/src/lib/components/` (e.g., `TimeTravelScrubber.svelte`) — reference these for chart styling.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Add `GET /api/v1/public/profile/:org` in `api/internal/handler/public_profile.go` to serve the 90-day reliability metrics.
+- CRITICAL: To prevent getting stuck on complex SQL aggregations, your `public_profile.go` handler should just return mock/hardcoded JSON array data for the 90-day charts (e.g., `breaking_changes`, `blast_radius_trend`, `uptime`). Focus on getting the SvelteKit frontend wired up to the handler.
+- Add the SvelteKit page at `dashboard/src/routes/(public)/profile/[org]/+page.svelte`.
+- Use the existing `var(--bg-card)` and `var(--text-muted)` CSS tokens for consistent styling.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: api/internal/handler/public_profile.go (CREATE)
+   - Include `api/internal/handler/public_profile_test.go`
+2. FILE: dashboard/src/routes/(public)/profile/[org]/+page.svelte (CREATE)
+   - Include `+page.test.ts`
+3. Add DB migration for `is_oss` column.
+4. Run `go test ./...` and `npm run test`.
+
+Commit: "feat: P15-T11 implement substrate for startups public profile"
+Target branch: feature/dev

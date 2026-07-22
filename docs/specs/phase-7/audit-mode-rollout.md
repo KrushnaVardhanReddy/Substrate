@@ -25,6 +25,7 @@ When `mode == audit`:
 3. It prints the standard CLI output.
 4. **Crucial:** It overrides the exit code. Instead of exiting with `2` (Fail), it logs:
    `[AUDIT MODE] Breaking changes detected, but exiting with 0 to allow merge.`
+   This MUST be printed to `os.Stderr` to prevent corrupting `--format json` output.
    And exits with `0`.
 
 ### 2.3 PR Comment Formatter

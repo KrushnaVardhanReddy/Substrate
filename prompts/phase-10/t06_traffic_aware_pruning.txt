@@ -1,0 +1,44 @@
+TASK: P10-T06 — Traffic-Aware Pruning (Zombies)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Detect zero-traffic "zombie" APIs via OTel metrics and auto-generate deletion PRs for confirmed dead endpoints.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-10/p10-t06-traffic-aware-pruning.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Flag endpoints with zero traffic over 30 days as zombies.
+- Do NOT auto-delete without org approval from the dashboard.
+- You MUST write unit tests for the zombie detection logic.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The Dashboard is a SvelteKit app located in `dashboard/`. Authenticated routes are under `dashboard/src/routes/(app)/`.
+- The API is in `api/`. Handlers are in `api/internal/handlers/`. You'll need to add a new `otel_webhook.go` there.
+- The Engine code is in `engine/`. Add `engine/zombie/detector.go` to house the logic for calculating if an endpoint is a zombie.
+- You will need to add a database migration to `api/migrations/` to store endpoint traffic stats, and update `api/internal/db/store.go` with the queries.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Add `api/internal/handler/otel_webhook.go` for ingesting OTel metrics via webhook.
+- Add `engine/zombie/detector.go` for the detection logic.
+- Add a "Zombie APIs" tab in `dashboard/src/routes/(app)/org/[org]/zombies/+page.svelte`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: engine/zombie/detector.go (CREATE)
+   - Include `engine/zombie/detector_test.go`
+2. FILE: api/internal/handler/otel_webhook.go (CREATE)
+3. FILE: dashboard/src/routes/(app)/org/[org]/zombies/+page.svelte (CREATE)
+   - Include `+page.test.ts`
+4. Run `go test ./...` and `npm run test`.
+
+Commit: "feat: P10-T06 implement traffic-aware zombie API pruning"
+Target branch: feature/dev

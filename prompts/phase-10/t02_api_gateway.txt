@@ -1,0 +1,52 @@
+TASK: P10-T02 — API Gateway Auto-Sync
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Develop a synchronization agent that automatically imports and updates API definitions from popular cloud API Gateways (e.g., AWS API Gateway, Kong).
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-10/p10-t02-api-gateway.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Start with AWS API Gateway and Kong adapters first.
+- Use the official AWS SDK for Go (`github.com/aws/aws-sdk-go-v2`).
+- Store connection credentials securely; do not log sensitive tokens.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+Integrations live in `engine/internal/integrations`.
+Background sync workers run in `engine/internal/worker`.
+
+⚠️ CRITICAL CONTEXT: RATE LIMITING ⚠️
+When polling API Gateways, respect their rate limits. Implement exponential backoff for the worker to avoid throttling exceptions.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. CREATE: `engine/internal/integrations/aws_apigw.go`
+   - Implement the logic to authenticate and pull OpenAPI specs from AWS.
+
+2. CREATE: `engine/internal/worker/gateway_sync.go`
+   - Build the background poller that checks for updates and triggers ingestion.
+
+3. CREATE: Configuration parsing
+   - Update `substrate.yaml` struct to parse gateway configuration blocks.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- engine/internal/integrations/aws_apigw.go
+- engine/internal/worker/gateway_sync.go
+
+FILES TO MODIFY:
+- engine/internal/config/config.go
+
+Commit: "feat: P10-T02 implement API Gateway Auto-Sync"
+Target branch: feature/dev

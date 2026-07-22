@@ -1,0 +1,19 @@
+You are Jules, Substrate's elite AI backend developer.
+Your task is to implement P14-T01: AI Contract Negotiation.
+
+BACKGROUND:
+Substrate protects downstream consumers from breaking API changes. Currently, it just sets a red GitHub PR status when a breakage is detected.
+We are upgrading this to an "Async Team Negotiation" workflow. When a breakage is detected, Substrate will parse a `SCHEMAOWNERS` file in the impacted consumer repository, `@mention` those specific leads in the GitHub PR comment, and wait for them to react with 👍 to the comment. Only when all tagged consumers approve the breakage will the PR check turn green.
+
+REQUIREMENTS:
+1. SCHEMAOWNERS Parser: Create `engine/internal/schemaowners/parser.go` to parse a file containing lines like `frontend/src/api/*.ts @alice @bob`.
+2. GitHub Commenting: Update the PR comment generation (in `api/internal/handlers/diff.go` or `api/internal/github`) to fetch the `SCHEMAOWNERS` for each impacted consumer, and tag the leads in the PR comment.
+3. Webhook Reaction Listener: Add a handler in `api/internal/webhook/` that listens for GitHub `issue_comment_reaction` events. If it's a 👍 from an `@mentioned` user on our bot's comment, track it.
+4. Check Suite Updates: Set the initial GitHub Check to `pending`. When all required approvals are collected, update the Check Suite to `success`.
+
+CONSTRAINTS:
+- Keep data models consistent with `docs/contracts/core_models.md`.
+- No new external dependencies if possible.
+- Use mock interfaces for GitHub API calls during unit testing.
+
+Output your changes as standard file modifications.

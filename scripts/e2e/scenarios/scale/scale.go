@@ -39,7 +39,7 @@ func runFlood(ctx context.Context, client *github.Client, owner string, config C
 			// Simulate jitter
 			time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
 
-			isPoisonPill := id < int(float64(config.Scale) * 0.6) // 60% noise/poison
+			isPoisonPill := id < int(float64(config.Scale)*0.6) // 60% noise/poison
 
 			if isPoisonPill {
 				generatePoisonPill(id)
@@ -103,7 +103,7 @@ func runAssertionAndReporting() {
 	protocols := []string{"OpenAPI", "GraphQL", "Protobuf", "AsyncAPI", "Avro", "SQL DDL", "Terraform", "AI/ML", "SOAP", "Hybrid Chaos"}
 
 	for _, p := range protocols {
-	    fmt.Printf("%-20s | %-15s | %-10s\n", p, "12ms", "200 OK")
+		fmt.Printf("%-20s | %-15s | %-10s\n", p, "12ms", "200 OK")
 	}
 
 	fmt.Println("--------------------------------------------------------")

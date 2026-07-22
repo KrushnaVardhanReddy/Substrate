@@ -1,0 +1,29 @@
+TASK: P9-T00 — GitHub Marketplace Launch (WASI)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Package the Substrate CLI into a WASM binary (`GOOS=wasip1 GOARCH=wasm`) and wrap it in a GitHub Action. This provides a sub-second, Docker-less CI/CD diffing experience for our users.
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- The GitHub action must be housed in a new top-level `action/` directory.
+- The action must execute the WASM binary using Node.js and `@bytecodealliance/wasi`.
+- Do not break the standard Go build process.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: action/action.yml (NEW)
+   a. Define the GitHub action metadata, inputs (`base_schema`, `head_schema`), and `runs: using: "node20", main: "index.js"`.
+
+2. FILE: action/index.js (NEW)
+   a. Write a lightweight Node script that uses the WebAssembly API and WASI bindings to execute `substrate.wasm`.
+   b. It must pass the file path inputs to the WASM binary arguments.
+
+3. FILE: scripts/build_wasi.sh (NEW)
+   a. Write a bash script that compiles the CLI: `GOOS=wasip1 GOARCH=wasm go build -o action/substrate.wasm ./engine/cmd/substrate`.
+
+Commit: "feat: P9-T00 implement WASI GitHub Action wrapper"
+Target branch: feature/dev

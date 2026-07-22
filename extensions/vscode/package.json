@@ -1,0 +1,54 @@
+{
+  "name": "substrate",
+  "version": "0.1.0",
+  "description": "Substrate IDE Integration",
+  "main": "dist/extension.js",
+  "scripts": {
+    "test": "node_modules/.bin/mocha dist/**/*.test.js",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^26.1.1",
+    "@types/vscode": "^1.125.0",
+    "mocha": "^11.7.6",
+    "typescript": "^7.0.2"
+  },
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "activationEvents": [
+    "onLanguage:yaml"
+  ],
+  "displayName": "Substrate",
+  "publisher": "substrate",
+  "contributes": {
+    "commands": [
+      {
+        "command": "substrate.showDependencyGraph",
+        "title": "Substrate: Show Dependency Graph"
+      }
+    ],
+    "languages": [
+      {
+        "id": "yaml",
+        "aliases": [
+          "YAML",
+          "yaml"
+        ],
+        "extensions": [
+          ".yaml",
+          ".yml"
+        ]
+      }
+    ]
+  },
+  "dependencies": {
+    "vscode-languageclient": "^10.1.0"
+  }
+}

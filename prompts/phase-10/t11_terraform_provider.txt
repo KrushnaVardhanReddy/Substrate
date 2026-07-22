@@ -1,0 +1,37 @@
+TASK: P10-T11 — Official Terraform Provider
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+We are expanding the Substrate ecosystem to include an official Terraform Provider. This provider will allow DevOps engineers to manage Substrate's configuration (Organizations, Webhooks, and Policies) entirely through Infrastructure-as-Code (IaC) instead of relying on the UI dashboard.
+
+You must build a new HashiCorp Terraform Plugin Framework provider in a new root directory called `terraform-provider-substrate`. 
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-10/p10-t11-terraform-provider.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- The provider MUST be built using the modern `terraform-plugin-framework` (NOT the legacy SDKv2).
+- The code must be completely isolated in the `terraform-provider-substrate` directory. 
+- Initialize a new `go.mod` in `terraform-provider-substrate` with the required dependencies (e.g., `github.com/hashicorp/terraform-plugin-framework`).
+- Do NOT modify any existing Go backend code in `api/` or `engine/`. This is a standalone consumer of our Go API.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The Substrate backend exposes standard REST endpoints (e.g. `POST /api/v1/webhooks`). The Terraform provider will simply make HTTP requests to these endpoints to create/read/update/delete resources.
+- The provider needs a `provider` block (for API keys/Base URL) and resources for `substrate_webhook` and `substrate_policy`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. Create `terraform-provider-substrate/go.mod` and run `go get github.com/hashicorp/terraform-plugin-framework/providerserver`.
+2. Implement `terraform-provider-substrate/main.go` to serve the provider.
+3. Implement `terraform-provider-substrate/internal/provider/provider.go` defining the Provider Schema (API Token, Base URL).
+4. Implement `terraform-provider-substrate/internal/provider/webhook_resource.go` with CRUD operations mapping to the Substrate Webhook API.
+5. Implement `terraform-provider-substrate/internal/provider/policy_resource.go` with CRUD operations mapping to the Substrate Policy API.
+
+Commit: "feat: P10-T11 initialize official terraform provider"
+Target branch: feature/dev

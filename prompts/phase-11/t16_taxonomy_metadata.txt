@@ -1,0 +1,77 @@
+# Spec: P11-T16 - Taxonomy & Metadata Tagging
+
+## Context
+Substrate is evolving into a full Internal Developer Portal (IDP). We want to allow users to tag their repositories in `substrate.yaml` with metadata like `type` (backend, frontend, database) and `databases` (postgres, redis). This will allow us to display visually appealing icons in the Svelte Flow graph and show rich metadata in the Detail Panel.
+
+## Requirements
+
+**1. UPDATE `api/internal/config/config.go`**
+Add a `Metadata` struct to the configuration parser to extract taxonomy data from `substrate.yaml`:
+```go
+type Metadata struct {
+	Type      string   `yaml:"type"`
+	Team      string   `yaml:"team"`
+	Databases []string `yaml:"databases"`
+}
+
+// Add to SubstrateConfig
+type SubstrateConfig struct {
+	Discovery *Discovery `yaml:"discovery,omitempty"`
+	Metadata  *Metadata  `yaml:"metadata,omitempty"`
+}
+```
+
+**2. DATABASE MODIFICATIONS (`api/internal/db/store.go` & Migrations)**
+- In `api/internal/db/store.go`, update the `Repository` struct to include `Metadata json.RawMessage`:
+```go
+type Repository struct {
+	ID           uuid.UUID
+	OrgID        uuid.UUID
+	GithubRepoID int64
+	Name         string
+	FullName     string
+	Metadata     json.RawMessage // NEW FIELD
+	CreatedAt    time.Time
+}
+```
+- Create a new migration file in `db/migrations/` (e.g., `0004_add_metadata.up.sql`):
+```sql
+ALTER TABLE repositories ADD COLUMN metadata JSONB DEFAULT '{}'::jsonb;
+```
+- Update `UpsertRepo` in `api/internal/db/store.go` and `pgstore.go` to accept and save the `metadata` JSON blob.
+
+**3. GITHUB WEBHOOK SYNC (`api/internal/services/push.go`)**
+When a PR is merged or push happens, `push.go` reads `substrate.yaml`. 
+Pass the parsed `cfg.Metadata` (marshalled to JSON) into the `UpsertRepo` call so it gets saved to Postgres.
+
+**4. REGISTRY API UPDATE (`api/internal/graph/handler.go`)**
+Update the `/api/v1/graph/...` handler so that the returned nodes include the `metadata` object from the `repositories` table. 
+
+**5. SVELTE FRONTEND ICONS (`dashboard/src/routes/(app)/org/[org]/graph/+page.svelte` & `ServiceNode.svelte`)**
+- In the frontend, the graph nodes should visually represent their `type` (backend, frontend, database, mobile).
+- Update `ServiceNode.svelte` to read `data.metadata.type`.
+- Render a distinct SVG icon based on the type:
+  - `frontend` → A browser window icon (Lucide `AppWindow`)
+  - `database` → A stack/cylinder icon (Lucide `Database`)
+  - `mobile` → A smartphone icon (Lucide `Smartphone`)
+  - `backend` / `service` / default → A server/gear icon (Lucide `Server` or `Cog`)
+- Make the node styling visually appealing! Use colors that pop and differentiate the node types (e.g. databases are blue, frontend is purple, backend is slate).
+
+**6. SVELTE DETAIL PANEL**
+- When a user clicks a node, update the right-hand Detail Panel (`<aside class="detail-panel">`) in `+page.svelte`.
+- Render a new section "Taxonomy" or add to "Manifest Metadata" to dynamically display:
+  - `metadata.team`
+  - `metadata.databases` (as a list of badges)
+  - `metadata.type`
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+- api/internal/config/config.go
+- api/internal/db/store.go
+- api/internal/db/pgstore.go
+- api/internal/services/push.go
+- api/internal/graph/handler.go
+- db/migrations/...up.sql
+- dashboard/src/lib/components/ServiceNode.svelte
+- dashboard/src/routes/(app)/org/[org]/graph/+page.svelte

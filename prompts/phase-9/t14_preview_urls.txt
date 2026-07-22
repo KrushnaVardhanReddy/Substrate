@@ -1,0 +1,36 @@
+TASK: P9-T14 — Ephemeral API Preview URLs
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Generate temporary, shareable Substrate dashboard URLs for PRs so engineers can share schema diffs before merging.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-9/p9-t14-preview-urls.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Preview tokens must be UUIDs stored in `preview_sessions` table.
+- Preview URLs must expire 7 days after PR close/merge.
+- You MUST write unit tests for the expiry logic and token generation.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Add DB migration for `preview_sessions` table.
+- Add `api/internal/handler/preview.go` to handle `GET /preview/:token`.
+- Add SvelteKit route `dashboard/src/routes/(public)/preview/[token]/+page.svelte` for the read-only diff view.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: api/internal/handler/preview.go (CREATE)
+   - Include `api/internal/handler/preview_test.go`
+2. FILE: dashboard/src/routes/(public)/preview/[token]/+page.svelte (CREATE)
+   - Include `+page.test.ts`
+3. Add DB migration.
+4. Run `go test ./...` and `npm run test`.
+
+Commit: "feat: P9-T14 implement ephemeral API preview URLs"
+Target branch: feature/dev

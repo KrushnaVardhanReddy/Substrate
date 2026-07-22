@@ -17,24 +17,36 @@ export interface ComplianceAlert {
   message: string;
 }
 
+export interface Deprecation {
+  endpoint: string;
+  sunset_date: string;
+}
+
 export interface DiffReport {
   breaking_changes: DiffChange[];
   warnings: DiffChange[];
   safe_changes: DiffChange[];
   summary: DiffSummary;
   compliance_alerts?: ComplianceAlert[];
+  deprecations?: Deprecation[];
 }
 
 export interface SubstrateConfig {
+  tier?: string;
+  quality_gate?: 'strict' | 'standard' | 'permissive';
   on_breaking_change?: 'block' | 'warn';
   base_schema?: string;
   head_schema?: string;
+  mode?: 'strict' | 'legacy' | 'audit';
 }
 
 export interface Env {
   GITHUB_APP_ID: string;
   GITHUB_APP_PRIVATE_KEY: string;
+  GITHUB_TOKEN?: string;
   GITHUB_WEBHOOK_SECRET: string;
+  GITEA_API_URL?: string;
+  GITEA_TOKEN?: string;
   CONTAINER_SERVICE_URL: string;
   REGISTRY_API_URL: string;
   REGISTRY_API_TOKEN: string;
@@ -47,6 +59,8 @@ export interface ConsumerEntry {
   schema_type: string;
   provider_spec_path: string;
   provider_branch: string;
+  required_notice_days?: number;
+  sdk_targets?: string[];
 }
 
 export interface SubstrateConsumerConfig {
@@ -60,6 +74,8 @@ export interface SyncDependency {
   spec_path: string;
   branch: string;
   raw_content: string;
+  required_notice_days?: number;
+  sdk_targets?: string[];
 }
 
 export interface SyncRequest {
@@ -116,11 +132,19 @@ export interface CrossRepoCheckRequest {
   config_content?: string;
 }
 
+export interface SLABreach {
+  consumer: string;
+  required_days: number;
+}
+
 export interface CrossRepoCheckResponse {
   total_consumers: number;
   broken_consumers: number;
   is_safe: boolean;
   results: ConsumerResult[];
+  sla_breaches?: SLABreach[];
+  affected_customers?: number;
+  affected_mrr?: number;
 }
 
 export interface AIAutofixRequest {
@@ -163,4 +187,32 @@ export interface InstallationEvent {
     id: number;
   };
   repositories?: InstallationRepo[];
+}
+
+export interface VCSClient {
+  fetchFileContent(owner: string, repo: string, path: string, ref: string): Promise<string | null>;
+  postPRComment(owner: string, repo: string, prNumber: number, body: string): Promise<void>;
+  setCommitStatus(owner: string, repo: string, sha: string, state: 'success' | 'failure' | 'pending', description: string): Promise<void>;
+  fetchPRFiles(owner: string, repo: string, prNumber: number): Promise<string[]>;
+}
+
+export interface StandardPREvent {
+  owner: string;
+  repo: string;
+  fullName: string;
+  prNumber: number;
+  headSha: string;
+  baseBranch: string;
+  installationId: number;
+}
+
+export interface StandardPushEvent {
+  ref: string;
+  after: string;
+  installationId: number;
+  owner: string;
+  repo: string;
+  fullName: string;
+  githubRepoId: number;
+  installationOrgId: number;
 }

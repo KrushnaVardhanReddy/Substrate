@@ -1,0 +1,32 @@
+TASK: P14-T02a — Predictive Scoring (Backend API)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Transition Substrate to a proactive intelligence platform by calculating a "Time to Break" predictive risk score (0-100) for every repository in the dependency graph.
+
+Spec (READ ONLY): docs/specs/phase-14/p14-t02-predictive-scoring.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Implement ONLY the backend (API) and DB logic. Do not touch the dashboard UI.
+- All Go code must pass `go fmt` and `go test` before committing.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. DB & Models (`api/internal/db/`):
+   a. Create a DB migration or struct mapping for a new `repo_metrics` table holding `predictive_risk_score` (int).
+   
+2. Scoring Engine (`api/internal/scoring/predictive.go` - NEW):
+   a. Write the heuristic function `CalculateRiskScore` which computes the 0-100 score based on historical breakages, downstream consumer count (blast radius), etc.
+
+3. Background Worker (`api/internal/workers/risk_worker.go` - NEW):
+   a. Create a recurring background job to recalculate these scores nightly.
+
+4. API Injection (`api/internal/handlers/graph.go`):
+   a. Modify the `/api/v1/graph` payload so that each node includes the new `predictive_risk_score`.
+
+Commit: "feat: P14-T02a implement predictive scoring backend engine"
+Target branch: feature/dev

@@ -1,0 +1,43 @@
+TASK: P11-T01 — Cascading Blast Radius (Nth-Degree)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement a dynamic cascading blast radius feature. When an architect clicks a microservice node, the graph should calculate and highlight all downstream dependencies (1st, 2nd, Nth degree) that would break if this service fails.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-11/p11-t01-blast-radius.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Use Svelte Flow's internal store or graph data to traverse edges.
+- Unaffected nodes must gracefully fade out (opacity 0.2).
+- The origin node must glow with a red border (`var(--danger)`).
+- Affected downstream nodes must glow with a warning border (`var(--safe)` or orange).
+- Must include a "Clear Selection" button to reset the view.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+The main graph view lives in `dashboard/src/routes/(app)/org/[org]/graph/+page.svelte`.
+You will need to update the `onnodeclick` handler in this file to perform the traversal and update the styling state of the nodes array. No new complex components are needed, mostly just state management.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: dashboard/src/routes/(app)/org/[org]/graph/+page.svelte (MODIFY)
+   - Implement DFS/BFS traversal logic to find all downstream nodes from the clicked node.
+   - Update the nodes to include classes or inline styles for highlighting (origin, affected, faded).
+   - Add a floating "Clear Selection" button (using standard vanilla CSS) at the top right of the canvas to reset the state.
+2. Run `npm run check` before concluding to ensure no Svelte/TS regressions.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO MODIFY:
+- dashboard/src/routes/(app)/org/[org]/graph/+page.svelte
+
+Commit: "feat: P11-T01 implement cascading blast radius highlighting"
+Target branch: feature/dev

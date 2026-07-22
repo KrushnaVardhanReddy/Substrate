@@ -1,0 +1,24 @@
+TASK: P8-T04 — Spotify Backstage Plugin
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Create a React-based Spotify Backstage plugin so that enterprise teams can view Substrate dependency graphs and API health scores directly within their existing Developer Portals.
+
+Spec (READ ONLY):
+  docs/specs/phase-8/p8-master-plan.md
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. DIRECTORY: backstage-plugin/ (CREATE NEW)
+   Initialize a basic Backstage frontend plugin scaffolding using `@backstage/cli` (or manual React setup).
+
+2. FILE: backstage-plugin/src/components/SubstrateGraphCard.tsx
+   Create a React component that fetches the dependency graph for a specific entity from the Substrate API (`GET /api/v1/registry/graph/{repo}`) and renders it using `react-flow-renderer` or a similar lightweight graph library.
+
+3. FILE: backstage-plugin/src/components/SubstrateHealthCard.tsx
+   Create a React component displaying the API Breaking Change Risk score (based on recent PR history).
+
+Commit: "feat: P8-T04 implement spotify backstage react plugin"
+Target branch: feature/dev

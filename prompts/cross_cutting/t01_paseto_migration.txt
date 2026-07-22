@@ -1,0 +1,30 @@
+TASK: CC-T01 — PASETO Security Migration
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Migrate the entire Go API authentication layer from JWT to PASETO `v4.local` to ensure enterprise-grade cryptographic security.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- CRITICAL: Before implementing, you MUST read `docs/specs/cross-cutting/cc-t01-paseto-migration.md` and `docs/wiki/concepts/architecture.md` to understand the architectural mandate for PASETO.
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Remove `github.com/golang-jwt/jwt/v5` from the `api/` package.
+- Add a reputable PASETO v4 library (e.g., `aidarkhanov/nanoid` or `aead/paseto` v2/v4 compatible) to `api/go.mod`.
+- Refactor `AuthMiddleware` and `AuthzMiddleware` in `api/internal/server/middleware.go` to parse and validate PASETO v4 local tokens using the existing `JWT_SECRET` (which will be treated as the PASETO symmetric key).
+- Update `api/internal/server/middleware_test.go` to generate and test PASETO tokens instead of JWTs.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: api/internal/server/middleware.go (MODIFY)
+2. FILE: api/internal/server/middleware_test.go (MODIFY)
+3. Run `go mod tidy` in `api/`.
+4. Run `go test ./...` in `api/`.
+
+Commit: "refactor: migrate from JWT to PASETO v4.local"
+Target branch: feature/dev

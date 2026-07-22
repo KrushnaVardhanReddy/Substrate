@@ -1,0 +1,42 @@
+TASK: P10-T20 — Phase 10 E2E Validation (No Mocks)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+End-to-end testing for all Phase 10 features using real environments — no mock interceptors.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-10/p10-t20-e2e-validation.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- No `mock.On(...)` or fake HTTP handlers for external services.
+- All external git interactions should hit the local Forgejo instance.
+- Tests must clean up resources after themselves.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+Follow the EXACT patterns established in `scripts/e2e/phase8_e2e_test.go`:
+- Same package `main`, same file location `scripts/e2e/`.
+- Uses real `pgxpool.New(ctx, dbURL)` — no Testcontainers needed (Postgres is expected to be running locally via `make postgres`).
+- Tests use `t.Run("Scenario N: ...", ...)` sub-test structure.
+- Uses `exec.Command(binPath, ...)` to run real compiled CLI binary.
+
+There is already a `scripts/e2e/phase10_13_e2e_test.go` — check it for context before writing new tests to avoid duplication.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Add scenarios covering: OTel webhook ingestion, zombie detection query, governance rules CRUD, and auto-SDK generation trigger.
+- For the governance rules scenario, hit `POST /api/v1/org/:org/governance/rules` and then `POST /api/v1/diff` and assert the PR comment contains "📏 API Governance".
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: scripts/e2e/phase10_e2e_test.go (CREATE)
+2. Run `go test ./scripts/e2e/... -run TestPhase10`.
+
+Commit: "test: P10-T20 phase 10 E2E validation suite"
+Target branch: feature/dev

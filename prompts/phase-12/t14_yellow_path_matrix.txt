@@ -1,0 +1,58 @@
+TASK: P12-T14 — System Matrix Overrides & Completion (Yellow Path)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+We need to complete the E2E matrix by implementing the "Yellow Path" (Overrides) across the entire stack, as well as adding the remaining schema types (SQL, AsyncAPI, and two more OpenAPI variants) to the real-world pipeline.
+
+When a developer introduces a mathematically breaking schema change, but explicitly adds an `overrides` block in their `substrate.yaml` acknowledging the break, the UI should render the dependency node with a "Warning" (Yellow) status rather than a "Breaking" (Red) status.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-12/p12-t14-yellow-path-matrix.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Do NOT push massive real-world repositories to Forgejo. Continue using the "stub generation" strategy (defining 10-line string variables inside the Playwright script and pushing them) for the new SQL and AsyncAPI tests.
+- Ensure the Go backend properly saves the `ACKNOWLEDGED` enum in the PostgreSQL `dependencies` table when an override is present.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The Playwright tests live in `dashboard/tests/e2e/system-matrix-full.spec.ts`.
+- The frontend graph UI components live in `dashboard/src/lib/components/`.
+- The Go backend logic lives in `api/internal/services/sync.go` and `api/internal/db/`.
+- We already have Protobuf, OpenAPI, and GraphQL completed for Red/Green paths in `system-matrix-full.spec.ts`. 
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FRONTEND: dashboard/src/lib/components/ServiceNode.svelte
+   - Add `.warning` or `.acknowledged` CSS class binding logic when `data.status === 'ACKNOWLEDGED'`.
+
+2. BACKEND: api/internal/services/sync.go (and related DB files)
+   - Parse the `overrides` block from `substrate.yaml`. Downgrade status to `ACKNOWLEDGED` if an override matches.
+
+3. E2E TESTS: dashboard/tests/e2e/system-matrix-full.spec.ts
+   - Retrofit Protobuf, OpenAPI, and GraphQL to include a 3rd test: `Yellow Path: Push breaking change with override`.
+   - Add a full SQL test block (Red, Green, Yellow) for `jaffle-shop-db` using a tiny `CREATE TABLE` stub.
+   - Add a full AsyncAPI test block (Red, Green, Yellow) for `slack-webhooks` using a tiny AsyncAPI YAML stub.
+   - Add a full OpenAPI test block for `openai-openapi` using a tiny OpenAPI stub with a `chat/completions` endpoint.
+   - Add a full OpenAPI test block for `realworld` using a tiny OpenAPI stub with an `/api/articles` endpoint.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO MODIFY:
+- dashboard/src/lib/components/ServiceNode.svelte
+- api/internal/services/sync.go
+- api/internal/db/queries.go
+- dashboard/tests/e2e/system-matrix-full.spec.ts
+
+FILES TO NOT TOUCH:
+- dashboard/tests/e2e/system-matrix.spec.ts
+
+Commit: "feat: P12-T14 implement Yellow Path overrides and full E2E matrix"
+Target branch: feature/dev

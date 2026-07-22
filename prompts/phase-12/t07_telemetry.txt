@@ -1,0 +1,135 @@
+TASK: P12-T07 — Telemetry & Crash Reporting (PostHog)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Integrate PostHog analytics into the SvelteKit dashboard behind a strict environment variable guard so crash reports and key user events (node clicks, graph loads) are captured in production — while having absolutely zero impact on the development environment, CI, or existing Playwright tests.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-12/p12-t07-telemetry.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- `trackEvent()` MUST be a silent no-op when `PUBLIC_POSTHOG_KEY` env var is absent. This protects ALL existing E2E tests.
+- Do NOT install `posthog-js` as an npm package. Use the PostHog CDN snippet in `app.html` to keep the production bundle size at zero.
+- The PostHog snippet in `app.html` must NOT execute unless `PUBLIC_POSTHOG_KEY` is defined at runtime. Guard it with a `if (window.__POSTHOG_KEY__)` JS check.
+- The change to `+page.svelte` is ONE LINE ONLY (one `trackEvent()` call in `onnodeclick`). Do NOT refactor any surrounding logic.
+- Run `npx playwright test` after your changes and confirm ALL 11 existing tests still pass.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- SvelteKit app HTML shell: `dashboard/src/app.html`
+- The graph page: `dashboard/src/routes/(app)/org/[org]/graph/+page.svelte`
+- The `onnodeclick` handler in `+page.svelte` (simplified):
+  ```svelte
+  onnodeclick={(...args: any[]) => {
+      const node = args.length > 1 ? args[1] : (args[0]?.node || args[0]?.detail?.node);
+      if (node) selectedNode = { id: node.id, ...node.data };
+  }}
+  ```
+- SvelteKit environment access: use `$env/dynamic/public` for runtime env vars. Import as:
+  `import { env } from '$env/dynamic/public';`
+- Browser detection: `import { browser } from '$app/environment';`
+- PostHog CDN snippet reference: https://posthog.com/docs/libraries/js#option-2-via-script-tag
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FILE: dashboard/src/lib/utils/telemetry.ts (CREATE NEW)
+   ```typescript
+   import { browser } from '$app/environment';
+   import { env } from '$env/dynamic/public';
+
+   /**
+    * Tracks a named event with optional properties.
+    * This is a no-op unless PUBLIC_POSTHOG_KEY is set.
+    * Telemetry MUST NEVER crash the application.
+    */
+   export function trackEvent(name: string, props?: Record<string, unknown>): void {
+     if (!browser) return;
+     if (!env.PUBLIC_POSTHOG_KEY) return;
+     try {
+       // posthog is loaded via CDN script tag in app.html
+       // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       (window as any).posthog?.capture(name, props ?? {});
+     } catch {
+       // Silently swallow — telemetry must never crash the app
+     }
+   }
+   ```
+
+2. FILE: dashboard/src/app.html (MODIFY)
+   Insert the PostHog CDN snippet INSIDE the `<head>` tag, BEFORE `%sveltekit.head%`:
+   ```html
+   <!-- PostHog Telemetry — only loads in production when PUBLIC_POSTHOG_KEY is set -->
+   <script>
+     !function(t,e){window.posthog=e;e.__loaded=false}(window,window.posthog||[]);
+   </script>
+   %sveltekit.head%
+   ```
+   Then, at the END of the `<body>` tag (before `</body>`), add the conditional init script:
+   ```html
+   %sveltekit.body%
+   <script>
+     // Only initialise PostHog if the key is injected by the server
+     if (window.__POSTHOG_KEY__) {
+       !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]);t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init be q capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+       posthog.init(window.__POSTHOG_KEY__, {api_host: 'https://us.i.posthog.com', person_profiles: 'identified_only'});
+     }
+   </script>
+   ```
+
+   IMPORTANT: The `window.__POSTHOG_KEY__` value must be injected somewhere. The simplest approach is to add a SvelteKit server hook or inject it via a `<script>` in a layout. However, to avoid touching the layout, simply note in a code comment that `window.__POSTHOG_KEY__` must be set by the server-side render via the `<script>` tag in `src/hooks.server.ts` or via an environment-injected meta tag. For now, the guard `if (window.__POSTHOG_KEY__)` is sufficient — PostHog will simply not initialize in development/CI.
+
+3. FILE: dashboard/src/routes/(app)/org/[org]/graph/+page.svelte (MODIFY — 2 lines only)
+   At the top of the `<script lang="ts">` block, add the import:
+   ```typescript
+   import { trackEvent } from '$lib/utils/telemetry';
+   ```
+   Inside the `onnodeclick` handler, add one line AFTER `selectedNode = { id: node.id, ...node.data }`:
+   ```typescript
+   trackEvent('node_clicked', { nodeId: node.id, nodeType: node.data?.type });
+   ```
+   The full updated handler becomes:
+   ```svelte
+   onnodeclick={(...args: any[]) => {
+       const node = args.length > 1 ? args[1] : (args[0]?.node || args[0]?.detail?.node);
+       if (node) {
+           selectedNode = { id: node.id, ...node.data };
+           trackEvent('node_clicked', { nodeId: node.id, nodeType: node.data?.type });
+       }
+   }}
+   ```
+
+4. Run `npm run check --prefix dashboard` to verify no TypeScript errors.
+5. Run `npx playwright test --prefix dashboard` to confirm ALL 11 existing tests pass.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION HINTS
+═══════════════════════════════════════════════════════════════
+- If `$env/dynamic/public` is not accessible in `telemetry.ts` (SSR issues), use `import.meta.env.PUBLIC_POSTHOG_KEY` as a fallback.
+- The `browser` guard in `telemetry.ts` is critical — SvelteKit runs modules on the server during SSR, and `window` does not exist there.
+- Do NOT add `PUBLIC_POSTHOG_KEY` to `.env.local` or `.env` in this commit. Leave it unset — the no-op behavior is the default and is tested by the existing Playwright suite.
+- The PostHog snippet in `app.html` is long but boilerplate — copy it exactly from https://posthog.com/docs/libraries/js (the "Script tag" method). The version above is a minified variant.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- dashboard/src/lib/utils/telemetry.ts
+
+FILES TO MODIFY:
+- dashboard/src/app.html  (add PostHog snippet)
+- dashboard/src/routes/(app)/org/[org]/graph/+page.svelte  (add import + 1 trackEvent call)
+
+FILES TO NOT TOUCH:
+- dashboard/tests/**  (no test changes — all existing tests must pass unchanged)
+- api/**
+- scripts/**
+
+Commit: "feat: P12-T07 add PostHog telemetry with environment guard"
+Target branch: feature/dev

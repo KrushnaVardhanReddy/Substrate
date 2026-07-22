@@ -17,13 +17,14 @@
 	"devDependencies": {
 		"@playwright/test": "^1.61.1",
 		"@sveltejs/adapter-auto": "^7.0.1",
+		"@sveltejs/adapter-static": "^3.0.10",
 		"@sveltejs/kit": "^2.69.2",
-		"@sveltejs/vite-plugin-svelte": "^7.1.2",
+		"@sveltejs/vite-plugin-svelte": "^4.0.0-next.6",
 		"@testing-library/jest-dom": "^6.9.1",
-		"@testing-library/svelte": "^5.4.2",
-		"@types/cytoscape": "^3.21.9",
-		"@types/cytoscape-dagre": "^2.3.4",
+		"@testing-library/svelte": "^5.0.0",
 		"@types/d3": "^7.4.3",
+		"@types/dagre": "^0.7.54",
+		"@types/js-yaml": "^4.0.9",
 		"@types/node": "^26.1.1",
 		"jsdom": "^29.1.1",
 		"svelte": "^5.56.1",
@@ -31,11 +32,18 @@
 		"svelte-kit": "^1.2.0",
 		"typescript": "^6.0.3",
 		"vite": "^8.1.4",
-		"vitest": "^4.1.10"
+		"vitest": "^2.1.8"
 	},
 	"dependencies": {
-		"cytoscape": "^3.34.0",
-		"cytoscape-dagre": "^4.0.0",
-		"d3": "^7.9.0"
+		"@lucide/svelte": "^1.24.0",
+		"@stoplight/elements": "^9.0.24",
+		"@types/diff": "^7.0.2",
+		"@xyflow/svelte": "^1.6.2",
+		"d3": "^7.9.0",
+		"dagre": "^0.8.5",
+		"diff": "^9.0.0",
+		"html-to-image": "^1.11.13",
+		"js-yaml": "^5.2.1",
+		"lucide-svelte": "^0.447.0"
 	}
 }

@@ -4,19 +4,19 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/spf13/viper"
 	"net/http"
-	"os"
 	"regexp"
 
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 )
 
 var piiPatterns = map[string]string{
-	`(?i)(ssn|social.?security)`:   "PII:SSN",
-	`(?i)(password|passwd|secret)`: "SECURITY:CREDENTIAL",
-	`(?i)(card.?number|pan|cvv)`:   "PCI:PAYMENT",
+	`(?i)(ssn|social.?security)`:    "PII:SSN",
+	`(?i)(password|passwd|secret)`:  "SECURITY:CREDENTIAL",
+	`(?i)(card.?number|pan|cvv)`:    "PCI:PAYMENT",
 	`(?i)(medical|diagnosis|hipaa)`: "HIPAA:PHI",
-	`(?i)(email|phone|address)`:    "PII:CONTACT",
+	`(?i)(email|phone|address)`:     "PII:CONTACT",
 }
 
 // Compile regexes once
@@ -56,7 +56,7 @@ func Audit(rep *report.DiffReport) {
 }
 
 func notifySecurityTeam(alert report.ComplianceAlert) {
-	webhookURL := os.Getenv("SUBSTRATE_SLACK_WEBHOOK")
+	webhookURL := viper.GetString("SUBSTRATE_SLACK_WEBHOOK")
 	if webhookURL == "" {
 		return
 	}

@@ -7,13 +7,28 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/google/uuid"
+	"context"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/github"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/workers"
+	"github.com/google/uuid"
 )
 
 func TestSaveDiffHandler(t *testing.T) {
 	store := &db.MockStore{}
-	handler := SaveDiffHandler(store)
+	mockEnqueuer := &workers.MockJobEnqueuer{}
+	mockClient := &github.MockClient{
+		GetFileContentFunc: func(ctx context.Context, owner, repo, path string) (string, error) {
+			if path == ".substrate/SCHEMAOWNERS.yaml" {
+				return "- path: \"/*\"\n  reviewers: [\"@myorg/api-platform\"]\n", nil
+			}
+			return "", nil
+		},
+		RequestReviewersFunc: func(ctx context.Context, owner, repo string, pullNumber int, reviewers []string) error {
+			return nil
+		},
+	}
+	handler := SaveDiffHandler(store, mockEnqueuer, mockClient)
 
 	tests := []struct {
 		name           string
@@ -26,6 +41,7 @@ func TestSaveDiffHandler(t *testing.T) {
 				"diff_report": map[string]interface{}{
 					"status": "diff found",
 				},
+				"org": "test-org",
 			},
 			expectedStatus: http.StatusCreated,
 		},
@@ -34,9 +50,10 @@ func TestSaveDiffHandler(t *testing.T) {
 			body:           nil,
 			expectedStatus: http.StatusBadRequest,
 		},
+
 		{
-			name: "Missing diff_report",
-			body: map[string]interface{}{},
+			name:           "Missing diff_report",
+			body:           map[string]interface{}{},
 			expectedStatus: http.StatusBadRequest,
 		},
 	}

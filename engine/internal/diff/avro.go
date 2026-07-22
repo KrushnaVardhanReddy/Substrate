@@ -36,7 +36,7 @@ func CompareAvro(baseFile, headFile string, cfg *config.SubstrateConfig) (*repor
 		})
 		rep.Summary.WarningCount = 1
 		compliance.Audit(rep)
-	return rep, nil
+		return rep, nil
 	}
 
 	headBytes, err := os.ReadFile(headFile)
@@ -84,7 +84,7 @@ func CompareAvro(baseFile, headFile string, cfg *config.SubstrateConfig) (*repor
 		})
 		rep.Summary.WarningCount = 1
 		compliance.Audit(rep)
-	return rep, nil
+		return rep, nil
 	}
 	defer resp.Body.Close()
 
@@ -97,7 +97,7 @@ func CompareAvro(baseFile, headFile string, cfg *config.SubstrateConfig) (*repor
 		})
 		rep.Summary.WarningCount = 1
 		compliance.Audit(rep)
-	return rep, nil
+		return rep, nil
 	}
 
 	respBody, err := io.ReadAll(resp.Body)
@@ -112,7 +112,7 @@ func CompareAvro(baseFile, headFile string, cfg *config.SubstrateConfig) (*repor
 
 	if compatResp.IsCompatible {
 		compliance.Audit(rep)
-	return rep, nil
+		return rep, nil
 	}
 
 	desc := "Schema Registry reported incompatibility"

@@ -1,0 +1,40 @@
+TASK: P10-T05 — Auto-SDK Generator PRs
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Automatically generate TypeScript/Go SDK clients and open PRs in downstream consumer repos after a schema merges.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-10/p10-t05-auto-sdk-generator.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Use `openapi-generator-cli` to produce SDK output.
+- PR descriptions must link to the original schema-change PR.
+- You MUST write unit tests for the SDK generator orchestration logic.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The `github-app/src/handlers/` directory does NOT exist yet. Please create `github-app/src/handlers/push.ts` and export the push event handling logic.
+- You will need to wire this new handler into the main event router inside `github-app/src/index.ts`.
+- `engine/sdkgen/` should be a new Go package that wraps the `openapi-generator-cli` commands.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Add a new GitHub App event handler for `push` on main in `github-app/src/handlers/push.ts`.
+- Shell out to `openapi-generator-cli` from Go in `engine/sdkgen/generator.go`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: engine/sdkgen/generator.go (CREATE)
+   - Include `engine/sdkgen/generator_test.go`
+2. FILE: github-app/src/handlers/push.ts (CREATE or MODIFY)
+3. Run `go test ./...`.
+
+Commit: "feat: P10-T05 implement auto-SDK generator PRs"
+Target branch: feature/dev

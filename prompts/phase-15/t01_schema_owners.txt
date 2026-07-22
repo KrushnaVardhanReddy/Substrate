@@ -1,0 +1,26 @@
+TASK: P15-T01 — Schema Review Assignments
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement SCHEMAOWNERS parser and GitHub Review automation to automatically assign API architects for schema reviews.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-15/p15-t01-schema-owners.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Implement `api/internal/governance/owners.go`.
+- Update `api/internal/github/client.go`.
+- E2E or mock tests required.
+
+⚠️ CRITICAL CONTEXT & IMPLEMENTATION TIPS ⚠️
+1. YAML Parsing: Use `gopkg.in/yaml.v3` to parse the `.substrate/SCHEMAOWNERS.yaml` file from the repo.
+2. Structure: The schema is a list of rules: `[{ path: "/v1/payments/*", rules: ["SECURITY_HEADER_MODIFIED"], reviewers: ["@myorg/api-platform"] }]`.
+3. Glob Matching: Use `path.Match` or `regexp` to check if the incoming `DiffReport` anomaly paths match the `SCHEMAOWNERS` paths.
+4. GitHub API: In `api/internal/github/client.go`, use the `google/go-github` client to request reviewers. The method is `client.PullRequests.RequestReviewers(ctx, owner, repo, prNumber, github.ReviewersRequest{TeamReviewers: []string{"api-platform"}})` (Note: separate User reviewers from Team reviewers).
+5. Idempotency: Do not repeatedly add the same reviewers on every commit. Check if they are already requested before calling the GitHub API.
+
+Commit: "feat: P15-T01 implement schema review assignments"
+Target branch: feature/dev

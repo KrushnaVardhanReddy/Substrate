@@ -1,20 +1,35 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/KrushnaVardhanReddy/substrate/engine/spectral"
+	"github.com/spf13/viper"
 	"log"
 	"os"
+	"os/exec"
+	"path/filepath"
 
+	"bytes"
+
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/cache"
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/checker"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/config"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/diff"
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/graphql"
+
+	"net/http"
+	"time"
+
+	"github.com/KrushnaVardhanReddy/substrate/engine/cmd"
 	initcmd "github.com/KrushnaVardhanReddy/substrate/engine/internal/init"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 	sqlpkg "github.com/KrushnaVardhanReddy/substrate/engine/internal/sql"
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/telemetry"
 	"github.com/KrushnaVardhanReddy/substrate/engine/pkg/ai"
 	"github.com/spf13/cobra"
-	"path/filepath"
 )
 
 var flattenAllOf bool
@@ -22,8 +37,42 @@ var configPath string
 var format string
 var schemaType string
 var modeFlag string
+var governanceRules []string
 
 func main() {
+	config.InitConfig()
+	tp, err := telemetry.InitTracer(context.Background(), "substrate-engine")
+	if err != nil {
+		log.Printf("[substrate-engine] failed to init tracer: %v\n", err)
+	} else if tp != nil {
+		defer func() {
+			if err := tp.Shutdown(context.Background()); err != nil {
+				log.Printf("[substrate-engine] error shutting down tracer provider: %v", err)
+			}
+		}()
+	}
+
+	cacheDir := filepath.Join(viper.GetString("HOME"), ".substrate")
+	os.MkdirAll(cacheDir, 0755)
+	c, err := cache.InitCache(filepath.Join(cacheDir, "cache.db"))
+	if err == nil && viper.GetString("SUBSTRATE_DISABLE_CACHE_SYNC") != "1" {
+		go func() {
+			apiURL := viper.GetString("SUBSTRATE_API_URL")
+			if apiURL == "" {
+				apiURL = "http://localhost:8090"
+			}
+			apiToken := viper.GetString("REGISTRY_API_TOKEN")
+			org := viper.GetString("SUBSTRATE_ORG")
+			if org == "" {
+				org = "default"
+			}
+			for {
+				c.SyncFromRemote(context.Background(), apiURL, apiToken, org)
+				time.Sleep(1 * time.Minute)
+			}
+		}()
+	}
+
 	var rootCmd = &cobra.Command{
 		Use:   "substrate",
 		Short: "Substrate Diff Engine",
@@ -65,55 +114,103 @@ func main() {
 
 			switch finalSchemaType {
 			case "sql":
-				base, err := sqlpkg.ParseSchema(basePath)
+				var base, head *sqlpkg.SQLSchema
+				err = checker.ParseSchema(context.Background(), func() error {
+					var err error
+					base, err = sqlpkg.ParseSchema(basePath)
+					return err
+				})
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 					os.Exit(3)
 				}
-				head, err := sqlpkg.ParseSchema(revisionPath)
+				err = checker.ParseSchema(context.Background(), func() error {
+					var err error
+					head, err = sqlpkg.ParseSchema(revisionPath)
+					return err
+				})
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 					os.Exit(3)
 				}
-				rep = sqlpkg.DiffSchemas(base, head)
+				err = checker.CalculateDiff(context.Background(), func() error {
+					rep = sqlpkg.DiffSchemas(base, head)
+					return nil
+				})
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+					os.Exit(3)
+				}
 			case "graphql":
-				rep, err = diff.CompareGraphQL(basePath, revisionPath)
+				err = checker.CalculateDiff(context.Background(), func() error {
+					var err error
+					rep, err = graphql.CompareGraphQL(basePath, revisionPath)
+					return err
+				})
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 					os.Exit(3)
 				}
 			case "asyncapi":
-				rep, err = diff.CompareAsyncAPI(basePath, revisionPath)
+				err = checker.CalculateDiff(context.Background(), func() error {
+					var err error
+					rep, err = diff.CompareAsyncAPI(basePath, revisionPath)
+					return err
+				})
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 					os.Exit(3)
 				}
 			case "protobuf", "proto":
-				rep, err = diff.CompareProto(basePath, revisionPath)
+				err = checker.CalculateDiff(context.Background(), func() error {
+					var err error
+					rep, err = diff.CompareProto(basePath, revisionPath)
+					return err
+				})
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 					os.Exit(3)
 				}
 			case "terraform-plan":
-				rep, err = diff.CompareTerraformPlan(revisionPath)
+				err = checker.CalculateDiff(context.Background(), func() error {
+					var err error
+					rep, err = diff.CompareTerraformPlan(revisionPath)
+					return err
+				})
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 					os.Exit(3)
 				}
 			case "ai-model":
-				rep, err = diff.CompareAIML(basePath, revisionPath)
+				err = checker.CalculateDiff(context.Background(), func() error {
+					var err error
+					rep, err = diff.CompareAIML(basePath, revisionPath)
+					return err
+				})
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 					os.Exit(3)
 				}
 			case "avro":
-				rep, err = diff.CompareAvro(basePath, revisionPath, cfg)
+				err = checker.CalculateDiff(context.Background(), func() error {
+					var err error
+					rep, err = diff.CompareAvro(basePath, revisionPath, cfg)
+					return err
+				})
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 					os.Exit(3)
 				}
 			default:
-				rep, err = diff.CompareOpenAPI(basePath, revisionPath, flattenAllOf)
+				var rules []config.CustomRule
+				if cfg != nil {
+					rules = cfg.CustomRules
+				}
+				err = checker.CalculateDiff(context.Background(), func() error {
+					var err error
+					rep, err = diff.CompareOpenAPI(basePath, revisionPath, flattenAllOf, rules)
+					return err
+				})
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 					os.Exit(3)
@@ -126,16 +223,37 @@ func main() {
 
 			finalMode := "strict"
 			if modeFlag != "" {
-				if modeFlag == "strict" || modeFlag == "legacy" {
+				if modeFlag == "strict" || modeFlag == "legacy" || modeFlag == "audit" {
 					finalMode = modeFlag
 				} else {
-					fmt.Fprintf(os.Stderr, "Error: invalid mode '%s'. Must be 'strict' or 'legacy'\n", modeFlag)
+					fmt.Fprintf(os.Stderr, "Error: invalid mode '%s'. Must be 'strict', 'legacy', or 'audit'\n", modeFlag)
 					os.Exit(3)
 				}
-			} else if cfg != nil && (cfg.Mode == "strict" || cfg.Mode == "legacy") {
+			} else if cfg != nil && (cfg.Mode == "strict" || cfg.Mode == "legacy" || cfg.Mode == "audit") {
 				finalMode = cfg.Mode
 			}
 			rep.Mode = finalMode
+			if len(governanceRules) > 0 {
+				aiClient, err := ai.NewAIClient()
+				if err == nil {
+					linter := spectral.NewLinter(aiClient)
+					// Run git diff to get plain text diff
+					cmd := exec.Command("git", "diff", "--no-index", basePath, revisionPath)
+					out, _ := cmd.CombinedOutput()
+					diffText := string(out)
+					if diffText != "" {
+						violations, err := linter.LintDiff(diffText, governanceRules)
+						if err == nil && len(violations) > 0 {
+							for _, v := range violations {
+								rep.GovernanceViolations = append(rep.GovernanceViolations, report.GovernanceViolation{
+									Rule:    v.Rule,
+									Message: v.Message,
+								})
+							}
+						}
+					}
+				}
+			}
 
 			if format == "json" {
 				output, err := json.MarshalIndent(rep, "", "  ")
@@ -144,6 +262,27 @@ func main() {
 					os.Exit(3)
 				}
 				fmt.Println(string(output))
+
+				// Post to API if configured
+				apiURL := viper.GetString("SUBSTRATE_API_URL")
+				apiToken := viper.GetString("REGISTRY_API_TOKEN")
+				if apiURL != "" && apiToken != "" {
+					payload := map[string]interface{}{
+						"diff_report":   rep,
+						"is_audit_mode": finalMode == "audit",
+					}
+					payloadBytes, _ := json.Marshal(payload)
+
+					req, _ := http.NewRequest("POST", apiURL+"/api/v1/diff", bytes.NewBuffer(payloadBytes))
+					req.Header.Set("Content-Type", "application/json")
+					req.Header.Set("Authorization", "Bearer "+apiToken)
+
+					client := &http.Client{}
+					resp, err := client.Do(req)
+					if err == nil {
+						resp.Body.Close()
+					}
+				}
 			} else if format == "text" {
 				if finalMode == "legacy" && len(rep.BreakingChanges) > 0 {
 					fmt.Println("⚠️ LEGACY MODE: Breaking changes detected, but merge is not blocked.")
@@ -169,9 +308,32 @@ func main() {
 					}
 				}
 
-				if len(rep.Warnings) > 0 {
-					fmt.Printf("⚠️  WARNINGS (%d)\n", len(rep.Warnings))
-					for _, chg := range rep.Warnings {
+				var perfRisks []report.Change
+				var otherWarnings []report.Change
+				for _, w := range rep.Warnings {
+					if w.RuleID == "FOREIGN_KEY_MISSING_INDEX" || w.RuleID == "COLUMN_ADDED_WITH_DEFAULT" {
+						perfRisks = append(perfRisks, w)
+					} else {
+						otherWarnings = append(otherWarnings, w)
+					}
+				}
+
+				if len(perfRisks) > 0 {
+					fmt.Printf("🚀 PERFORMANCE RISKS (%d)\n", len(perfRisks))
+					for _, chg := range perfRisks {
+						fmt.Printf("  [%s] %s\n", chg.ID, chg.RuleID)
+						fmt.Printf("  Path: %s\n", chg.Path)
+						fmt.Printf("  Description: %s\n", chg.Description)
+						if chg.Recommendation != nil {
+							fmt.Printf("  Recommendation: %s\n", *chg.Recommendation)
+						}
+						fmt.Println()
+					}
+				}
+
+				if len(otherWarnings) > 0 {
+					fmt.Printf("⚠️  WARNINGS (%d)\n", len(otherWarnings))
+					for _, chg := range otherWarnings {
 						fmt.Printf("  [%s] %s\n", chg.ID, chg.RuleID)
 						fmt.Printf("  Path: %s\n", chg.Path)
 						fmt.Printf("  Description: %s\n", chg.Description)
@@ -241,6 +403,11 @@ func main() {
 
 			if finalMode == "legacy" {
 				os.Exit(0)
+			} else if finalMode == "audit" {
+				if rep.Summary.BreakingCount > 0 {
+					fmt.Fprintln(os.Stderr, "[AUDIT MODE] Breaking changes detected, but exiting with 0 to allow merge.")
+				}
+				os.Exit(0)
 			} else {
 				if rep.Summary.BreakingCount > 0 {
 					os.Exit(2)
@@ -256,7 +423,9 @@ func main() {
 	diffCmd.Flags().StringVar(&configPath, "config", "./substrate.yaml", "Path to override config file")
 	diffCmd.Flags().StringVar(&format, "format", "json", "Output format")
 	diffCmd.Flags().StringVar(&schemaType, "schema-type", "", "Force schema type")
-	diffCmd.Flags().StringVar(&modeFlag, "mode", "", "Execution mode: strict or legacy")
+	diffCmd.Flags().StringVar(&modeFlag, "mode", "", "Execution mode: strict, legacy, or audit")
+	diffCmd.Flags().StringSliceVar(&governanceRules, "governance-rules", []string{}, "Governance rules to apply")
+	viper.BindPFlags(diffCmd.Flags())
 
 	var validateCmd = &cobra.Command{
 		Use:   "validate [spec-file]",
@@ -305,6 +474,7 @@ func main() {
 	initCmd.Flags().BoolVar(&initOptions.NoWorkflow, "no-workflow", false, "Skip generating .github/workflows/substrate.yml")
 	initCmd.Flags().BoolVar(&initOptions.NoConfig, "no-config", false, "Skip generating substrate.yaml")
 	initCmd.Flags().BoolVar(&designFlag, "design", false, "Start AI architect to scaffold your API spec")
+	viper.BindPFlags(initCmd.Flags())
 
 	var port string
 	var serveCmd = &cobra.Command{
@@ -318,6 +488,7 @@ func main() {
 		},
 	}
 	serveCmd.Flags().StringVar(&port, "port", "8080", "Port to listen on")
+	viper.BindPFlags(serveCmd.Flags())
 
 	rootCmd.AddCommand(diffCmd)
 	rootCmd.AddCommand(validateCmd)
@@ -326,6 +497,13 @@ func main() {
 	rootCmd.AddCommand(generateTestsCmd)
 	rootCmd.AddCommand(mockCmd)
 	rootCmd.AddCommand(checkDeployCmd)
+	rootCmd.AddCommand(postmortemCmd)
+	rootCmd.AddCommand(checkRollbackCmd)
+	rootCmd.AddCommand(gatewayCmd)
+	rootCmd.AddCommand(lintCmd)
+	rootCmd.AddCommand(cmd.PluginCmd)
+	rootCmd.AddCommand(archaeologyCmd)
+	rootCmd.AddCommand(watchCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)

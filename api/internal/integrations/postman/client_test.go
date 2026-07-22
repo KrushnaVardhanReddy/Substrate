@@ -18,28 +18,28 @@ func TestClient_SyncSchema(t *testing.T) {
 		wantErr      bool
 	}{
 		{
-			name:        "success with existing collection in workspace",
-			workspaceID: "ws-1",
-			schema:      `{"openapi":"3.0.0","info":{"title":"Test API"}}`,
-			mockStatus:  http.StatusOK,
+			name:         "success with existing collection in workspace",
+			workspaceID:  "ws-1",
+			schema:       `{"openapi":"3.0.0","info":{"title":"Test API"}}`,
+			mockStatus:   http.StatusOK,
 			expectDelete: true,
-			wantErr:     false,
+			wantErr:      false,
 		},
 		{
-			name:        "success without workspace",
-			workspaceID: "",
-			schema:      `{"openapi":"3.0.0"}`,
-			mockStatus:  http.StatusOK,
+			name:         "success without workspace",
+			workspaceID:  "",
+			schema:       `{"openapi":"3.0.0"}`,
+			mockStatus:   http.StatusOK,
 			expectDelete: false,
-			wantErr:     false,
+			wantErr:      false,
 		},
 		{
-			name:        "api error on workspace get",
-			workspaceID: "ws-error",
-			schema:      `{}`,
-			mockStatus:  http.StatusInternalServerError,
+			name:         "api error on workspace get",
+			workspaceID:  "ws-error",
+			schema:       `{}`,
+			mockStatus:   http.StatusInternalServerError,
 			expectDelete: false,
-			wantErr:     true,
+			wantErr:      true,
 		},
 	}
 

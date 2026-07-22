@@ -1,0 +1,43 @@
+TASK: P15-T09 — "Substrate Certified" Partner Program
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement the Substrate Certified Partner Program: a DB-backed registry of certified vendor integrations with a verification handshake.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-15/p15-t09-partner-program.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- The admin dashboard route must be protected with the `admin` role JWT check (see `api/internal/middleware/auth.go`).
+- You MUST write unit tests for the verification handshake logic (`_test.go`).
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- API handlers live in `api/internal/handler/`. Follow the pattern of `api/internal/handler/org.go` for DB interaction.
+- Auth middleware is in `api/internal/middleware/auth.go`. The admin check uses the JWT `orgs` claim role `"admin"`.
+- Dashboard routes follow SvelteKit file-based routing in `dashboard/src/routes/(app)/`.
+- Existing admin-gated pages can be seen in `dashboard/src/routes/(app)/org/[org]/settings/`.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Add DB migration for `partner_integrations` table.
+- Add `api/internal/handler/partners.go` for the admin CRUD endpoints.
+- Add `dashboard/src/routes/(app)/admin/partners/+page.svelte` for the admin UI.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: api/internal/handler/partners.go (CREATE)
+   - Include `api/internal/handler/partners_test.go`
+2. FILE: dashboard/src/routes/(app)/admin/partners/+page.svelte (CREATE)
+   - Include `+page.test.ts`
+3. Add DB migration for `partner_integrations`.
+4. Run `go test ./...` and `npm run test`.
+
+Commit: "feat: P15-T09 implement substrate certified partner program"
+Target branch: feature/dev

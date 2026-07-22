@@ -1,0 +1,50 @@
+TASK: P9-T17 — Phase 9 E2E Validation (No Mocks)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Write comprehensive E2E tests for all Phase 9 features using a real Postgres DB and real GitHub API — zero mocks.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-9/p9-t17-e2e-validation.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- No `mock.On(...)` or fake HTTP handlers for external services.
+- All tests must clean up (DB teardown, Forgejo issues deleted) after themselves.
+- Guard all tests with `if testing.Short() { t.Skip(...) }`.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+Existing E2E tests live in `scripts/e2e/`. Follow the EXACT patterns established there:
+
+- `scripts/e2e/phase8_e2e_test.go` — canonical reference for E2E pattern:
+  - Uses `waitForP8Services(t)` / real `pgxpool.New(ctx, dbURL)` for DB setup.
+  - Uses `setupP8Database(t)` to clean relevant DB tables before each run.
+  - Uses `createJWT(org, role)` helpers to generate auth tokens.
+  - Tests are structured as sub-tests with `t.Run("Scenario N: ...", ...)`.
+  - Uses `exec.Command(binPath, ...)` to run the real compiled CLI binary.
+
+Constants to use (follow the same pattern):
+  p9ApiURL = "http://localhost:8090"
+  p9DbURL  = "postgres://postgres:postgres@localhost:5432/substrate?sslmode=disable"
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Place tests in `scripts/e2e/phase9_e2e_test.go` (same package `main`).
+- Add a `waitForP9Services(t)` and `setupP9Database(t)` function.
+- Scenario 1: Test compliance mapping by submitting a schema with `ssn` field and asserting the PR comment contains "⚠️ Compliance Flags".
+- Scenario 2: Test quality gates by setting `quality_gate: strict` in the org config and asserting a check failure on any breaking change.
+- Scenario 3: Test the `watch` daemon by writing a file and asserting the spec is updated.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: scripts/e2e/phase9_e2e_test.go (CREATE)
+2. Run `go test ./scripts/e2e/... -run TestPhase9`.
+
+Commit: "test: P9-T17 phase 9 E2E validation suite"
+Target branch: feature/dev

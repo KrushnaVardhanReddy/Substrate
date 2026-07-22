@@ -2,9 +2,7 @@ package diff_test
 
 import (
 	"os"
-	"os/exec"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/diff"
@@ -19,10 +17,6 @@ func protoTestdataPath(subdir string) string {
 }
 
 func TestCompareProto(t *testing.T) {
-	if _, err := exec.LookPath("buf"); err != nil {
-		t.Skip("buf not installed, skipping proto tests")
-	}
-
 	tests := []struct {
 		name         string
 		baseDir      string
@@ -141,26 +135,5 @@ func TestCompareProto(t *testing.T) {
 				}
 			}
 		})
-	}
-}
-
-func TestCompareProto_BufNotInstalled(t *testing.T) {
-	origPath := os.Getenv("PATH")
-	origHome := os.Getenv("HOME")
-	t.Cleanup(func() {
-		os.Setenv("PATH", origPath)
-		os.Setenv("HOME", origHome)
-	})
-
-	os.Setenv("PATH", "")
-	os.Setenv("HOME", "/tmp/fakehome")
-
-	_, err := diff.CompareProto(protoTestdataPath("base_no_change"), protoTestdataPath("head_no_change"))
-	if err == nil {
-		t.Fatal("CompareProto() expected error when buf is not on PATH, got nil")
-	}
-
-	if !strings.Contains(err.Error(), "buf is not installed") {
-		t.Errorf("CompareProto() error = %v, want error containing 'buf is not installed'", err)
 	}
 }

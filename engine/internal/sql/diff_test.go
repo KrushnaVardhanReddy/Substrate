@@ -120,6 +120,22 @@ func TestDiffSchemas(t *testing.T) {
 			expectChanges: 1, // Will technically also have TABLE_ADDED for profiles if we diff properly, but we're testing the rule. Let's just check the rule presence.
 		},
 		{
+			name:          "Foreign key missing index (Performance Risk)",
+			baseFile:      "base_perf_fk.sql",
+			headFile:      "rev_perf_fk.sql",
+			expectRule:    "FOREIGN_KEY_MISSING_INDEX",
+			expectSev:     report.ChangeSeverityWarning,
+			expectChanges: 2, // 1 for FOREIGN_KEY_ADDED, 1 for FOREIGN_KEY_MISSING_INDEX
+		},
+		{
+			name:          "Column added with default (Performance Risk)",
+			baseFile:      "base_perf_col.sql",
+			headFile:      "rev_perf_col.sql",
+			expectRule:    "COLUMN_ADDED_WITH_DEFAULT",
+			expectSev:     report.ChangeSeverityWarning,
+			expectChanges: 1,
+		},
+		{
 			name:          "Constraint removed",
 			baseFile:      "base_constraint_removed.sql",
 			headFile:      "rev_constraint_removed.sql",

@@ -93,6 +93,7 @@ export async function fetchFileContent(
   path: string,
   ref: string
 ): Promise<string | null> {
+  console.log(`fetchFileContent: token starts with ${token.substring(0, 8)}`);
   const response = await fetch(
     `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${ref}`,
     {
@@ -405,4 +406,107 @@ export async function createPullRequest(
   }
   const data: any = await response.json();
   return data.number;
+}
+
+export async function fetchPRFiles(
+  token: string,
+  owner: string,
+  repo: string,
+  prNumber: number
+): Promise<string[]> {
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}/files?per_page=100`,
+    {
+      headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        'Authorization': `Bearer ${token}`,
+        'User-Agent': 'Substrate-GitHub-App'
+      }
+    }
+  );
+
+  if (!response.ok) {
+    console.error(`Failed to fetch PR files: ${response.status}`);
+    return [];
+  }
+
+  const files: any[] = await response.json();
+  return files.map(f => f.filename);
+}
+export async function createIssue(
+  token: string,
+  owner: string,
+  repo: string,
+  title: string,
+  body: string
+): Promise<any> {
+  const url = `https://api.github.com/repos/${owner}/${repo}/issues`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Authorization': `token ${token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json',
+      'User-Agent': 'Substrate-GitHub-App',
+    },
+    body: JSON.stringify({ title, body }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to create issue: ${res.statusText}`);
+  }
+
+  return res.json();
+}
+
+export async function findOpenIssue(
+  token: string,
+  owner: string,
+  repo: string,
+  titlePrefix: string
+): Promise<any> {
+  const query = encodeURIComponent(`repo:${owner}/${repo} is:issue is:open in:title "${titlePrefix}"`);
+  const url = `https://api.github.com/search/issues?q=${query}`;
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Authorization': `token ${token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'User-Agent': 'Substrate-GitHub-App',
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to search issues: ${res.statusText}`);
+  }
+
+  return res.json();
+}
+
+export async function closeIssue(
+  token: string,
+  owner: string,
+  repo: string,
+  issueNumber: number,
+  commentBody: string
+): Promise<void> {
+  // Post the closing comment
+  await postPRComment(token, owner, repo, issueNumber, commentBody);
+
+  // Close the issue
+  const url = `https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}`;
+  const res = await fetch(url, {
+    method: 'PATCH',
+    headers: {
+      'Authorization': `token ${token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json',
+      'User-Agent': 'Substrate-GitHub-App',
+    },
+    body: JSON.stringify({ state: 'closed' }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to close issue: ${res.statusText}`);
+  }
 }

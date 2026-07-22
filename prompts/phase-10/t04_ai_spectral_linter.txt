@@ -1,0 +1,44 @@
+TASK: P10-T04 — AI Spectral Linter (API Governance)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Enforce plain-English API design rules using AI during PR checks and surface violations in PR comments.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-10/p10-t04-ai-spectral-linter.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Store governance rules per org in the database.
+- Surface violations in a "📏 API Governance" PR comment section.
+- You MUST write unit tests for the AI linter and the CRUD API.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- API handlers are located in `api/internal/handlers/` (plural). Name it `api/internal/handlers/governance_rules.go`.
+- Engine code is in `engine/`. `engine/spectral/` should invoke the AI client via `engine/pkg/ai`. Do not write your own OpenAI HTTP client.
+- The Dashboard SvelteKit routes are in `dashboard/src/routes/(app)/`. Use existing CSS tokens like `var(--bg-card)` and `var(--text-muted)`.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Add `api/internal/handler/governance_rules.go` for the CRUD endpoints.
+- Add `engine/spectral/linter.go` for the AI evaluation logic.
+- Add a "Governance Rules" settings page in `dashboard/src/routes/(app)/org/[org]/settings/rules/+page.svelte`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: engine/spectral/linter.go (CREATE)
+   - Include `engine/spectral/linter_test.go`
+2. FILE: api/internal/handler/governance_rules.go (CREATE)
+   - Include `_test.go`
+3. FILE: dashboard/src/routes/(app)/org/[org]/settings/rules/+page.svelte (CREATE)
+   - Include `+page.test.ts`
+4. Run `go test ./...` and `npm run test`.
+
+Commit: "feat: P10-T04 implement AI spectral linter"
+Target branch: feature/dev

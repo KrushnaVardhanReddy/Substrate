@@ -3,18 +3,23 @@ package config
 import (
 	"errors"
 	"fmt"
+	"github.com/joho/godotenv"
 	"os"
 	"time"
 
 	"gopkg.in/yaml.v3"
+
+	"github.com/spf13/viper"
+	"strings"
 )
 
 type ConsumerDependency struct {
-	Name             string `yaml:"name"`
-	ProviderRepo     string `yaml:"provider_repo"`
-	SchemaType       string `yaml:"schema_type"`
-	ProviderSpecPath string `yaml:"provider_spec_path"`
-	ProviderBranch   string `yaml:"provider_branch"`
+	Name               string `yaml:"name"`
+	ProviderRepo       string `yaml:"provider_repo"`
+	SchemaType         string `yaml:"schema_type"`
+	ProviderSpecPath   string `yaml:"provider_spec_path"`
+	ProviderBranch     string `yaml:"provider_branch"`
+	RequiredNoticeDays int    `yaml:"required_notice_days,omitempty"`
 }
 
 func (d *ConsumerDependency) DefaultedBranch() string {
@@ -51,17 +56,56 @@ type TrafficConfig struct {
 	DowngradeThreshold int64  `yaml:"downgrade_threshold" json:"downgrade_threshold"`
 }
 
+type CustomRule struct {
+	ID          string `yaml:"id" json:"id"`
+	Description string `yaml:"description" json:"description"`
+	Severity    string `yaml:"severity" json:"severity"`
+	Match       string `yaml:"match" json:"match"`
+}
+
+type AWSGatewayConfig struct {
+	Region    string `yaml:"region"`
+	RestAPIID string `yaml:"rest_api_id"`
+	StageName string `yaml:"stage_name"`
+}
+
+type KongGatewayConfig struct {
+	AdminURL  string `yaml:"admin_url"`
+	Token     string `yaml:"token,omitempty"`
+	ServiceID string `yaml:"service_id"`
+}
+
+type GatewayConfig struct {
+	AWS  []AWSGatewayConfig  `yaml:"aws,omitempty"`
+	Kong []KongGatewayConfig `yaml:"kong,omitempty"`
+}
+
 type SubstrateConfig struct {
-	Version    string               `yaml:"version"`
-	Service    string               `yaml:"service"`
-	SchemaType string               `yaml:"schema_type,omitempty"`
-	Mode       string               `yaml:"mode,omitempty"`
-	SpecPath   string               `yaml:"spec_path"`
-	Owners     []Owner              `yaml:"owners,omitempty"`
-	Overrides  []Override           `yaml:"overrides,omitempty"`
-	Consumers  []ConsumerDependency `yaml:"consumers,omitempty"`
-	Avro       *AvroConfig          `yaml:"avro,omitempty"`
-	Traffic    TrafficConfig        `yaml:"traffic,omitempty"`
+	Version      string               `yaml:"version"`
+	Service      string               `yaml:"service"`
+	Tier         string               `yaml:"tier,omitempty"`
+	QualityGate  string               `yaml:"quality_gate,omitempty"`
+	SchemaType   string               `yaml:"schema_type,omitempty"`
+	Mode         string               `yaml:"mode,omitempty"`
+	SpecPath     string               `yaml:"spec_path"`
+	Owners       []Owner              `yaml:"owners,omitempty"`
+	Overrides    []Override           `yaml:"overrides,omitempty"`
+	Consumers    []ConsumerDependency `yaml:"consumers,omitempty"`
+	Avro         *AvroConfig          `yaml:"avro,omitempty"`
+	Traffic      TrafficConfig        `yaml:"traffic,omitempty"`
+	CustomRules  []CustomRule         `yaml:"custom_rules,omitempty" json:"custom_rules,omitempty"`
+	Gateway      *GatewayConfig       `yaml:"gateway,omitempty"`
+	Deprecations []Deprecation        `yaml:"deprecations,omitempty"`
+	Compliance   *ComplianceConfig    `yaml:"compliance,omitempty"`
+}
+
+type ComplianceConfig struct {
+	Patterns map[string]string `yaml:"patterns,omitempty"`
+}
+
+type Deprecation struct {
+	Endpoint   string `yaml:"endpoint"`
+	SunsetDate string `yaml:"sunset_date"`
 }
 
 func (c *SubstrateConfig) HasConsumers() bool {
@@ -220,7 +264,13 @@ func LoadConfig(path string) (*SubstrateConfig, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return nil, err // Let caller handle if they want defaults
+			// Zero-Config Fallback
+			return &SubstrateConfig{
+				Version: "1",
+				Service: "default-service",
+				Mode:    "strict",
+				// The spec path will be dynamically injected by the GitHub App if heuristics match
+			}, nil
 		}
 		return nil, fmt.Errorf("failed to read config: %w", err)
 	}
@@ -236,16 +286,13 @@ func LoadConfig(path string) (*SubstrateConfig, error) {
 	}
 
 	// Default mode
-	if config.Mode != "strict" && config.Mode != "legacy" {
+	if config.Mode != "strict" && config.Mode != "legacy" && config.Mode != "audit" {
 		config.Mode = "strict"
 	}
 
 	// Validation
 	if config.Service == "" {
 		return nil, fmt.Errorf("substrate.yaml: 'service' is required")
-	}
-	if config.SpecPath == "" {
-		return nil, fmt.Errorf("substrate.yaml: 'spec_path' is required")
 	}
 
 	// Removed os.Stat check for absSpecPath because the engine runs in a stateless HTTP context
@@ -299,4 +346,29 @@ func (c *SubstrateConfig) IsOverrideActive(ruleID, path string) bool {
 		}
 	}
 	return false
+}
+
+// InitConfig initializes Viper for the CLI application
+func InitConfig() {
+	// Load .env if it exists
+	_ = godotenv.Load()
+
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+
+	// Default paths for substrate.yaml
+	viper.SetConfigName("substrate")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath(".")
+
+	// Ignore err if file doesn't exist
+	_ = viper.ReadInConfig()
+}
+
+func init() {
+	// Load .env if it exists
+	_ = godotenv.Load()
+
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 }

@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  server:
+    image: gitea/gitea:latest
+    container_name: forgejo
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+      - GITEA__webhook__ALLOWED_HOST_LIST=*
+    restart: always
+    network_mode: "host"
+    volumes:
+      - ./forgejo-data:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+

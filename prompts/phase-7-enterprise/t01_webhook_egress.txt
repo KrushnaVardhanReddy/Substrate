@@ -1,0 +1,114 @@
+TASK: P7-T01 — Enterprise Webhook & Event Egress
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Replace hardcoded ITSM integrations by implementing a generic Webhook Egress system. 
+Substrate will emit a standardized JSON event (`substrate.breaking_change.detected`) 
+whenever a breaking change occurs. This allows enterprise teams to route events to 
+their own ServiceNow, Jira, or AWS EventBridge infrastructure.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-7/p7-t01-webhook-egress.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- IMPORTANT: Make sure to clean up any temporary Python scripts or patch files before completing the task. No repo pollution!
+- Verify that `CrossRepoCheckRequest` contains an `Org` field before using or omitting it. Trust the Go compiler over static analysis tools.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT
+═══════════════════════════════════════════════════════════════
+The Registry API lives in `api/`.
+The database interface is `api/internal/db/store.go`.
+
+Key existing files:
+  api/internal/handlers/diff.go         — Where diff reports are POSTed.
+  api/internal/db/store.go              — Database interface.
+
+You will CREATE new files for the Egress Dispatcher and update the DB interface.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. MODIFY: api/internal/db/store.go
+   Add methods to manage organization webhooks.
+   ```go
+   type WebhookConfig struct {
+       ID        string
+       Org       string
+       URL       string
+       Secret    string
+       CreatedAt time.Time
+   }
+   
+   // Add to Store interface:
+   RegisterWebhook(ctx context.Context, config WebhookConfig) error
+   GetWebhooks(ctx context.Context, org string) ([]WebhookConfig, error)
+   ```
+   Implement these methods in `pgstore.go`. Create new migration files `api/migrations/0005_webhooks.up.sql` and `api/migrations/0005_webhooks.down.sql` to create the `org_webhooks` table.
+
+2. FILE: api/internal/webhook/egress.go (CREATE NEW)
+   Package: package webhook
+   
+   Implement the Egress Dispatcher.
+   
+   ```go
+   type BreakingChangeEvent struct {
+       EventID         string `json:"event_id"`
+       EventType       string `json:"event_type"` // e.g., "substrate.breaking_change.detected"
+       Timestamp       string `json:"timestamp"`
+       Data            EventData `json:"data"`
+   }
+   
+   type EventData struct {
+       Organization    string `json:"organization"`
+       ProviderRepo    string `json:"provider_repo"`
+       PRNumber        int    `json:"pr_number,omitempty"`
+       CommitSHA       string `json:"commit_sha"`
+       BreakingCount   int    `json:"breaking_count"`
+       BrokenConsumers []BrokenConsumer `json:"broken_consumers"`
+       DiffURL         string `json:"diff_url"`
+   }
+   
+   type BrokenConsumer struct {
+       Repo       string   `json:"repo"`
+       Codeowners []string `json:"codeowners"`
+   }
+   ```
+   
+   Implement `DispatchEvent(ctx context.Context, store db.Store, event BreakingChangeEvent) error`.
+   This function should fetch all webhooks for `event.Data.Organization`, calculate the HMAC SHA-256 signature (if secret exists), and POST the JSON to the URLs.
+
+3. FILE: api/internal/handlers/webhooks.go (CREATE NEW)
+   Package: package handlers
+   Implement the HTTP handler `RegisterWebhookHandler(store db.Store) http.HandlerFunc` to handle `POST /api/v1/org/{org}/webhooks`.
+
+4. MODIFY: api/internal/server/router.go
+   Map `POST /api/v1/org/{org}/webhooks` to the new `RegisterWebhookHandler` (protected by AuthMiddleware).
+
+5. MODIFY: api/internal/handlers/diff.go
+   In `SaveDiffHandler`, if the diff has breaking changes, you should trigger `webhook.DispatchEvent` asynchronously (in a goroutine). Wrap the context in a timeout.
+   *CRITICAL REFACTOR:* To populate the `BrokenConsumers` array in the webhook payload, you must move the Cross-Repo check logic (currently exposed via `CrossRepoCheckHandler`) into an internal service function. 
+   Inside `SaveDiffHandler`, after saving the diff, invoke this internal cross-repo check function to determine the blast radius, and include those results in the `BreakingChangeEvent` payload before dispatching it.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- api/migrations/0005_webhooks.up.sql
+- api/migrations/0005_webhooks.down.sql
+- api/internal/webhook/egress.go
+- api/internal/handlers/webhooks.go
+
+FILES TO MODIFY:
+- api/internal/db/store.go
+- api/internal/db/pgstore.go
+- api/internal/server/router.go
+- api/internal/handlers/diff.go
+
+Commit: "feat: P7-T01 implement enterprise webhook egress system"
+Target branch: feature/dev

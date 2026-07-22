@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 	"github.com/google/uuid"
 )
 
@@ -18,7 +18,7 @@ type RecordBreakingChangeRequest struct {
 	BreakingChanges json.RawMessage `json:"breaking_changes"`
 }
 
-func HistoryHandler(store db.Store) http.HandlerFunc {
+func HistoryHandler(store ports.ChangeStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
 			body, err := io.ReadAll(r.Body)
@@ -53,7 +53,7 @@ func HistoryHandler(store db.Store) http.HandlerFunc {
 	}
 }
 
-func HistoryGetHandler(store db.Store) http.HandlerFunc {
+func HistoryGetHandler(store ports.ChangeStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)

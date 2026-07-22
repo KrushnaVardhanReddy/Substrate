@@ -1,0 +1,30 @@
+TASK: P14-T02b — Predictive Scoring (Frontend UI)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Visualize the "Time to Break" predictive risk score on the Substrate Dependency Graph using SvelteFlow.
+
+Spec (READ ONLY): docs/specs/phase-14/p14-t02-predictive-scoring.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Implement ONLY the UI/UX changes in the SvelteKit dashboard.
+- The `predictive_risk_score` (0-100) will be provided in the JSON node data from the backend.
+- High risk nodes (>80) should grab the user's attention visually.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: dashboard/src/lib/components/graph/ServiceNode.svelte (UPDATE)
+   a. Add logic to read `data.predictive_risk_score` from the node props.
+   b. Add CSS animation logic: if the score is > 80, the node container should have a subtle but distinct pulsating red aura/glow (using box-shadow).
+   c. If the score is 50-79, add a yellow warning border.
+   d. Add a small badge or icon in the corner of the node displaying the actual score number (e.g., "Risk: 92").
+
+2. FILE: dashboard/src/lib/components/graph/GraphCanvas.svelte (UPDATE)
+   a. Ensure the node payload safely falls back to a score of 0 if `predictive_risk_score` is missing from the API.
+
+Commit: "feat: P14-T02b visualize predictive risk scoring in graph UI"
+Target branch: feature/dev

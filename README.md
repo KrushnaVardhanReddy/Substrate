@@ -2,7 +2,7 @@
 
 ## The Living Map of Your Engineering Ecosystem
 
-> **Status:** V1.0 Pre-Flight 🚀 — **Finalizing System E2E Tests.** Substrate has evolved into a full-stack Dependency Intelligence Platform with a live Graph Dashboard, MCP IDE integration, and enterprise-grade deployment safety gates.
+> **Status:** Phase 15 🚀 — **Enterprise Check Suite & Scale.** Wave 4 is completely integrated and merged! We are preparing to launch **Wave 5** (The 3-Day Sprint) to crush the remaining backlog.
 
 Substrate is a CI/CD-integrated data contract and dependency intelligence platform that prevents downstream data failures before they reach production.
 
@@ -360,9 +360,12 @@ Responsibilities:
 
 ```
 Go
-PostgreSQL
+Neon (Serverless PostgreSQL)
 Redis (future)
 ```
+
+**Cloud Database Strategy (Neon):**
+We have officially selected **Neon (Serverless Postgres)** as our managed cloud database provider for the SaaS tier. It scales to zero, meaning the Free Tier costs **$0/month** until we land paying enterprise clients. Once scaled, Neon's "Database Branching" feature aligns perfectly with Substrate's PR-based schema preview model, allowing instant zero-copy previews of the dependency graph data on every PR.
 
 Responsibilities:
 
@@ -583,6 +586,8 @@ Automatically generated:
         |
     Tableau Reports
 ```
+
+*Substrate allows instant export of these architectural visualizations to high-resolution PNGs for use in RFCs, Confluence, and SOC2 Audits.*
 
 ---
 
@@ -930,6 +935,72 @@ To run Substrate locally, you need 5 terminals running simultaneously:
 - `engine/cmd/substrate`: A stateless CLI tool that can be run in Github Actions or as a microservice (`serve`).
 - `api/cmd/server`: A stateful API that requires Postgres. Separated from the engine so the engine can be used purely locally/offline.
 - `engine/cmd/substrate-mcp`: A specialized wrapper for AI IDEs (Cursor, Claude) that provides tools via JSON-RPC over stdio. It operates statelessly locally, but makes HTTP requests to the centralized `api/cmd/server` to fetch the global cross-repo dependency graph.
+
+---
+
+# 🚀 WASM Micro-Tools (Product-Led Growth Engine)
+
+Because Substrate's core Go diffing engine is compiled to a portable WebAssembly (`engine.wasm`) binary, we have a massive competitive advantage for lead generation: we can run enterprise-grade schema analysis entirely in the user's browser for free, with zero server costs.
+
+As part of Phase 13 (Go-To-Market), we will launch a standalone, single-page hub at **`tools.substrate.dev`** housing a suite of "Micro-Tools" that act as lead-generation magnets for the core Substrate CI/CD platform.
+
+### Target Personas & Tools
+
+**1. For Backend & Frontend Developers**
+* **The "Zero-Trust" OpenAPI Diff Studio:** Users paste `v1.yaml` on the left and `v2.yaml` on the right. The WASM engine highlights breaking changes instantly. (Sell: "100% Secure. Your proprietary APIs never leave your laptop.")
+* **VS Code / Cursor Extension:** The WASM engine runs on every keystroke inside the IDE, providing instant red squiggly lines if an edit breaks an API contract, without hitting a server.
+* **Instant SDK Compiler:** Paste a GraphQL or OpenAPI spec, and the WASM engine compiles it into a strongly-typed TypeScript/Python SDK instantly.
+
+**2. For QA & Testing Teams**
+* **In-Browser Mock Server:** Paste an OpenAPI spec, and the WASM engine uses a Service Worker to intercept network requests, returning fake JSON data that matches the schema perfectly. A local mock API in seconds.
+* **Instant Postman/Playwright Generator:** Paste an API contract to generate a fully populated Postman Collection or Playwright E2E script covering all endpoints.
+
+**3. For DevOps & Platform Engineers**
+* **Terraform / Helm Blast Radius Visualizer:** Paste a `terraform plan` output. The WASM engine parses the IaC and draws a dependency graph showing exactly what resources will be destroyed.
+
+**4. For Data Engineers**
+* **The "Will it Break?" SQL Migration Tester:** Paste `schema.sql` and `migration.sql` to instantly verify if dropping a column breaks downstream ETL contracts.
+* **dbt DAG Visualizer:** Paste massive `models.sql` files to instantly draw the Directed Acyclic Graph (DAG) of table flows without spinning up a data warehouse.
+
+### Architecture Strategy
+* **Repository:** We will create a new `/tools-site/` directory inside this monorepo. This allows it to effortlessly consume the `engine.wasm` output from the `Makefile`.
+* **Deployment:** Hosted on Cloudflare Pages for $0/month.
+* **The Hook:** Every tool solves a daily pain point for free, but features a call-to-action: *"Want to automate this in your CI pipeline? Install the Substrate GitHub App."*
+
+### UI/UX Reference Architectures (The Blueprint)
+To ensure these tools are massively successful, we will heavily model their UX after the "Hall of Fame" developer micro-tools:
+1. **Transform.tools** (Clean Split-Screen): Our SDK Compilers will mimic their beautifully simple left/right pastebin interface.
+2. **Regex101.com** (Zero-Latency Feedback): Our SQL Migration Tester must feel like Regex101—instant red/green DOM updates on every keystroke.
+3. **JWT.io** (The PLG Funnel): We will copy Auth0's playbook, using a highly useful free tool to subtly funnel enterprise teams into our paid CI/CD product.
+4. **CyberChef** (Complex Client-Side Pipelines): Proves that heavy computations (like our WASM AST Diffing) can be trusted to run 100% securely on the client.
+5. **AST Explorer** (Deep Debugging): We will expose a simplified view of our Go Engine's AST parser so developers can visually debug why their schemas are failing.
+
+---
+
+# 🚀 Phase 14: Moonshots & Enterprise Platform Evolution
+
+While Phase 13 focuses on Developer Acquisition (WASM micro-tools), Phase 14 focuses on converting massive enterprise accounts by evolving Substrate from a "schema checker" into an **Autonomous Platform**.
+
+**1. The AI "Auto-Fix" PR (Downstream Remediation)**
+* **The Problem:** Blocking a breaking change creates a standoff between Team A (who made the change) and Team B (who consumes it).
+* **The Moonshot:** When Substrate detects a break, it uses our AI Intelligence Layer to *automatically open a PR against Team B's repository* with the exact code changes needed to adapt to Team A's new schema. We don't just block the break; we write the code to fix it.
+
+**2. The Zero-Config Developer Portal (The "Backstage" Killer)**
+* **The Problem:** Enterprises spend millions maintaining Spotify Backstage, but the `catalog-info.yaml` files go stale instantly because humans have to update them.
+* **The Moonshot:** Because Substrate automatically parses IaC, Docker files, and APIs to draw the dependency graph, Substrate *is* an auto-generating Developer Portal. We will add a "Catalog" UI that lists every microservice, its owner, and its API docs—100% automatically generated from code.
+
+**3. The Architecture "Time Machine"**
+* **The Idea:** Since Substrate processes every webhook and stores the state of the graph at every commit, we will add a slider to the bottom of the Dashboard. Architects can drag it backward in time to see exactly how their microservice architecture evolved over the last 12 months.
+
+**4. Shadow API Detection (Static vs. Runtime)**
+* **The Idea:** Integrate Substrate with Datadog/OpenTelemetry. Substrate compares the "Static Contract" (the OpenAPI file in GitHub) against the "Runtime Reality" (the actual HTTP traffic). If traffic hits `/api/v1/hidden` but it's not in the schema, Substrate flags a **Shadow API Security Alert**.
+
+**5. "Cost of Breakage" Analytics**
+* **The Idea:** Assign an estimated engineering-hour cost to every node in the graph based on commit frequency. The GitHub PR comment doesn't just say *"You are breaking 3 services."* It says, *"Warning: This breaking change will require an estimated 45 engineering hours to fix across 3 teams. Are you sure?"*
+
+**6. The GitOps Architecture Wiki**
+* **The Problem:** Dependency graphs tell you *what* connects to *what*, but they don't explain *why*. Standalone wikis rot because they are disconnected from the code.
+* **The Moonshot:** We introduce a `SUBSTRATE.md` standard. Teams write their architecture decisions, runbooks, and mermaid diagrams directly in their repo. The Substrate Webhook auto-fetches this file and attaches it to the node in the Service Catalog. The Substrate Dashboard becomes a living, auto-updating engineering wiki that is reviewed in the exact same PRs as the code changes.
 
 ---
 

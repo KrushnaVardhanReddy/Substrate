@@ -1,0 +1,50 @@
+TASK: P13-T02 — DB Performance Breakages
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Introduce advanced performance analytics to the CLI and Engine to detect when database schema changes will introduce performance regressions.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-13/p13-t02-db-performance.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Do not execute destructive migrations during analysis (always dry-run).
+- Focus on PostgreSQL heuristics initially (e.g., adding column with default to large table).
+- Performance warnings should be distinct from functional breaking changes.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+SQL Diff logic is in `engine/internal/diff/sql`.
+The CLI tool is in `engine/cmd/substrate`.
+
+⚠️ CRITICAL CONTEXT: WARNINGS VS BREAKAGES ⚠️
+Performance issues should generally result in Warnings (Amber path) rather than hard Breakages (Red path), unless configured otherwise. Ensure the CLI output clearly categorizes these.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. LOGIC: SQL Heuristics Engine
+   - Add rules in `engine/internal/diff/sql` to detect missing indices or locking alterations.
+
+2. INTEGRATION: CLI Output
+   - Modify `engine/cmd/substrate/analyze.go` to distinctly print "Performance Risk" warnings.
+
+3. TESTS: Performance heuristics
+   - Add test cases proving the engine catches missing indices.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO MODIFY:
+- engine/internal/diff/sql/sql_diff.go
+- engine/cmd/substrate/analyze.go
+- engine/internal/diff/sql/sql_diff_test.go
+
+Commit: "feat: P13-T02 implement DB Performance Breakages analytics"
+Target branch: feature/dev

@@ -1,0 +1,53 @@
+TASK: P9-T01 — Shift-Left IDE Plugins
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Develop a VSCode Extension and integrate with the existing MCP server to bring Substrate's blast radius and dependency graph intelligence directly into the developer's IDE.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-9/p9-t01-ide-plugins.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Do NOT rewrite the MCP server entirely; extend the existing `substrate-mcp`.
+- The VSCode Extension should use the official VSCode extension API.
+- Ensure the extension connects to the local MCP server over standard stdio.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+MCP Server lives in `engine/cmd/substrate-mcp`.
+New VSCode Extension will live in `extensions/vscode`.
+
+⚠️ CRITICAL CONTEXT: MCP INTEGRATION ⚠️
+The extension needs to cleanly spawn the `substrate-mcp` binary process or connect to an existing running daemon to query for diagnostics.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. CREATE: `extensions/vscode` scaffold
+   - Add standard VSCode extension manifest `package.json`.
+   - Setup basic activation events for `substrate.yaml` files.
+
+2. LOGIC: Diagnostic Provider
+   - Implement a diagnostic provider that calls the MCP server to validate the active schema and underline breaking changes.
+
+3. LOGIC: MCP Extension
+   - Extend `engine/cmd/substrate-mcp` to expose a local diagnostic validation tool.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- extensions/vscode/package.json
+- extensions/vscode/src/extension.ts
+
+FILES TO MODIFY:
+- engine/cmd/substrate-mcp/main.go
+
+Commit: "feat: P9-T01 implement Shift-Left IDE Plugins"
+Target branch: feature/dev

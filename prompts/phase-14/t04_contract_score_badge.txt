@@ -1,0 +1,36 @@
+TASK: P14-T04 — Contract Score Badge (Viral Growth Mechanism)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement a dynamic SVG badge (like shields.io) showing a repo's contract reliability score to drive viral adoption.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-14/p14-t04-contract-score-badge.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Implement a scoring algorithm based on historical breaking changes.
+- Return an SVG image with caching headers.
+- Show the copyable markdown snippet in the dashboard.
+- You MUST write unit tests for both Go logic (`_test.go`) and Svelte components (`.test.ts`).
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Add `GET /api/badges/:org/:repo` in the API.
+- Use a simple text/template for the SVG output, replacing the text and color based on the score (e.g., Green for A+, Red for F).
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: api/internal/handler/badges.go (CREATE)
+   - Include `api/internal/handler/badges_test.go`
+2. FILE: dashboard/src/routes/(app)/org/[org]/catalog/[repo]/+page.svelte (MODIFY)
+   - Add the markdown snippet.
+   - Include `dashboard/src/routes/(app)/org/[org]/catalog/[repo]/+page.test.ts` (CREATE if needed)
+3. Run `go test ./...` and `npm run test`.
+
+Commit: "feat: P14-T04 implement contract score badge"
+Target branch: feature/dev

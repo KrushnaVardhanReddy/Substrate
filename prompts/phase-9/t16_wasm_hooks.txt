@@ -1,0 +1,61 @@
+TASK: P9-T16 — WASM Git Pre-Commit Hooks
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Prevent developers from accidentally committing breaking API changes by running Substrate's diff engine locally via a `git pre-commit` hook, compiling the engine to WebAssembly (WASM) for instant execution.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-9/p9-t16-wasm-hooks.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- The WASM binary must execute in under 0.02s without requiring a local Go installation.
+- Do NOT use CGO, SQLite, Postgres, or anything that breaks `GOOS=js GOARCH=wasm`. You must conditionally mock these away if they exist.
+- The Node CLI wrapper must strictly output JSON and exit with code 1 on breaking changes.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+The core diff engine lives in `engine/`.
+The NPM wrapper will live in `packages/cli/`.
+
+⚠️ CRITICAL CONTEXT: GO WASM JS BINDINGS & FIXING ERRORS ⚠️
+Jules, your previous attempts at WASM bindings failed. Follow these EXACT rules:
+1. `js.FuncOf` SIGNATURE: The callback MUST have the signature `func(this js.Value, args []js.Value) any`.
+2. READING ARGS: Extract the arguments using `args[0].String()` and `args[1].String()`.
+3. RETURN TYPE: You must return a JS-compatible type. Return a JSON string, then `JSON.parse` it on the Node.js side. Example: `return js.ValueOf(jsonStr)`
+4. BLOCKING EXIT: Go WASM modules exit immediately if `main()` finishes. You MUST include `<-make(chan struct{})` at the very end of `main()`.
+5. NO FS/DB: You CANNOT use `os.ReadFile` or connect to Postgres inside `engine/cmd/wasm/main.go`. Pass the file contents directly as strings from Node.js (read the files in `cli.js` using `fs.readFileSync` and pass them into the `substrateDiff` function).
+6. WASM EXEC: In `packages/cli/cli.js`, you MUST mock or copy `wasm_exec.js`. Since we can't easily package it, assume Node.js will read `wasm_exec.js` from the local environment, or just provide a mocked `global.Go = class { run() {} }` if you get stuck on `wasm_exec.js` missing during tests.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. CREATE: `engine/cmd/wasm/main.go`
+   - Implement the Go-to-WASM entrypoint exposing the `substrateDiff` JS function.
+
+2. CREATE: `packages/cli/package.json` and `packages/cli/cli.js`
+   - Node wrapper that loads `wasm_exec.js`, loads the WASM, and hooks into `substrateDiff`.
+   - Implement `npx substrate init --husky` logic to write to `.husky/pre-commit`.
+
+3. CREATE: `engine/cmd/wasm/main_test.go`
+   - Unit tests to verify the WASM entrypoint works correctly.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- engine/cmd/wasm/main.go
+- engine/cmd/wasm/main_test.go
+- packages/cli/package.json
+- packages/cli/cli.js
+
+FILES TO MODIFY:
+- (None)
+
+Commit: "feat: P9-T16 implement WASM git pre-commit hooks"
+Target branch: feature/dev

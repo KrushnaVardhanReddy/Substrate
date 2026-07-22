@@ -1,0 +1,47 @@
+TASK: P7-T00 — Zero-Config Org Rollout
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Allow enterprises to protect all repositories in their GitHub organization without 
+needing to commit a `substrate.yaml` file to every single repository. Substrate 
+will look for a global `substrate-org.yaml` in the `.github` repository.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-7/zero-config-org-rollout.md
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. Diff Engine Fallback (engine/pkg/config/parser.go)
+   Update parser to return a `DefaultConfig` struct when `substrate.yaml` is missing.
+
+2. Worker Heuristics & Org Config Fetcher (github-app/src/index.ts & github-client.ts)
+   - Scan PR file payloads. If known schemas (openapi.yaml, schema.graphql) are modified, auto-route to diff engine.
+   - If `substrate.yaml` is NOT found in the current repo, fetch `.github/substrate-org.yaml` from the `.github` repo of the same org. Fall back to it.
+   - If global config is used, default spec to `openapi.yaml`.
+
+3. Dashboard Admin UI (Svelte dashboard)
+   Add "Organization Settings" page protected by OAuth Admin scopes, with a toggle for "Enforce Substrate Globally".
+
+4. Branch Protection Script (api/internal/handlers/enforce.go)
+   Write Go logic to iterate over all repos in a GitHub Org and apply the required status check API calls when "Enforce Substrate Globally" is toggled.
+   
+   CRITICAL CONTEXT FOR GITHUB AUTHENTICATION:
+   - When calling GitHub's `GET /orgs/{org}/repos` and `PUT /repos/{owner}/{repo}/branches/{branch}/protection`, do NOT try to generate a GitHub App Installation Token in the Go API.
+   - The Svelte Dashboard already has the logged-in user's personal GitHub OAuth token (which has Admin scopes).
+   - The Dashboard will pass this token to the Go API in the `Authorization: Bearer <token>` header.
+   - Extract this token in `enforce.go` and use it to initialize your GitHub HTTP client. This correctly acts on behalf of the user, ensuring Substrate only enforces protections on repositories where the user actually holds Admin privileges.
+   
+   IMPLEMENTATION HINTS FOR ENFORCE.GO:
+   - To extract the token: `token := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")`
+   - Use this token in your HTTP requests to GitHub: `req.Header.Set("Authorization", "Bearer "+token)` and `req.Header.Set("Accept", "application/vnd.github.v3+json")`
+   - First, list repositories by paginating through: `GET https://api.github.com/orgs/{org}/repos?per_page=100`
+   - For each repo, update the branch protection rule on its default branch (usually `main` or `master`): `PUT https://api.github.com/repos/{org}/{repo.name}/branches/{repo.default_branch}/protection`
+   - The PUT payload should enforce status checks. For example: 
+     `{"required_status_checks": {"strict": true, "contexts": ["substrate"]}, "enforce_admins": false, "required_pull_request_reviews": null, "restrictions": null}`
+   - Handle rate limits by checking the `X-RateLimit-Remaining` header, and if necessary, back off appropriately.
+
+Commit: "feat: P7-T00 support global org-level zero-config rollout"
+Target branch: feature/dev

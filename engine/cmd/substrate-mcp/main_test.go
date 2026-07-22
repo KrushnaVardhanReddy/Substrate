@@ -65,8 +65,8 @@ func TestMCPServerE2E(t *testing.T) {
 		t.Fatalf("Expected result object in second response")
 	}
 	tools, ok := result2["tools"].([]any)
-	if !ok || len(tools) != 7 {
-		t.Errorf("Expected 7 tools, got %d", len(tools))
+	if !ok || len(tools) != 10 {
+		t.Errorf("Expected 10 tools, got %d", len(tools))
 	}
 
 	// Verify third response (tools/call)

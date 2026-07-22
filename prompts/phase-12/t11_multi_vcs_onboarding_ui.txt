@@ -1,0 +1,51 @@
+TASK: P12-T11 — Multi-VCS Onboarding UI
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Update the Substrate dashboard onboarding flow to natively support multiple Git providers (GitHub, GitLab, and Self-Hosted/Gitea). This mirrors the backend changes made in P12-T10.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-12/p12-t11-multi-vcs-onboarding-ui.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Strictly follow the Phase 11 Premium Aesthetics guidelines (Dark mode, glassmorphism, glowing hover states).
+- Use native Svelte transitions (`fade`, `slide`) to animate between the "Select Provider" step and the "Enter Credentials" step.
+- Ensure all Svelte files compile without TypeScript warnings.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The onboarding wizard lives at `dashboard/src/routes/onboarding/+page.svelte`.
+- Currently, it only asks for a token. It must be refactored into a two-step process.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FILE: dashboard/src/routes/onboarding/+page.svelte (MODIFY)
+   - Add a state variable `let step = 1;` and `let selectedProvider = '';`
+   - Step 1: Render three selectable cards (GitHub, GitLab, Self-Hosted).
+   - Step 2: Render the credential inputs. If `selectedProvider === 'custom'`, show a "Server URL" input in addition to the "Token" input.
+   - Update the submit payload to include `provider` and `base_url`.
+
+2. Make sure you use standard Lucide icons (if `lucide-svelte` is installed) or SVG paths for the GitHub/GitLab logos.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO MODIFY:
+- dashboard/src/routes/onboarding/+page.svelte
+- dashboard/src/routes/onboarding/+page.ts (if data loading needs to change)
+
+FILES TO NOT TOUCH:
+- github-app/**
+- api/**
+- engine/**
+- Makefile
+
+Commit: "feat(ui): P12-T11 multi-vcs onboarding selection step"
+Target branch: feature/dev

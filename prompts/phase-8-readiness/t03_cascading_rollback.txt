@@ -1,0 +1,26 @@
+TASK: P8-T03 — CI/CD Cascading Rollback Gate
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement the `substrate check-rollback` CLI command and API endpoint to block a service from rolling back its production deployment if a downstream consumer has already deployed code requiring the newer schema.
+
+Spec (READ ONLY):
+  docs/specs/phase-8/p8-master-plan.md
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: api/internal/handlers/rollback.go (CREATE NEW)
+   Implement `GET /api/v1/registry/can-rollback`.
+   Takes `org`, `repo`, and `target_sha`.
+   Queries the DB to find consumers that depend on the *current* active contract but not on the contract present at `target_sha`.
+   Returns a boolean `can_rollback` and a list of blocking consumers.
+
+2. MODIFY: engine/cmd/substrate/main.go
+   Add a new CLI subcommand `check-rollback --target-sha=<sha>`.
+   It hits the `/api/v1/registry/can-rollback` endpoint.
+   If `can_rollback` is false, print the blocking consumers and exit with code 2.
+
+Commit: "feat: P8-T03 implement cascading rollback gate"
+Target branch: feature/dev

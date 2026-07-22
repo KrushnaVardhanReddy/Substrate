@@ -1,0 +1,44 @@
+TASK: P15-T13 — Phase 15 E2E Validation (No Mocks)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Live E2E tests for all Phase 15 features: NL Governance, Marketplace, Schema Insurance, Startups profile.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-15/p15-t13-e2e-validation.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Zero mock interceptors. Use real DB, real API, real compiled CLI binary.
+- Use sandbox/test-mode credentials for all external services (AWS KMS, Vault).
+- Guard all tests with `if testing.Short() { t.Skip(...) }`.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+Follow patterns in `scripts/e2e/phase8_e2e_test.go` (the canonical reference):
+- Same package `main`, file in `scripts/e2e/`.
+- Uses real `pgxpool.New(ctx, dbURL)` — assumes `make postgres` is running.
+- Helper pattern: `waitForP15Services(t)` + `setupP15Database(t)`.
+- Sub-test structure: `t.Run("Scenario N: ...", func(t *testing.T) {...})`.
+
+JWT auth helper exists as `createJWT(org, role string) string` in `scripts/e2e/phase8_e2e_test.go` — re-use it directly (same package).
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Scenario 1 (NL Governance): POST a plain-English rule to `/api/governance/generate-cel`, assert a valid CEL string is returned.
+- Scenario 2 (Marketplace): Call `substrate plugin install substrate-plugin-hipaa` via `exec.Command(binPath, ...)` and assert the plugin appears in the DB.
+- Scenario 3 (Public Profile): Hit `GET /api/v1/public/profile/acme` without auth and assert HTTP 200 with reliability metrics.
+- Scenario 4 (Insurance): POST a claim to `/api/insurance/claims` and assert the verification logic returns the correct status.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: scripts/e2e/phase15_e2e_test.go (CREATE)
+2. Run `go test ./scripts/e2e/... -run TestPhase15`.
+
+Commit: "test: P15-T13 phase 15 E2E validation suite"
+Target branch: feature/dev

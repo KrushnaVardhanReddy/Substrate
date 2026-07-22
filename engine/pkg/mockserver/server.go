@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/spf13/viper"
 	"io"
 	"net/http"
-	"os"
 
 	"github.com/getkin/kin-openapi/openapi3"
 )
@@ -20,16 +20,16 @@ func StartMockServer(ctx context.Context, timestamp string, port int) error {
 	fmt.Printf("Starting mock server for timestamp %s on port %d...\n", timestamp, port)
 
 	// Fetch schema from registry
-	registryURL := os.Getenv("REGISTRY_API_URL")
+	registryURL := viper.GetString("REGISTRY_API_URL")
 	if registryURL == "" {
 		registryURL = "http://localhost:8090" // Default API registry URL
 	}
 
-	owner := os.Getenv("SUBSTRATE_OWNER")
+	owner := viper.GetString("SUBSTRATE_OWNER")
 	if owner == "" {
 		owner = "unknown"
 	}
-	repo := os.Getenv("SUBSTRATE_REPO")
+	repo := viper.GetString("SUBSTRATE_REPO")
 	if repo == "" {
 		repo = "unknown"
 	}
@@ -42,7 +42,7 @@ func StartMockServer(ctx context.Context, timestamp string, port int) error {
 
 	req, err := http.NewRequestWithContext(ctx, "GET", schemaEndpoint, nil)
 	if err == nil {
-		token := os.Getenv("REGISTRY_API_TOKEN")
+		token := viper.GetString("REGISTRY_API_TOKEN")
 		if token != "" {
 			req.Header.Set("Authorization", "Bearer "+token)
 		}

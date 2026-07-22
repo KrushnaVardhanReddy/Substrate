@@ -1,22 +1,67 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/config"
+	"github.com/spf13/viper"
 	"io"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/cache"
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/checker"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/diff"
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/graphql"
+
+	"time"
+
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/mcp"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/rules"
 	sqlpkg "github.com/KrushnaVardhanReddy/substrate/engine/internal/sql"
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/telemetry"
 )
 
 func main() {
+	config.InitConfig()
+	tp, err := telemetry.InitTracer(context.Background(), "substrate-mcp")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[substrate-mcp] failed to init tracer: %v\n", err)
+	} else if tp != nil {
+		defer func() {
+			if err := tp.Shutdown(context.Background()); err != nil {
+				fmt.Fprintf(os.Stderr, "[substrate-mcp] error shutting down tracer provider: %v\n", err)
+			}
+		}()
+	}
+
+	cacheDir := filepath.Join(viper.GetString("HOME"), ".substrate")
+	os.MkdirAll(cacheDir, 0755)
+	c, err := cache.InitCache(filepath.Join(cacheDir, "cache.db"))
+	if err == nil {
+		go func() {
+			apiURL := viper.GetString("SUBSTRATE_API_URL")
+			if apiURL == "" {
+				apiURL = "http://localhost:8090"
+			}
+			apiToken := viper.GetString("REGISTRY_API_TOKEN")
+			org := viper.GetString("SUBSTRATE_ORG")
+			if org == "" {
+				org = "default"
+			}
+			for {
+				c.SyncFromRemote(context.Background(), apiURL, apiToken, org)
+				time.Sleep(1 * time.Minute)
+			}
+		}()
+	}
+
 	server := mcp.NewServer()
 
 	// Tool 1: get_dependency_graph
@@ -42,11 +87,23 @@ func main() {
 			}
 
 			// Call the live Registry API (defaulting to localhost:8090 if REGISTRY_API_URL is not set)
-			apiURL := os.Getenv("REGISTRY_API_URL")
+			apiURL := viper.GetString("REGISTRY_API_URL")
 			if apiURL == "" {
 				apiURL = "http://localhost:8090"
 			}
 
+			// Try local cache first
+			if cache.GlobalCache != nil {
+				edges, err := cache.GlobalCache.GetGraph(args.Org)
+				if err == nil && len(edges) > 0 {
+					body, _ := json.Marshal(edges)
+					return string(body), nil
+				}
+			}
+
+			if runtime.GOOS == "wasip1" {
+				return nil, fmt.Errorf("WASI does not support network requests")
+			}
 			resp, err := http.Get(fmt.Sprintf("%s/api/v1/graph/%s", apiURL, args.Org))
 			if err != nil {
 				return nil, fmt.Errorf("failed to fetch dependency graph: %w", err)
@@ -109,66 +166,143 @@ func main() {
 			}
 			headFile.Close()
 
-			// Write empty base schema to temp file
+			var baseSchemaContent []byte
+
+			// Try local cache first
+			if cache.GlobalCache != nil {
+				baseSchemaContent, _ = cache.GlobalCache.GetSchema(args.ProviderRepo)
+			}
+
+			if baseSchemaContent == nil {
+				apiURL := viper.GetString("REGISTRY_API_URL")
+				if apiURL == "" {
+					apiURL = "http://localhost:8090"
+				}
+				parts := strings.SplitN(args.ProviderRepo, "/", 2)
+				if len(parts) == 2 {
+					url := fmt.Sprintf("%s/api/v1/schema/%s/%s", apiURL, parts[0], parts[1])
+					if runtime.GOOS != "wasip1" {
+						resp, err := http.Get(url)
+						if err == nil {
+							defer resp.Body.Close()
+							if resp.StatusCode == http.StatusOK {
+								baseSchemaContent, _ = io.ReadAll(resp.Body)
+							}
+						}
+					}
+				}
+			}
+
+			// Write empty base schema to temp file if not found
 			baseFile, err := os.CreateTemp("", "base-*.schema")
 			if err != nil {
 				return nil, fmt.Errorf("failed to create temp base file: %v", err)
 			}
 			defer os.Remove(baseFile.Name())
-			// Initialize with an empty valid structure for some formats
-			baseContent := ""
-			if args.SchemaType == "openapi" {
-				baseContent = `{"openapi":"3.0.0","info":{"title":"mock","version":"1"},"paths":{}}`
-			}
-			if _, err := baseFile.WriteString(baseContent); err != nil {
-				return nil, err
+
+			if len(baseSchemaContent) > 0 {
+				if _, err := baseFile.Write(baseSchemaContent); err != nil {
+					return nil, err
+				}
+			} else {
+				// Initialize with an empty valid structure for some formats
+				baseContent := ""
+				if args.SchemaType == "openapi" {
+					baseContent = `{"openapi":"3.0.0","info":{"title":"mock","version":"1"},"paths":{}}`
+				}
+				if _, err := baseFile.WriteString(baseContent); err != nil {
+					return nil, err
+				}
 			}
 			baseFile.Close()
 
 			var rep *report.DiffReport
 			switch args.SchemaType {
 			case "sql":
-				base, err := sqlpkg.ParseSchema(baseFile.Name())
+				var base, head *sqlpkg.SQLSchema
+				err = checker.ParseSchema(context.Background(), func() error {
+					var err error
+					base, err = sqlpkg.ParseSchema(baseFile.Name())
+					return err
+				})
 				if err != nil {
 					return nil, err
 				}
-				head, err := sqlpkg.ParseSchema(headFile.Name())
+				err = checker.ParseSchema(context.Background(), func() error {
+					var err error
+					head, err = sqlpkg.ParseSchema(headFile.Name())
+					return err
+				})
 				if err != nil {
 					return nil, err
 				}
-				rep = sqlpkg.DiffSchemas(base, head)
+				err = checker.CalculateDiff(context.Background(), func() error {
+					rep = sqlpkg.DiffSchemas(base, head)
+					return nil
+				})
+				if err != nil {
+					return nil, err
+				}
 			case "graphql":
-				rep, err = diff.CompareGraphQL(baseFile.Name(), headFile.Name())
+				err = checker.CalculateDiff(context.Background(), func() error {
+					var err error
+					rep, err = graphql.CompareGraphQL(baseFile.Name(), headFile.Name())
+					return err
+				})
 				if err != nil {
 					return nil, err
 				}
 			case "asyncapi":
-				rep, err = diff.CompareAsyncAPI(baseFile.Name(), headFile.Name())
+				err = checker.CalculateDiff(context.Background(), func() error {
+					var err error
+					rep, err = diff.CompareAsyncAPI(baseFile.Name(), headFile.Name())
+					return err
+				})
 				if err != nil {
 					return nil, err
 				}
 			case "protobuf", "proto":
-				rep, err = diff.CompareProto(baseFile.Name(), headFile.Name())
+				err = checker.CalculateDiff(context.Background(), func() error {
+					var err error
+					rep, err = diff.CompareProto(baseFile.Name(), headFile.Name())
+					return err
+				})
 				if err != nil {
 					return nil, err
 				}
 			case "terraform-plan":
-				rep, err = diff.CompareTerraformPlan(headFile.Name())
+				err = checker.CalculateDiff(context.Background(), func() error {
+					var err error
+					rep, err = diff.CompareTerraformPlan(headFile.Name())
+					return err
+				})
 				if err != nil {
 					return nil, err
 				}
 			case "ai-model":
-				rep, err = diff.CompareAIML(baseFile.Name(), headFile.Name())
+				err = checker.CalculateDiff(context.Background(), func() error {
+					var err error
+					rep, err = diff.CompareAIML(baseFile.Name(), headFile.Name())
+					return err
+				})
 				if err != nil {
 					return nil, err
 				}
 			case "avro":
-				rep, err = diff.CompareAvro(baseFile.Name(), headFile.Name(), nil)
+				err = checker.CalculateDiff(context.Background(), func() error {
+					var err error
+					rep, err = diff.CompareAvro(baseFile.Name(), headFile.Name(), nil)
+					return err
+				})
 				if err != nil {
 					return nil, err
 				}
 			default:
-				rep, err = diff.CompareOpenAPI(baseFile.Name(), headFile.Name(), true)
+				err = checker.CalculateDiff(context.Background(), func() error {
+					var err error
+					rep, err = diff.CompareOpenAPI(baseFile.Name(), headFile.Name(), true, nil)
+					return err
+				})
 				if err != nil {
 					return nil, err
 				}
@@ -225,7 +359,7 @@ func main() {
 				limit = *input.Limit
 			}
 
-			registryURL := os.Getenv("REGISTRY_API_URL")
+			registryURL := viper.GetString("REGISTRY_API_URL")
 			if registryURL == "" {
 				registryURL = "http://localhost:8090"
 			}
@@ -236,11 +370,14 @@ func main() {
 				return nil, fmt.Errorf("failed to create request: %w", err)
 			}
 
-			token := os.Getenv("REGISTRY_API_TOKEN")
+			token := viper.GetString("REGISTRY_API_TOKEN")
 			if token != "" {
 				req.Header.Set("Authorization", "Bearer "+token)
 			}
 
+			if runtime.GOOS == "wasip1" {
+				return nil, fmt.Errorf("WASI does not support network requests")
+			}
 			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
 				return nil, fmt.Errorf("failed to fetch history: %w", err)
@@ -413,7 +550,189 @@ func main() {
 		},
 	})
 
-	// Tool 7: get_schema_file
+	// Tool 7: get_blast_radius
+	server.RegisterTool(mcp.Tool{
+		Name:        "get_blast_radius",
+		Description: "Queries the Substrate Registry to calculate the Nth-degree blast radius of an API. Returns the total count of impacted downstream consumers and their repository names.",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"repo": map[string]any{
+					"type":        "string",
+					"description": "The full repository name, e.g., 'org/repo'",
+				},
+			},
+			"required": []string{"repo"},
+		},
+		Handler: func(params json.RawMessage) (any, error) {
+			var args struct {
+				Repo string `json:"repo"`
+			}
+			if err := json.Unmarshal(params, &args); err != nil {
+				return nil, err
+			}
+			if args.Repo == "" {
+				return nil, fmt.Errorf("repo is required (e.g., 'myorg/backend-api')")
+			}
+
+			parts := strings.SplitN(args.Repo, "/", 2)
+			if len(parts) != 2 {
+				return nil, fmt.Errorf("repo must be in 'org/repo' format")
+			}
+
+			apiURL := viper.GetString("REGISTRY_API_URL")
+			if apiURL == "" {
+				apiURL = "http://localhost:8090"
+			}
+
+			url := fmt.Sprintf("%s/api/v1/impact/%s/%s", apiURL, parts[0], parts[1])
+
+			// If authorization is needed locally, it will need a Service Token or bypass.
+			// MCP documentation assumes a direct GET request against `{REGISTRY_API_URL}/api/v1/impact/{org}/{repoName}`.
+			req, err := http.NewRequest("GET", url, nil)
+			if err != nil {
+				return nil, err
+			}
+
+			// We attach an API token if the MCP is configured with one. Substrate uses REGISTRY_API_TOKEN.
+			if token := viper.GetString("REGISTRY_API_TOKEN"); token != "" {
+				req.Header.Set("Authorization", "Bearer "+token)
+			}
+
+			if runtime.GOOS == "wasip1" {
+				return nil, fmt.Errorf("WASI does not support network requests")
+			}
+			resp, err := http.DefaultClient.Do(req)
+			if err != nil {
+				return nil, fmt.Errorf("failed to fetch blast radius: %w", err)
+			}
+			defer resp.Body.Close()
+
+			body, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return nil, err
+			}
+
+			if resp.StatusCode != http.StatusOK {
+				return nil, fmt.Errorf("registry API returned status %d: %s", resp.StatusCode, string(body))
+			}
+
+			return string(body), nil
+		},
+	})
+
+	// Tool 9: validate_local_schema
+	server.RegisterTool(mcp.Tool{
+		Name:        "validate_local_schema",
+		Description: "Validates a local schema file using the substrate CLI.",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"path": map[string]any{
+					"type":        "string",
+					"description": "Path to the local schema file (e.g. 'openapi.yaml')",
+				},
+			},
+			"required": []string{"path"},
+		},
+		Handler: func(params json.RawMessage) (any, error) {
+			var args struct {
+				Path string `json:"path"`
+			}
+			if err := json.Unmarshal(params, &args); err != nil {
+				return nil, err
+			}
+			if args.Path == "" {
+				return nil, fmt.Errorf("path is required")
+			}
+
+			// In a real scenario, this would parse substrate.yaml or run a diff
+			// For this task, we will run `substrate diff` with head=base to validate syntax
+			cmd := exec.Command("substrate", "diff", "--base", args.Path, "--head", args.Path)
+			out, err := cmd.CombinedOutput()
+			exitCode := 0
+			if err != nil {
+				if exitError, ok := err.(*exec.ExitError); ok {
+					exitCode = exitError.ExitCode()
+				} else {
+					return nil, err
+				}
+			}
+
+			res := map[string]any{
+				"stdout":    string(out),
+				"exit_code": exitCode,
+			}
+			b, _ := json.Marshal(res)
+			return string(b), nil
+		},
+	})
+
+	// Tool 10: test_js_rule
+	server.RegisterTool(mcp.Tool{
+		Name:        "test_js_rule",
+		Description: "Tests a custom Javascript governance rule against a provided schema snippet.",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"javascript": map[string]any{
+					"type":        "string",
+					"description": "The javascript validation script. Must contain a `validate(schema)` function.",
+				},
+				"schema": map[string]any{
+					"type":        "string",
+					"description": "The schema to validate against, as a JSON string.",
+				},
+			},
+			"required": []string{"javascript", "schema"},
+		},
+		Handler: func(params json.RawMessage) (any, error) {
+			var args struct {
+				Javascript string `json:"javascript"`
+				Schema     string `json:"schema"`
+			}
+			if err := json.Unmarshal(params, &args); err != nil {
+				return nil, err
+			}
+			if args.Javascript == "" {
+				return nil, fmt.Errorf("javascript is required")
+			}
+
+			var schemaMap map[string]any
+			if args.Schema != "" {
+				if err := json.Unmarshal([]byte(args.Schema), &schemaMap); err != nil {
+					return nil, fmt.Errorf("failed to parse schema as JSON: %w", err)
+				}
+			}
+
+			errMsg, err := rules.RunJSRule(args.Javascript, schemaMap)
+			if err != nil {
+				res := map[string]any{
+					"valid": false,
+					"error": fmt.Sprintf("js execution error: %v", err),
+				}
+				b, _ := json.Marshal(res)
+				return string(b), nil
+			}
+
+			if errMsg != "" {
+				res := map[string]any{
+					"valid": false,
+					"error": errMsg,
+				}
+				b, _ := json.Marshal(res)
+				return string(b), nil
+			}
+
+			res := map[string]any{
+				"valid": true,
+			}
+			b, _ := json.Marshal(res)
+			return string(b), nil
+		},
+	})
+
+	// Tool 8: get_schema_file
 	server.RegisterTool(mcp.Tool{
 		Name:        "get_schema_file",
 		Description: "Retrieves the exact, raw text of a stored contract schema from the registry. The AI can use this to read a downstream team's OpenAPI or GraphQL schema so it can perfectly write integration code against it.",
@@ -438,7 +757,7 @@ func main() {
 				return nil, fmt.Errorf("repo is required (e.g. 'myorg/backend-api')")
 			}
 
-			apiURL := os.Getenv("REGISTRY_API_URL")
+			apiURL := viper.GetString("REGISTRY_API_URL")
 			if apiURL == "" {
 				apiURL = "http://localhost:8090"
 			}
@@ -449,23 +768,35 @@ func main() {
 				return nil, fmt.Errorf("repo must be in 'owner/repo' format, got: %s", args.Repo)
 			}
 
-			url := fmt.Sprintf("%s/api/v1/schema/%s/%s", apiURL, parts[0], parts[1])
-			resp, err := http.Get(url)
-			if err != nil {
-				return nil, fmt.Errorf("failed to fetch schema from registry: %w", err)
-			}
-			defer resp.Body.Close()
+			var body []byte
 
-			body, err := io.ReadAll(resp.Body)
-			if err != nil {
-				return nil, err
+			// Try local cache first
+			if cache.GlobalCache != nil {
+				body, _ = cache.GlobalCache.GetSchema(args.Repo)
 			}
 
-			if resp.StatusCode == http.StatusNotFound {
-				return nil, fmt.Errorf("no schema found for repo '%s' in the registry. Has it been synced?", args.Repo)
-			}
-			if resp.StatusCode != http.StatusOK {
-				return nil, fmt.Errorf("registry API returned status %d for repo '%s'", resp.StatusCode, args.Repo)
+			if body == nil {
+				url := fmt.Sprintf("%s/api/v1/schema/%s/%s", apiURL, parts[0], parts[1])
+				if runtime.GOOS == "wasip1" {
+					return nil, fmt.Errorf("WASI does not support network requests")
+				}
+				resp, err := http.Get(url)
+				if err != nil {
+					return nil, fmt.Errorf("failed to fetch schema from registry: %w", err)
+				}
+				defer resp.Body.Close()
+
+				body, err = io.ReadAll(resp.Body)
+				if err != nil {
+					return nil, err
+				}
+
+				if resp.StatusCode == http.StatusNotFound {
+					return nil, fmt.Errorf("no schema found for repo '%s' in the registry. Has it been synced?", args.Repo)
+				}
+				if resp.StatusCode != http.StatusOK {
+					return nil, fmt.Errorf("registry API returned status %d for repo '%s'", resp.StatusCode, args.Repo)
+				}
 			}
 
 			return string(body), nil
@@ -491,6 +822,13 @@ func substrateDocsContent() string {
   schema_type: openapi            # Supported: openapi, sql, graphql, protobuf, asyncapi, avro, terraform-plan, ai-model
   spec_path: openapi.yaml         # Path to the schema file, relative to repo root
   on_breaking_change: block       # 'block' (default) = fail PR | 'warn' = comment only
+  
+  # Optional: Taxonomy metadata for the Dashboard Graph
+  metadata:
+    type: backend                 # frontend, backend, database, mobile, gateway, cronjob
+    team: platform-core
+    databases:
+      - postgres
   ` + "```" + `
 
   ### Consumer Configuration (a repo that depends on another team's API)
@@ -555,6 +893,9 @@ func substrateDocsContent() string {
   CLI (local diff):
   ` + "```bash" + `
   substrate diff --base openapi-old.yaml --head openapi-new.yaml --schema-type openapi
+  
+  # To run in Audit Mode (non-blocking, exits with 0 even on breaking changes):
+  substrate diff --base openapi-old.yaml --head openapi-new.yaml --mode audit
   ` + "```" + `
 
   MCP Server (for Cursor / Claude Desktop):

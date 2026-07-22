@@ -1,0 +1,27 @@
+TASK: P8-T05 — Distributed Tracing (OpenTelemetry)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Add OpenTelemetry (OTel) to the Go API and Diff Engine to trace requests end-to-end, enabling observability for large enterprise deployments.
+
+Spec (READ ONLY):
+  docs/specs/phase-8/p8-master-plan.md
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. MODIFY: go.mod
+   Add `go.opentelemetry.io/otel`, `go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp`, and `go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp`.
+
+2. FILE: api/internal/telemetry/tracer.go (CREATE NEW)
+   Initialize the OTLP provider. Use `SUBSTRATE_OTEL_ENDPOINT` environment variable to configure the exporter.
+
+3. MODIFY: api/internal/server/server.go
+   Wrap the HTTP router with `otelhttp.NewHandler` to automatically trace incoming webhook and API requests.
+
+4. MODIFY: engine/internal/checker/checker.go
+   Create custom spans for schema parsing (`ParseSchema`) and the actual diff logic (`CalculateDiff`) to track performance bottlenecks.
+
+Commit: "feat: P8-T05 add opentelemetry tracing to api and engine"
+Target branch: feature/dev

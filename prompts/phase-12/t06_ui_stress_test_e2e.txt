@@ -1,0 +1,169 @@
+TASK: P12-T06 — 1,000-Node UI Stress Test (Go Scale Generator)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Expand the scale graph generator to produce a deterministic 1,000-node / 3,000-edge acyclic dependency graph with a strict forward-edge constraint. Add a Go unit test that validates the graph structure is cycle-free and correctly sized. This generator is used as the data source for the existing Playwright stress test.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-12/p12-t06-stress-test.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- ALL edges MUST be strictly directed forward: `node-i → node-j` where `j > i`. This prevents cycles and ensures Dagre does not infinite-loop on the frontend.
+- Use a seeded PRNG (`rand.New(rand.NewSource(42))`) for ALL random edge generation. The output must be 100% deterministic across runs.
+- The total edge count must be >= 2,999 (target: 3,000).
+- 5% of edges must have `"status": "BREAKING"` (use `i % 20 == 0` on the edge index).
+- Do NOT change any Playwright test file. The `stress-test.spec.ts` already passes and consumes graph data via the `/org/stress-test/graph` route which uses in-code generation in `dashboard/src/routes/(app)/org/[org]/graph/+page.ts` — it does NOT use this generator at runtime.
+- The generator is used for generating static test fixtures, not runtime API responses.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The existing generator: `scripts/e2e/scale_generator.go`
+- Inspect the existing generator to understand the current function signature and output format.
+- The existing generator likely produces a smaller graph (200 nodes / 600 edges based on the stress-test.spec.ts fixture comments).
+- The JSON output format expected by the Substrate frontend is an array of edge objects:
+  ```json
+  [
+    { "provider": "node-0", "consumer": "node-1", "status": "SAFE" },
+    { "provider": "node-0", "consumer": "node-5", "status": "BREAKING" },
+    ...
+  ]
+  ```
+- Node names follow the pattern: `node-{i}` where `i` is 0-indexed.
+- Other E2E tests for reference: `scripts/e2e/phase8_e2e_test.go`
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FILE: scripts/e2e/scale_generator.go (MODIFY)
+
+   UPDATE or ADD a `GenerateScaleGraph(n, targetEdges int) []Edge` function:
+   ```go
+   type Edge struct {
+       Provider string `json:"provider"`
+       Consumer string `json:"consumer"`
+       Status   string `json:"status"`
+   }
+
+   func GenerateScaleGraph(n, targetEdges int) []Edge {
+       rng := rand.New(rand.NewSource(42))
+       edges := make([]Edge, 0, targetEdges)
+
+       // 1. Backbone chain: node-0 -> node-1 -> ... -> node-(n-1)
+       for i := 0; i < n-1; i++ {
+           status := "SAFE"
+           if len(edges) % 20 == 0 { status = "BREAKING" }
+           edges = append(edges, Edge{
+               Provider: fmt.Sprintf("node-%d", i),
+               Consumer: fmt.Sprintf("node-%d", i+1),
+               Status: status,
+           })
+       }
+
+       // 2. Skip edges: node-i -> node-j where j > i+1
+       attempts := 0
+       edgeSet := make(map[string]bool)
+       // seed the set with backbone edges
+       for _, e := range edges { edgeSet[e.Provider+">"+e.Consumer] = true }
+
+       for len(edges) < targetEdges && attempts < targetEdges*10 {
+           attempts++
+           i := rng.Intn(n - 2)         // 0 to n-3
+           j := i + 2 + rng.Intn(n-i-2) // j > i+1
+           key := fmt.Sprintf("node-%d>node-%d", i, j)
+           if edgeSet[key] { continue }
+           edgeSet[key] = true
+           status := "SAFE"
+           if len(edges) % 20 == 0 { status = "BREAKING" }
+           edges = append(edges, Edge{
+               Provider: fmt.Sprintf("node-%d", i),
+               Consumer: fmt.Sprintf("node-%d", j),
+               Status: status,
+           })
+       }
+       return edges
+   }
+   ```
+
+2. FILE: scripts/e2e/scale_generator_test.go (CREATE NEW)
+
+   TEST — `TestScaleGenerator_1000Nodes`:
+   ```go
+   func TestScaleGenerator_1000Nodes(t *testing.T) {
+       edges := GenerateScaleGraph(1000, 3000)
+
+       // Assert: at least 2999 edges
+       if len(edges) < 2999 {
+           t.Fatalf("expected >= 2999 edges, got %d", len(edges))
+       }
+
+       // Assert: exactly 1000 unique nodes
+       nodes := map[string]bool{}
+       for _, e := range edges {
+           nodes[e.Provider] = true
+           nodes[e.Consumer] = true
+       }
+       if len(nodes) != 1000 {
+           t.Errorf("expected 1000 unique nodes, got %d", len(nodes))
+       }
+
+       // Assert: no duplicate edges
+       seen := map[string]bool{}
+       for _, e := range edges {
+           key := e.Provider + ">" + e.Consumer
+           if seen[key] { t.Errorf("duplicate edge: %s", key) }
+           seen[key] = true
+       }
+
+       // Assert: no cycles via DFS from node-0 (forward-only check)
+       adj := map[string][]string{}
+       for _, e := range edges { adj[e.Provider] = append(adj[e.Provider], e.Consumer) }
+       visited := map[string]bool{}
+       var dfs func(node string) bool
+       dfs = func(node string) bool {
+           if visited[node] { return true }
+           visited[node] = true
+           for _, next := range adj[node] {
+               if dfs(next) { return true }
+           }
+           visited[node] = false
+           return false
+       }
+       if dfs("node-0") {
+           t.Error("cycle detected in generated graph")
+       }
+   }
+   ```
+
+3. Run `go test ./scripts/e2e/... -run TestScaleGenerator` before committing.
+4. Run `npx playwright test tests/stress-test.spec.ts` to confirm the existing Playwright test still passes (no regression).
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION HINTS
+═══════════════════════════════════════════════════════════════
+- If the existing `scale_generator.go` has a `main()` function (i.e., it's a standalone executable), keep it. Just add the `GenerateScaleGraph()` function alongside it so both the test and the CLI can call it.
+- If the skip-edge loop cannot reach 3,000 edges (too many collisions in a 1,000-node graph), lower the skip jump range: `j = i + 2 + rng.Intn(min(n-i-2, 50))` to concentrate edges in a denser subgraph.
+- The DFS cycle check in the test is O(V+E). For 1,000 nodes / 3,000 edges this completes in milliseconds.
+- The `edgeSet` collision detection ensures no duplicate `provider+consumer` pairs, which would cause Dagre to render duplicate invisible edges.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO MODIFY:
+- scripts/e2e/scale_generator.go
+
+FILES TO CREATE:
+- scripts/e2e/scale_generator_test.go
+
+FILES TO NOT TOUCH:
+- dashboard/**
+- api/**
+- engine/**
+
+Commit: "feat: P12-T06 expand scale generator to 1000-node graph with cycle-free validation"
+Target branch: feature/dev

@@ -2,10 +2,13 @@ package diff
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
+	extcompliance "github.com/KrushnaVardhanReddy/substrate/engine/compliance"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/compliance"
+	"github.com/KrushnaVardhanReddy/substrate/engine/internal/config"
 	"github.com/KrushnaVardhanReddy/substrate/engine/internal/report"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/oasdiff/oasdiff/checker"
@@ -14,7 +17,7 @@ import (
 
 // CompareOpenAPI takes two OpenAPI specification paths, computes their diff using oasdiff,
 // and maps the result to a Substrate DiffReport.
-func CompareOpenAPI(basePath, revisionPath string, flattenAllOf bool) (*report.DiffReport, error) {
+func CompareOpenAPI(basePath, revisionPath string, flattenAllOf bool, customRules []config.CustomRule) (*report.DiffReport, error) {
 	loader := openapi3.NewLoader()
 	loader.IsExternalRefsAllowed = true
 
@@ -36,6 +39,9 @@ func CompareOpenAPI(basePath, revisionPath string, flattenAllOf bool) (*report.D
 	if err := revision.Validate(loader.Context); err != nil {
 		return nil, fmt.Errorf("invalid revision spec: %w", err)
 	}
+
+	alerts1 := extcompliance.ScanOpenAPISchema(base, nil)
+	alerts2 := extcompliance.ScanOpenAPISchema(revision, nil)
 
 	// Step 3: Compute structural diff using diff.Get()
 	// flattenAllOf is accepted for API compatibility but is not currently wired —
@@ -64,6 +70,21 @@ func CompareOpenAPI(basePath, revisionPath string, flattenAllOf bool) (*report.D
 		Warnings:        []report.Change{},
 		SafeChanges:     []report.Change{},
 	}
+	// Merge unique compliance alerts
+	alertMap := make(map[string]report.ComplianceAlert)
+	for _, a := range append(alerts1, alerts2...) {
+		alertMap[a.Path+a.ComplianceType] = a
+	}
+	for _, a := range alertMap {
+		rep.ComplianceAlerts = append(rep.ComplianceAlerts, a)
+	}
+
+	sort.Slice(rep.ComplianceAlerts, func(i, j int) bool {
+		if rep.ComplianceAlerts[i].Path == rep.ComplianceAlerts[j].Path {
+			return rep.ComplianceAlerts[i].ComplianceType < rep.ComplianceAlerts[j].ComplianceType
+		}
+		return rep.ComplianceAlerts[i].Path < rep.ComplianceAlerts[j].Path
+	})
 
 	if diffObj.Empty() {
 		compliance.Audit(rep)
@@ -109,6 +130,24 @@ func CompareOpenAPI(basePath, revisionPath string, flattenAllOf bool) (*report.D
 			rep.Warnings = append(rep.Warnings, changeObj)
 		case report.ChangeSeveritySafe:
 			rep.SafeChanges = append(rep.SafeChanges, changeObj)
+		}
+	}
+
+	// Evaluate custom CEL rules on the head/revision schema
+	if len(customRules) > 0 {
+		ast, err := MapToAST(revision)
+		if err == nil {
+			customRuleChanges := EvaluateCustomRules(ast, customRules)
+			for _, c := range customRuleChanges {
+				switch c.Severity {
+				case report.ChangeSeverityBreaking:
+					rep.BreakingChanges = append(rep.BreakingChanges, c)
+				case report.ChangeSeverityWarning:
+					rep.Warnings = append(rep.Warnings, c)
+				case report.ChangeSeveritySafe:
+					rep.SafeChanges = append(rep.SafeChanges, c)
+				}
+			}
 		}
 	}
 

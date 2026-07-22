@@ -1,0 +1,54 @@
+TASK: P11-T12 — Rich Side-by-Side Diff Viewer & Sign Out
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement an interactive, side-by-side YAML diff viewer in the dashboard to review exact schema changes, mirroring the GitHub PR experience. Additionally, implement a global Sign Out button in the TopNav.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-11/p11-t12-diff-viewer.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- MUST use the `diff` npm package. You need to `npm install diff @types/diff` inside `dashboard/` first.
+- The Diff Viewer must show line numbers and highlight added lines in green (`var(--safe)` or `#10B981` with `rgba(16,185,129,0.15)` background) and removed lines in red (`var(--danger)` or `#EF4444` with `rgba(239,68,68,0.15)` background).
+- The Sign Out button must call `localStorage.removeItem('github_token')` and use SvelteKit's `goto('/onboarding')`.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The TopNav lives in `dashboard/src/lib/components/TopNav.svelte`.
+- The new Diff Viewer page lives at `dashboard/src/routes/(app)/diff/[id]/+page.svelte`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FILE: dashboard/src/lib/components/DiffViewer.svelte (CREATE NEW)
+   - Accept `before` and `after` string props.
+   - Use `diffLines` from `diff` to calculate the side-by-side array and render it natively with CSS.
+
+2. FILE: dashboard/src/routes/(app)/diff/[id]/+page.svelte (MODIFY)
+   - Mount `<DiffViewer>` and pass in realistic mock YAML strings to test the layout.
+
+3. FILE: dashboard/src/lib/components/TopNav.svelte (MODIFY)
+   - Add a "Sign Out" button utilizing the `LogOut` icon from `lucide-svelte`.
+   - Implement the sign out logic.
+
+4. Terminal
+   - Run `cd dashboard && npm run check` to ensure TS build succeeds.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- dashboard/src/lib/components/DiffViewer.svelte
+
+FILES TO MODIFY:
+- dashboard/src/routes/(app)/diff/[id]/+page.svelte
+- dashboard/src/lib/components/TopNav.svelte
+
+Commit: "feat: P11-T12 implement rich diff viewer and sign out"
+Target branch: feature/dev

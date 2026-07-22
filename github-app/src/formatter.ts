@@ -26,7 +26,8 @@ export function formatPRComment(
   prNumber?: number,
   aiExplanation?: string,
   aiSafePatch?: string,
-  diffId?: string
+  diffId?: string,
+  riskScore?: string
 ): string {
   const breakingCount = report.summary?.breaking_count || 0;
   const warningCount = report.summary?.warning_count || 0;
@@ -37,6 +38,22 @@ export function formatPRComment(
   const infoChanges = report.safe_changes || [];
 
   let comment = '';
+
+  if (riskScore) {
+    let riskColor = '🟢';
+    if (riskScore === 'CRITICAL') {
+      riskColor = '🔴';
+    } else if (riskScore === 'HIGH') {
+      riskColor = '🟠';
+    } else if (riskScore === 'MEDIUM') {
+      riskColor = '🟡';
+    }
+    comment += `## ${riskColor} DEPLOYMENT RISK: ${riskScore}\n\n`;
+  }
+
+  if (config.mode === 'audit') {
+    comment += `> ℹ️ **Substrate is running in Audit Mode.** This breaking change has been recorded, but this PR is NOT blocked.\n\n`;
+  }
 
   if (breakingCount > 0) {
     comment += `## 🔴 Substrate — Breaking Changes Detected\n\n`;
@@ -104,8 +121,8 @@ export function formatPRComment(
 
   }
 
-  if (report.compliance_alerts && report.compliance_alerts.length > 0) {
-    comment += `\n### 🛡️ Compliance & PII Alerts\n\n`;
+if (report.compliance_alerts && report.compliance_alerts.length > 0) {
+    comment += `\n### ⚠️ Compliance Flags\n\n`;
     comment += `| Type | Path | Message |\n`;
     comment += `|---|---|---|\n`;
     for (const alert of report.compliance_alerts) {
@@ -143,51 +160,6 @@ This generates a \`substrate.yaml\` in 30 seconds. [View setup guide →](https:
 
 
 
-export function getCommitStatusState(
-  report: DiffReport,
-  config: SubstrateConfig,
-  crossRepo?: CrossRepoCheckResponse
-): 'success' | 'failure' {
-  const breakingCount = report.summary?.breaking_count || 0;
-
-  if (crossRepo?.is_safe === false) {
-    return 'failure';
-  }
-
-  if (breakingCount === 0) {
-    return 'success';
-  }
-
-  const onBreakingChange = config.on_breaking_change || 'block';
-
-  if (onBreakingChange === 'warn') {
-    return 'success';
-  }
-
-  return 'failure';
-}
-
-export function getCommitStatusDescription(
-  report: DiffReport,
-  crossRepo?: CrossRepoCheckResponse
-): string {
-  const breakingCount = report.summary?.breaking_count || 0;
-
-  if (breakingCount > 0 && crossRepo?.is_safe === false) {
-    return `${breakingCount} breaking change(s) detected — ${crossRepo.broken_consumers} consumer(s) affected`;
-  }
-
-  if (breakingCount > 0) {
-    return `${breakingCount} breaking change(s) detected`;
-  }
-
-  if (crossRepo?.is_safe === false) {
-    return `${crossRepo.broken_consumers} downstream consumer(s) affected by this change`;
-  }
-
-  return 'All clear — no breaking changes';
-}
-
 export function formatCrossRepoImpact(response: CrossRepoCheckResponse): string {
   if (response.total_consumers === 0) {
     return '';
@@ -218,6 +190,7 @@ export function formatCrossRepoImpact(response: CrossRepoCheckResponse): string 
     text += `| \`${escapeMarkdown(result.consumer_repo)}\` | ${statusText} | ${breakingText} |\n`;
   }
 
+
   if (response.broken_consumers > 0) {
     const brokenRepos = response.results
       .filter(r => r.status === 'breaking')
@@ -225,9 +198,21 @@ export function formatCrossRepoImpact(response: CrossRepoCheckResponse): string 
       .join(', ');
 
     text += `\n> ⚠️ **Action required:** Coordinate with the ${brokenRepos} team before merging.\n> The \`substrate/breaking-changes\` check is now **FAILING**.\n`;
+
+    if (response.sla_breaches && response.sla_breaches.length > 0) {
+      for (const breach of response.sla_breaches) {
+        text += `> ⚠️ **SLA Breach**: \`${escapeMarkdown(breach.consumer)}\` requires ${breach.required_days} days notice for breaking changes.\n`;
+      }
+    }
+
+    if (response.affected_customers !== undefined && response.affected_mrr !== undefined) {
+      const formattedMRR = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(response.affected_mrr);
+      text += `\n### 💳 Customer Impact\n\n> 🔴 **${response.affected_customers} paying customers** (Total MRR: ${formattedMRR}) rely on the endpoints broken by this PR.\n`;
+    }
   } else {
     text += `\n> ✅ All registered consumers are compatible with this change.\n`;
   }
+
 
   return text;
 }

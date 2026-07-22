@@ -1,3 +1,5 @@
+//go:build !wasip1
+
 package sql
 
 import (
@@ -6,6 +8,7 @@ import (
 	"strings"
 
 	pg_query "github.com/pganalyze/pg_query_go/v6"
+	wasipg "github.com/wasilibs/go-pgquery"
 )
 
 func ParseSchema(path string) (*SQLSchema, error) {
@@ -24,7 +27,7 @@ func ParseSchemaFromBytes(src []byte) (*SQLSchema, error) {
 		Sequences: make(map[string]*Sequence),
 	}
 
-	result, err := pg_query.Parse(string(src))
+	result, err := wasipg.Parse(string(src))
 	if err != nil {
 		return nil, fmt.Errorf("sql parse error: %v", err)
 	}
@@ -331,7 +334,7 @@ func formatExpr(node *pg_query.Node) string {
 		},
 	}
 
-	out, err := pg_query.Deparse(tree)
+	out, err := wasipg.Deparse(tree)
 	if err == nil && out != "" {
 		if len(out) > 7 && out[:7] == "SELECT " {
 			return out[7:]
@@ -356,7 +359,7 @@ func formatStmt(node *pg_query.Node) string {
 			},
 		},
 	}
-	out, err := pg_query.Deparse(tree)
+	out, err := wasipg.Deparse(tree)
 	if err == nil {
 		return out
 	}
@@ -491,7 +494,7 @@ func parseViewStmt(stmt *pg_query.ViewStmt) *View {
 		Materialized: false,
 	}
 
-	// Definition parsing can be tricky, might need pg_query.Deparse
+	// Definition parsing can be tricky, might need wasipg.Deparse
 	// For views, the definition is a query.
 	if stmt.GetQuery() != nil {
 		def, _ := deparseStmt(stmt.GetQuery())

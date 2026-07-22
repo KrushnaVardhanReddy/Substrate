@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+npx @substrate/cli diff --base origin/main --head HEAD --fail-on-breaking

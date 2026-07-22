@@ -1,0 +1,114 @@
+TASK: P12-T03 — AI Playground & Diff Viewer E2E (Playwright)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Extend the AI Playground Playwright test suite to validate the complete analysis workflow: schema input → mocked AI stream response → findings display → auto-fix application. Also verify that submitting intentionally malformed YAML does not crash the Svelte application.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-12/p12-t03-playground-e2e.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- ALL AI and API calls MUST be mocked via `page.route()`. No real calls to any AI backend.
+- Append new `test(...)` blocks ONLY to `playground.spec.ts`. Do NOT delete existing tests.
+- The malformed YAML input test MUST be designed so the mock API responds immediately with 400 — it must NOT hang for 30 seconds.
+- Do NOT modify any production source files in `dashboard/src/`.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The AI Playground page lives at: `dashboard/src/routes/(app)/playground/+page.svelte`
+- The Playwright spec to expand: `dashboard/tests/e2e/playground.spec.ts`
+- The AI analysis endpoint is likely `POST /api/v1/ai/analyze` (inspect the playground Svelte component to confirm the exact URL and request shape).
+- The playground likely has a `<textarea>` or `contenteditable` editor where the user pastes a schema.
+- After clicking "Analyze", the UI shows findings in a result panel.
+- After clicking "Apply Auto-Fix", the editor content updates with the corrected schema.
+- The playground may use a Server-Sent Events stream for the AI response. To mock SSE:
+  ```typescript
+  await page.route('**/api/v1/ai/analyze', async route => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'text/event-stream',
+      body: 'data: {"finding": "Field userId removed (BREAKING)"}\n\ndata: {"autofix": "openapi: 3.0.0\\ninfo:\\n  title: Fixed API"}\n\ndata: [DONE]\n\n'
+    });
+  });
+  ```
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FILE: dashboard/tests/e2e/playground.spec.ts (EXPAND — append only)
+
+   TEST 1 — "should stream AI analysis and display findings":
+   a. Mock the AI analyze endpoint to return a successful analysis payload (see Context above).
+   b. `await page.goto('/playground')`.
+   c. Assert the page heading contains "Playground" or "AI" or "Studio".
+   d. Locate the schema editor. Try in order: `page.locator('textarea')`, `page.locator('[contenteditable="true"]')`. Fill with a broken YAML:
+      ```
+      openapi: 3.0.0
+      info:
+        title: Test API
+      paths:
+        /users:
+          get:
+            responses:
+              200:
+                content: {}
+      ```
+   e. Click the Analyze button: `page.getByRole('button', { name: /analyze/i })` or `page.locator('button:has-text("Analyze")')`.
+   f. `await expect(page.locator('.analysis-result, .findings-panel, [data-testid="findings"]')).toBeVisible({ timeout: 10000 })`.
+   g. Assert the result panel contains the finding text: `toContainText('BREAKING')` or `toContainText('userId')`.
+
+   TEST 2 — "should apply auto-fix to editor content":
+   a. Continuation of Test 1 setup (re-run mock + navigation).
+   b. After analysis completes, click "Apply Auto-Fix": `page.getByRole('button', { name: /auto.fix/i })`.
+   c. `await page.waitForTimeout(500)`.
+   d. Read the current editor content:
+      ```typescript
+      const content = await page.locator('textarea').first().inputValue();
+      ```
+      or for contenteditable: `await page.locator('[contenteditable="true"]').first().innerText()`.
+   e. Assert the content is NOT the original broken YAML (assert it changed).
+   f. Assert no browser console error matching `$state` or `Cannot read properties`.
+
+   TEST 3 — "should handle malformed input gracefully":
+   a. Mock the analyze endpoint to return HTTP 400: `{ "error": "Invalid schema format" }`.
+   b. Navigate to `/playground`.
+   c. Fill the editor with intentionally broken content: `"{{ INVALID_YAML_\x00 }}"`.
+   d. Click Analyze.
+   e. Assert an error indicator or alert text becomes visible: `toContainText('Invalid')` or `toContainText('error')` or `page.getByRole('alert').toBeVisible()`.
+   f. Assert the main playground container is still visible — page did NOT crash: `await expect(page.locator('main, .playground-container, .page-content')).toBeVisible()`.
+
+2. Run `npx playwright test tests/e2e/playground.spec.ts --reporter=list` before committing. All tests must pass.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION HINTS
+═══════════════════════════════════════════════════════════════
+- INSPECT the playground Svelte component first to find: the exact API endpoint URL, the request content type (JSON vs form), and the exact CSS classes for the findings panel and auto-fix button.
+- If the playground uses `fetch` with streaming, the `page.route()` mock must return a proper SSE body. Alternatively, mock it to return JSON if the component supports both.
+- If console error assertions are needed, attach a listener early in the test:
+  ```typescript
+  const consoleErrors: string[] = [];
+  page.on('console', msg => { if (msg.type() === 'error') consoleErrors.push(msg.text()); });
+  // After the test action:
+  expect(consoleErrors.filter(e => e.includes('$state'))).toHaveLength(0);
+  ```
+- The auto-fix button may only appear AFTER the analysis result is shown. Wait for the findings panel before looking for it.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO MODIFY:
+- dashboard/tests/e2e/playground.spec.ts
+
+FILES TO NOT TOUCH:
+- dashboard/src/**  (no production code changes)
+- dashboard/tests/e2e/graph.spec.ts
+- dashboard/tests/e2e/onboarding.spec.ts
+
+Commit: "test: P12-T03 add AI Playground E2E resilience tests"
+Target branch: feature/dev

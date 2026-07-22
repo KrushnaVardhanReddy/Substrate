@@ -36,6 +36,7 @@ help:
 	@echo "Substrate Local Development Commands:"
 	@echo "--------------------------------------------------------"
 	@echo "make postgres     - Start the Postgres database in Docker"
+	@echo "make forgejo      - Start the local Forgejo Git server in Docker"
 	@echo "make api          - Start the Registry API (port 8090)"
 	@echo "make engine       - Start the Diff Engine (port 8080)"
 	@echo "make worker       - Start the GitHub Webhook Worker"
@@ -53,14 +54,27 @@ help:
 postgres:
 	docker rm -f substrate-postgres || true && docker run --name substrate-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=substrate -p 5432:5432 -d docker.io/library/postgres:15
 
-api:
+forgejo:
+	docker-compose -f docker-compose.forgejo.yml up -d
+
+stop-forgejo:
+	docker-compose -f docker-compose.forgejo.yml down
+
+build:
+	cd dashboard && npm install --legacy-peer-deps && npm run build
+	rm -rf api/internal/server/dashboard_build
+	cp -r dashboard/build api/internal/server/dashboard_build
+
+api: build
 	cd api && \
 	DATABASE_URL="postgresql://postgres:postgres@localhost:5432/substrate?sslmode=disable" \
 	REGISTRY_API_TOKEN="local-dev-token" \
+	INTERNAL_SERVICE_TOKEN="local-dev-token" \
 	JWT_SECRET="local-jwt-secret" \
 	GITHUB_CLIENT_ID="mock-client-id" \
 	GITHUB_CLIENT_SECRET="mock-client-secret" \
 	DASHBOARD_URL="http://localhost:5173" \
+	ENVIRONMENT="development" \
 	go run ./cmd/server/main.go
 
 # To enable real AI (requires LM Studio running at port 1234), use make api-ai instead
@@ -68,6 +82,7 @@ api-ai:
 	cd api && \
 	DATABASE_URL="postgresql://postgres:postgres@localhost:5432/substrate?sslmode=disable" \
 	REGISTRY_API_TOKEN="local-dev-token" \
+	INTERNAL_SERVICE_TOKEN="local-dev-token" \
 	JWT_SECRET="local-jwt-secret" \
 	GITHUB_CLIENT_ID="mock-client-id" \
 	GITHUB_CLIENT_SECRET="mock-client-secret" \
@@ -92,8 +107,12 @@ docs:
 build-cli:
 	cd engine && go build -o substrate ./cmd/substrate/
 
+build-mcp-wasi:
+	cd engine && CGO_ENABLED=0 GOOS=wasip1 GOARCH=wasm go build -o substrate-mcp.wasm ./cmd/substrate-mcp/main.go
+
 build-mcp:
 	cd engine && go build -o substrate-mcp ./cmd/substrate-mcp/main.go
+
 
 start-bg: postgres
 	@echo "Starting backend services in background..."
@@ -126,6 +145,21 @@ stop-bg:
 	@rm -f api.pid engine.pid worker.pid dashboard.pid ngrok.pid api.log engine.log worker.log dashboard.log ngrok.log
 	@docker stop substrate-postgres || true
 
+reset-demo:
+	@echo "🧹 Wiping demo database clean..."
+	@docker rm -f substrate-postgres || true
+	@echo "🌱 Starting fresh database..."
+	@make postgres
+	@echo "⏳ Waiting for database to initialize..."
+	@sleep 3
+	@echo "✅ Demo environment reset! You can now start the backend with a 100% clean slate."
+
+clean-containers:
+	@echo "🧹 Pruning old docker/podman containers, networks, and volumes..."
+	@docker system prune -a -f --volumes || true
+	@podman system prune -a -f --volumes || true
+	@echo "✅ Cleanup complete!"
+
 # Ensure GITHUB_TOKEN is set before running these
 check-token:
 	@if [ -z "$(GITHUB_TOKEN)" ]; then \
@@ -135,117 +169,51 @@ check-token:
 	fi
 
 e2e: check-token
-	cd scripts/e2e && go run main.go --scenario=all
 
-e2e-openapi: check-token
-	cd scripts/e2e && go run main.go --scenario=openapi
+	cd dashboard && npm run test:e2e tests/e2e/system-matrix-full.spec.ts
 
-e2e-sql: check-token
-	cd scripts/e2e && go run main.go --scenario=sql
 
-e2e-graphql: check-token
-	cd scripts/e2e && go run main.go --scenario=graphql
 
 e2e-protobuf: check-token
-	cd scripts/e2e && go run main.go --scenario=protobuf
+
+	cd dashboard && npx playwright test tests/e2e/system-matrix-full.spec.ts -g "microservices-demo"
 
 
-e2e-breaking: check-token
-	cd scripts/e2e && go run main.go --scenario=openapi-breaking
 
-e2e-safe: check-token
-	cd scripts/e2e && go run main.go --scenario=openapi-safe
+e2e-openapi: check-token
 
-e2e-override: check-token
-	cd scripts/e2e && go run main.go --scenario=openapi-override
-
-e2e-warning: check-token
-	cd scripts/e2e && go run main.go --scenario=openapi-warning
-
-e2e-sql-breaking: check-token
-	cd scripts/e2e && go run main.go --scenario=sql-breaking
-
-e2e-sql-safe: check-token
-	cd scripts/e2e && go run main.go --scenario=sql-safe
-
-e2e-sql-override: check-token
-	cd scripts/e2e && go run main.go --scenario=sql-override
-
-e2e-sql-warning: check-token
-	cd scripts/e2e && go run main.go --scenario=sql-warning
-
-e2e-graphql-breaking: check-token
-	cd scripts/e2e && go run main.go --scenario=graphql-breaking
-
-e2e-graphql-safe: check-token
-	cd scripts/e2e && go run main.go --scenario=graphql-safe
-
-e2e-graphql-override: check-token
-	cd scripts/e2e && go run main.go --scenario=graphql-override
-
-e2e-graphql-warning: check-token
-	cd scripts/e2e && go run main.go --scenario=graphql-warning
+	cd dashboard && npx playwright test tests/e2e/system-matrix-full.spec.ts -g "stripe-api"
 
 
-e2e-protobuf-breaking: check-token
-	cd scripts/e2e && go run main.go --scenario=protobuf-breaking
 
-e2e-protobuf-safe: check-token
-	cd scripts/e2e && go run main.go --scenario=protobuf-safe
+e2e-sql: check-token
 
-e2e-protobuf-override: check-token
-	cd scripts/e2e && go run main.go --scenario=protobuf-override
+	cd dashboard && npx playwright test tests/e2e/system-matrix-full.spec.ts -g "jaffle-shop-db"
 
-e2e-protobuf-warning: check-token
-	cd scripts/e2e && go run main.go --scenario=protobuf-warning
+
+
+e2e-graphql: check-token
+
+	cd dashboard && npx playwright test tests/e2e/system-matrix-full.spec.ts -g "github-graphql"
+
+
 
 e2e-asyncapi: check-token
-	cd scripts/e2e && go run main.go --scenario=asyncapi
 
-e2e-asyncapi-breaking: check-token
-	cd scripts/e2e && go run main.go --scenario=asyncapi-breaking
+	cd dashboard && npx playwright test tests/e2e/system-matrix-full.spec.ts -g "slack-webhooks"
 
-e2e-asyncapi-safe: check-token
-	cd scripts/e2e && go run main.go --scenario=asyncapi-safe
 
-e2e-asyncapi-override: check-token
-	cd scripts/e2e && go run main.go --scenario=asyncapi-override
 
-e2e-asyncapi-warning: check-token
-	cd scripts/e2e && go run main.go --scenario=asyncapi-warning
+e2e-openai: check-token
 
-e2e-avro: check-token
-	cd scripts/e2e && go run main.go --scenario=avro
+	cd dashboard && npx playwright test tests/e2e/system-matrix-full.spec.ts -g "openai-api"
 
-e2e-avro-breaking: check-token
-	cd scripts/e2e && go run main.go --scenario=avro-breaking
 
-e2e-avro-safe: check-token
-	cd scripts/e2e && go run main.go --scenario=avro-safe
 
-e2e-terraform: check-token
-	cd scripts/e2e && go run main.go --scenario=terraform
+e2e-realworld: check-token
 
-e2e-terraform-breaking: check-token
-	cd scripts/e2e && go run main.go --scenario=terraform-breaking
+	cd dashboard && npx playwright test tests/e2e/system-matrix-full.spec.ts -g "realworld-api"
 
-e2e-terraform-safe: check-token
-	cd scripts/e2e && go run main.go --scenario=terraform-safe
-
-e2e-terraform-override: check-token
-	cd scripts/e2e && go run main.go --scenario=terraform-override
-
-e2e-aiml: check-token
-	cd scripts/e2e && go run main.go --scenario=aiml
-
-e2e-aiml-breaking: check-token
-	cd scripts/e2e && go run main.go --scenario=aiml-breaking
-
-e2e-aiml-safe: check-token
-	cd scripts/e2e && go run main.go --scenario=aiml-safe
-
-e2e-aiml-override: check-token
-	cd scripts/e2e && go run main.go --scenario=aiml-override
 
 e2e-discovery:
 	@echo "Running Phase 5 Cross-Repo Dependency Discovery E2E Tests..."
@@ -257,3 +225,47 @@ e2e-scale: check-token
 e2e-v1: check-token
 	@echo "Running V1.0 System E2E Tests..."
 	cd scripts/e2e && go test -v v1_e2e_test.go
+
+e2e-phase7: check-token
+	@echo "Running Phase 7 Enterprise E2E Tests..."
+	cd scripts/e2e && go test -v phase7_e2e_test.go
+
+e2e-phase8: check-token
+	@echo "Running Phase 8 Enterprise Readiness Tests..."
+	cd scripts/e2e && go test -v phase8_e2e_test.go
+
+e2e-phase14: check-token
+	@echo "Running Phase 14 E2E Validation Tests..."
+	cd scripts/e2e && go test -v p14_*_test.go || true
+
+e2e-phase15: check-token
+	@echo "Running Phase 15 Enterprise Tests..."
+	cd scripts/e2e && go test -v p15_*_test.go || true
+# ── Phase 12: Production Build ────────────────────────────────────────────────
+
+## build-wasm: Compile the Go diff engine to WebAssembly
+build-wasm:
+	cd engine && GOOS=js GOARCH=wasm go build -o ../dashboard/static/engine.wasm ./cmd/wasm
+
+## build-frontend: Build the SvelteKit dashboard for production
+build-frontend:
+	cd dashboard && npm ci && npm run build
+
+## build-prod: Full production build (WASM + Frontend + Go binary)
+build-prod: build-wasm build-frontend
+	CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o substrate ./api/cmd/server
+
+## docker-build: Build the production Docker image
+docker-build: build-prod
+	docker build -t substrate:v2 .
+
+## test-all: Run the full test suite (Go unit tests + Playwright E2E)
+test-all:
+	cd api && go test -race -count=1 ./...
+	cd engine && go test -race -count=1 ./...
+	cd dashboard && npx playwright test
+
+## e2e-phase12: Run Phase 12 specific Go E2E tests
+e2e-phase12:
+	go test -race -count=1 -v ./scripts/e2e/... -run "TestSSE|TestScale|TestDiff"
+	cd dashboard && npx playwright test

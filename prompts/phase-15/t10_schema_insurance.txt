@@ -1,0 +1,36 @@
+TASK: P15-T10 — Schema Insurance (Enterprise Tier Add-On)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement the Schema Insurance enterprise feature, allowing orgs to file claims for missed breaking changes.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-15/p15-t10-schema-insurance.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Track insurance policies and claims in Postgres.
+- Add an API to automatically verify if a claim is valid (e.g., checks weren't overridden).
+- Implement a dashboard UI for enterprise users to manage insurance.
+- You MUST write unit tests for both Go logic (`_test.go`) and Svelte components (`.test.ts`).
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Create migrations for `insurance_policies` and `insurance_claims`.
+- In `api/internal/handler/insurance.go`, add logic to verify a GitHub PR's check status using the GitHub API before approving a claim.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: api/internal/handler/insurance.go (CREATE)
+   - Include `api/internal/handler/insurance_test.go`
+2. FILE: dashboard/src/routes/(app)/org/[org]/settings/insurance/+page.svelte (CREATE)
+   - Include `dashboard/src/routes/(app)/org/[org]/settings/insurance/+page.test.ts`
+3. Add DB migrations.
+4. Run `go test ./...` and `npm run test`.
+
+Commit: "feat: P15-T10 implement schema insurance"
+Target branch: feature/dev

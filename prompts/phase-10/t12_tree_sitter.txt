@@ -1,0 +1,64 @@
+TASK: P10-T12 — Tree-sitter Deterministic Impact Analysis
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Parse downstream consumer repositories using Tree-sitter AST to deterministically pinpoint exactly *which lines of code* are broken by an upstream API change. This replaces fuzzy text searches with 100% accurate AST validation.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-10/p10-t12-treesitter-analysis.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Use ONLY `github.com/smacker/go-tree-sitter` and its respective language grammars (e.g. `javascript`, `go`, `python`).
+- Do NOT use regex to find usages. You must traverse the AST.
+- Execution must happen entirely locally inside the `engine` binary to guarantee zero latency.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+The Diff engine lives in `engine/`.
+Core logic is in `engine/internal/diff/` and `engine/internal/checker/`.
+The API layer calls the engine via RPC or direct function calls.
+
+⚠️ CRITICAL CONTEXT: MEMORY LEAKS IN CGO TREE-SITTER ⚠️
+`go-tree-sitter` relies on CGO bindings to the C Tree-sitter library. If you do not explicitly close or free the parsers and trees, you will cause a massive memory leak in the Go service.
+You MUST ensure that `parser.Close()` and `tree.Close()` are called (e.g., using `defer`) after AST traversal is complete.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. MODIFY: `engine/go.mod`
+   Add the dependencies:
+   - `github.com/smacker/go-tree-sitter`
+   - `github.com/smacker/go-tree-sitter/javascript`
+   - `github.com/smacker/go-tree-sitter/typescript/typescript`
+
+2. CREATE: `engine/internal/treesitter/parser.go`
+   - Create a service that accepts a file path, reads its contents, and initializes a Tree-sitter parser based on the file extension.
+   - Implement an AST traversal function that takes a "target field" (e.g. `user_id`) and finds all AST nodes representing property accesses (e.g., `user.user_id`) or object destructuring.
+
+3. MODIFY: `engine/internal/diff/diff.go`
+   - When a breaking change (e.g., deleted field) is detected in the OpenAPI schema, immediately invoke the Tree-sitter parser on a designated consumer repository directory to find exactly where that field was used.
+   - Append the exact file names and line numbers to the `BreakingChange` struct.
+
+4. CREATE: `engine/internal/treesitter/parser_test.go`
+   - Provide a dummy JS file with property accesses and write unit tests to assert the exact line numbers are returned.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- engine/internal/treesitter/parser.go
+- engine/internal/treesitter/parser_test.go
+
+FILES TO MODIFY:
+- engine/go.mod
+- engine/go.sum
+- engine/internal/diff/diff.go
+
+Commit: "feat: P10-T12 implement Tree-sitter AST impact analysis"
+Target branch: feature/dev

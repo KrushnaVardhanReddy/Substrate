@@ -1,0 +1,38 @@
+TASK: P9-T04 — Quality Gates (SonarQube-style)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement per-tier quality gates that set GitHub Check status to pass/fail based on configured thresholds.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-9/p9-t04-quality-gates.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Parse `tier` and `quality_gate` from `substrate.yaml`.
+- Supported gates: `strict`, `standard`, `permissive`.
+- You MUST write unit tests for the gate evaluation logic (`_test.go`).
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- `github-app/src/checks.ts` does not exist yet. You should create it to extract check-writing logic out of `index.ts` and `github-client.ts`.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Add `engine/gates/evaluator.go` for the gate logic.
+- Extend the GitHub App's check-writing code to call the evaluator before setting the final check status.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: engine/gates/evaluator.go (CREATE)
+   - Include `engine/gates/evaluator_test.go`
+2. FILE: github-app/src/checks.ts (MODIFY)
+3. Run `go test ./...`.
+
+Commit: "feat: P9-T04 implement quality gates"
+Target branch: feature/dev

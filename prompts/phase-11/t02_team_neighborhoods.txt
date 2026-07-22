@@ -1,0 +1,47 @@
+TASK: P11-T02 — Team Neighborhoods
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Group microservices visually by team ownership using Svelte Flow's "Parent Node" feature, creating bounded sub-flows for teams (e.g., Platform Team, Payments Team).
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-11/p11-t02-team-neighborhoods.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- The Group Node must render as a semi-transparent bounding box with a team label at the top.
+- The Dagre auto-layout logic must be updated to handle compound nodes (clusters).
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+The main graph view lives in `dashboard/src/routes/(app)/org/[org]/graph/+page.svelte`.
+You will need to create a new custom node component for the Team Group container, and then map the mock data to dynamically generate these parent nodes and assign `parentNode: '<team-id>'` to the respective service nodes.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: dashboard/src/lib/components/TeamGroupNode.svelte (CREATE NEW)
+   - Svelte Flow custom node to act as the bounding box (semi-transparent background, dashed border, bold team name label).
+
+2. FILE: dashboard/src/routes/(app)/org/[org]/graph/+page.svelte (MODIFY)
+   - Map your mock data to have a `team` attribute.
+   - Generate Svelte Flow "Parent Nodes" for each team.
+   - Set the `parentNode` property on the service nodes.
+   - Ensure the `dagre` layout function accounts for clusters (you may need to use `dagre.graph().setParent()`).
+3. Run `npm run check` before concluding.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- dashboard/src/lib/components/TeamGroupNode.svelte
+
+FILES TO MODIFY:
+- dashboard/src/routes/(app)/org/[org]/graph/+page.svelte
+
+Commit: "feat: P11-T02 implement team neighborhoods clustering"
+Target branch: feature/dev

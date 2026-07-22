@@ -1,0 +1,48 @@
+TASK: P11-T13 — Time-Travel Graph Replay
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement a timeline scrubber floating at the bottom of the graph to allow users to replay the architectural dependencies exactly as they existed on any historical date.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-11/p11-t13-time-travel.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- The scrubber MUST have a play/pause button, a date display, and a range slider.
+- Use our Vanilla CSS design tokens (`app.css`) for styling (`var(--bg-card)`, `var(--accent)`, `var(--border)`).
+- You MUST adapt the high-fidelity HTML structure from `prompts/phase-11/mockups/t13_mockup.html` into Svelte natively. Do not blindly copy-paste Tailwind CDNs.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The Scrubber should be placed in `dashboard/src/lib/components/TimeTravelScrubber.svelte`.
+- It will be absolutely positioned at the bottom of the main graph in `dashboard/src/routes/(app)/org/[org]/graph/+page.svelte`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FILE: dashboard/src/lib/components/TimeTravelScrubber.svelte (CREATE NEW)
+   - Implement the play/pause button and slider UI using the provided mockup reference.
+
+2. FILE: dashboard/src/routes/(app)/org/[org]/graph/+page.svelte (MODIFY)
+   - Import and render `<TimeTravelScrubber>` overlaying the graph canvas at the bottom center.
+
+3. Terminal
+   - Run `cd dashboard && npm run check` to ensure TS build succeeds.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- dashboard/src/lib/components/TimeTravelScrubber.svelte
+
+FILES TO MODIFY:
+- dashboard/src/routes/(app)/org/[org]/graph/+page.svelte
+
+Commit: "feat: P11-T13 implement time travel scrubber"
+Target branch: feature/dev

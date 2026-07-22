@@ -1,0 +1,33 @@
+TASK: P9-T13 — Embedded Mermaid Blast Radius
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Render a visual Mermaid.js flowchart of the blast radius directly inside the GitHub PR comment.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-9/p9-t13-mermaid-blast-radius.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Cap graph at 20 nodes; show a truncation notice if exceeded.
+- Wrap Mermaid code in ` ```mermaid ``` ` fenced blocks.
+- You MUST write unit tests for the Mermaid string generator.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Add `engine/mermaid/generator.go` that accepts `[]Edge` and returns a Mermaid `flowchart TD` string.
+- In `github-app/src/formatter.ts`, call the generator after blast radius traversal and embed the result.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: engine/mermaid/generator.go (CREATE)
+   - Include `engine/mermaid/generator_test.go`
+2. FILE: github-app/src/formatter.ts (MODIFY)
+3. Run `go test ./...`.
+
+Commit: "feat: P9-T13 implement embedded Mermaid blast radius"
+Target branch: feature/dev

@@ -1,0 +1,28 @@
+TASK: P7-T04 — Cross-Repo Auto-Fix PRs
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Automatically generate an AI patch for downstream consumer repositories that 
+were broken by an upstream API change, and open a Draft Pull Request in the 
+consumer's repository to fix the issue.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-7/p7-t04-cross-repo-autofix.md
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. MODIFY: api/internal/github/client.go
+   Add `CreateDraftPR(ctx context.Context, owner, repo, branch, patch, title, body string) (url string, err error)`
+   This method will fork/branch from `main`, apply the unified diff patch, and create a Draft PR.
+
+2. MODIFY: api/internal/handlers/ai_autofix.go
+   Extend the AI prompt logic. If the request includes `ConsumerSourceCode` (fetched from the consumer repo), ask the LLM to generate a `unified diff` patch for the consumer's source code, rather than just explaining the API break.
+
+3. MODIFY: api/internal/handlers/webhook.go (Push Handler)
+   When a `push` event occurs and the upstream diff introduces a breaking change (meaning it was merged despite the breakage, perhaps via override), trigger the cross-repo autofix process asynchronously for each broken consumer.
+
+Commit: "feat: P7-T04 auto-generate cross-repo draft PRs using AI autofix"
+Target branch: feature/p7-t04-cross-repo-autofix

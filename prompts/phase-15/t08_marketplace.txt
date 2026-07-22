@@ -1,0 +1,38 @@
+TASK: P15-T08 — Substrate Marketplace (Community Rules & Plugins)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement a community marketplace for governance rule packs.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-15/p15-t08-marketplace.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Implement `substrate plugin publish` and `substrate plugin install <name>`.
+- Create API endpoints for publishing and fetching plugins.
+- Provide a simple UI in the dashboard for browsing plugins.
+- You MUST write unit tests for both Go logic (`_test.go`) and Svelte components (`.test.ts`).
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Add a new `marketplace` package in the `api/internal` directory to handle logic.
+- Use a Postgres table `marketplace_plugins` to track published rule packs.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: api/internal/marketplace/handler.go (CREATE)
+   - Include `api/internal/marketplace/handler_test.go`
+2. FILE: engine/cmd/plugin.go (CREATE)
+   - Include `engine/cmd/plugin_test.go`
+3. FILE: dashboard/src/routes/(app)/marketplace/+page.svelte (CREATE)
+   - Include `dashboard/src/routes/(app)/marketplace/+page.test.ts`
+4. Add DB migrations for `marketplace_plugins`.
+5. Run `go test ./...` and `npm run test`.
+
+Commit: "feat: P15-T08 implement substrate marketplace"
+Target branch: feature/dev

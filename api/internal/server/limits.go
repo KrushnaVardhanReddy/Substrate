@@ -5,13 +5,19 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"os"
 
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 )
 
-func TierLimitsMiddleware(store db.Store) func(http.Handler) http.Handler {
+func TierLimitsMiddleware(store ports.LimitsStore) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if os.Getenv("ENVIRONMENT") == "development" {
+				next.ServeHTTP(w, r)
+				return
+			}
+
 			if r.Method == http.MethodPost || r.Method == http.MethodPut {
 				bodyBytes, err := io.ReadAll(r.Body)
 				if err != nil {

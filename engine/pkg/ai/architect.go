@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/spf13/viper"
 	"io"
 	"os"
 	"strings"
@@ -48,9 +49,9 @@ func RunArchitect(in io.Reader, out io.Writer) error {
 		return errors.New("input cannot be empty")
 	}
 
-	apiKey := os.Getenv("SUBSTRATE_AI_API_KEY")
-	baseURL := os.Getenv("SUBSTRATE_AI_BASE_URL")
-	model := os.Getenv("SUBSTRATE_AI_MODEL")
+	apiKey := viper.GetString("SUBSTRATE_AI_API_KEY")
+	baseURL := viper.GetString("SUBSTRATE_AI_BASE_URL")
+	model := viper.GetString("SUBSTRATE_AI_MODEL")
 
 	// Apply Fallback behavior: "must implement deterministic fallback mock responses when SUBSTRATE_AI_BASE_URL is unset"
 	// However, if the API key is set, maybe it's just meant for local OpenAI? The memory specifically says "when SUBSTRATE_AI_BASE_URL is unset" for AI endpoints...
@@ -66,19 +67,20 @@ func RunArchitect(in io.Reader, out io.Writer) error {
 	}
 
 	if apiKey == "" {
-		return ErrMissingAPIKey
+		provider := viper.GetString("SUBSTRATE_AI_PROVIDER")
+		if provider != "ollama" {
+			return ErrMissingAPIKey
+		}
 	}
 
 	if model == "" {
 		model = openai.GPT4o
 	}
 
-	config := openai.DefaultConfig(apiKey)
-	if baseURL != "" {
-		config.BaseURL = baseURL
+	client, err := NewAIClient()
+	if err != nil {
+		return fmt.Errorf("failed to initialize AI client: %w", err)
 	}
-
-	client := openai.NewClientWithConfig(config)
 	ctx := context.Background()
 
 	systemPrompt := "You are Substrate AI Architect. The user will describe an API they want. " +
@@ -112,7 +114,7 @@ func RunArchitect(in io.Reader, out io.Writer) error {
 	var fullResponse strings.Builder
 
 	for {
-		resp, err := stream.Recv()
+		chunk, err := stream.Recv()
 		if errors.Is(err, io.EOF) {
 			break
 		}
@@ -120,7 +122,6 @@ func RunArchitect(in io.Reader, out io.Writer) error {
 			return fmt.Errorf("stream error: %w", err)
 		}
 
-		chunk := resp.Choices[0].Delta.Content
 		fullResponse.WriteString(chunk)
 		fmt.Fprint(out, chunk)
 	}

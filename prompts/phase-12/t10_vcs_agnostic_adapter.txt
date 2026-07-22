@@ -1,0 +1,75 @@
+TASK: P12-T10 — VCS-Agnostic Webhook & API Adapter
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Refactor the Cloudflare Worker (`github-app`) to be VCS-Agnostic by implementing a generic adapter pattern. The worker must support parsing webhooks and making API calls for both GitHub and Gitea/Forgejo, allowing the platform to be deployed in enterprise self-hosted environments.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-12/p12-t10-vcs-agnostic-adapter.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Do NOT break existing GitHub functionality. The GitHub flow (JWT Auth, API fetching) must work exactly as it did before.
+- Introduce an interface `VCSClient` in `github-app/src/types.ts` (or similar).
+- Implement standard event interfaces for Push and PR to abstract the raw headers.
+- Extract GitHub logic into `github-app/src/providers/github/`.
+- Implement Gitea logic into `github-app/src/providers/gitea/`.
+- Rely on environment variables `GITEA_API_URL` and `GITEA_TOKEN` for the Gitea client.
+- Use a Factory method to return the correct `VCSClient` based on incoming headers (`X-GitHub-Event` vs `X-Gitea-Event`).
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The worker code lives in `github-app/src/`.
+- `index.ts` currently handles webhook routing and invokes GitHub-specific methods.
+- `github-client.ts` contains hardcoded `https://api.github.com` URLs.
+- `webhook.ts` checks strictly for `X-GitHub-Event`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. FILE: github-app/src/types.ts (EXPAND)
+   - Add a `VCSClient` interface with methods: `fetchFileContent`, `postComment`, `setCommitStatus`.
+   - Add standard event interfaces: `StandardPushEvent`, `StandardPREvent`.
+
+2. FOLDER: github-app/src/providers/ (CREATE)
+   - Extract GitHub specific clients/parsers from `github-client.ts` and `webhook.ts` into `github/client.ts` and `github/webhook.ts` (or just refactor existing files to export a `GitHubProvider` class).
+   - Create `gitea/client.ts` implementing `VCSClient`. It should fetch files using basic Token auth (`Authorization: token <GITEA_TOKEN>`) and hit `GITEA_API_URL/repos/...`.
+
+3. FILE: github-app/src/index.ts (MODIFY)
+   - Inspect headers (e.g., `X-Gitea-Event` or `X-GitHub-Event`) to determine the provider.
+   - Instantiate the appropriate provider.
+   - Replace direct calls to `fetchFileContent` with `provider.fetchFileContent(...)`.
+   - Ensure the logic safely falls back to GitHub if `GITEA_API_URL` is absent but headers match.
+
+4. Run `npm run build` or `npx wrangler dev` in `github-app/` to verify it compiles with zero TypeScript errors.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION HINTS
+═══════════════════════════════════════════════════════════════
+- Gitea's webhook payloads for push and pull_request are almost identical to GitHub's. 
+- For Gitea file fetching, the endpoint is `GET /api/v1/repos/{owner}/{repo}/contents/{filepath}?ref={ref}`. This returns a JSON object with a base64 encoded `content` field, exactly like GitHub!
+- Gitea uses simple tokens for auth (`Authorization: token YOUR_TOKEN`), unlike GitHub Apps which use complex JWTs. Bypass JWT generation for the Gitea provider.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO MODIFY:
+- github-app/src/index.ts
+- github-app/src/types.ts
+- github-app/src/webhook.ts
+- github-app/src/github-client.ts
+- (Create new files as needed inside github-app/src/providers/)
+
+FILES TO NOT TOUCH:
+- dashboard/**
+- api/**
+- engine/**
+- Makefile
+
+Commit: "feat: P12-T10 implement VCS-agnostic adapter for Gitea/Forgejo support"
+Target branch: feature/dev

@@ -1,0 +1,39 @@
+TASK: P10-T03 — AI Mock Data Generator (QA)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Scan QA repos for JSON test fixtures and auto-update mock data when the upstream API schema changes.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-10/p10-t03-ai-mock-data-generator.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Scan `__fixtures__/` and `testdata/` directories for JSON files.
+- Open a PR in the QA repo with the regenerated fixtures.
+- You MUST write unit tests for the fixture scanner and AI prompt builder.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- Substrate already has an AI client package in `engine/pkg/ai/client.go` with `NewAIClient()`. You MUST reuse this client to call the LLM, do not write your own OpenAI HTTP requests.
+- The engine runs locally. The mock data generator should scan the local filesystem for `__fixtures__/` or `testdata/` folders containing `.json` files.
+- It should use the `engine/diff` package to identify what changed, and then ask the AI to update the JSON mock to match the new schema.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Add `engine/mockgen/generator.go` for fixture scanning and AI calls.
+- Use `engine/ai_analyze.go` patterns for structuring the AI prompt.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: engine/mockgen/generator.go (CREATE)
+   - Include `engine/mockgen/generator_test.go`
+2. Run `go test ./...`.
+
+Commit: "feat: P10-T03 implement AI mock data generator"
+Target branch: feature/dev

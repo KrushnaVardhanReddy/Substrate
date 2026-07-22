@@ -1,0 +1,63 @@
+TASK: P14-T06 — Substrate Cloud Public Schema Registry
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Build "The npm for APIs"—a hosted public registry where open-source projects and SaaS companies publish versioned API schemas.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-14/p14-t06-public-schema-registry.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Mock all GitHub ingestion network calls in unit tests.
+- Ensure consumers can seamlessly fetch dependencies from `registry.substrate.io/...`.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+The Registry API lives in `api/internal/registry/`.
+Consumer dependency fetching is in `api/internal/consumers/`.
+Background jobs should reside in `workers/ingestion/`.
+
+⚠️ CRITICAL CONTEXT: GLOBAL NAMESPACES ⚠️
+The public registry introduces a global namespace mechanism (e.g., `@stripe/api`). This requires new `public_namespaces` and `public_schemas` tables that are distinctly separate from the internal, org-specific private registry schemas.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. CREATE: `api/internal/registry/public.go`
+   - Implement REST routes for publishing, versioning, and fetching public schemas.
+
+2. CREATE: `api/internal/db/migrations/..._create_public_registry.up.sql`
+   - Tables for `public_namespaces` and `public_schemas`.
+
+3. MODIFY: `api/internal/consumers/fetcher.go`
+   - Update fetching logic to recognize and resolve public registry URLs (`registry.substrate.io/...`).
+
+4. CREATE: `workers/ingestion/github_sync.go`
+   - Implement an automated cron worker that pulls OpenAPI specs from popular public GitHub repositories to bootstrap the ecosystem.
+
+5. CREATE: `api/internal/registry/public_test.go`
+   - Ensure tests validate the logic of a consumer project breaking when a public upstream schema introduces a breaking change. Mock GitHub HTTP calls.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- api/internal/registry/public.go
+- api/internal/registry/public_test.go
+- workers/ingestion/github_sync.go
+- workers/ingestion/github_sync_test.go
+- api/internal/db/migrations/20260720000000_create_public_registry.up.sql
+- api/internal/db/migrations/20260720000000_create_public_registry.down.sql
+
+FILES TO MODIFY:
+- api/internal/consumers/fetcher.go
+- api/internal/server/routes.go (to add public registry routes)
+
+Commit: "feat: P14-T06 implement Substrate Cloud Public Schema Registry"
+Target branch: feature/dev

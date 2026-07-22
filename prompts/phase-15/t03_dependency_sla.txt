@@ -1,0 +1,35 @@
+TASK: P15-T03 — Dependency SLA Tracking
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Let consumer teams declare `required_notice_days` in `substrate.yaml`. Warn provider teams when a breaking change breaches this SLA before the PR is merged.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-15/p15-t03-dependency-sla.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- The SLA warning must be clearly visible in the GitHub PR comment output.
+- Add `required_notice_days` (int) to the Go structs for the consumer manifest.
+- Do not block the merge based solely on SLA breach, but emit a strong warning.
+- Include unit tests for the SLA calculation logic.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Update `engine/config/manifest.go` to parse `required_notice_days`.
+- In `github-app/src/formatter.ts`, add a section for SLA Breaches if any are detected in the DiffReport.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: engine/config/manifest.go (MODIFY)
+   - Add `RequiredNoticeDays` field.
+2. FILE: github-app/src/formatter.ts (MODIFY)
+   - Add SLA breach warning logic to PR comments.
+3. Run `npm run check` and `go test ./...`.
+
+Commit: "feat: P15-T03 implement dependency SLA tracking"
+Target branch: feature/dev
