@@ -1,0 +1,19 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "api/internal/db/queries"
+    schema: "api/internal/db/schema"
+    gen:
+      go:
+        package: "db"
+        out: "api/internal/db"
+        sql_package: "pgx/v5"
+        overrides:
+          - db_type: "timestamptz"
+            go_type: "time.Time"
+          - db_type: "timestamp"
+            go_type: "time.Time"
+          - db_type: "text"
+            go_type: "string"
+          - db_type: "varchar"
+            go_type: "string"
