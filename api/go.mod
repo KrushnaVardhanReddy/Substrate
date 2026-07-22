@@ -16,6 +16,7 @@ require (
 	github.com/riverqueue/river/riverdriver/riverpgxv5 v0.40.0
 	github.com/riverqueue/river/rivertype v0.40.0
 	github.com/sashabaranov/go-openai v1.41.2
+	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
 	github.com/stripe/stripe-go/v78 v78.12.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.61.0
@@ -55,7 +56,6 @@ require (
 	github.com/spf13/afero v1.15.0 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
-	github.com/spf13/viper v1.21.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tidwall/gjson v1.19.0 // indirect
 	github.com/tidwall/match v1.2.0 // indirect
