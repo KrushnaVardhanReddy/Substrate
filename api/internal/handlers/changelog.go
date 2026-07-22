@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 )
 
 type ChangelogEntry struct {
@@ -15,7 +15,7 @@ type ChangelogEntry struct {
 	EndpointsRemoved int    `json:"endpoints_removed"`
 }
 
-func ChangelogHandler(store db.Store) http.HandlerFunc {
+func ChangelogHandler(store ports.DiffStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		org := chi.URLParam(r, "org")
 		repo := chi.URLParam(r, "repo")

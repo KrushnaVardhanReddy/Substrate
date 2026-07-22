@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/github"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -19,7 +20,7 @@ type CreateClaimRequest struct {
 	AmountCents  int64     `json:"amount_cents"`
 }
 
-func InsuranceGetPolicyHandler(store db.Store) http.HandlerFunc {
+func InsuranceGetPolicyHandler(store ports.InsuranceStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgIDStr := chi.URLParam(r, "org")
 		orgID, err := uuid.Parse(orgIDStr)
@@ -40,7 +41,7 @@ func InsuranceGetPolicyHandler(store db.Store) http.HandlerFunc {
 	}
 }
 
-func InsuranceGetClaimsHandler(store db.Store) http.HandlerFunc {
+func InsuranceGetClaimsHandler(store ports.InsuranceStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgIDStr := chi.URLParam(r, "org")
 		orgID, err := uuid.Parse(orgIDStr)
@@ -65,7 +66,7 @@ func InsuranceGetClaimsHandler(store db.Store) http.HandlerFunc {
 	}
 }
 
-func InsuranceFileClaimHandler(store db.Store, githubClient github.Client) http.HandlerFunc {
+func InsuranceFileClaimHandler(store ports.InsuranceStore, githubClient github.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgIDStr := chi.URLParam(r, "org")
 		orgID, err := uuid.Parse(orgIDStr)

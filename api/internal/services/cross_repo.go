@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	pkgconsumers "github.com/KrushnaVardhanReddy/substrate/api/internal/consumers"
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
-	"github.com/KrushnaVardhanReddy/substrate/engine/crm"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/crypto"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
+	"github.com/KrushnaVardhanReddy/substrate/engine/crm"
 )
 
 type CrossRepoCheckRequest struct {
@@ -65,7 +65,7 @@ type CrossRepoCheckResponse struct {
 }
 
 // PerformCrossRepoCheck extracts the core logic of CrossRepoCheckHandler.
-func PerformCrossRepoCheck(ctx context.Context, store db.Store, req CrossRepoCheckRequest) (CrossRepoCheckResponse, error) {
+func PerformCrossRepoCheck(ctx context.Context, store ports.CrossRepoStore, req CrossRepoCheckRequest) (CrossRepoCheckResponse, error) {
 	diffEngineURL := os.Getenv("DIFF_ENGINE_URL")
 	if diffEngineURL == "" {
 		diffEngineURL = "http://localhost:8080"

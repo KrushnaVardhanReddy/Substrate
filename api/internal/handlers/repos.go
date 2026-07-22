@@ -5,10 +5,11 @@ import (
 	"net/http"
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 )
 
 // ReposHandler handles the /api/v1/repos/{org} endpoint.
-func ReposHandler(store db.Store) http.HandlerFunc {
+func ReposHandler(store ports.RepoStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		org := r.PathValue("org")
 		if org == "" {

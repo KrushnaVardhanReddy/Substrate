@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 )
 
 // OTelSpan represents a simplified OpenTelemetry span relevant to discovery.
@@ -25,7 +25,7 @@ func ExtractBaseURL(rawURL string) string {
 	return rawURL
 }
 
-func ProcessRuntimeSignals(ctx context.Context, store db.Store, spans []OTelSpan) error {
+func ProcessRuntimeSignals(ctx context.Context, store ports.DiscoveryStore, spans []OTelSpan) error {
 	var lastErr error
 	for _, span := range spans {
 		baseURL := ExtractBaseURL(span.HTTPURL)

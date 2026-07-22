@@ -5,12 +5,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
 
-func GetPreviewHandler(store db.Store) http.HandlerFunc {
+func GetPreviewHandler(store ports.PreviewStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenStr := chi.URLParam(r, "token")
 		token, err := uuid.Parse(tokenStr)
@@ -43,7 +43,7 @@ type ExpirePreviewRequest struct {
 	PRNumber int    `json:"pr_number"`
 }
 
-func ExpirePreviewHandler(store db.Store) http.HandlerFunc {
+func ExpirePreviewHandler(store ports.PreviewStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req ExpirePreviewRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
@@ -14,10 +14,10 @@ type GovernanceRuleRequest struct {
 }
 
 type GovernanceRulesHandler struct {
-	store db.Store
+	store ports.GovernanceStore
 }
 
-func NewGovernanceRulesHandler(store db.Store) *GovernanceRulesHandler {
+func NewGovernanceRulesHandler(store ports.GovernanceStore) *GovernanceRulesHandler {
 	return &GovernanceRulesHandler{store: store}
 }
 

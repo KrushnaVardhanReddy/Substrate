@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/github"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -20,7 +20,7 @@ type OTelMetricsSpan struct {
 	Timestamp time.Time `json:"timestamp"`
 }
 
-func OTelMetricsHandler(store db.Store) http.HandlerFunc {
+func OTelMetricsHandler(store ports.TelemetryStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var spans []OTelMetricsSpan
 		if err := json.NewDecoder(r.Body).Decode(&spans); err != nil {
@@ -41,7 +41,7 @@ func OTelMetricsHandler(store db.Store) http.HandlerFunc {
 	}
 }
 
-func GetZombiesHandler(store db.Store) http.HandlerFunc {
+func GetZombiesHandler(store ports.TelemetryStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgName := chi.URLParam(r, "org")
 		if orgName == "" {

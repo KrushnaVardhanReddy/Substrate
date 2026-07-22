@@ -10,11 +10,11 @@ import (
 	"github.com/stripe/stripe-go/v78"
 	"github.com/stripe/stripe-go/v78/webhook"
 
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 )
 
 // StripeWebhookHandler handles incoming webhooks from Stripe
-func StripeWebhookHandler(store db.Store) http.HandlerFunc {
+func StripeWebhookHandler(store ports.BillingStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const MaxBodyBytes = int64(65536)
 		r.Body = http.MaxBytesReader(w, r.Body, MaxBodyBytes)
