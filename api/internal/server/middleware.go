@@ -1,12 +1,12 @@
 package server
 
 import (
-	"fmt"
+	"crypto/sha256"
 	"net/http"
 	"strings"
 
+	"aidanwoods.dev/go-paseto"
 	"github.com/go-chi/chi/v5"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 func AuthMiddleware(registryApiToken, jwtSecret string) func(http.Handler) http.Handler {
@@ -38,27 +38,24 @@ func AuthMiddleware(registryApiToken, jwtSecret string) func(http.Handler) http.
 				return
 			}
 
-			// Parse as JWT
-			parsedToken, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
-				if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-					return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
-				}
-				return []byte(jwtSecret), nil
-			})
+			// Parse as PASETO v4 local
+			hash := sha256.Sum256([]byte(jwtSecret))
+			key, err := paseto.V4SymmetricKeyFromBytes(hash[:])
+			if err != nil {
+				http.Error(w, "internal server error: invalid key", http.StatusInternalServerError)
+				return
+			}
 
-			if err != nil || !parsedToken.Valid {
+			parser := paseto.NewParser()
+			parsedToken, err := parser.ParseV4Local(key, token, nil)
+			if err != nil {
 				http.Error(w, "invalid token", http.StatusUnauthorized)
 				return
 			}
 
-			claims, ok := parsedToken.Claims.(jwt.MapClaims)
-			if !ok {
-				http.Error(w, "invalid claims", http.StatusUnauthorized)
-				return
-			}
-
-			orgsClaim, ok := claims["orgs"].(map[string]interface{})
-			if !ok {
+			var orgsClaim map[string]interface{}
+			err = parsedToken.Get("orgs", &orgsClaim)
+			if err != nil {
 				http.Error(w, "missing or invalid orgs claim", http.StatusForbidden)
 				return
 			}
@@ -104,27 +101,24 @@ func AuthzMiddleware(registryApiToken, jwtSecret string) func(http.Handler) http
 				return
 			}
 
-			// Parse as JWT
-			parsedToken, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
-				if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-					return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
-				}
-				return []byte(jwtSecret), nil
-			})
+			// Parse as PASETO v4 local
+			hash := sha256.Sum256([]byte(jwtSecret))
+			key, err := paseto.V4SymmetricKeyFromBytes(hash[:])
+			if err != nil {
+				http.Error(w, "internal server error: invalid key", http.StatusInternalServerError)
+				return
+			}
 
-			if err != nil || !parsedToken.Valid {
+			parser := paseto.NewParser()
+			parsedToken, err := parser.ParseV4Local(key, token, nil)
+			if err != nil {
 				http.Error(w, "invalid token", http.StatusUnauthorized)
 				return
 			}
 
-			claims, ok := parsedToken.Claims.(jwt.MapClaims)
-			if !ok {
-				http.Error(w, "invalid claims", http.StatusUnauthorized)
-				return
-			}
-
-			orgsClaim, ok := claims["orgs"].(map[string]interface{})
-			if !ok {
+			var orgsClaim map[string]interface{}
+			err = parsedToken.Get("orgs", &orgsClaim)
+			if err != nil {
 				http.Error(w, "missing or invalid orgs claim", http.StatusForbidden)
 				return
 			}

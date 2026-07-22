@@ -2,33 +2,35 @@ package server
 
 import (
 	"context"
+	"crypto/sha256"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
 
+	"aidanwoods.dev/go-paseto"
 	"github.com/go-chi/chi/v5"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 func TestAuthMiddleware(t *testing.T) {
 	registryToken := "test-registry-token"
 	jwtSecret := "test-jwt-secret"
 
-	// Generate a valid JWT token
-	validToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"orgs": map[string]string{"allowed-org": "member"},
-		"exp":  time.Now().Add(time.Hour).Unix(),
-	})
-	validTokenString, _ := validToken.SignedString([]byte(jwtSecret))
+	hash := sha256.Sum256([]byte(jwtSecret))
+	key, _ := paseto.V4SymmetricKeyFromBytes(hash[:])
 
-	// Generate a valid JWT token but expired
-	expiredToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"orgs": map[string]string{"allowed-org": "member"},
-		"exp":  time.Now().Add(-time.Hour).Unix(),
-	})
-	expiredTokenString, _ := expiredToken.SignedString([]byte(jwtSecret))
+	// Generate a valid PASETO token
+	validToken := paseto.NewToken()
+	validToken.SetExpiration(time.Now().Add(time.Hour))
+	validToken.Set("orgs", map[string]string{"allowed-org": "member"})
+	validTokenString := validToken.V4Encrypt(key, nil)
+
+	// Generate an expired PASETO token
+	expiredToken := paseto.NewToken()
+	expiredToken.SetExpiration(time.Now().Add(-time.Hour))
+	expiredToken.Set("orgs", map[string]string{"allowed-org": "member"})
+	expiredTokenString := expiredToken.V4Encrypt(key, nil)
 
 	handler := AuthMiddleware(registryToken, jwtSecret)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -144,19 +146,20 @@ func TestAuthzMiddleware(t *testing.T) {
 	registryToken := "test-registry-token"
 	jwtSecret := "test-jwt-secret"
 
-	// Generate a valid JWT token with admin role
-	adminToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"orgs": map[string]string{"allowed-org": "admin"},
-		"exp":  time.Now().Add(time.Hour).Unix(),
-	})
-	adminTokenString, _ := adminToken.SignedString([]byte(jwtSecret))
+	hash := sha256.Sum256([]byte(jwtSecret))
+	key, _ := paseto.V4SymmetricKeyFromBytes(hash[:])
 
-	// Generate a valid JWT token with member role
-	memberToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"orgs": map[string]string{"allowed-org": "member"},
-		"exp":  time.Now().Add(time.Hour).Unix(),
-	})
-	memberTokenString, _ := memberToken.SignedString([]byte(jwtSecret))
+	// Generate a valid PASETO token with admin role
+	adminToken := paseto.NewToken()
+	adminToken.SetExpiration(time.Now().Add(time.Hour))
+	adminToken.Set("orgs", map[string]string{"allowed-org": "admin"})
+	adminTokenString := adminToken.V4Encrypt(key, nil)
+
+	// Generate a valid PASETO token with member role
+	memberToken := paseto.NewToken()
+	memberToken.SetExpiration(time.Now().Add(time.Hour))
+	memberToken.Set("orgs", map[string]string{"allowed-org": "member"})
+	memberTokenString := memberToken.V4Encrypt(key, nil)
 
 	handler := AuthzMiddleware(registryToken, jwtSecret)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
