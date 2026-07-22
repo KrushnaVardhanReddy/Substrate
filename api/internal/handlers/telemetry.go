@@ -7,10 +7,11 @@ import (
 	"net/http"
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/discovery"
 )
 
-func TelemetryHandler(store db.Store) http.HandlerFunc {
+func TelemetryHandler(store ports.DiscoveryStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var spans []discovery.OTelSpan
 		if err := json.NewDecoder(r.Body).Decode(&spans); err != nil {
@@ -32,7 +33,7 @@ func TelemetryHandler(store db.Store) http.HandlerFunc {
 	}
 }
 
-func DriftTelemetryHandler(store db.Store) http.HandlerFunc {
+func DriftTelemetryHandler(store ports.DiscoveryStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var anomaly db.DriftAnomaly
 		if err := json.NewDecoder(r.Body).Decode(&anomaly); err != nil {

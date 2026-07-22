@@ -7,7 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 )
 
 type ImpactResponse struct {
@@ -17,7 +17,7 @@ type ImpactResponse struct {
 }
 
 // ImpactHandler handles the /api/v1/impact/{org}/{repo} endpoint.
-func ImpactHandler(store db.Store) http.HandlerFunc {
+func ImpactHandler(store ports.RepoStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		org := chi.URLParam(r, "org")
 		repoName := chi.URLParam(r, "repo")

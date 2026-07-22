@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 )
 
-func ChangesHandler(store db.Store) http.HandlerFunc {
+func ChangesHandler(store ports.ChangeStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)

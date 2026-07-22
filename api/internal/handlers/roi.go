@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 	"github.com/go-chi/chi/v5"
 )
 
-func ROIHandler(store db.Store) http.HandlerFunc {
+func ROIHandler(store ports.TelemetryStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		org := chi.URLParam(r, "org")
 		if org == "" {

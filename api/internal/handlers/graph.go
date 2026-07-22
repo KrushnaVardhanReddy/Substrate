@@ -5,10 +5,11 @@ import (
 	"net/http"
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 )
 
 // GraphHandler handles the /api/v1/graph/{org} endpoint.
-func GraphHandler(store db.Store) http.HandlerFunc {
+func GraphHandler(store ports.RepoStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		org := r.PathValue("org")
 		if org == "" {

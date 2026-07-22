@@ -9,11 +9,11 @@ import (
 	"github.com/go-chi/cors"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/github"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/handler"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/handlers"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/marketplace"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/registry"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/services"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/webhook"
@@ -34,7 +34,7 @@ func ServiceTokenMiddleware(registryApiToken string) func(http.Handler) http.Han
 }
 
 // NewRouter creates a new router with all the routes registered.
-func NewRouter(store db.Store, riverClient workers.JobEnqueuer, authConfig handlers.AuthConfig, registryApiToken, jwtSecret string) http.Handler {
+func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig handlers.AuthConfig, registryApiToken, jwtSecret string) http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)

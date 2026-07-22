@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/egress"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/github"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/governance"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/services"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/workers"
 	"github.com/google/uuid"
@@ -33,7 +33,7 @@ type SaveDiffResponse struct {
 	ID string `json:"id"`
 }
 
-func SaveDiffHandler(store db.Store, riverClient workers.JobEnqueuer, ghClient github.Client) http.HandlerFunc {
+func SaveDiffHandler(store ports.SaveDiffStore, riverClient workers.JobEnqueuer, ghClient github.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req SaveDiffRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -174,7 +174,7 @@ func SaveDiffHandler(store db.Store, riverClient workers.JobEnqueuer, ghClient g
 	}
 }
 
-func GetDiffHandler(store db.Store) http.HandlerFunc {
+func GetDiffHandler(store ports.DiffStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		idStr := r.PathValue("id")
 		id, err := uuid.Parse(idStr)

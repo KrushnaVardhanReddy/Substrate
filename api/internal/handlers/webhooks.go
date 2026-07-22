@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -13,7 +14,7 @@ type RegisterWebhookRequest struct {
 	Secret string `json:"secret"`
 }
 
-func RegisterWebhookHandler(store db.Store) http.HandlerFunc {
+func RegisterWebhookHandler(store ports.WebhookStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		org := chi.URLParam(r, "org")
 		if org == "" {

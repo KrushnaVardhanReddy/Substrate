@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/services"
 )
 
@@ -23,7 +23,7 @@ func sendRollbackJSONError(w http.ResponseWriter, message string, status int) {
 	})
 }
 
-func CanRollbackHandler(store db.Store) http.HandlerFunc {
+func CanRollbackHandler(store ports.RollbackStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		org := r.URL.Query().Get("org")
 		repo := r.URL.Query().Get("repo")

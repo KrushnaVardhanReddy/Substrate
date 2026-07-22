@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 )
 
-func SpecHandler(store db.Store) http.HandlerFunc {
+func SpecHandler(store ports.ContractStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		org := r.PathValue("org")
 		repo := r.PathValue("repo")

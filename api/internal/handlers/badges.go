@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -42,7 +43,7 @@ func calculateScore(breaks int) (string, string) {
 	}
 }
 
-func BadgesHandler(store db.Store) http.HandlerFunc {
+func BadgesHandler(store ports.BadgesStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		org := chi.URLParam(r, "org")
 		repo := chi.URLParam(r, "repo")

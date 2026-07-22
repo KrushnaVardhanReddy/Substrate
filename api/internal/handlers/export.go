@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 )
 
 // HandleExportDocs handles the /api/v1/export/docs/{org} endpoint.
-func HandleExportDocs(store db.Store) http.HandlerFunc {
+func HandleExportDocs(store ports.RepoStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		org := chi.URLParam(r, "org")
 		if org == "" {

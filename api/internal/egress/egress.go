@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/services"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/workers"
 )
@@ -14,7 +14,7 @@ type EventData = services.EventData
 type BrokenConsumer = services.BrokenConsumer
 type BreakingChangeEvent = services.BreakingChangeEvent
 
-func DispatchEvent(ctx context.Context, store db.Store, riverClient workers.JobEnqueuer, event services.BreakingChangeEvent) error {
+func DispatchEvent(ctx context.Context, store ports.EgressStore, riverClient workers.JobEnqueuer, event services.BreakingChangeEvent) error {
 	webhooks, err := store.GetWebhooks(ctx, event.Data.Organization)
 	if err != nil {
 		log.Printf("Error fetching webhooks for org %s: %v", event.Data.Organization, err)

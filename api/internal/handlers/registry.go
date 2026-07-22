@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 )
 
 type CanDeployResponse struct {
@@ -23,7 +23,7 @@ func sendJSONError(w http.ResponseWriter, message string, status int) {
 	})
 }
 
-func CanDeployHandler(store db.Store) http.HandlerFunc {
+func CanDeployHandler(store ports.CanDeployStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		repo := r.URL.Query().Get("repo")
 		if repo == "" {
