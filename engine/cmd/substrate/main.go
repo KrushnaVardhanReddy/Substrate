@@ -501,6 +501,7 @@ func main() {
 	rootCmd.AddCommand(checkRollbackCmd)
 	rootCmd.AddCommand(gatewayCmd)
 	rootCmd.AddCommand(lintCmd)
+	rootCmd.AddCommand(schemaSmellCmd)
 	rootCmd.AddCommand(cmd.PluginCmd)
 	rootCmd.AddCommand(archaeologyCmd)
 	rootCmd.AddCommand(watchCmd)

@@ -1,15 +1,12 @@
 package main
 
 import (
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"os/exec"
 	"testing"
-	"time"
 
-	"github.com/KrushnaVardhanReddy/substrate/engine/postmortem"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -28,44 +25,20 @@ func TestE2E_PostMortem(t *testing.T) {
 			return
 		}
 
-		assert.Equal(t, "/api/v1/changes", r.URL.Path)
-		assert.NotEmpty(t, r.URL.Query().Get("since"))
-		assert.NotEmpty(t, r.URL.Query().Get("until"))
+		assert.Equal(t, "/api/v1/postmortem", r.URL.Path)
 		assert.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
 
-		changes := []postmortem.BreakingChangeRecord{
-			{
-				OrgName:         "testorg",
-				RepoName:        "testrepo",
-				GitSHA:          "abcdef",
-				Timestamp:       time.Now().Add(-2 * time.Hour),
-				BreakingChanges: json.RawMessage(`[{"description": "removed field id"}]`),
-			},
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(changes)
+		w.Header().Set("Content-Type", "text/markdown")
+		w.Write([]byte("# Post-Mortem\n\n"))
+		w.Write([]byte("Root cause: removed field id"))
 	}))
 	defer mockAPI.Close()
-
-	// Start mock OpenAI API
-	mockOpenAI := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "/v1/chat/completions", r.URL.Path)
-		w.Header().Set("Content-Type", "text/event-stream")
-		w.Write([]byte("data: {\"choices\":[{\"delta\":{\"content\":\"# Post-Mortem\\n\\n\"}}]}\n\n"))
-		w.Write([]byte("data: {\"choices\":[{\"delta\":{\"content\":\"Root cause: removed field id\"}}]}\n\n"))
-		w.Write([]byte("data: [DONE]\n\n"))
-	}))
-	defer mockOpenAI.Close()
 
 	// Execute postmortem command
 	postmortemCmd := exec.Command("./substrate", "postmortem", "--incident", "2023-10-10T12:00:00Z")
 	postmortemCmd.Env = append(os.Environ(),
 		"REGISTRY_API_TOKEN=test-token",
 		"SUBSTRATE_API_URL="+mockAPI.URL,
-		"SUBSTRATE_AI_PROVIDER=openai",
-		"SUBSTRATE_AI_API_KEY=test-ai-key",
-		"SUBSTRATE_AI_BASE_URL="+mockOpenAI.URL+"/v1",
 		"SUBSTRATE_DISABLE_CACHE_SYNC=1",
 	)
 

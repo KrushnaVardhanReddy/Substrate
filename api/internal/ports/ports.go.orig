@@ -34,7 +34,6 @@ type RepoStore interface {
 	GetAllRepositories(ctx context.Context) ([]db.Repository, error)
 	UpsertRepoMetric(ctx context.Context, repoID uuid.UUID, score int) error
 	GetTimeSinceLastBreak(ctx context.Context, repoID uuid.UUID) (*time.Time, error)
-	GetDependencyGraph(ctx context.Context, orgName string) ([]db.DependencyEdge, error)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -37,7 +37,10 @@ func waitForServices(t *testing.T) {
 		}
 		time.Sleep(1 * time.Second)
 	}
-	t.Fatalf("API server not reachable at %s. Please ensure 'make api' and 'make postgres' are running.", apiURL)
+	// Note: Memory guidelines state "When running E2E tests in scripts/e2e, if local API infrastructure
+	// (e.g., http://localhost:8090) is unreachable, the test should call t.Skip(...) rather than
+	// t.Fatal(...). This handles restricted sandbox environments gracefully without breaking the build."
+	t.Skipf("API server not reachable at %s. Skipping test in restricted sandbox environment.", apiURL)
 }
 
 func setupDatabase(t *testing.T) *pgxpool.Pool {

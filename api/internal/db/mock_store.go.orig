@@ -458,9 +458,5 @@ func (m *MockStore) UpdatePartnerStatus(ctx context.Context, arg sqlcgen.UpdateP
 }
 
 func (m *MockStore) DeletePartner(ctx context.Context, id uuid.UUID) error {
-	// Simulate Not Found
-	if id.String() == "99999999-9999-9999-9999-999999999999" {
-		return fmt.Errorf("no rows in result set")
-	}
 	return nil
 }
