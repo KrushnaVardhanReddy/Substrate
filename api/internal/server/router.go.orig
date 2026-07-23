@@ -80,7 +80,7 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 	authzMW := AuthzMiddleware(registryApiToken, jwtSecret)
 	jwtValidMW := JWTValidMiddleware(jwtSecret)
 
-	partnersHandler := handler.NewPartnersHandler(store)
+	partnersHandler := handler.NewPartnersHandler(store.Pool())
 	r.Method("GET", "/api/v1/org/{org}/partners", authzMW(http.HandlerFunc(partnersHandler.ListPartners)))
 	r.Method("POST", "/api/v1/org/{org}/partners", authzMW(http.HandlerFunc(partnersHandler.CreatePartner)))
 	r.Method("PUT", "/api/v1/org/{org}/partners/{id}", authzMW(http.HandlerFunc(partnersHandler.UpdatePartner)))

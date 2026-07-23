@@ -120,7 +120,12 @@ func (h *PartnersHandler) UpdatePartner(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-    pgUUID := pgtype.UUID{Bytes: id, Valid: true}
+    var pgUUID pgtype.UUID
+    err = pgUUID.Scan(id.String())
+    if err != nil {
+        http.Error(w, "Invalid ID", http.StatusBadRequest)
+        return
+    }
 
 	p, err := h.store.UpdatePartner(r.Context(), sqlcgen.UpdatePartnerParams{
 		VendorName:    req.VendorName,
@@ -157,11 +162,12 @@ func (h *PartnersHandler) DeletePartner(w http.ResponseWriter, r *http.Request) 
 	err = h.store.DeletePartner(r.Context(), id)
 
 	if err != nil {
-		if err.Error() == "no rows in result set" || err.Error() == "not found" {
-			http.Error(w, "Partner not found", http.StatusNotFound)
-		} else {
-			http.Error(w, "Failed to delete partner", http.StatusInternalServerError)
-		}
+		http.Error(w, "Failed to delete partner", http.StatusInternalServerError)
+		return
+	}
+
+	if err.Error() == "no rows in result set" || err.Error() == "not found" {
+		http.Error(w, "Partner not found", http.StatusNotFound)
 		return
 	}
 
@@ -215,7 +221,12 @@ func (h *PartnersHandler) VerifyPartner(w http.ResponseWriter, r *http.Request) 
 	}
 	defer resp.Body.Close()
 
-    pgUUID := pgtype.UUID{Bytes: id, Valid: true}
+    var pgUUID pgtype.UUID
+    err = pgUUID.Scan(id.String())
+    if err != nil {
+        http.Error(w, "Invalid ID", http.StatusBadRequest)
+        return
+    }
 
 	// Verification succeeded, update status
 	updatedP, err := h.store.UpdatePartnerStatus(r.Context(), sqlcgen.UpdatePartnerStatusParams{

@@ -219,6 +219,7 @@ func (s *PGStore) ListPartners(ctx context.Context) ([]sqlcgen.PartnerIntegratio
 }
 
 func (s *PGStore) GetPartner(ctx context.Context, id uuid.UUID) (sqlcgen.PartnerIntegration, error) {
+	var p sqlcgen.PartnerIntegration
 	pgUUID := pgtype.UUID{Bytes: id, Valid: true}
 	q := sqlcgen.New(s.pool)
 	return q.GetPartner(ctx, pgUUID)
@@ -237,6 +238,5 @@ func (s *PGStore) UpdatePartnerStatus(ctx context.Context, arg sqlcgen.UpdatePar
 func (s *PGStore) DeletePartner(ctx context.Context, id uuid.UUID) error {
 	pgUUID := pgtype.UUID{Bytes: id, Valid: true}
 	q := sqlcgen.New(s.pool)
-	_, err := q.DeletePartner(ctx, pgUUID)
-	return err
+	return q.DeletePartner(ctx, pgUUID)
 }

@@ -1,0 +1,30 @@
+--- partners.go
++++ partners.go
+@@ -118,12 +118,7 @@
+		return
+	}
+
+-	var pgUUID pgtype.UUID
+-	err = pgUUID.Scan(id.String())
+-	if err != nil {
+-		http.Error(w, "Invalid ID", http.StatusBadRequest)
+-		return
+-	}
++	pgUUID := pgtype.UUID{Bytes: id, Valid: true}
+
+	p, err := h.store.UpdatePartner(r.Context(), sqlcgen.UpdatePartnerParams{
+		VendorName:    req.VendorName,
+@@ -206,12 +201,7 @@
+	}
+	defer resp.Body.Close()
+
+-	var pgUUID pgtype.UUID
+-	err = pgUUID.Scan(id.String())
+-	if err != nil {
+-		http.Error(w, "Invalid ID", http.StatusBadRequest)
+-		return
+-	}
++	pgUUID := pgtype.UUID{Bytes: id, Valid: true}
+
+	// Verification succeeded, update status
+	updatedP, err := h.store.UpdatePartnerStatus(r.Context(), sqlcgen.UpdatePartnerStatusParams{
