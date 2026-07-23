@@ -22,7 +22,7 @@ func NewGovernanceRulesHandler(store ports.GovernanceStore) *GovernanceRulesHand
 }
 
 func (h *GovernanceRulesHandler) ListRules(w http.ResponseWriter, r *http.Request) {
-	orgName := chi.URLParam(r, "orgName")
+	orgName := chi.URLParam(r, "org")
 
 	orgID, err := h.store.GetOrgIDByName(r.Context(), orgName)
 	if err != nil {
@@ -41,7 +41,7 @@ func (h *GovernanceRulesHandler) ListRules(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *GovernanceRulesHandler) CreateRule(w http.ResponseWriter, r *http.Request) {
-	orgName := chi.URLParam(r, "orgName")
+	orgName := chi.URLParam(r, "org")
 
 	orgID, err := h.store.GetOrgIDByName(r.Context(), orgName)
 	if err != nil {
@@ -72,7 +72,7 @@ func (h *GovernanceRulesHandler) CreateRule(w http.ResponseWriter, r *http.Reque
 }
 
 func (h *GovernanceRulesHandler) DeleteRule(w http.ResponseWriter, r *http.Request) {
-	orgName := chi.URLParam(r, "orgName")
+	orgName := chi.URLParam(r, "org")
 	ruleIDStr := chi.URLParam(r, "ruleID")
 
 	orgID, err := h.store.GetOrgIDByName(r.Context(), orgName)

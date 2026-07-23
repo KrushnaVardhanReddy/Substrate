@@ -106,7 +106,9 @@ func InsuranceFileClaimHandler(store ports.InsuranceStore, githubClient github.C
 					if err == nil {
 						for _, run := range checkRuns {
 							if strings.HasPrefix(run.Name, "substrate") {
-								if run.Conclusion == "neutral" || run.Conclusion == "success" { // If overridden or success but still broke
+								if run.Conclusion == "success" {
+									status = "APPROVED"
+								} else { // overridden, neutral, failure etc.
 									status = "REJECTED"
 								}
 							}

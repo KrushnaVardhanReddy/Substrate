@@ -29,7 +29,7 @@ func ExtractSpec(filePath string) error {
 
 	if baseURL == "" {
 		fmt.Println("Using deterministic fallback response (SUBSTRATE_AI_BASE_URL is unset).")
-		return os.WriteFile("openapi.yaml", []byte("openapi: 3.0.0\ninfo:\n  title: Mock Watch API\n"), 0644)
+		return os.WriteFile("openapi.yaml", []byte("openapi: 3.0.0\ninfo:\n  title: Mock Watch API (updated)\n"), 0644)
 	}
 
 	if apiKey == "" {

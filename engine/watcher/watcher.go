@@ -18,7 +18,7 @@ type WatchOptions struct {
 	Dir         string
 	Debounce    time.Duration
 	Logf        func(format string, v ...any)
-	ExtractFunc func() error
+	ExtractFunc func(filePath string) error
 }
 
 // Watch starts monitoring the given directory for .go and .ts changes.
@@ -59,7 +59,7 @@ func Watch(ctx context.Context, opts WatchOptions) error {
 	triggerExtract := func(filePath string) {
 		var err error
 		if opts.ExtractFunc != nil {
-			err = opts.ExtractFunc()
+			err = opts.ExtractFunc(filePath)
 		} else {
 			err = extractor.ExtractSpec(filePath)
 		}

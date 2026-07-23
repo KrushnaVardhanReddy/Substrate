@@ -2,8 +2,12 @@ package db
 
 import (
 	"context"
-	"github.com/google/uuid"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
+
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/db/sqlcgen"
 )
 
 func (s *PGStore) RegisterWebhook(ctx context.Context, config WebhookConfig) error {
@@ -17,27 +21,14 @@ func (s *PGStore) RegisterWebhook(ctx context.Context, config WebhookConfig) err
 func (s *PGStore) GetROIMetrics(ctx context.Context, orgID string) (ROIMetrics, error) {
 	var metrics ROIMetrics
 
-	err := s.pool.QueryRow(ctx, `
-		SELECT COUNT(*)
-		FROM webhook_events
-		WHERE (is_audit_mode = true OR status = 'blocked')
-		  AND org_name = $1
-		  AND timestamp > NOW() - INTERVAL '30 days'
-	`, orgID).Scan(&metrics.TotalPreventedOutages)
+	q := sqlcgen.New(s.pool)
+	row, err := q.GetROIMetrics(ctx, pgtype.Text{String: orgID, Valid: true})
 	if err != nil {
 		return metrics, err
 	}
 
-	err = s.pool.QueryRow(ctx, `
-		SELECT COUNT(*)
-		FROM drift_anomalies
-		WHERE org_name = $1
-		  AND timestamp > NOW() - INTERVAL '30 days'
-	`, orgID).Scan(&metrics.TotalUndocumentedEndpoints)
-	if err != nil {
-		return metrics, err
-	}
-
+	metrics.TotalPreventedOutages = int(row.TotalPreventedOutages)
+	metrics.TotalUndocumentedEndpoints = int(row.TotalUndocumentedEndpoints)
 	metrics.HoursSaved = metrics.TotalPreventedOutages * 4
 	metrics.EstimatedDollarValueSaved = metrics.HoursSaved * 100
 
@@ -176,37 +167,41 @@ func (s *PGStore) GetInsuranceClaims(ctx context.Context, orgID uuid.UUID) ([]In
 }
 
 func (s *PGStore) UpsertEndpointTraffic(ctx context.Context, repoID uuid.UUID, method, path string, timestamp time.Time) error {
-	query := `
-		INSERT INTO endpoint_traffic (repo_id, method, path, last_seen_at, request_count)
-		VALUES ($1, $2, $3, $4, 1)
-		ON CONFLICT (repo_id, method, path)
-		DO UPDATE SET
-			last_seen_at = GREATEST(endpoint_traffic.last_seen_at, EXCLUDED.last_seen_at),
-			request_count = endpoint_traffic.request_count + 1
-	`
-	_, err := s.pool.Exec(ctx, query, repoID, method, path, timestamp)
-	return err
+	q := sqlcgen.New(s.pool)
+	return q.UpsertEndpointTraffic(ctx, sqlcgen.UpsertEndpointTrafficParams{
+		RepoID:     pgtype.UUID{Bytes: repoID, Valid: true},
+		Method:     method,
+		Path:       path,
+		LastSeenAt: pgtype.Timestamptz{Time: timestamp, Valid: true},
+	})
 }
 
 func (s *PGStore) GetZeroTrafficEndpoints(ctx context.Context, orgName string, since time.Time) ([]EndpointTraffic, error) {
-	query := `
-		SELECT et.id, et.repo_id, et.method, et.path, et.last_seen_at, et.request_count
-		FROM endpoint_traffic et
-		JOIN repositories r ON et.repo_id = r.id
-		JOIN organizations o ON r.org_id = o.id
-		WHERE o.name = $1 AND (et.last_seen_at IS NULL OR et.last_seen_at < $2)
-	`
-	rows, err := s.pool.Query(ctx, query, orgName, since)
+	q := sqlcgen.New(s.pool)
+	rows, err := q.GetZeroTrafficEndpoints(ctx, sqlcgen.GetZeroTrafficEndpointsParams{
+		GithubOrgName: orgName,
+		LastSeenAt:    pgtype.Timestamptz{Time: since, Valid: true},
+	})
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 
 	var results []EndpointTraffic
-	for rows.Next() {
+	for _, r := range rows {
 		var et EndpointTraffic
-		if err := rows.Scan(&et.ID, &et.RepoID, &et.Method, &et.Path, &et.LastSeenAt, &et.RequestCount); err != nil {
-			return nil, err
+		if r.ID.Valid {
+			et.ID = r.ID.Bytes
+		}
+		if r.RepoID.Valid {
+			et.RepoID = r.RepoID.Bytes
+		}
+		et.Method = r.Method
+		et.Path = r.Path
+		if r.LastSeenAt.Valid {
+			et.LastSeenAt = r.LastSeenAt.Time
+		}
+		if r.RequestCount.Valid {
+			et.RequestCount = int64(r.RequestCount.Int32)
 		}
 		results = append(results, et)
 	}

@@ -86,8 +86,11 @@ func TestPhase10SystemE2E(t *testing.T) {
 	err := pool.QueryRow(ctx, "INSERT INTO organizations (github_installation_id, github_org_name) VALUES (1010, 'phase10-org') RETURNING id").Scan(&orgID)
 	require.NoError(t, err)
 
+	repoID := "00000000-0000-0000-0000-000000000001"
+	_, err = pool.Exec(ctx, "INSERT INTO repositories (id, org_id, github_repo_id, name, full_name) VALUES ($1, $2, 1234, 'billing-api', 'phase10-org/billing-api')", repoID, orgID)
+	require.NoError(t, err)
+
 	t.Run("Scenario 1: OTel webhook ingestion", func(t *testing.T) {
-		repoID := "00000000-0000-0000-0000-000000000001"
 		spans := []map[string]interface{}{
 			{
 				"repo_id":   repoID,
@@ -111,11 +114,9 @@ func TestPhase10SystemE2E(t *testing.T) {
 	})
 
 	t.Run("Scenario 2: Zombie detection query", func(t *testing.T) {
-		adminJWT := createP10JWT("phase10-org", "admin")
-
 		req, err := http.NewRequest("GET", p10ApiURL+"/api/v1/org/phase10-org/zombies", nil)
 		require.NoError(t, err)
-		req.Header.Set("Authorization", "Bearer "+adminJWT)
+		req.Header.Set("Authorization", "Bearer "+p10RegistryAPIToken)
 
 		resp, err := http.DefaultClient.Do(req)
 		require.NoError(t, err)
@@ -129,8 +130,6 @@ func TestPhase10SystemE2E(t *testing.T) {
 	})
 
 	t.Run("Scenario 3: Governance rules CRUD and API Governance Comment", func(t *testing.T) {
-		adminJWT := createP10JWT("phase10-org", "admin")
-
 		rulePayload := map[string]interface{}{
 			"rule_text": "All endpoints must have an X-Correlation-ID header",
 		}
@@ -138,7 +137,7 @@ func TestPhase10SystemE2E(t *testing.T) {
 
 		req, err := http.NewRequest("POST", p10ApiURL+"/api/v1/org/phase10-org/rules", bytes.NewReader(body))
 		require.NoError(t, err)
-		req.Header.Set("Authorization", "Bearer "+adminJWT)
+		req.Header.Set("Authorization", "Bearer "+p10RegistryAPIToken)
 		req.Header.Set("Content-Type", "application/json")
 
 		resp, err := http.DefaultClient.Do(req)

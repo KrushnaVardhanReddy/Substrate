@@ -25,10 +25,10 @@ WHERE o.github_org_name = $1
 
 -- name: GetROIMetrics :one
 SELECT
-  (SELECT COUNT(*) FROM webhook_events
+  (SELECT COUNT(*) FROM diff_reports
    WHERE (is_audit_mode = true OR status = 'blocked')
-     AND org_name = $1
-     AND timestamp > NOW() - INTERVAL '30 days')          AS total_prevented_outages,
+     AND diff_reports.org_name = $1
+     AND created_at > NOW() - INTERVAL '30 days')          AS total_prevented_outages,
   (SELECT COUNT(*) FROM drift_anomalies
-   WHERE org_name = $1
+   WHERE drift_anomalies.org_name = $1
      AND timestamp > NOW() - INTERVAL '30 days')          AS total_undocumented_endpoints;

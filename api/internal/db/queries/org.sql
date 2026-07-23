@@ -6,8 +6,6 @@ ON CONFLICT (github_installation_id) DO UPDATE
   SET github_org_name = EXCLUDED.github_org_name
 RETURNING id;
 
--- name: GetOrgIDByName :one
-SELECT id FROM organizations WHERE github_org_name = $1;
 
 -- name: CountReposByOrg :one
 SELECT COUNT(*) FROM repositories r
@@ -25,7 +23,7 @@ FROM organizations
 WHERE github_org_name = $1;
 
 -- name: UpsertOrgKMSConfig :exec
-INSERT INTO org_kms_configs (org_name, provider, key_arn)
+INSERT INTO org_kms_config (org_name, provider, key_arn)
 VALUES ($1, $2, $3)
 ON CONFLICT (org_name) DO UPDATE
   SET provider = EXCLUDED.provider,
@@ -33,5 +31,5 @@ ON CONFLICT (org_name) DO UPDATE
 
 -- name: GetOrgKMSConfig :one
 SELECT provider, key_arn
-FROM org_kms_configs
+FROM org_kms_config
 WHERE org_name = $1;

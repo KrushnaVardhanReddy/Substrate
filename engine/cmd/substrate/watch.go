@@ -7,16 +7,18 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/KrushnaVardhanReddy/substrate/engine/extractor"
 	"github.com/KrushnaVardhanReddy/substrate/engine/watcher"
 	"github.com/spf13/cobra"
 )
+
+var watchDir string
+var specOutPath string
 
 var watchCmd = &cobra.Command{
 	Use:   "watch",
 	Short: "Watch source files and auto-update local OpenAPI spec",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		dir, _ := os.Getwd()
-
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
@@ -30,7 +32,17 @@ var watchCmd = &cobra.Command{
 		}()
 
 		opts := watcher.WatchOptions{
-			Dir: dir,
+			Dir: watchDir,
+			ExtractFunc: func(filePath string) error {
+				err := extractor.ExtractSpec(filePath)
+				if err != nil {
+					return err
+				}
+				if specOutPath != "" && specOutPath != "openapi.yaml" {
+					return os.Rename("openapi.yaml", specOutPath)
+				}
+				return nil
+			},
 		}
 
 		err := watcher.Watch(ctx, opts)
@@ -40,4 +52,9 @@ var watchCmd = &cobra.Command{
 
 		return nil
 	},
+}
+
+func init() {
+	watchCmd.Flags().StringVar(&watchDir, "dir", ".", "Directory to watch")
+	watchCmd.Flags().StringVar(&specOutPath, "spec", "openapi.yaml", "Output path for the OpenAPI spec")
 }

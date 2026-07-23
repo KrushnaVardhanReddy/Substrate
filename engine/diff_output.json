@@ -1,0 +1,27 @@
+{
+  "substrate_version": "0.1.0",
+  "schema_type": "openapi",
+  "compared_at": "2026-07-23T08:27:31Z",
+  "mode": "audit",
+  "summary": {
+    "total_changes": 1,
+    "breaking_count": 1,
+    "warning_count": 0,
+    "safe_count": 0,
+    "overall_severity": "BREAKING"
+  },
+  "breaking_changes": [
+    {
+      "id": "api-path-removed-without-deprecation",
+      "rule_id": "ENDPOINT_REMOVED",
+      "severity": "BREAKING",
+      "path": "GET /users",
+      "description": "api path removed without deprecation",
+      "before": null,
+      "after": null,
+      "recommendation": null
+    }
+  ],
+  "warnings": [],
+  "safe_changes": []
+}
