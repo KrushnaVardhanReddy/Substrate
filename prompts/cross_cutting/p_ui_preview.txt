@@ -1,0 +1,32 @@
+TASK: P-UI-PREVIEW — Missing Playwright E2E Coverage for Public Preview
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Create a Playwright E2E test file for the Public Preview UI page (`(public)/preview/[token]`).
+
+═══════════════════════════════════════════════════════════════
+CRITICAL READING
+═══════════════════════════════════════════════════════════════
+1. dashboard/tests/e2e/graph.spec.ts
+   → Study for standard Playwright setup and mocking patterns.
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- New file: dashboard/tests/e2e/preview-page.spec.ts
+- Use the existing `playwright.config.ts` setup.
+- Mock the backend API calls (`GET /api/v1/preview/*`) using `page.route()`.
+- Ensure you bypass any Svelte dev-mode hydration errors gracefully.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: dashboard/tests/e2e/preview-page.spec.ts (NEW)
+   Implement test scenarios for the Public Preview page.
+2. Verify and test:
+   - Run: cd dashboard && npx playwright test tests/e2e/preview-page.spec.ts
+   - Fix any errors before committing.
+
+Commit message: "test: P-UI-PREVIEW add Playwright E2E coverage for Public Preview"
+Target branch: feature/dev

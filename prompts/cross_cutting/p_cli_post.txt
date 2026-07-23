@@ -1,0 +1,33 @@
+TASK: P-CLI-POST — CLI Commands Gaps
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement missing CLI commands (`postmortem`, `schema-smell`, `plugin publish`) and add Go E2E tests for them.
+
+═══════════════════════════════════════════════════════════════
+CRITICAL READING
+═══════════════════════════════════════════════════════════════
+1. cmd/substrate/main.go
+   → Study the existing CLI structure and how it invokes backend APIs.
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Implement the subcommands in `cmd/substrate/main.go` or a dedicated package.
+- They must call the appropriate API endpoints on the backend (`/api/v1/postmortem`, `/api/v1/schema/smell`, `/api/v1/plugins/publish`).
+- Add a Go E2E test in `scripts/e2e/cli_post_test.go` that executes these CLI commands against a running API server (using `os/exec` to invoke the compiled CLI or directly calling the command functions) and verifies they exit with status 0.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: cmd/substrate/main.go (MODIFY)
+   Add the missing subcommands.
+2. FILE: scripts/e2e/cli_post_test.go (NEW)
+   Write Go E2E tests to execute the CLI commands.
+3. Verify and test:
+   - Run: cd scripts/e2e && go test -v -run TestCLIPost
+   - Fix any errors before committing.
+
+Commit message: "feat: P-CLI-POST add postmortem, schema-smell, and plugin publish CLI commands"
+Target branch: feature/dev

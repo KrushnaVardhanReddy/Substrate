@@ -1,0 +1,37 @@
+TASK: P-PART-01 — Partners CRUD Backend APIs
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Create the Partners CRUD backend APIs and a Go E2E test to validate the full lifecycle.
+
+═══════════════════════════════════════════════════════════════
+CRITICAL READING
+═══════════════════════════════════════════════════════════════
+1. api/internal/server/router.go
+   → Study how endpoints are registered.
+2. api/internal/db/store.go
+   → Study the database abstraction.
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Implement the API endpoints in the backend router for Partners CRUD (e.g. `GET`, `POST`, `PUT`, `DELETE` under `/api/v1/org/{org}/partners`).
+- Update the DB `Store` interface and `sqlc` queries to support managing partners.
+- Write a comprehensive Go E2E test in `scripts/e2e/phase_part_e2e_test.go` that verifies the CRUD operations using the HTTP endpoints (with live database, no mocks).
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: api/internal/server/router.go (MODIFY)
+   Register Partners routes.
+2. FILE: api/internal/handlers/partners.go (NEW)
+   Implement the handlers.
+3. FILE: scripts/e2e/phase_part_e2e_test.go (NEW)
+   Write Go E2E tests for the Partners CRUD lifecycle.
+4. Verify and test:
+   - Run: cd scripts/e2e && go test -v -run TestPhasePartE2E
+   - Fix any errors before committing.
+
+Commit message: "feat: P-PART-01 add Partners CRUD APIs and E2E validation"
+Target branch: feature/dev
