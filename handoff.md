@@ -112,6 +112,19 @@ python3 scripts/jules_submit.py --task 1118
 python3 scripts/jules_submit.py --task 312
 ```
 
+### Wave 16 — MCP Full Parity (NEW — Submitted 2026-07-23)
+> Complete API MCP server parity with 28 new tools and SSE transport.
+
+| Task ID | Script Key | Jules Session | Files Created/Edited |
+|---|---|---|---|
+| P-MCP-01 Full MCP Parity | `901` | `2715584438838468656` | `api/internal/mcp/*`, `scripts/e2e/phase_mcp_e2e_test.go` |
+
+```bash
+# Already submitted — monitor at https://jules.google.com/
+# To resubmit if needed:
+python3 scripts/jules_submit.py --task 901
+```
+
 ---
 
 ## 🤖 How to Submit Tasks to Jules

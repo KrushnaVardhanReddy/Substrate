@@ -896,6 +896,11 @@ TASKS = {
         "phase": "phase-3-registry",
         "prompt": _load_prompt("prompts/phase-3-registry/t12_e2e_validation.txt"),
     },
+    901: {
+        "name": "P-MCP-01 — Full MCP Server Parity + SSE Transport",
+        "phase": "cross-cutting",
+        "prompt": _load_prompt("prompts/cross_cutting/p_mcp_01_full_parity.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
