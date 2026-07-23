@@ -15,28 +15,14 @@
    - ✅ Identified 13 E2E test gap tasks (all tracked in `tasks.md`)
    - ✅ Wrote specs for high priority gaps (History, Sync, RBAC, UI Diff)
 
-3. **Tasks Submitted to Jules (Running)**
-   - 🤖 **P11-T18** (Phase 11 Backend E2E) — Session `11577987586214929019`
-   - 🤖 **P3-T12** (Phase 3 Registry E2E) — Session `5507342138131598347`
-   - 🤖 **P-MCP-01** (Full MCP Server Parity) — Session `2715584438838468656`
+3. **Tasks Merged**
+   - ✅ **P11-T18** (Phase 11 Backend E2E)
+   - ✅ **P3-T12** (Phase 3 Registry E2E)
+   - ✅ **P-MCP-01** (Full MCP Server Parity)
 
 ---
 
-## 🌊 Active & Pending Waves
-
-### Active Wave — Jules is processing
-| Task ID | Description | Jules Session |
-|---|---|---|
-| P11-T18 | Phase 11 Backend E2E | `11577987586214929019` |
-| P3-T12 | Phase 3 Registry E2E | `5507342138131598347` |
-| P-MCP-01 | Full MCP Parity + SSE | `2715584438838468656` |
-
-```bash
-# To resubmit if needed:
-python3 scripts/jules_submit.py --task 1118
-python3 scripts/jules_submit.py --task 312
-python3 scripts/jules_submit.py --task 901
-```
+## 🌊 Pending Waves
 
 ### Next Wave — Ready for Prompts & Submission
 > These are the next highest priority tasks from the E2E Audit. Someone needs to write the Jules prompt files for these (specs are already written).

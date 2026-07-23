@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+	"time"
 )
 
 type EventBroker struct {
@@ -58,12 +59,18 @@ func EventsHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "event: connected\ndata: ok\n\n")
 	flusher.Flush()
 
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case msg := <-clientChan:
 			fmt.Fprintf(w, "data: %s\n\n", msg)
+			flusher.Flush()
+		case <-ticker.C:
+			fmt.Fprintf(w, "data: heartbeat\n\n")
 			flusher.Flush()
 		}
 	}
