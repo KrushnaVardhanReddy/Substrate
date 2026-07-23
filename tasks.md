@@ -159,7 +159,7 @@
 | Phase 3 (Contract Registry) | `scripts/e2e/phase3_e2e_test.go` (pending) | ⚠️ Graph/Can-Deploy not directly tested | 🔴 P1 | 🤖 **P3-T12 submitted** — Session `5507342138131598347` |
 | Phase 6 (QA Feedback) | `scripts/e2e/phase6_e2e_test.go` | ✅ Full | — | ✅ Green |
 | Phase 7 (Enterprise) | `scripts/e2e/phase7_e2e_test.go` | ✅ Audit Mode, CEL Rules, Drift, AI Autofix | — | ✅ Green |
-| Phase 8 (Readiness) | `scripts/e2e/phase8_e2e_test.go` | ✅ Job Queue, RBAC, Rollback, Billing | — | ✅ Green |
+| Phase 8 (Readiness) | `scripts/e2e/phase8_e2e_test.go` | ✅ Job Queue, RBAC(1 route), Rollback, Billing | ⚠️ RBAC breadth | ✅ Green (partial) |
 | Phase 9 (DX) | `scripts/e2e/phase9_e2e_test.go` | ✅ Compliance, Quality Gates, Watch Daemon | — | ✅ Green |
 | Phase 10 (Ecosystem) | `scripts/e2e/phase10_e2e_test.go` | ✅ OTel, Zombies, Governance, SDK | Sc3 SKIP (Forgejo) | ✅ Green |
 | Phase 10+13 (Enterprise) | `scripts/e2e/phase10_13_e2e_test.go` | ✅ Protobuf, FinOps, TreeSitter, Gateway | — | ✅ Green |
@@ -168,6 +168,56 @@
 | Phase 13 (Enterprise) | `scripts/e2e/phase10_13_e2e_test.go` | ✅ FinOps, Protobuf, TreeSitter | — | ✅ Green |
 | Phase 14 (Predictive) | `scripts/e2e/phase14_e2e_test.go` | ✅ Badge, Archaeology, Negotiation | — | ✅ Green |
 | Phase 15 (Ecosystem) | `scripts/e2e/phase15_e2e_test.go` | ✅ NL Governance, Marketplace, Insurance | — | ✅ Green |
+| History/Sync/RBAC (Cross-cutting) | — | ❌ History, Sync, Schema, RBAC breadth | 🔴 P1 | ⏳ P-HIST-01, P-SYNC-01, P-RBAC-01 |
+| UI — Diff Viewer / Impact / Governance | — | ❌ `/diff/[id]`, `/impact`, `/governance` | 🔴 P1 | ⏳ P-UI-DIFF, P-UI-IMPACT, P-UI-GOV |
+
+---
+
+## 🚨 E2E Gap Tasks (Full Audit — 2026-07-23)
+
+> Full route-by-route audit of all 39 backend routes + 22 frontend pages. Gaps ranked by production risk.
+
+### 🔴 Priority 1 — Backend API Gaps
+
+| Task ID | Name | Routes Covered | Spec | Status |
+|---------|------|----------------|------|--------|
+| **P11-T18** | Phase 11 Backend E2E | `GET /api/v1/graph/{org}`, `GET /api/v1/impact/{org}/{repo}`, `GET /api/v1/events`, `GET /api/v1/diff/{id}` | `docs/specs/phase-11/p11-t18-e2e-validation.md` | 🤖 Jules `11577987586214929019` |
+| **P3-T12** | Phase 3 Registry E2E | `GET /api/v1/graph/{org}`, `GET /api/v1/registry/can-deploy`, `GET /api/v1/repos/{org}` | `docs/specs/phase-3/p3-t12-e2e-validation.md` | 🤖 Jules `5507342138131598347` |
+| **P-HIST-01** | History & Changes API | `POST /api/v1/history`, `GET /api/v1/history/{org}/{repo}`, `GET /api/v1/changes` | `docs/specs/cross-cutting/p-hist-01-e2e-history-api.md` | ⏳ Ready |
+| **P-SYNC-01** | Contract Sync Pipeline | `POST /api/v1/sync`, `GET /api/v1/schema/{owner}/{repo}`, `GET /api/v1/spec/{org}/{repo}` | `docs/specs/cross-cutting/p-sync-01-e2e-sync-pipeline.md` | ⏳ Ready |
+| **P-RBAC-01** | RBAC Breadth | All `authzMW` write routes — rules, insurance, zombies/pr, partners | `docs/specs/cross-cutting/p-rbac-01-e2e-rbac-breadth.md` | ⏳ Ready |
+
+### 🟡 Priority 2 — Backend API Gaps
+
+| Task ID | Name | Routes Covered | Status |
+|---------|------|----------------|--------|
+| **P-ROI-01** | ROI + FinOps E2E | `GET /api/v1/telemetry/roi/{org}`, `POST /api/v1/finops/predict` | ⏳ Ready |
+| **P-INS-01** | Insurance Lifecycle | `GET /api/v1/org/{org}/insurance/policy`, `GET /api/v1/org/{org}/insurance/claims` | ⏳ Ready |
+
+### 🔴 Priority 1 — Frontend UI Gaps (Playwright)
+
+| Task ID | Page | Risk | Spec | Status |
+|---------|------|------|------|--------|
+| **P-UI-DIFF** | `/diff/[id]` — Diff Viewer | Core product page — blank on regression | `docs/specs/cross-cutting/p-ui-01-e2e-missing-pages.md` | ⏳ Ready |
+| **P-UI-IMPACT** | `/org/{org}/repo/[repo]/impact` — Impact Page | Blast radius feature | `docs/specs/cross-cutting/p-ui-01-e2e-missing-pages.md` | ⏳ Ready |
+| **P-UI-GOV** | `/org/{org}/governance` — Governance Rules | Rule CRUD UI | `docs/specs/cross-cutting/p-ui-01-e2e-missing-pages.md` | ⏳ Ready |
+
+### 🟡 Priority 2 — Frontend UI Gaps (Playwright)
+
+| Task ID | Page | Status |
+|---------|------|--------|
+| **P-UI-ZOMBIE** | `/org/{org}/zombies` | ⏳ Ready |
+| **P-UI-INS** | `/org/{org}/settings/insurance` | ⏳ Ready |
+| **P-UI-PREVIEW** | `(public)/preview/[token]` | ⏳ Ready |
+
+### 🟢 Priority 3 — CLI Command Gaps
+
+| Task ID | Commands | Status |
+|---------|----------|--------|
+| **P-CLI-POST** | `substrate postmortem`, `substrate schema-smell`, `substrate plugin publish` | ⏳ Ready |
+| **P-PART-01** | Partners CRUD (`/api/v1/org/{org}/partners` full lifecycle) | ⏳ Ready |
+
+---
 
 ### E2E Quick Commands
 ```bash
@@ -177,6 +227,9 @@ export GITHUB_TOKEN=mock_token && cd scripts/e2e && go test -v -p 1 -run "." ./.
 # Run a specific phase
 cd scripts/e2e && go test -v -p 1 -run TestPhase11SystemE2E ./...
 cd scripts/e2e && go test -v -p 1 -run TestPhase3ContractRegistry ./...
+
+# Run Playwright UI tests
+cd dashboard && npx playwright test
 
 # Start API server
 cd api && DATABASE_URL="postgresql://postgres:postgres@localhost:5432/substrate?sslmode=disable" \
