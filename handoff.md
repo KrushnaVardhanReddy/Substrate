@@ -33,13 +33,14 @@
 |---|---|---|
 | P-ROI-01 | FinOps ROI API E2E | `11199779014464194148` |
 | P-INS-01 | Schema Insurance API E2E | `3219450072316982265` |
+| P-UI-ZOMBIE | Zombies Dashboard UI | `5645360832303796603` |
+| P-UI-INS | Insurance Settings UI | `523131637184844202` |
+| P-UI-PREVIEW | Public Preview UI | `11876745616660687606` |
+| P-CLI-POST | CLI Commands | `14442739058769857613` |
+| P-PART-01 | Partners CRUD | `17579933883785818153` |
 
 ### Next Wave — Ready for Prompts & Submission
-> Specs and prompts are written. Run `python3 scripts/jules_submit.py --file <prompt_file>`
-
-| Task ID | Description | Spec Path |
-|---|---|---|
-| P-UI-ZOMBIE | Zombies Dashboard UI | `docs/specs/cross-cutting/p-ui-04-e2e-zombies.md` (To be created) |
+> All specs and prompts are currently processing! 🎉
 
 
 ---

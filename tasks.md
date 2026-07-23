@@ -207,16 +207,16 @@
 
 | Task ID | Page | Status |
 |---------|------|--------|
-| **P-UI-ZOMBIE** | `/org/{org}/zombies` | ⏳ Ready |
-| **P-UI-INS** | `/org/{org}/settings/insurance` | ⏳ Ready |
-| **P-UI-PREVIEW** | `(public)/preview/[token]` | ⏳ Ready |
+| **P-UI-ZOMBIE** | `/org/{org}/zombies` | 🤖 Jules (Running) |
+| **P-UI-INS** | `/org/{org}/settings/insurance` | 🤖 Jules (Running) |
+| **P-UI-PREVIEW** | `(public)/preview/[token]` | 🤖 Jules (Running) |
 
 ### 🟢 Priority 3 — CLI Command Gaps
 
 | Task ID | Commands | Status |
 |---------|----------|--------|
-| **P-CLI-POST** | `substrate postmortem`, `substrate schema-smell`, `substrate plugin publish` | ⏳ Ready |
-| **P-PART-01** | Partners CRUD (`/api/v1/org/{org}/partners` full lifecycle) | ⏳ Ready |
+| **P-CLI-POST** | `substrate postmortem`, `substrate schema-smell`, `substrate plugin publish` | 🤖 Jules (Running) |
+| **P-PART-01** | Partners CRUD (`/api/v1/org/{org}/partners` full lifecycle) | 🤖 Jules (Running) |
 
 ---
 
