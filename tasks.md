@@ -1,6 +1,6 @@
 # Substrate — Task Tracker
 
-> Last updated: 2026-07-23 (E2E coverage audit — missing Phase 11 backend & Phase 3 registry E2E tasks added ✅)
+> Last updated: 2026-07-23 (Wave 15 submitted — P11-T18 & P3-T12 E2E gap tasks dispatched to Jules 🚀)
 > Tracking all development phases, tasks, and their current status.
 
 ---
@@ -10,6 +10,7 @@
 | Symbol | Status |
 |---|---|
 | 🔄 | In Progress |
+| 🤖 | Submitted to Jules (PR pending) |
 | ⏳ | Ready to Start (all dependencies met) |
 | 🔒 | Blocked (waiting on dependency) |
 | 💡 | Planned (not yet started) |
@@ -45,7 +46,7 @@
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **P3-T12** | 🔴 P1 | **Phase 3 E2E Validation** — Validate the Dependency Graph API (`GET /api/v1/graph/{org}`), Can-Deploy safety gate (blocking and passing scenarios), Can-Rollback gate, and Repo List endpoint. Currently only exercised indirectly by `TestV1SystemE2E`. | Jules | ⏳ Ready | `docs/specs/phase-3/p3-t12-e2e-validation.md` |
+| **P3-T12** | 🔴 P1 | **Phase 3 E2E Validation** — Validate the Dependency Graph API (`GET /api/v1/graph/{org}`), Can-Deploy safety gate (blocking and passing scenarios), Can-Rollback gate, and Repo List endpoint. Currently only exercised indirectly by `TestV1SystemE2E`. | Jules | 🤖 Submitted — Session `5507342138131598347` | `docs/specs/phase-3/p3-t12-e2e-validation.md` |
 
 > 📋 **Prompt:** `prompts/phase-3-registry/t12_e2e_validation.txt`
 
@@ -90,7 +91,7 @@
 ### Phase 11: Backend API E2E Coverage
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **P11-T18** | 🔴 P1 | **Phase 11 Backend E2E Validation** — E2E tests for all Phase 11 backend APIs: Dependency Graph blast radius (`GET /api/v1/graph/{org}`), Impact Analysis (`GET /api/v1/impact/{org}/{repo}`), SSE real-time stream (`GET /api/v1/events`), and Diff Report persistence round-trip. Zero coverage today — any regression reaches prod silently. | Jules | ⏳ Ready | `docs/specs/phase-11/p11-t18-e2e-validation.md` |
+| **P11-T18** | 🔴 P1 | **Phase 11 Backend E2E Validation** — E2E tests for all Phase 11 backend APIs: Dependency Graph blast radius (`GET /api/v1/graph/{org}`), Impact Analysis (`GET /api/v1/impact/{org}/{repo}`), SSE real-time stream (`GET /api/v1/events`), and Diff Report persistence round-trip. Zero coverage today — any regression reaches prod silently. | Jules | 🤖 Submitted — Session `11577987586214929019` | `docs/specs/phase-11/p11-t18-e2e-validation.md` |
 
 > 📋 **Prompt:** `prompts/phase-11/t18_e2e_validation.txt`
 
@@ -155,14 +156,14 @@
 | Phase | Test File | Coverage | Priority | Status |
 |-------|-----------|----------|----------|--------|
 | V1 (Phases 1–5 core) | `scripts/e2e/v1_e2e_test.go` | ✅ Webhook, Diff, Deploy Gate, AI Scaffold | — | ✅ Green |
-| Phase 3 (Contract Registry) | — | ⚠️ Graph/Can-Deploy not directly tested | 🔴 P1 | ⏳ **P3-T12 pending** |
+| Phase 3 (Contract Registry) | `scripts/e2e/phase3_e2e_test.go` (pending) | ⚠️ Graph/Can-Deploy not directly tested | 🔴 P1 | 🤖 **P3-T12 submitted** — Session `5507342138131598347` |
 | Phase 6 (QA Feedback) | `scripts/e2e/phase6_e2e_test.go` | ✅ Full | — | ✅ Green |
 | Phase 7 (Enterprise) | `scripts/e2e/phase7_e2e_test.go` | ✅ Audit Mode, CEL Rules, Drift, AI Autofix | — | ✅ Green |
 | Phase 8 (Readiness) | `scripts/e2e/phase8_e2e_test.go` | ✅ Job Queue, RBAC, Rollback, Billing | — | ✅ Green |
 | Phase 9 (DX) | `scripts/e2e/phase9_e2e_test.go` | ✅ Compliance, Quality Gates, Watch Daemon | — | ✅ Green |
 | Phase 10 (Ecosystem) | `scripts/e2e/phase10_e2e_test.go` | ✅ OTel, Zombies, Governance, SDK | Sc3 SKIP (Forgejo) | ✅ Green |
 | Phase 10+13 (Enterprise) | `scripts/e2e/phase10_13_e2e_test.go` | ✅ Protobuf, FinOps, TreeSitter, Gateway | — | ✅ Green |
-| Phase 11 (Graph/SSE) | — | ❌ Graph, Impact, SSE, Diff retrieval | 🔴 P1 | ⏳ **P11-T18 pending** |
+| Phase 11 (Graph/SSE) | `scripts/e2e/phase11_e2e_test.go` (pending) | ❌ Graph, Impact, SSE, Diff retrieval | 🔴 P1 | 🤖 **P11-T18 submitted** — Session `11577987586214929019` |
 | Phase 12 (SSE/WASM) | `scripts/e2e/phase12_sse_test.go` + `wasm_boundary_test.go` | ✅ SSE Broker, WASM Boundary, Fuzz | — | ✅ Green |
 | Phase 13 (Enterprise) | `scripts/e2e/phase10_13_e2e_test.go` | ✅ FinOps, Protobuf, TreeSitter | — | ✅ Green |
 | Phase 14 (Predictive) | `scripts/e2e/phase14_e2e_test.go` | ✅ Badge, Archaeology, Negotiation | — | ✅ Green |
