@@ -1,0 +1,47 @@
+TASK: P-SYNC-01 — Contract Sync Pipeline E2E Validation
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Create a Go-based E2E test suite in `scripts/e2e/phase_sync_e2e_test.go` to validate
+the Contract Sync Pipeline (`POST /api/v1/sync`, `GET /api/v1/schema/{owner}/{repo}`,
+`GET /api/v1/spec/{org}/{repo}`).
+
+═══════════════════════════════════════════════════════════════
+CRITICAL READING
+═══════════════════════════════════════════════════════════════
+1. scripts/e2e/v1_e2e_test.go
+   → Use this as a reference for DB setup and HTTP request patterns.
+2. docs/specs/cross-cutting/p-sync-01-e2e-sync-pipeline.md
+   → Read the test scenarios and constraints.
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- File MUST be named: scripts/e2e/phase_sync_e2e_test.go
+- Package: package main
+- Prefix ALL package-level consts/funcs with pSync.
+- No mocks.
+- All HTTP requests must include appropriate Authentication headers.
+- Do NOT add new go.mod dependencies.
+- Do NOT modify api/ or engine/ source code.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: scripts/e2e/phase_sync_e2e_test.go (NEW)
+
+   Implement the following sub-tests:
+   a. "Scenario 1: Sync Stores Schema and Schema Retrieval Works"
+   b. "Scenario 2: Spec Endpoint Returns Parsed JSON"
+   c. "Scenario 3: Sync Idempotent — Re-syncing Same SHA Updates Timestamp"
+   d. "Scenario 4: Schema 404 for Unknown Repo"
+
+   Follow the exact steps in the spec `docs/specs/cross-cutting/p-sync-01-e2e-sync-pipeline.md`.
+
+2. Verify and test:
+   - Run: cd scripts/e2e && go test -v -p 1 -run TestPhaseSyncE2E ./...
+   - Fix any compilation errors before committing.
+
+Commit message: "test: P-SYNC-01 add Contract Sync Pipeline E2E validation suite"
+Target branch: feature/dev

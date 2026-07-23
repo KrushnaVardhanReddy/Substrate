@@ -1,0 +1,46 @@
+TASK: P-HIST-01 — Breaking Change History & Changes API E2E Validation
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Create a Go-based E2E test suite in `scripts/e2e/phase_history_e2e_test.go` to validate
+the history pipeline (`POST /api/v1/history` → `GET /api/v1/history/{org}/{repo}` → `GET /api/v1/changes`).
+This is the backbone of the `substrate archaeology` feature and the Diff Viewer timeline.
+
+═══════════════════════════════════════════════════════════════
+CRITICAL READING — DO THIS BEFORE WRITING A SINGLE LINE OF CODE
+═══════════════════════════════════════════════════════════════
+1. scripts/e2e/v1_e2e_test.go
+   → Use this as a reference for waitForServices, DB setup, and JWT creation.
+2. docs/specs/cross-cutting/p-hist-01-e2e-history-api.md
+   → Read the test scenarios and constraints.
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- File MUST be named: scripts/e2e/phase_history_e2e_test.go
+- Package: package main
+- Prefix ALL package-level consts/funcs with pHist.
+- No mocks. Real Postgres + real API.
+- All HTTP requests must include appropriate Authentication headers (Service Token or JWT).
+- Do NOT add new go.mod dependencies.
+- Do NOT modify api/ or engine/ source code.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: scripts/e2e/phase_history_e2e_test.go (NEW)
+
+   Implement the following sub-tests:
+   a. "Scenario 1: Store and Retrieve Breaking Change History"
+   b. "Scenario 2: Changes Feed Returns Recent Events"
+   c. "Scenario 3: History Returns Empty for Repo With No History"
+
+   Follow the exact steps in the spec `docs/specs/cross-cutting/p-hist-01-e2e-history-api.md`.
+
+2. Verify and test:
+   - Run: cd scripts/e2e && go test -v -p 1 -run TestPhaseHistoryE2E ./...
+   - Fix any compilation errors before committing.
+
+Commit message: "test: P-HIST-01 add History API E2E validation suite"
+Target branch: feature/dev

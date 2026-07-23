@@ -2,7 +2,7 @@
 
 ## The Living Map of Your Engineering Ecosystem
 
-> **Status:** Phase 15 🚀 — **Enterprise Check Suite & Scale.** Wave 4 is completely integrated and merged! We are preparing to launch **Wave 5** (The 3-Day Sprint) to crush the remaining backlog.
+> **Status:** Phase 15 🚀 — **Full E2E Coverage & Headless MCP Parity.** The core platform is fully merged and functionally complete. We are currently finalizing comprehensive end-to-end testing gaps.
 
 Substrate is a CI/CD-integrated data contract and dependency intelligence platform that prevents downstream data failures before they reach production.
 
@@ -1045,44 +1045,32 @@ Trying to be "everything everywhere all at once" is how startups die.
 ```
 1. Best API Contract Platform          Phase 1a ✅  shipped v0.1.0
         ↓
-2. All 8 Schema Adapters               Phase 1b–1g ✅  SQL, GraphQL, Protobuf,
-                                                        AsyncAPI, Avro, Terraform,
-                                                        AI/ML, Enterprise (Salesforce)
+2. All 8 Schema Adapters               Phase 1b–1g ✅  SQL, GraphQL, Protobuf, AsyncAPI, Avro, Terraform, AI/ML, Enterprise
         ↓
-3. Best Contract + Distribution        Phase 2  ✅  GitHub App live. Cloudflare
-   Platform                                         Worker + Container wired.
+3. Distribution & Scale                Phase 2  ✅  GitHub App live. Cloudflare Worker + Container wired.
         ↓
-4. Best Intelligence Platform          Phase 3  ✅  Registry ✅, Dashboard ✅,
-                                                    MCP Server ✅, AI Playground ✅
+4. The Intelligence Layer              Phase 3  ✅  Central Registry, Dashboard, Gateway Sync, Impact Analysis
         ↓
-5. V1.0 Release + Marketplace          v1.0  ✅  Docs complete. Platform ready.
+5. AI Engineering Assistant            Phase 4  ✅  AI Auto-Fix, Agent Handoffs, System Explanations
         ↓
-6. Best AI Engineering Platform        Phase 4  ✅  AI Reasoning Bridge →
-                                                     Streaming SSE → Schema
-                                                     Patch Generator (Jules
-                                                     sessions active)
+6. Zero-Config Dependency Graph        Phase 5  ✅  Env Scanners, Package Manifests, IaC Parsers
         ↓
-7. Zero-Config Dependency Graph        Phase 5  ✅  Env Scanners → Terraform →
-                                                     Message Queues → Graph UI
+7. QA & Automation Layer               Phase 6  ✅  Test Gen, Postman Sync, Coverage, Mock Servers
         ↓
-8. QA & Automation Layer               Phase 6  ✅  Test Gen → Postman Sync →
-                                                     Coverage → Mock Servers
+8. Enterprise Compliance & Security    Phase 7-9 ✅  SOC2/HIPAA Audits, Quality Gates, CEL Rules, eBPF Drift
         ↓
-9. V1.0 General Availability           v1.0  🚀  GitHub App Auto-Discovery,
-                                                     CLI AI Architect,
-                                                     Interactive Diff Viewer,
-                                                     Deployment Safety Gate
+9. Ecosystem Domination                Phase 10-14 ✅ SDK Gen, Supergraph, Team Neighborhoods, AI Predictive Intel
+        ↓
+10. Agentic Era Parity                 Phase 15 ✅  Full Headless MCP Parity, SCHEMAOWNERS, Gamification Badges
 ```
 
-## Upcoming V1.0 Capabilities
-We are preparing for V1.0 General Availability! The following exciting new features are coming:
-* **GitHub App Auto-Discovery:** Zero-touch onboarding by automatically discovering API contracts across repositories.
-* **CLI AI Architect:** (`substrate init --design`) Interactive LLM-powered CLI to design OpenAPI contracts before writing code.
-* **Interactive Diff Viewer:** Vercel-style preview UI for a side-by-side visual comparison of schema breaks right in PR comments.
-* **Deployment Safety Gate:** (`substrate check-deploy`) Blocks provider microservices from deploying breaking changes in CI/CD before their downstream consumers are updated and ready.
-
-## Future Vision & Roadmap
-For details on Phase 7 (Enterprise/Scale), Phase 8 (Governance), and Phase 9 (Security/Ecosystem) beyond V1.0, please see our [Roadmap](docs/ROADMAP.md).
+## 🚀 V1.0 Capabilities (Live)
+The platform has exceeded its original goals, providing:
+* **Headless MCP Parity:** 100% of Substrate's functionality is accessible via the Model Context Protocol (MCP), allowing AI agents to fully control and manage the platform.
+* **SCHEMAOWNERS:** Automated API governance that loops in the right API architects based on a `.substrate/SCHEMAOWNERS.yaml` file, bypassing rigid GitHub CODEOWNERS.
+* **Interactive Diff Viewer & Graph:** A living, interactive UI for side-by-side schema diffs and cross-repo dependency graphs, complete with team neighborhoods and volatility heatmaps.
+* **Deployment Safety Gate:** Blocks provider microservices from deploying breaking changes in CI/CD before downstream consumers are ready.
+* **AI Schema Smell Detection:** Proactive API design coaching to catch bloated endpoints and non-descriptive fields before they reach production.
 
 **Why Phase 2 before Phase 1c–1g?**
 

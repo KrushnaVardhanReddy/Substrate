@@ -1,0 +1,44 @@
+TASK: P-UI-DIFF — Missing Playwright E2E Coverage for High Priority Pages
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Create Playwright E2E test files for three high-value UI pages that currently
+have zero coverage: Interactive Diff Viewer, Impact Page, and Governance Rules Page.
+
+═══════════════════════════════════════════════════════════════
+CRITICAL READING
+═══════════════════════════════════════════════════════════════
+1. dashboard/tests/e2e/graph.spec.ts and dashboard/tests/e2e/enterprise-routes.spec.ts
+   → Study these for the expected testing patterns, `page.route` mocking, and standard Playwright setup.
+2. docs/specs/cross-cutting/p-ui-01-e2e-missing-pages.md
+   → Read the test scenarios and constraints.
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- New files:
+  * dashboard/tests/e2e/diff-viewer.spec.ts
+  * dashboard/tests/e2e/impact-page.spec.ts
+  * dashboard/tests/e2e/governance.spec.ts
+- Use the existing `playwright.config.ts` setup (`baseURL: http://localhost:5173`).
+- Mock the backend API calls using `page.route()` where needed (as this is Playwright).
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: dashboard/tests/e2e/diff-viewer.spec.ts (NEW)
+   Implement "Page A: /diff/[id] — Interactive Diff Viewer" scenarios.
+
+2. FILE: dashboard/tests/e2e/impact-page.spec.ts (NEW)
+   Implement "Page B: /org/{org}/repo/[repo]/impact — Impact Page" scenarios.
+
+3. FILE: dashboard/tests/e2e/governance.spec.ts (NEW)
+   Implement "Page C: /org/{org}/governance — Governance Rules Page" scenarios.
+
+4. Verify and test:
+   - Run: cd dashboard && npx playwright test tests/e2e/diff-viewer.spec.ts tests/e2e/impact-page.spec.ts tests/e2e/governance.spec.ts
+   - Fix any errors before committing.
+
+Commit message: "test: P-UI-DIFF add Playwright E2E coverage for Diff, Impact, and Governance pages"
+Target branch: feature/dev

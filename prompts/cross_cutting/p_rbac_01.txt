@@ -1,0 +1,44 @@
+TASK: P-RBAC-01 — RBAC Breadth E2E Validation
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Extend the existing Go-based E2E test suite in `scripts/e2e/phase8_e2e_test.go`
+to validate the Role-Based Access Control (RBAC) breadth across all `authzMW`-protected routes.
+
+═══════════════════════════════════════════════════════════════
+CRITICAL READING
+═══════════════════════════════════════════════════════════════
+1. scripts/e2e/phase8_e2e_test.go
+   → Read to understand the existing tests, DB setup (`setupP8Database()`), and `createJWT()`.
+2. docs/specs/cross-cutting/p-rbac-01-e2e-rbac-breadth.md
+   → Read the test scenarios and constraints.
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Extend file: scripts/e2e/phase8_e2e_test.go
+- Add a new sub-test block: `t.Run("Scenario 5: RBAC Breadth", ...)`
+- Reuse `createJWT()` already defined in that file.
+- Seed DB using the `setupP8Database()` pattern.
+- No new dependencies.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: scripts/e2e/phase8_e2e_test.go (MODIFIED)
+
+   Implement the following sub-tests under "Scenario 5: RBAC Breadth":
+   a. "Scenario 1: Read-Only Token Blocked on All Write Endpoints"
+   b. "Scenario 2: Admin Token Allowed on All Write Endpoints"
+   c. "Scenario 3: Service Token Allowed on Service-Token Routes"
+   d. "Scenario 4: No Token Returns 401"
+
+   Follow the exact steps in the spec `docs/specs/cross-cutting/p-rbac-01-e2e-rbac-breadth.md`.
+
+2. Verify and test:
+   - Run: cd scripts/e2e && go test -v -p 1 -run TestPhase8Readiness ./...
+   - Fix any compilation errors before committing.
+
+Commit message: "test: P-RBAC-01 add RBAC breadth E2E validation"
+Target branch: feature/dev
