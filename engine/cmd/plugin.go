@@ -51,7 +51,20 @@ var publishCmd = &cobra.Command{
 		}
 
 		reqJSON, _ := json.Marshal(reqBody)
-		resp, err := http.Post(apiURL+"/api/marketplace/publish", "application/json", bytes.NewReader(reqJSON))
+
+		req, err := http.NewRequest("POST", apiURL+"/api/v1/plugins/publish", bytes.NewReader(reqJSON))
+		if err != nil {
+			return fmt.Errorf("failed to create publish request: %w", err)
+		}
+		req.Header.Set("Content-Type", "application/json")
+
+		apiToken := viper.GetString("REGISTRY_API_TOKEN")
+		if apiToken != "" {
+			req.Header.Set("Authorization", "Bearer "+apiToken)
+		}
+
+		client := &http.Client{}
+		resp, err := client.Do(req)
 		if err != nil {
 			return fmt.Errorf("failed to publish plugin: %w", err)
 		}

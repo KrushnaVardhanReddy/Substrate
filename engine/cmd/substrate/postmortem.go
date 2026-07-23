@@ -1,13 +1,14 @@
 package main
 
 import (
-	"context"
+	"bytes"
 	"fmt"
 	"github.com/spf13/viper"
+	"io"
+	"net/http"
 	"os"
 	"time"
 
-	"github.com/KrushnaVardhanReddy/substrate/engine/postmortem"
 	"github.com/spf13/cobra"
 )
 
@@ -39,12 +40,32 @@ var postmortemCmd = &cobra.Command{
 			apiURL = "http://localhost:8090"
 		}
 
-		ctx := context.Background()
-		err = postmortem.GeneratePostMortem(ctx, apiURL, registryApiToken, incidentDate, os.Stdout)
+		reqBody := fmt.Sprintf(`{"incident_date":"%s"}`, incidentDate.Format(time.RFC3339))
+		req, err := http.NewRequest("POST", apiURL+"/api/v1/postmortem", bytes.NewBufferString(reqBody))
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error creating request: %v\n", err)
+			os.Exit(3)
+		}
+		req.Header.Set("Content-Type", "application/json")
+		if registryApiToken != "" {
+			req.Header.Set("Authorization", "Bearer "+registryApiToken)
+		}
+
+		client := &http.Client{}
+		resp, err := client.Do(req)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error generating post-mortem: %v\n", err)
 			os.Exit(3)
 		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			body, _ := io.ReadAll(resp.Body)
+			fmt.Fprintf(os.Stderr, "API returned status %d: %s\n", resp.StatusCode, string(body))
+			os.Exit(3)
+		}
+
+		io.Copy(os.Stdout, resp.Body)
 	},
 }
 
