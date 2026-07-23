@@ -26,7 +26,7 @@ WHERE o.github_org_name = $1
 -- name: GetROIMetrics :one
 SELECT
   (SELECT COUNT(*) FROM diff_reports
-   WHERE (is_audit_mode = true OR status = 'blocked')
+   WHERE (is_audit_mode = true OR report_data->>'status' = 'blocked')
      AND diff_reports.org_name = $1
      AND created_at > NOW() - INTERVAL '30 days')          AS total_prevented_outages,
   (SELECT COUNT(*) FROM drift_anomalies

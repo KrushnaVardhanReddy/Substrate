@@ -67,11 +67,11 @@ func TestPhaseRoiE2E(t *testing.T) {
 	// Seed diff_reports
 	// Total prevented outages = 2 (is_audit_mode=true or status='blocked', created_at within 30 days)
 	_, err = pool.Exec(ctx, `
-		INSERT INTO diff_reports (id, org_name, repo_name, pr_number, status, is_audit_mode, report_data, created_at)
+		INSERT INTO diff_reports (id, org_name, repo_name, is_audit_mode, report_data, created_at)
 		VALUES
-			(gen_random_uuid(), 'roi-org', 'repo1', 1, 'blocked', false, '{}', NOW() - INTERVAL '1 day'),
-			(gen_random_uuid(), 'roi-org', 'repo2', 2, 'passed', true, '{}', NOW() - INTERVAL '2 days'),
-			(gen_random_uuid(), 'roi-org', 'repo3', 3, 'passed', false, '{}', NOW() - INTERVAL '3 days')
+			(gen_random_uuid(), 'roi-org', 'repo1', false, '{"status": "blocked"}', NOW() - INTERVAL '1 day'),
+			(gen_random_uuid(), 'roi-org', 'repo2', true, '{"status": "passed"}', NOW() - INTERVAL '2 days'),
+			(gen_random_uuid(), 'roi-org', 'repo3', false, '{"status": "passed"}', NOW() - INTERVAL '3 days')
 	`)
 	require.NoError(t, err)
 

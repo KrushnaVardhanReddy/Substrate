@@ -42,14 +42,14 @@ func TestInsuranceE2E(t *testing.T) {
 		require.NoError(t, err)
 
 		orgID := "11111111-1111-1111-1111-111111111111"
-		_, err = pool.Exec(ctx, "INSERT INTO organizations (id, name, created_at, updated_at) VALUES ($1, $2, NOW(), NOW())", orgID, "ins-org-1")
+		_, err = pool.Exec(ctx, "INSERT INTO organizations (id, github_installation_id, github_org_name) VALUES ($1, $2, $3)", orgID, 1001, "ins-org-1")
 		require.NoError(t, err)
 
 		policyLimit := 5000000 // $50,000.00
 		_, err = pool.Exec(ctx, "INSERT INTO insurance_policies (org_id, policy_limit_cents, created_at, updated_at) VALUES ($1, $2, NOW(), NOW())", orgID, policyLimit)
 		require.NoError(t, err)
 
-		req, err := http.NewRequest("GET", apiURL+"/api/v1/org/"+orgID+"/insurance/policy", nil)
+		req, err := http.NewRequest("GET", apiURL+"/api/v1/org/ins-org-1/insurance/policy", nil)
 		require.NoError(t, err)
 		req.Header.Set("Authorization", "Bearer "+registryAPIToken)
 
@@ -79,7 +79,7 @@ func TestInsuranceE2E(t *testing.T) {
 		require.NoError(t, err)
 
 		orgID := "22222222-2222-2222-2222-222222222222"
-		_, err = pool.Exec(ctx, "INSERT INTO organizations (id, name, created_at, updated_at) VALUES ($1, $2, NOW(), NOW())", orgID, "ins-org-2")
+		_, err = pool.Exec(ctx, "INSERT INTO organizations (id, github_installation_id, github_org_name) VALUES ($1, $2, $3)", orgID, 1002, "ins-org-2")
 		require.NoError(t, err)
 
 		policyID := "33333333-3333-3333-3333-333333333333"
@@ -98,7 +98,7 @@ func TestInsuranceE2E(t *testing.T) {
 		`, claimID1, orgID, policyID, claimID2)
 		require.NoError(t, err)
 
-		req, err := http.NewRequest("GET", apiURL+"/api/v1/org/"+orgID+"/insurance/claims", nil)
+		req, err := http.NewRequest("GET", apiURL+"/api/v1/org/ins-org-2/insurance/claims", nil)
 		require.NoError(t, err)
 		req.Header.Set("Authorization", "Bearer "+registryAPIToken)
 
@@ -137,10 +137,10 @@ func TestInsuranceE2E(t *testing.T) {
 		require.NoError(t, err)
 
 		orgID := "66666666-6666-6666-6666-666666666666"
-		_, err = pool.Exec(ctx, "INSERT INTO organizations (id, name, created_at, updated_at) VALUES ($1, $2, NOW(), NOW())", orgID, "ins-org-no-policy")
+		_, err = pool.Exec(ctx, "INSERT INTO organizations (id, github_installation_id, github_org_name) VALUES ($1, $2, $3)", orgID, 1003, "ins-org-no-policy")
 		require.NoError(t, err)
 
-		req, err := http.NewRequest("GET", apiURL+"/api/v1/org/"+orgID+"/insurance/policy", nil)
+		req, err := http.NewRequest("GET", apiURL+"/api/v1/org/ins-org-no-policy/insurance/policy", nil)
 		require.NoError(t, err)
 		req.Header.Set("Authorization", "Bearer "+registryAPIToken)
 

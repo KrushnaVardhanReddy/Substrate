@@ -96,7 +96,7 @@ func TestCLIPost(t *testing.T) {
 		defer pool.Close()
 	}
 
-	adminJWT := createCliJWT("cli-test-org", "admin")
+
 
 	t.Run("Scenario 1: schema-smell", func(t *testing.T) {
 		tempDir, err := os.MkdirTemp("", "e2e_cli_post_smell_")
@@ -110,7 +110,7 @@ func TestCLIPost(t *testing.T) {
 		cmd := exec.Command(binPath, "schema-smell", "--schema", schemaPath)
 		cmd.Env = append(os.Environ(),
 			"SUBSTRATE_API_URL="+cliApiURL,
-			"REGISTRY_API_TOKEN="+adminJWT,
+			"REGISTRY_API_TOKEN=local-dev-token",
 			"SUBSTRATE_AI_BASE_URL=",
 			"OPENAI_API_KEY=",
 			"SUBSTRATE_AI_API_KEY=",
@@ -125,7 +125,7 @@ func TestCLIPost(t *testing.T) {
 		cmd := exec.Command(binPath, "postmortem", "--incident", "2023-10-10T12:00:00Z")
 		cmd.Env = append(os.Environ(),
 			"SUBSTRATE_API_URL="+cliApiURL,
-			"REGISTRY_API_TOKEN="+adminJWT,
+			"REGISTRY_API_TOKEN=local-dev-token",
 		)
 
 		out, err := cmd.CombinedOutput()
@@ -152,7 +152,7 @@ func TestCLIPost(t *testing.T) {
 		cmd := exec.Command(binPath, "plugin", "publish", pluginPath)
 		cmd.Env = append(os.Environ(),
 			"SUBSTRATE_API_URL="+cliApiURL,
-			"REGISTRY_API_TOKEN="+adminJWT,
+			"REGISTRY_API_TOKEN=local-dev-token",
 		)
 
 		out, err := cmd.CombinedOutput()
