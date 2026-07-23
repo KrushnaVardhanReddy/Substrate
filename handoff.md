@@ -22,21 +22,24 @@
 
 ---
 
-## 🌊 Pending Waves
-
 ### Active Wave — Merged and Verified!
 - ✅ **P-HIST-01** (History & Changes API E2E)
 - ✅ **P-SYNC-01** (Contract Sync Pipeline E2E)
 - ✅ **P-RBAC-01** (RBAC Breadth E2E)
 - ✅ **P-UI-DIFF** (UI Diff, Impact, Governance E2E)
 
+### Active Wave — Jules is processing
+| Task ID | Description | Jules Session |
+|---|---|---|
+| P-ROI-01 | FinOps ROI API E2E | `11199779014464194148` |
+| P-INS-01 | Schema Insurance API E2E | `3219450072316982265` |
+
 ### Next Wave — Ready for Prompts & Submission
 > Specs and prompts are written. Run `python3 scripts/jules_submit.py --file <prompt_file>`
 
 | Task ID | Description | Spec Path |
 |---|---|---|
-| P-ROI-01 | FinOps ROI API | `docs/specs/cross-cutting/p-roi-01-e2e-finops.md` |
-| P-INS-01 | Schema Insurance API | `docs/specs/cross-cutting/p-ins-01-e2e-insurance.md` |
+| P-UI-ZOMBIE | Zombies Dashboard UI | `docs/specs/cross-cutting/p-ui-04-e2e-zombies.md` (To be created) |
 
 
 ---

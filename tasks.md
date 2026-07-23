@@ -168,8 +168,8 @@
 | Phase 13 (Enterprise) | `scripts/e2e/phase10_13_e2e_test.go` | ✅ FinOps, Protobuf, TreeSitter | — | ✅ Green |
 | Phase 14 (Predictive) | `scripts/e2e/phase14_e2e_test.go` | ✅ Badge, Archaeology, Negotiation | — | ✅ Green |
 | Phase 15 (Ecosystem) | `scripts/e2e/phase15_e2e_test.go` | ✅ NL Governance, Marketplace, Insurance | — | ✅ Green |
-| History/Sync/RBAC (Cross-cutting) | — | ❌ History, Sync, Schema, RBAC breadth | 🔴 P1 | 🤖 Jules (Running) |
-| UI — Diff Viewer / Impact / Governance | — | ❌ `/diff/[id]`, `/impact`, `/governance` | 🔴 P1 | 🤖 Jules (Diff Viewer Running) |
+| History/Sync/RBAC (Cross-cutting) | `phase_history...`, `phase_sync...`, `phase8...` | ✅ History, Sync, Schema, RBAC breadth | 🔴 P1 | ✅ Green |
+| UI — Diff Viewer / Impact / Governance | `diff-viewer`, `impact-page`, `governance` | ✅ `/diff/[id]`, `/impact`, `/governance` | 🔴 P1 | ✅ Green |
 
 ---
 
@@ -192,8 +192,8 @@
 
 | Task ID | Name | Routes Covered | Spec | Status |
 |---------|------|----------------|------|--------|
-| **P-ROI-01** | ROI + FinOps E2E | `GET /api/v1/telemetry/roi/{org}`, `POST /api/v1/finops/predict` | `docs/specs/cross-cutting/p-roi-01-e2e-finops.md` | ⏳ Ready |
-| **P-INS-01** | Insurance Lifecycle | `GET /api/v1/org/{org}/insurance/policy`, `GET /api/v1/org/{org}/insurance/claims` | `docs/specs/cross-cutting/p-ins-01-e2e-insurance.md` | ⏳ Ready |
+| **P-ROI-01** | ROI + FinOps E2E | `GET /api/v1/telemetry/roi/{org}`, `POST /api/v1/finops/predict` | `docs/specs/cross-cutting/p-roi-01-e2e-finops.md` | 🤖 Jules (Running) |
+| **P-INS-01** | Insurance Lifecycle | `GET /api/v1/org/{org}/insurance/policy`, `GET /api/v1/org/{org}/insurance/claims` | `docs/specs/cross-cutting/p-ins-01-e2e-insurance.md` | 🤖 Jules (Running) |
 
 ### 🔴 Priority 1 — Frontend UI Gaps (Playwright)
 
