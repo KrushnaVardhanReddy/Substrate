@@ -884,6 +884,18 @@ TASKS = {
         "phase": "phase-15",
         "prompt": _load_prompt("prompts/phase-15/t15_license_validator.txt"),
     },
+
+    # ── Missing E2E Coverage (audited 2026-07-23) ─────────────────────────────
+    1118: {
+        "name": "P11-T18 — Phase 11 Backend E2E Validation",
+        "phase": "phase-11-ui",
+        "prompt": _load_prompt("prompts/phase-11/t18_e2e_validation.txt"),
+    },
+    312: {
+        "name": "P3-T12 — Phase 3 Contract Registry E2E Validation",
+        "phase": "phase-3-registry",
+        "prompt": _load_prompt("prompts/phase-3-registry/t12_e2e_validation.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
