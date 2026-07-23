@@ -32,6 +32,17 @@
 | P-RBAC-01 | RBAC Breadth | `2000315146898331913` |
 | P-UI-DIFF | UI Diff Viewer | `15083882370661422090` |
 
+### Next Wave — Ready for Prompts & Submission
+> Specs and prompts are written. Run `python3 scripts/jules_submit.py --file <prompt_file>`
+
+| Task ID | Description | Spec Path |
+|---|---|---|
+| P-UI-IMPACT | Impact Analysis UI | `docs/specs/cross-cutting/p-ui-02-e2e-impact.md` |
+| P-UI-GOV | Governance Rules UI | `docs/specs/cross-cutting/p-ui-03-e2e-gov.md` |
+| P-ROI-01 | FinOps ROI API | `docs/specs/cross-cutting/p-roi-01-e2e-finops.md` |
+| P-INS-01 | Schema Insurance API | `docs/specs/cross-cutting/p-ins-01-e2e-insurance.md` |
+
+
 ---
 
 ## 🔁 After Active PRs Merge

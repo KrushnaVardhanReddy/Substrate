@@ -190,18 +190,18 @@
 
 ### 🟡 Priority 2 — Backend API Gaps
 
-| Task ID | Name | Routes Covered | Status |
-|---------|------|----------------|--------|
-| **P-ROI-01** | ROI + FinOps E2E | `GET /api/v1/telemetry/roi/{org}`, `POST /api/v1/finops/predict` | ⏳ Ready |
-| **P-INS-01** | Insurance Lifecycle | `GET /api/v1/org/{org}/insurance/policy`, `GET /api/v1/org/{org}/insurance/claims` | ⏳ Ready |
+| Task ID | Name | Routes Covered | Spec | Status |
+|---------|------|----------------|------|--------|
+| **P-ROI-01** | ROI + FinOps E2E | `GET /api/v1/telemetry/roi/{org}`, `POST /api/v1/finops/predict` | `docs/specs/cross-cutting/p-roi-01-e2e-finops.md` | ⏳ Ready |
+| **P-INS-01** | Insurance Lifecycle | `GET /api/v1/org/{org}/insurance/policy`, `GET /api/v1/org/{org}/insurance/claims` | `docs/specs/cross-cutting/p-ins-01-e2e-insurance.md` | ⏳ Ready |
 
 ### 🔴 Priority 1 — Frontend UI Gaps (Playwright)
 
 | Task ID | Page | Risk | Spec | Status |
 |---------|------|------|------|--------|
 | **P-UI-DIFF** | `/diff/[id]` — Diff Viewer | Core product page — blank on regression | `docs/specs/cross-cutting/p-ui-01-e2e-missing-pages.md` | 🤖 Jules `15083882370661422090` |
-| **P-UI-IMPACT** | `/org/{org}/repo/[repo]/impact` — Impact Page | Blast radius feature | `docs/specs/cross-cutting/p-ui-01-e2e-missing-pages.md` | ⏳ Ready |
-| **P-UI-GOV** | `/org/{org}/governance` — Governance Rules | Rule CRUD UI | `docs/specs/cross-cutting/p-ui-01-e2e-missing-pages.md` | ⏳ Ready |
+| **P-UI-IMPACT** | `/org/{org}/repo/[repo]/impact` — Impact Page | Blast radius feature | `docs/specs/cross-cutting/p-ui-02-e2e-impact.md` | ⏳ Ready |
+| **P-UI-GOV** | `/org/{org}/governance` — Governance Rules | Rule CRUD UI | `docs/specs/cross-cutting/p-ui-03-e2e-gov.md` | ⏳ Ready |
 
 ### 🟡 Priority 2 — Frontend UI Gaps (Playwright)
 

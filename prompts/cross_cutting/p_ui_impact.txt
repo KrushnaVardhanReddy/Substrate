@@ -1,0 +1,18 @@
+TASK: P-UI-IMPACT — E2E Impact Analysis UI
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement the Playwright E2E test suite for the Impact Analysis UI page.
+
+═══════════════════════════════════════════════════════════════
+CRITICAL READING
+═══════════════════════════════════════════════════════════════
+1. `dashboard/tests/e2e/dashboard.spec.ts` (Reference for Playwright setup)
+2. `docs/specs/cross-cutting/p-ui-02-e2e-impact.md` (Constraints)
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Target file: `dashboard/tests/e2e/impact_analysis.spec.ts`
+- Use mocked `route.fulfill()` for API responses.

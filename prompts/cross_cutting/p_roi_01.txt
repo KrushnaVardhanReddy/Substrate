@@ -1,0 +1,18 @@
+TASK: P-ROI-01 — FinOps ROI API E2E
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement the backend E2E test suite for the FinOps APIs.
+
+═══════════════════════════════════════════════════════════════
+CRITICAL READING
+═══════════════════════════════════════════════════════════════
+1. `docs/specs/cross-cutting/p-roi-01-e2e-finops.md`
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Target file: `scripts/e2e/phase_roi_e2e_test.go`
+- Package: `package main`
+- Use live DB, no mocks.

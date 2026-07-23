@@ -1,0 +1,18 @@
+TASK: P-INS-01 — Schema Insurance API E2E
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement the backend E2E test suite for the Schema Insurance APIs.
+
+═══════════════════════════════════════════════════════════════
+CRITICAL READING
+═══════════════════════════════════════════════════════════════
+1. `docs/specs/cross-cutting/p-ins-01-e2e-insurance.md`
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Target file: `scripts/e2e/phase_insurance_e2e_test.go`
+- Package: `package main`
+- Use live DB, no mocks.

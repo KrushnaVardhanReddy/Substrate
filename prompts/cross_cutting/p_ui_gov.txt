@@ -1,0 +1,16 @@
+TASK: P-UI-GOV — E2E Governance Rules UI
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement the Playwright E2E test suite for the Governance Rules page.
+
+═══════════════════════════════════════════════════════════════
+CRITICAL READING
+═══════════════════════════════════════════════════════════════
+1. `docs/specs/cross-cutting/p-ui-03-e2e-gov.md` (Constraints)
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Target file: `dashboard/tests/e2e/governance.spec.ts`
