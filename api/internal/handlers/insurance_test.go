@@ -20,6 +20,9 @@ func TestInsuranceGetPolicyHandler(t *testing.T) {
 	orgID := uuid.New()
 
 	mockStore := &db.MockStore{
+		GetOrgIDByNameFunc: func(ctx context.Context, name string) (uuid.UUID, error) {
+			return orgID, nil
+		},
 		GetInsurancePolicyFunc: func(ctx context.Context, id uuid.UUID) (*db.InsurancePolicy, error) {
 			if id == orgID {
 				return &db.InsurancePolicy{
@@ -52,6 +55,9 @@ func TestInsuranceGetClaimsHandler(t *testing.T) {
 	policyID := uuid.New()
 
 	mockStore := &db.MockStore{
+		GetOrgIDByNameFunc: func(ctx context.Context, name string) (uuid.UUID, error) {
+			return orgID, nil
+		},
 		GetInsuranceClaimsFunc: func(ctx context.Context, id uuid.UUID) ([]db.InsuranceClaim, error) {
 			if id == orgID {
 				return []db.InsuranceClaim{
@@ -88,6 +94,9 @@ func TestInsuranceFileClaimHandler(t *testing.T) {
 	policyID := uuid.New()
 
 	mockStore := &db.MockStore{
+		GetOrgIDByNameFunc: func(ctx context.Context, name string) (uuid.UUID, error) {
+			return orgID, nil
+		},
 		GetInsurancePolicyFunc: func(ctx context.Context, id uuid.UUID) (*db.InsurancePolicy, error) {
 			if id == orgID {
 				return &db.InsurancePolicy{
