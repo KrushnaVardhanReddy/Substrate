@@ -192,8 +192,8 @@
 
 | Task ID | Name | Routes Covered | Spec | Status |
 |---------|------|----------------|------|--------|
-| **P-ROI-01** | ROI + FinOps E2E | `GET /api/v1/telemetry/roi/{org}`, `POST /api/v1/finops/predict` | `docs/specs/cross-cutting/p-roi-01-e2e-finops.md` | 🤖 Jules (Running) |
-| **P-INS-01** | Insurance Lifecycle | `GET /api/v1/org/{org}/insurance/policy`, `GET /api/v1/org/{org}/insurance/claims` | `docs/specs/cross-cutting/p-ins-01-e2e-insurance.md` | 🤖 Jules (Running) |
+| **P-ROI-01** | ROI + FinOps E2E | `GET /api/v1/telemetry/roi/{org}`, `POST /api/v1/finops/predict` | `docs/specs/cross-cutting/p-roi-01-e2e-finops.md` | ✅ Complete |
+| **P-INS-01** | Insurance Lifecycle | `GET /api/v1/org/{org}/insurance/policy`, `GET /api/v1/org/{org}/insurance/claims` | `docs/specs/cross-cutting/p-ins-01-e2e-insurance.md` | ✅ Complete |
 
 ### 🔴 Priority 1 — Frontend UI Gaps (Playwright)
 
@@ -207,16 +207,16 @@
 
 | Task ID | Page | Status |
 |---------|------|--------|
-| **P-UI-ZOMBIE** | `/org/{org}/zombies` | 🤖 Jules (Running) |
+| **P-UI-ZOMBIE** | `/org/{org}/zombies` | ✅ Complete |
 | **P-UI-INS** | `/org/{org}/settings/insurance` | 🤖 Jules (Running) |
-| **P-UI-PREVIEW** | `(public)/preview/[token]` | 🤖 Jules (Running) |
+| **P-UI-PREVIEW** | `(public)/preview/[token]` | ✅ Complete |
 
 ### 🟢 Priority 3 — CLI Command Gaps
 
 | Task ID | Commands | Status |
 |---------|----------|--------|
-| **P-CLI-POST** | `substrate postmortem`, `substrate schema-smell`, `substrate plugin publish` | 🤖 Jules (Running) |
-| **P-PART-01** | Partners CRUD (`/api/v1/org/{org}/partners` full lifecycle) | 🤖 Jules (Running) |
+| **P-CLI-POST** | `substrate postmortem`, `substrate schema-smell`, `substrate plugin publish` | ✅ Complete |
+| **P-PART-01** | Partners CRUD (`/api/v1/org/{org}/partners` full lifecycle) | ✅ Complete |
 
 ---
 
