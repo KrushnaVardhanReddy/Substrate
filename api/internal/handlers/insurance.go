@@ -22,14 +22,14 @@ type CreateClaimRequest struct {
 
 func InsuranceGetPolicyHandler(store ports.InsuranceStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		orgIDStr := chi.URLParam(r, "org")
-		orgID, err := uuid.Parse(orgIDStr)
+		orgName := chi.URLParam(r, "org")
+		ctx := r.Context()
+		orgID, err := store.GetOrgIDByName(ctx, orgName)
 		if err != nil {
-			http.Error(w, "invalid org id", http.StatusBadRequest)
+			http.Error(w, "invalid org", http.StatusBadRequest)
 			return
 		}
 
-		ctx := r.Context()
 		policy, err := store.GetInsurancePolicy(ctx, orgID)
 		if err != nil {
 			http.Error(w, "insurance policy not found", http.StatusNotFound)
@@ -43,14 +43,14 @@ func InsuranceGetPolicyHandler(store ports.InsuranceStore) http.HandlerFunc {
 
 func InsuranceGetClaimsHandler(store ports.InsuranceStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		orgIDStr := chi.URLParam(r, "org")
-		orgID, err := uuid.Parse(orgIDStr)
+		orgName := chi.URLParam(r, "org")
+		ctx := r.Context()
+		orgID, err := store.GetOrgIDByName(ctx, orgName)
 		if err != nil {
-			http.Error(w, "invalid org id", http.StatusBadRequest)
+			http.Error(w, "invalid org", http.StatusBadRequest)
 			return
 		}
 
-		ctx := r.Context()
 		claims, err := store.GetInsuranceClaims(ctx, orgID)
 		if err != nil {
 			http.Error(w, "failed to query claims", http.StatusInternalServerError)
@@ -68,10 +68,11 @@ func InsuranceGetClaimsHandler(store ports.InsuranceStore) http.HandlerFunc {
 
 func InsuranceFileClaimHandler(store ports.InsuranceStore, githubClient github.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		orgIDStr := chi.URLParam(r, "org")
-		orgID, err := uuid.Parse(orgIDStr)
+		orgName := chi.URLParam(r, "org")
+		ctx := r.Context()
+		orgID, err := store.GetOrgIDByName(ctx, orgName)
 		if err != nil {
-			http.Error(w, "invalid org id", http.StatusBadRequest)
+			http.Error(w, "invalid org", http.StatusBadRequest)
 			return
 		}
 
@@ -80,8 +81,6 @@ func InsuranceFileClaimHandler(store ports.InsuranceStore, githubClient github.C
 			http.Error(w, "invalid request body", http.StatusBadRequest)
 			return
 		}
-
-		ctx := r.Context()
 
 		// Get the policy
 		policy, err := store.GetInsurancePolicy(ctx, orgID)

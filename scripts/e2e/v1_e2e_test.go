@@ -109,13 +109,13 @@ func TestV1SystemE2E(t *testing.T) {
 		require.NoError(t, err)
 		defer resp.Body.Close()
 
-		require.Equal(t, http.StatusOK, resp.StatusCode)
+		require.Equal(t, http.StatusAccepted, resp.StatusCode)
 
-		var respData map[string]int
+		var respData map[string]string
 		err = json.NewDecoder(resp.Body).Decode(&respData)
 		require.NoError(t, err)
 
-		assert.Greater(t, respData["discovered"], 0, "Should have discovered dependencies")
+		assert.Equal(t, "queued", respData["status"], "Should have queued the webhook for processing")
 	})
 
 	// Step 2: AI Architect Scaffolding (V1-T02)

@@ -57,7 +57,7 @@ func BadgesHandler(store ports.BadgesStore) http.HandlerFunc {
 
 		repos, err := store.ListReposByOrg(ctx, org)
 		if err != nil {
-			http.Error(w, "failed to fetch repos", http.StatusInternalServerError)
+			http.Error(w, "failed to fetch repos: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -77,7 +77,7 @@ func BadgesHandler(store ports.BadgesStore) http.HandlerFunc {
 		since := time.Now().Add(-90 * 24 * time.Hour)
 		breaks, err := store.CountRecentBreakingChanges(ctx, repoID.ID, since)
 		if err != nil {
-			http.Error(w, "failed to get breaking changes", http.StatusInternalServerError)
+			http.Error(w, "failed to get breaking changes: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 

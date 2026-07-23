@@ -78,6 +78,7 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 	// Protected routes (Service Token OR JWT)
 	authMW := AuthMiddleware(registryApiToken, jwtSecret)
 	authzMW := AuthzMiddleware(registryApiToken, jwtSecret)
+	jwtValidMW := JWTValidMiddleware(jwtSecret)
 
 	partnersHandler := handler.NewPartnersHandler(store.Pool())
 	r.Method("GET", "/api/v1/org/{org}/partners", authzMW(http.HandlerFunc(partnersHandler.ListPartners)))
@@ -105,7 +106,7 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 	r.Method("POST", "/api/v1/org/{org}/zombies/pr", authzMW(http.HandlerFunc(handlers.CreateZombiePRHandler(github.NewRESTClient()))))
 
 	// Governance Rules Generate CEL endpoint
-	r.Method("POST", "/api/governance/generate-cel", authMW(handlers.GenerateCELHandler()))
+	r.Method("POST", "/api/governance/generate-cel", jwtValidMW(handlers.GenerateCELHandler()))
 
 	// Route uses GitHub OAuth token directly, not the internal JWT, so we skip authMW.
 	// The endpoint validates the token by making a call to GitHub.

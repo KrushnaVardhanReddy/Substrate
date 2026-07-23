@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"net/http"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"aidanwoods.dev/go-paseto"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
@@ -20,7 +22,19 @@ import (
 const (
 	p15ApiURL           = "http://localhost:8090"
 	p15DbURL            = "postgres://postgres:postgres@localhost:5432/substrate?sslmode=disable"
+	p15JWTSecret        = "local-jwt-secret"
 )
+
+func createP15JWT(org, role string) string {
+	hash := sha256.Sum256([]byte(p15JWTSecret))
+	key, _ := paseto.V4SymmetricKeyFromBytes(hash[:])
+	
+	token := paseto.NewToken()
+	token.Set("orgs", map[string]string{org: role})
+	token.SetExpiration(time.Now().Add(time.Hour))
+	
+	return token.V4Encrypt(key, nil)
+}
 
 func waitForP15Services(t *testing.T) {
 	client := http.Client{Timeout: 2 * time.Second}
@@ -99,7 +113,7 @@ func TestPhase15SystemE2E(t *testing.T) {
 	defer pool.Close()
 
 	t.Run("Scenario 1: NL Governance Rule generation", func(t *testing.T) {
-		adminJWT := createJWT("acme", "admin")
+		adminJWT := createP15JWT("acme", "admin")
 
 		reqBody := map[string]interface{}{
 			"prompt": "All payment APIs must require authentication",
@@ -130,7 +144,7 @@ func TestPhase15SystemE2E(t *testing.T) {
 		defer os.RemoveAll(tempDir)
 
 		cfgPath := filepath.Join(tempDir, "substrate.yaml")
-		err = os.WriteFile(cfgPath, []byte("schema_type: openapi\n"), 0644)
+		err = os.WriteFile(cfgPath, []byte("service: mock-service\nschema_type: openapi\n"), 0644)
 		require.NoError(t, err)
 
 		cmd := exec.Command(binPath, "plugin", "install", "substrate-plugin-hipaa")
@@ -169,7 +183,7 @@ func TestPhase15SystemE2E(t *testing.T) {
 	})
 
 	t.Run("Scenario 4: Schema Insurance Claims", func(t *testing.T) {
-		adminJWT := createJWT("acme", "admin")
+		adminJWT := createP15JWT("acme", "admin")
 
 		claimReq := map[string]interface{}{
 			"github_pr_url": "https://github.com/acme/repo/pull/42",
@@ -178,7 +192,7 @@ func TestPhase15SystemE2E(t *testing.T) {
 		}
 		body, _ := json.Marshal(claimReq)
 
-		req, err := http.NewRequest("POST", p15ApiURL+"/api/insurance/claims", bytes.NewReader(body))
+		req, err := http.NewRequest("POST", p15ApiURL+"/api/v1/org/acme/insurance/claims", bytes.NewReader(body))
 		require.NoError(t, err)
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+adminJWT)
