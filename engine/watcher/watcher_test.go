@@ -77,7 +77,7 @@ func TestWatcherDebounce(t *testing.T) {
 			done := make(chan struct{})
 
 			// Actually, let's inject a ExtractFunc in WatchOptions
-			opts.ExtractFunc = func() error {
+			opts.ExtractFunc = func(filePath string) error {
 				calls++
 				return nil
 			}
