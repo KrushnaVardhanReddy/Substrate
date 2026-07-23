@@ -168,8 +168,8 @@
 | Phase 13 (Enterprise) | `scripts/e2e/phase10_13_e2e_test.go` | ✅ FinOps, Protobuf, TreeSitter | — | ✅ Green |
 | Phase 14 (Predictive) | `scripts/e2e/phase14_e2e_test.go` | ✅ Badge, Archaeology, Negotiation | — | ✅ Green |
 | Phase 15 (Ecosystem) | `scripts/e2e/phase15_e2e_test.go` | ✅ NL Governance, Marketplace, Insurance | — | ✅ Green |
-| History/Sync/RBAC (Cross-cutting) | — | ❌ History, Sync, Schema, RBAC breadth | 🔴 P1 | ⏳ P-HIST-01, P-SYNC-01, P-RBAC-01 |
-| UI — Diff Viewer / Impact / Governance | — | ❌ `/diff/[id]`, `/impact`, `/governance` | 🔴 P1 | ⏳ P-UI-DIFF, P-UI-IMPACT, P-UI-GOV |
+| History/Sync/RBAC (Cross-cutting) | — | ❌ History, Sync, Schema, RBAC breadth | 🔴 P1 | 🤖 Jules (Running) |
+| UI — Diff Viewer / Impact / Governance | — | ❌ `/diff/[id]`, `/impact`, `/governance` | 🔴 P1 | 🤖 Jules (Diff Viewer Running) |
 
 ---
 
@@ -183,9 +183,9 @@
 |---------|------|----------------|------|--------|
 | **P11-T18** | Phase 11 Backend E2E | `GET /api/v1/graph/{org}`, `GET /api/v1/impact/{org}/{repo}`, `GET /api/v1/events`, `GET /api/v1/diff/{id}` | `docs/specs/phase-11/p11-t18-e2e-validation.md` | ✅ PR Merged |
 | **P3-T12** | Phase 3 Registry E2E | `GET /api/v1/graph/{org}`, `GET /api/v1/registry/can-deploy`, `GET /api/v1/repos/{org}` | `docs/specs/phase-3/p3-t12-e2e-validation.md` | ✅ PR Merged |
-| **P-HIST-01** | History & Changes API | `POST /api/v1/history`, `GET /api/v1/history/{org}/{repo}`, `GET /api/v1/changes` | `docs/specs/cross-cutting/p-hist-01-e2e-history-api.md` | ⏳ Ready |
-| **P-SYNC-01** | Contract Sync Pipeline | `POST /api/v1/sync`, `GET /api/v1/schema/{owner}/{repo}`, `GET /api/v1/spec/{org}/{repo}` | `docs/specs/cross-cutting/p-sync-01-e2e-sync-pipeline.md` | ⏳ Ready |
-| **P-RBAC-01** | RBAC Breadth | All `authzMW` write routes — rules, insurance, zombies/pr, partners | `docs/specs/cross-cutting/p-rbac-01-e2e-rbac-breadth.md` | ⏳ Ready |
+| **P-HIST-01** | History & Changes API | `POST /api/v1/history`, `GET /api/v1/history/{org}/{repo}`, `GET /api/v1/changes` | `docs/specs/cross-cutting/p-hist-01-e2e-history-api.md` | 🤖 Jules `7559319657696508706` |
+| **P-SYNC-01** | Contract Sync Pipeline | `POST /api/v1/sync`, `GET /api/v1/schema/{owner}/{repo}`, `GET /api/v1/spec/{org}/{repo}` | `docs/specs/cross-cutting/p-sync-01-e2e-sync-pipeline.md` | 🤖 Jules `15966420240518303256` |
+| **P-RBAC-01** | RBAC Breadth | All `authzMW` write routes — rules, insurance, zombies/pr, partners | `docs/specs/cross-cutting/p-rbac-01-e2e-rbac-breadth.md` | 🤖 Jules `2000315146898331913` |
 | **P-MCP-01** | Full MCP Server Parity | 28 Tools, 8 Resources, 5 Prompts + SSE Transport | `docs/specs/cross-cutting/p-mcp-01-full-mcp-parity.md` | ✅ PR Merged |
 
 ### 🟡 Priority 2 — Backend API Gaps
@@ -199,7 +199,7 @@
 
 | Task ID | Page | Risk | Spec | Status |
 |---------|------|------|------|--------|
-| **P-UI-DIFF** | `/diff/[id]` — Diff Viewer | Core product page — blank on regression | `docs/specs/cross-cutting/p-ui-01-e2e-missing-pages.md` | ⏳ Ready |
+| **P-UI-DIFF** | `/diff/[id]` — Diff Viewer | Core product page — blank on regression | `docs/specs/cross-cutting/p-ui-01-e2e-missing-pages.md` | 🤖 Jules `15083882370661422090` |
 | **P-UI-IMPACT** | `/org/{org}/repo/[repo]/impact` — Impact Page | Blast radius feature | `docs/specs/cross-cutting/p-ui-01-e2e-missing-pages.md` | ⏳ Ready |
 | **P-UI-GOV** | `/org/{org}/governance` — Governance Rules | Rule CRUD UI | `docs/specs/cross-cutting/p-ui-01-e2e-missing-pages.md` | ⏳ Ready |
 

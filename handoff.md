@@ -24,15 +24,13 @@
 
 ## 🌊 Pending Waves
 
-### Next Wave — Ready for Prompts & Submission
-> These are the next highest priority tasks from the E2E Audit. Someone needs to write the Jules prompt files for these (specs are already written).
-
-| Task ID | Spec Path |
-|---|---|
-| P-HIST-01 | `docs/specs/cross-cutting/p-hist-01-e2e-history-api.md` |
-| P-SYNC-01 | `docs/specs/cross-cutting/p-sync-01-e2e-sync-pipeline.md` |
-| P-RBAC-01 | `docs/specs/cross-cutting/p-rbac-01-e2e-rbac-breadth.md` |
-| P-UI-DIFF | `docs/specs/cross-cutting/p-ui-01-e2e-missing-pages.md` |
+### Active Wave — Jules is processing
+| Task ID | Description | Jules Session |
+|---|---|---|
+| P-HIST-01 | History & Changes API | `7559319657696508706` |
+| P-SYNC-01 | Contract Sync Pipeline | `15966420240518303256` |
+| P-RBAC-01 | RBAC Breadth | `2000315146898331913` |
+| P-UI-DIFF | UI Diff Viewer | `15083882370661422090` |
 
 ---
 
