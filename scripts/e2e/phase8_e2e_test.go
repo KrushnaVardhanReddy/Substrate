@@ -68,11 +68,11 @@ func setupP8Database(t *testing.T) *pgxpool.Pool {
 func createJWT(org, role string) string {
 	hash := sha256.Sum256([]byte(p8JWTSecret))
 	key, _ := paseto.V4SymmetricKeyFromBytes(hash[:])
-	
+
 	token := paseto.NewToken()
 	token.Set("orgs", map[string]string{org: role})
 	token.SetExpiration(time.Now().Add(time.Hour))
-	
+
 	return token.V4Encrypt(key, nil)
 }
 
@@ -307,5 +307,95 @@ paths:
 		var respBody map[string]string
 		json.NewDecoder(resp.Body).Decode(&respBody)
 		assert.Equal(t, "paused_due_to_billing", respBody["status"])
+	})
+
+	t.Run("Scenario 5: RBAC Breadth", func(t *testing.T) {
+		viewerJWT := createJWT("rbac-org", "Read-Only")
+		adminJWT := createJWT("rbac-org", "admin")
+
+		// Scenario 1: Read-Only Token Blocked on All Write Endpoints
+		writeRoutes := []struct {
+			method string
+			path   string
+		}{
+			{"POST", "/api/v1/org/rbac-org/rules"},
+			{"DELETE", "/api/v1/org/rbac-org/rules/123"},
+			{"POST", "/api/v1/org/rbac-org/insurance/claims"},
+			{"POST", "/api/v1/org/rbac-org/zombies/pr"},
+			{"POST", "/api/v1/org/rbac-org/partners"},
+		}
+
+		for _, route := range writeRoutes {
+			req, _ := http.NewRequest(route.method, p8ApiURL+route.path, bytes.NewReader([]byte("{}")))
+			req.Header.Set("Authorization", "Bearer "+viewerJWT)
+			req.Header.Set("Content-Type", "application/json")
+
+			resp, err := http.DefaultClient.Do(req)
+			require.NoError(t, err)
+			resp.Body.Close()
+			assert.Equal(t, http.StatusForbidden, resp.StatusCode, "Read-Only role should get 403 Forbidden for "+route.method+" "+route.path)
+		}
+
+		// Scenario 2: Admin Token Allowed on All Write Endpoints
+		// Note: The global test pool and ctx are already set up at the start of TestPhase8SystemE2E
+		_, err := pool.Exec(ctx, "INSERT INTO organizations (github_installation_id, github_org_name) VALUES (888, 'rbac-org') ON CONFLICT DO NOTHING")
+		require.NoError(t, err)
+
+		var rbacOrgID string
+		err = pool.QueryRow(ctx, "SELECT id FROM organizations WHERE github_org_name = 'rbac-org'").Scan(&rbacOrgID)
+		if err == nil {
+			_, _ = pool.Exec(ctx, "INSERT INTO repositories (org_id, github_repo_id, name, full_name) VALUES ($1, 333, 'rbac-repo', 'rbac-org/rbac-repo') ON CONFLICT DO NOTHING", rbacOrgID)
+		}
+
+		for _, route := range writeRoutes {
+			req, _ := http.NewRequest(route.method, p8ApiURL+route.path, bytes.NewReader([]byte("{}")))
+			req.Header.Set("Authorization", "Bearer "+adminJWT)
+			req.Header.Set("Content-Type", "application/json")
+
+			resp, err := http.DefaultClient.Do(req)
+			require.NoError(t, err)
+			resp.Body.Close()
+			assert.NotEqual(t, http.StatusForbidden, resp.StatusCode, "Admin role should not get 403 for "+route.method+" "+route.path)
+			assert.NotEqual(t, http.StatusUnauthorized, resp.StatusCode, "Admin role should not get 401 for "+route.method+" "+route.path)
+		}
+
+		// Scenario 3: Service Token Allowed on Service-Token Routes
+		serviceRoutes := []struct {
+			method string
+			path   string
+		}{
+			{"POST", "/api/v1/sync"},
+			{"POST", "/api/v1/diff"},
+			{"POST", "/api/v1/otel/webhook"},
+		}
+
+		for _, route := range serviceRoutes {
+			req, _ := http.NewRequest(route.method, p8ApiURL+route.path, bytes.NewReader([]byte("{}")))
+			req.Header.Set("Authorization", "Bearer "+p8RegistryAPIToken)
+			req.Header.Set("Content-Type", "application/json")
+
+			resp, err := http.DefaultClient.Do(req)
+			require.NoError(t, err)
+			resp.Body.Close()
+			assert.NotEqual(t, http.StatusForbidden, resp.StatusCode, "Service token should not get 403 for "+route.method+" "+route.path)
+			assert.NotEqual(t, http.StatusUnauthorized, resp.StatusCode, "Service token should not get 401 for "+route.method+" "+route.path)
+
+			// User JWT should fail on service token routes
+			req, _ = http.NewRequest(route.method, p8ApiURL+route.path, bytes.NewReader([]byte("{}")))
+			req.Header.Set("Authorization", "Bearer "+adminJWT)
+			req.Header.Set("Content-Type", "application/json")
+
+			resp, err = http.DefaultClient.Do(req)
+			require.NoError(t, err)
+			resp.Body.Close()
+			assert.True(t, resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusUnauthorized, "User JWT should be denied for service route")
+		}
+
+		// Scenario 4: No Token Returns 401
+		reqNoToken, _ := http.NewRequest("POST", p8ApiURL+"/api/v1/org/rbac-org/rules", bytes.NewReader([]byte("{}")))
+		respNoToken, err := http.DefaultClient.Do(reqNoToken)
+		require.NoError(t, err)
+		respNoToken.Body.Close()
+		assert.Equal(t, http.StatusUnauthorized, respNoToken.StatusCode, "Missing token should get 401 Unauthorized")
 	})
 }
