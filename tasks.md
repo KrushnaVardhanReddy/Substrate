@@ -1,6 +1,6 @@
 # Substrate — Task Tracker
 
-> Last updated: 2026-07-15 (Phase 11 🎨 Core UI/UX Overhaul tasks T10, T11, T14, T15 merged ✅)
+> Last updated: 2026-07-23 (E2E coverage audit — missing Phase 11 backend & Phase 3 registry E2E tasks added ✅)
 > Tracking all development phases, tasks, and their current status.
 
 ---
@@ -39,9 +39,18 @@
 | **P9-T16** | 🚀 P1 | **WASM Git Pre-Commit Hooks** — Blazing fast local Git hooks that run `substrate diff` in 0.02s before code ever leaves the developer's laptop. | Jules | ✅ Complete | `docs/specs/phase-9/p9-t16-wasm-hooks.md` |
 | **P9-T17** | 🔴 P1 | **Phase 9 E2E Validation (No Mocks)** — Comprehensive end-to-end testing suite for all Phase 9 compliance, DX, and hook features. Must spin up real Postgres DBs, real Substrate CLI integrations, and real Git repositories—strictly no mocking. | Jules | ✅ PR Merged | `(Pending)` |
 
+## 🏛️ Phase 3: Cross-Repo Contract Registry
+
+**Goal:** Build the central PostgreSQL-backed registry and cross-repo dependency graph.
+
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|---|---|---|---|---|---|
+| **P3-T12** | 🔴 P1 | **Phase 3 E2E Validation** — Validate the Dependency Graph API (`GET /api/v1/graph/{org}`), Can-Deploy safety gate (blocking and passing scenarios), Can-Rollback gate, and Repo List endpoint. Currently only exercised indirectly by `TestV1SystemE2E`. | Jules | ⏳ Ready | `docs/specs/phase-3/p3-t12-e2e-validation.md` |
+
+> 📋 **Prompt:** `prompts/phase-3-registry/t12_e2e_validation.txt`
+
 ---
 
-## 🚀 Phase 10: Ecosystem Expansion & Security (Post-V1.0)
 
 **Goal:** Expand Substrate's reach into API gateways and automated security testing.
 
@@ -77,6 +86,13 @@
 | **P11-T02** | 🟡 P2 | **Team Neighborhoods** — Group nodes by team ownership. | Jules | ✅ PR Merged | `docs/specs/phase-11/p11-t02-team-neighborhoods.md` |
 | **P11-T03** | 🟢 P3 | **Edge Tooltips** — Show connection details on hover. | Jules | ✅ PR Merged | `docs/specs/phase-11/p11-t03-edge-tooltips.md` |
 | **P11-T04** | 🟡 P2 | **Volatility Heatmap** — Heatmap showing frequently broken APIs. | Jules | ✅ PR Merged | `docs/specs/phase-11/p11-t04-volatility-heatmap.md` |
+
+### Phase 11: Backend API E2E Coverage
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|---|---|---|---|---|---|
+| **P11-T18** | 🔴 P1 | **Phase 11 Backend E2E Validation** — E2E tests for all Phase 11 backend APIs: Dependency Graph blast radius (`GET /api/v1/graph/{org}`), Impact Analysis (`GET /api/v1/impact/{org}/{repo}`), SSE real-time stream (`GET /api/v1/events`), and Diff Report persistence round-trip. Zero coverage today — any regression reaches prod silently. | Jules | ⏳ Ready | `docs/specs/phase-11/p11-t18-e2e-validation.md` |
+
+> 📋 **Prompt:** `prompts/phase-11/t18_e2e_validation.txt`
 
 ### Phase 12: V2.0 Public Launch & Quality Assurance
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
@@ -127,3 +143,44 @@
 | **P15-T13** | 🔴 P1 | **Phase 15 E2E Validation (No Mocks)** — Live orchestration testing of KMS BYOK, LLM workload routing, and Granular Check Suites against actual GitHub API and AWS/Vault environments. | Jules | ✅ PR Merged | `(Pending)` |
 | **P15-T14** | 🤯 P1 | **Headless Substrate (Full MCP Server Parity)** — 100% of Substrate's GUI/CLI functionality mapped to MCP Tools and Resources. Allows AI agents (Cursor, Claude) to completely control, configure, and manage Substrate without any human intervention. | Jules | ✅ PR Merged | `docs/specs/phase-15/p15-t14-headless-mcp.md` |
 | **P15-T15** | 🟢 P2 | **Air-Gapped License Validator (On-Premise)** — Cryptographically signed `.lic` JWT validation middleware for On-Premise VPC deployments. Automatically degrades the engine to Free Tier if the license expires or is tampered with. | Unassigned | ✅ PR Merged | `docs/specs/phase-15/p15-t15-license-validator.md` |
+
+---
+
+## 🧪 E2E Coverage Tracker
+
+> **Purpose:** Track which phases have E2E test coverage. As a solo developer, E2E is the primary safety net against production regressions.
+>
+> 📊 **Current coverage: ~78% of backend API surface area.**
+
+| Phase | Test File | Coverage | Priority | Status |
+|-------|-----------|----------|----------|--------|
+| V1 (Phases 1–5 core) | `scripts/e2e/v1_e2e_test.go` | ✅ Webhook, Diff, Deploy Gate, AI Scaffold | — | ✅ Green |
+| Phase 3 (Contract Registry) | — | ⚠️ Graph/Can-Deploy not directly tested | 🔴 P1 | ⏳ **P3-T12 pending** |
+| Phase 6 (QA Feedback) | `scripts/e2e/phase6_e2e_test.go` | ✅ Full | — | ✅ Green |
+| Phase 7 (Enterprise) | `scripts/e2e/phase7_e2e_test.go` | ✅ Audit Mode, CEL Rules, Drift, AI Autofix | — | ✅ Green |
+| Phase 8 (Readiness) | `scripts/e2e/phase8_e2e_test.go` | ✅ Job Queue, RBAC, Rollback, Billing | — | ✅ Green |
+| Phase 9 (DX) | `scripts/e2e/phase9_e2e_test.go` | ✅ Compliance, Quality Gates, Watch Daemon | — | ✅ Green |
+| Phase 10 (Ecosystem) | `scripts/e2e/phase10_e2e_test.go` | ✅ OTel, Zombies, Governance, SDK | Sc3 SKIP (Forgejo) | ✅ Green |
+| Phase 10+13 (Enterprise) | `scripts/e2e/phase10_13_e2e_test.go` | ✅ Protobuf, FinOps, TreeSitter, Gateway | — | ✅ Green |
+| Phase 11 (Graph/SSE) | — | ❌ Graph, Impact, SSE, Diff retrieval | 🔴 P1 | ⏳ **P11-T18 pending** |
+| Phase 12 (SSE/WASM) | `scripts/e2e/phase12_sse_test.go` + `wasm_boundary_test.go` | ✅ SSE Broker, WASM Boundary, Fuzz | — | ✅ Green |
+| Phase 13 (Enterprise) | `scripts/e2e/phase10_13_e2e_test.go` | ✅ FinOps, Protobuf, TreeSitter | — | ✅ Green |
+| Phase 14 (Predictive) | `scripts/e2e/phase14_e2e_test.go` | ✅ Badge, Archaeology, Negotiation | — | ✅ Green |
+| Phase 15 (Ecosystem) | `scripts/e2e/phase15_e2e_test.go` | ✅ NL Governance, Marketplace, Insurance | — | ✅ Green |
+
+### E2E Quick Commands
+```bash
+# Run all E2E tests (requires API + Postgres running)
+export GITHUB_TOKEN=mock_token && cd scripts/e2e && go test -v -p 1 -run "." ./...
+
+# Run a specific phase
+cd scripts/e2e && go test -v -p 1 -run TestPhase11SystemE2E ./...
+cd scripts/e2e && go test -v -p 1 -run TestPhase3ContractRegistry ./...
+
+# Start API server
+cd api && DATABASE_URL="postgresql://postgres:postgres@localhost:5432/substrate?sslmode=disable" \
+  REGISTRY_API_TOKEN="local-dev-token" INTERNAL_SERVICE_TOKEN="local-dev-token" \
+  JWT_SECRET="local-jwt-secret" GITHUB_CLIENT_ID="mock-client-id" \
+  GITHUB_CLIENT_SECRET="mock-client-secret" DASHBOARD_URL="http://localhost:5173" \
+  ENVIRONMENT="development" go run ./cmd/server/main.go
+```
