@@ -1,0 +1,61 @@
+TASK: MCP-HTTP — Implement SSE Transport for MCP
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement the HTTP Server-Sent Events (SSE) Transport for the Model Context Protocol (MCP) server so it can be exposed via the API server.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/mcp/mcp-http-transport.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Implement the HTTP SSE transport within the `api/internal/mcp` package.
+- Ensure the MCP endpoints are protected by `ServiceTokenMiddleware` (auth token).
+- Ensure `TestPhaseMCPSystemE2E` passes without regressions.
+- NEVER comment out, stub, or mock existing implementation code.
+- NEVER replace a working function body with `// TODO` or empty returns.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+The Registry API lives in `api/`.
+The MCP server currently supports a headless Stdio transport (`ServeStdio` in `api/internal/mcp/server.go`).
+The main multiplexer is initialized in `api/cmd/server/main.go`.
+
+⚠️ CRITICAL CONTEXT: SSE TRANSPORT SPEC ⚠️
+The client first GETs `/mcp/sse`. You must respond with `Content-Type: text/event-stream`, keep the connection open, and immediately send an `event: endpoint\ndata: /mcp/messages?sessionId=<uuid>\n\n`. 
+The client will then POST JSON-RPC messages to `/mcp/messages?sessionId=<uuid>`. You must parse the JSON-RPC request, pass it to `mcpServer.HandleMessage`, and then broadcast the resulting JSON-RPC response back over the SSE channel mapped to that `sessionId`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. CREATE: `api/internal/mcp/http.go`
+   - Implement `type HTTPTransport struct` with a map of `sessionId -> chan []byte` for active SSE connections.
+   - Implement `ServeSSE(w http.ResponseWriter, r *http.Request)`.
+   - Implement `ServeMessages(w http.ResponseWriter, r *http.Request)`.
+
+2. MODIFY: `api/cmd/server/main.go`
+   - Extract the `mcp.NewServer()` initialization and tool/resource/prompt registration so it runs regardless of `headlessMCP`.
+   - Initialize the `HTTPTransport`.
+   - Register `GET /mcp/sse` and `POST /mcp/messages` to the `mux` before `mux.Mount("/", router)`.
+   - Wrap the MCP handlers with `ServiceTokenMiddleware(registryApiToken)`.
+
+3. CREATE: `api/internal/mcp/http_test.go`
+   - Thoroughly test the SSE transport initialization and message passing.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO CREATE:
+- api/internal/mcp/http.go
+- api/internal/mcp/http_test.go
+
+FILES TO MODIFY:
+- api/cmd/server/main.go
+
+Commit: "jules: feat: MCP-HTTP implement SSE transport for MCP"
+Target branch: feature/dev
