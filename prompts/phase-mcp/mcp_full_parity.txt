@@ -1,0 +1,58 @@
+TASK: MCP-PARITY — Implement Full MCP Server Parity
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement the remaining 24 tools, 5 resources, and 5 prompts for the Model Context Protocol (MCP) server to achieve 100% parity with the Registry API.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/cross-cutting/p-mcp-01-full-mcp-parity.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Implement the missing MCP tools, resources, and prompts in `api/internal/mcp`.
+- Do NOT route tool executions through the HTTP handlers (`api/internal/handlers`). Instead, inject the `store` (DB) or necessary `services` into the tools, and call the underlying business logic directly. This is the best practice for MCP tools since they do not have an HTTP request context.
+- Ensure `TestPhaseMCPSystemE2E` passes without regressions. Specifically, ensure all 10 scenarios pass (especially Scenarios 1 and 10 which check tool/resource counts).
+- NEVER comment out, stub, or mock existing implementation code.
+- NEVER replace a working function body with `// TODO` or empty returns.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+The Registry API MCP server lives in `api/internal/mcp/`.
+Currently, `tools.go` only has 4 tools, `resources.go` only has 3 resources, and `prompts.go` only has 1 prompt.
+The comprehensive list of what needs to be added is clearly mapped out in the Spec.
+
+⚠️ CRITICAL CONTEXT: JSON-RPC ARGUMENT PARSING ⚠️
+When implementing tools, carefully parse the `json.RawMessage` arguments into local structs. Validate required parameters (like `org`, `repo`) before passing them down to the `store` or `services` layer. Return errors cleanly if parameters are missing.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+
+1. MODIFY: `api/internal/mcp/tools.go`
+   - Implement the remaining 24 tools listed in the spec (Groups A through F).
+   - Wire them to the underlying `store` or `services` methods.
+
+2. MODIFY: `api/internal/mcp/resources.go`
+   - Implement the remaining 5 resources listed in the spec.
+   - Update the existing `substrate://governance-rules` stub to fetch real rules from the DB and accept an `{org}` parameter.
+
+3. MODIFY: `api/internal/mcp/resources.go` (or `prompts.go` if it exists separately)
+   - Implement the 4 missing prompts (`substrate_diff_workflow`, `substrate_governance_setup`, `substrate_incident_response`, `substrate_onboard_org`, `substrate_schema_smell`).
+
+4. MODIFY: `scripts/e2e/phase_mcp_e2e_test.go`
+   - Ensure the test suite asserts against the new full counts for tools and resources, and that specific tool tests (like `diff_schemas`) pass cleanly.
+
+═══════════════════════════════════════════════════════════════
+FILES LIST
+═══════════════════════════════════════════════════════════════
+
+FILES TO MODIFY:
+- api/internal/mcp/tools.go
+- api/internal/mcp/resources.go
+- scripts/e2e/phase_mcp_e2e_test.go
+
+Commit: "jules: feat: MCP-PARITY implement full MCP server parity"
+Target branch: feature/dev
