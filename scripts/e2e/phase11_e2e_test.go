@@ -165,7 +165,7 @@ func TestPhase11SystemE2E(t *testing.T) {
 		// Context cancellation will close the response body and scanner.Scan() will return false
 		for scanner.Scan() {
 			line := scanner.Text()
-			if len(line) > 0 && (line == "data: {\"type\":\"heartbeat\"}" || line == "data: heartbeat" || (len(line) > 5 && line[:5] == "data:")) {
+			if len(line) > 0 && (line == ": heartbeat" || line == "data: {\"type\":\"heartbeat\"}" || line == "data: heartbeat" || (len(line) > 5 && line[:5] == "data:")) {
 				receivedHeartbeat = true
 				cancel()
 				break
