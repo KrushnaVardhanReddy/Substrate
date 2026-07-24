@@ -19,6 +19,8 @@
 	let nodes = $state<Node[]>([]);
 	let edges = $state<Edge[]>([]);
 
+	let isMounted = $state(false);
+
 	let showOnlyBreaking = $state(false);
 	let hideOrphans = $state(false);
 	let protocolFilter = $state('All');
@@ -319,6 +321,7 @@
 
 	// We'll manage nodes and edges mapping inside onMount
 	onMount(() => {
+		isMounted = true;
 		const processGraphData = (edgesData: any) => {
 			let newNodesMap = new Map<string, Node>();
 			let newEdges: Edge[] = [];
@@ -539,21 +542,23 @@
 					<p>Enter a service name, or check "Show Only BREAKING Changes" to generate the graph.</p>
 				</div>
 			{/if}
-			<SvelteFlow {nodes} {edges} {nodeTypes} {edgeTypes} fitView colorMode="dark"
-				onpaneclick={() => selectedNode = null}
-				onnodeclick={(...args: any[]) => {
-					// Handle different event shapes between SvelteFlow versions
-					const node = args.length > 1 ? args[1] : (args[0]?.node || args[0]?.detail?.node);
-					if (node) {
-						selectedNode = { id: node.id, ...node.data };
-						trackEvent('node_clicked', { nodeId: node.id, nodeType: node.data?.type });
-					}
-				}}
-			>
-				<Background variant={BackgroundVariant.Dots} />
-				<Controls />
-				<MiniMap />
-			</SvelteFlow>
+			{#if isMounted}
+				<SvelteFlow {nodes} {edges} {nodeTypes} {edgeTypes} fitView colorMode="dark"
+					onpaneclick={() => selectedNode = null}
+					onnodeclick={(...args: any[]) => {
+						// Handle different event shapes between SvelteFlow versions
+						const node = args.length > 1 ? args[1] : (args[0]?.node || args[0]?.detail?.node);
+						if (node) {
+							selectedNode = { id: node.id, ...node.data };
+							trackEvent('node_clicked', { nodeId: node.id, nodeType: node.data?.type });
+						}
+					}}
+				>
+					<Background variant={BackgroundVariant.Dots} />
+					<Controls />
+					<MiniMap />
+				</SvelteFlow>
+			{/if}
 		</div>
 
 		<!-- Time Travel Scrubber -->

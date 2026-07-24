@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Book from '@lucide/svelte/icons/book';
+	import { Book } from 'lucide-svelte';
 	let { repos = [], org = '', pathname = '', isAdmin = true }: { repos?: { id: string; name: string; full_name: string }[], org?: string, pathname?: string, isAdmin?: boolean } = $props();
 </script>
 

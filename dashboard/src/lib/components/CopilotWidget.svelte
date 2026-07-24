@@ -1,8 +1,6 @@
 <script lang="ts">
-	import MessageSquare from '@lucide/svelte/icons/message-square';
-	import X from '@lucide/svelte/icons/x';
-	import Send from '@lucide/svelte/icons/send';
-	import { onMount, onDestroy } from 'svelte';
+	import { MessageSquare, X, Send } from 'lucide-svelte';
+	import { onMount } from 'svelte';
 
 	interface Message {
 		role: 'user' | 'ai';
@@ -51,13 +49,11 @@
 
 		window.addEventListener('keydown', handleKeydown);
 		window.addEventListener('mousedown', handleClickOutside);
-	});
 
-	onDestroy(() => {
-		if (typeof window !== 'undefined') {
+		return () => {
 			window.removeEventListener('keydown', handleKeydown);
 			window.removeEventListener('mousedown', handleClickOutside);
-		}
+		};
 	});
 
 	$effect(() => {

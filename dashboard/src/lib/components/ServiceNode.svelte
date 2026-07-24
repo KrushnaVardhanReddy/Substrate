@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Handle, Position } from '@xyflow/svelte';
-	import { AppWindow, Database, Smartphone, Server } from '@lucide/svelte';
+	import { AppWindow, Database, Smartphone, Server } from 'lucide-svelte';
 
 	let { data } = $props<{ data: any }>();
 
