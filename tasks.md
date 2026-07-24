@@ -187,7 +187,7 @@
 | **P-SYNC-01** | Contract Sync Pipeline | `POST /api/v1/sync`, `GET /api/v1/schema/{owner}/{repo}`, `GET /api/v1/spec/{org}/{repo}` | `docs/specs/cross-cutting/p-sync-01-e2e-sync-pipeline.md` | ✅ Complete |
 | **P-RBAC-01** | RBAC Breadth | All `authzMW` write routes — rules, insurance, zombies/pr, partners | `docs/specs/cross-cutting/p-rbac-01-e2e-rbac-breadth.md` | ✅ Complete |
 | **P-MCP-01** | Full MCP Server Parity | 28 Tools, 8 Resources, 5 Prompts + SSE Transport | `docs/specs/cross-cutting/p-mcp-01-full-mcp-parity.md` | ✅ PR Merged |
-| **P-MCP-02** | MCP HTTP SSE Transport | Implement the missing HTTP Server-Sent Events Transport for MCP. | `docs/specs/mcp/mcp-http-transport.md` | ⏳ Pending |
+| **P-MCP-02** | MCP HTTP SSE Transport | Implement the missing HTTP Server-Sent Events Transport for MCP. | `docs/specs/mcp/mcp-http-transport.md` | ✅ Complete |
 
 ### 🟡 Priority 2 — Backend API Gaps
 
