@@ -42,7 +42,7 @@ func TestPhaseMCPSystemE2E(t *testing.T) {
 		result := pMCPCall(t, "tools/list", 1, nil)
 		require.NotNil(t, result["result"])
 		tools := result["result"].(map[string]any)["tools"].([]any)
-		assert.GreaterOrEqual(t, len(tools), 20)
+		assert.GreaterOrEqual(t, len(tools), 28)
 	})
 
 	t.Run("Scenario 2: diff_schemas detects breaking change", func(t *testing.T) {
@@ -194,6 +194,6 @@ func TestPhaseMCPSystemE2E(t *testing.T) {
 		result := pMCPCall(t, "resources/list", 13, nil)
 		require.NotNil(t, result["result"])
 		resources := result["result"].(map[string]any)["resources"].([]any)
-		assert.GreaterOrEqual(t, len(resources), 9)
+		assert.GreaterOrEqual(t, len(resources), 11)
 	})
 }
