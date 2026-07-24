@@ -208,7 +208,7 @@
 | Task ID | Page | Status |
 |---------|------|--------|
 | **P-UI-ZOMBIE** | `/org/{org}/zombies` | ✅ Complete |
-| **P-UI-INS** | `/org/{org}/settings/insurance` | 🤖 Jules (Running) |
+| **P-UI-INS** | `/org/{org}/settings/insurance` | ✅ Complete |
 | **P-UI-PREVIEW** | `(public)/preview/[token]` | ✅ Complete |
 
 ### 🟢 Priority 3 — CLI Command Gaps
