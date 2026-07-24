@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Handle, Position } from '@xyflow/svelte';
-	import { AppWindow, Database, Smartphone, Server } from 'lucide-svelte';
+	import { AppWindow, Database, Smartphone, Server } from '@lucide/svelte';
 
 	let { data } = $props<{ data: any }>();
 
@@ -15,7 +15,7 @@
 	});
 </script>
 
-<div class="service-node-card {nodeType}" style="background-color: {backgroundColor};" class:origin={data.isOrigin} class:affected={data.isAffected} class:faded={data.isFaded} data-status={data.status?.toLowerCase() === 'breaking' || data.isAffected ? 'breaking' : 'safe'}>
+<div class="service-node-card {nodeType}" style="background-color: {backgroundColor};" class:origin={data.isOrigin} class:affected={data.isAffected} class:faded={data.isFaded}>
 	<Handle type="target" position={Position.Top} style="background: #555; width: 8px; height: 8px;" />
 
 	<div class="header">
@@ -30,7 +30,7 @@
 				<Server size={14} color="#6366F1" />
 			{/if}
 		</div>
-		<div class="status-indicator" class:breaking={data.status?.toLowerCase() === 'breaking' || data.isAffected} class:safe={data.status?.toLowerCase() !== 'breaking' && !data.isAffected}></div>
+		<div class="status-indicator" class:breaking={data.status === 'BREAKING'} class:safe={data.status !== 'BREAKING'}></div>
 		<span class="service-name">{data.label}</span>
 	</div>
 

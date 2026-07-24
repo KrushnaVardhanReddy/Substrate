@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { trackEvent } from '$lib/utils/telemetry';
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import { SvelteFlow, MiniMap, Controls, Background, BackgroundVariant, type Node, type Edge, useSvelteFlow } from '@xyflow/svelte';
@@ -16,9 +15,6 @@
 	let { data }: { data: any } = $props();
 	let rawNodes = $state<Node[]>([]);
 	let rawEdges = $state<Edge[]>([]);
-	let nodes = $state<Node[]>([]);
-	let edges = $state<Edge[]>([]);
-
 	let isMounted = $state(false);
 
 	let showOnlyBreaking = $state(false);
@@ -37,11 +33,7 @@
 	};
 
 	$effect(() => {
-		const currentQuery = searchQuery;
-		const timer = setTimeout(() => {
-			debouncedSearch = currentQuery;
-		}, 300);
-		return () => clearTimeout(timer);
+		debouncedSearch = searchQuery;
 	});
 
 	let selectedNode: any = $state(null);
@@ -59,7 +51,15 @@
 		const affectedNodes = new Set<string>();
 		const affectedEdges = new Set<string>();
 		
-		// 1. Add downstream consumers recursively (Blast Radius)
+		// 1. Add immediate upstream providers so they are highlighted
+		for (const edge of rawEdges) {
+			if (edge.target === selectedNode.id) {
+				affectedEdges.add(edge.id);
+				affectedNodes.add(edge.source);
+			}
+		}
+
+		// 2. Add downstream consumers recursively (Blast Radius)
 		const queue = [selectedNode.id];
 
 		while (queue.length > 0) {
@@ -134,22 +134,22 @@
 		dagre.layout(dagreGraph);
 
 		const layoutedNodes = nodes.map((node) => {
-			const nodeWithPosition = dagreGraph.node(node.id);
+			const nodeWithPosition = dagreGraph.node(node.id) || { x: 0, y: 0, width: nodeWidth, height: nodeHeight };
 			const newNode = { ...node };
 			if (newNode.type === 'teamGroup') {
 				newNode.position = {
-					x: nodeWithPosition.x - nodeWithPosition.width / 2,
-					y: nodeWithPosition.y - nodeWithPosition.height / 2
+					x: nodeWithPosition.x - (nodeWithPosition.width || nodeWidth) / 2,
+					y: nodeWithPosition.y - (nodeWithPosition.height || nodeHeight) / 2
 				};
 				// Assign width and height to SvelteFlow nodes so they size correctly
-				newNode.width = nodeWithPosition.width;
-				newNode.height = nodeWithPosition.height;
-				newNode.style = `width: ${nodeWithPosition.width}px; height: ${nodeWithPosition.height}px; ${newNode.style || ''}`;
+				newNode.width = nodeWithPosition.width || nodeWidth;
+				newNode.height = nodeWithPosition.height || nodeHeight;
+				newNode.style = `width: ${newNode.width}px; height: ${newNode.height}px; ${newNode.style || ''}`;
 			} else {
 				newNode.width = nodeWidth;
 				newNode.height = nodeHeight;
 				// For children inside parents, SvelteFlow expects positions relative to the parent
-				if (newNode.parentId) {
+				if (newNode.parentId && dagreGraph.node(newNode.parentId)) {
 					const parentNodePos = dagreGraph.node(newNode.parentId);
 					newNode.position = {
 						x: nodeWithPosition.x - parentNodePos.x + parentNodePos.width / 2 - nodeWidth / 2,
@@ -184,8 +184,11 @@
 		}
 
 		if (debouncedSearch) {
-			const query = debouncedSearch.toLowerCase();
-			fNodes = fNodes.filter(n => (n.data.label as string).toLowerCase().includes(query));
+			const query = debouncedSearch.toLowerCase().trim();
+			fNodes = fNodes.filter(n =>
+				n.id.toLowerCase().includes(query) ||
+				(typeof n.data?.label === 'string' && n.data.label.toLowerCase().includes(query))
+			);
 		}
 
 		const matchedIds = new Set(fNodes.map(n => n.id));
@@ -264,27 +267,19 @@
 
 		// Apply blast radius highlighting and fading
 		if (selectedNode) {
-			dNodes = dNodes.map(n => {
-				const isOrigin = n.id === selectedNode.id;
-				const isAffected = blastRadius.nodes.has(n.id);
-				const isFaded = !isOrigin && !isAffected;
-				return {
-					...n,
-					data: {
-						...n.data,
-						isOrigin,
-						isAffected,
-						isFaded
-					},
-					style: (n.type === 'teamGroup' && isFaded)
-						? `${n.style || ""}; opacity: 0.2;`
-						: n.style
-				};
-			});
+			dNodes = dNodes.map(n => ({
+				...n,
+				data: {
+					...n.data,
+					isOrigin: n.id === selectedNode.id,
+					isAffected: blastRadius.nodes.has(n.id),
+					isFaded: n.id !== selectedNode.id && !blastRadius.nodes.has(n.id)
+				}
+			}));
 
 			dEdges = dEdges.map(e => ({
 				...e,
-				style: (blastRadius.edges.has(e.id) || (e.source === selectedNode.id && blastRadius.nodes.has(e.target)))
+				style: (blastRadius.edges.has(e.id) || e.source === selectedNode.id || e.target === selectedNode.id)
 					? e.style
 					: `${e.style || ""}; opacity: 0.2;`
 			}));
@@ -298,10 +293,8 @@
 		return { nodes: dNodes, edges: dEdges };
 	});
 
-	$effect(() => {
-		nodes = displayData.nodes;
-		edges = displayData.edges;
-	});
+	let nodes = $derived(displayData.nodes);
+	let edges = $derived(displayData.edges);
 
 	const exportImage = () => {
 		const viewportNode = document.querySelector('.svelte-flow__viewport') as HTMLElement;
@@ -389,43 +382,20 @@
 				});
 			});
 
-			let nextNodes = Array.from(newNodesMap.values());
-
-			// Compute global transitive blast radius immediately on load
-			const globalBreakingImpacts = new Set<string>();
-			for (const n of nextNodes) {
-				if (String(n.data.status).toLowerCase() === 'breaking') globalBreakingImpacts.add(n.id);
-			}
-
-			let changed = true;
-			while (changed) {
-				changed = false;
-				for (const edge of newEdges) {
-					if (globalBreakingImpacts.has(edge.source) || edge.style?.includes('#EF4444')) {
-						if (!globalBreakingImpacts.has(edge.target)) {
-							globalBreakingImpacts.add(edge.target);
-							changed = true;
-						}
-					}
-				}
-			}
-
-			// Apply global breaking status to downstream nodes
-			rawNodes = nextNodes.map(n => {
-				if (globalBreakingImpacts.has(n.id) && String(n.data.status).toLowerCase() !== 'breaking') {
-					return {
-						...n,
-						data: { ...n.data, status: 'BREAKING' }
-					};
-				}
-				return n;
-			});
-
+			rawNodes = Array.from(newNodesMap.values());
 			rawEdges = newEdges;
 			console.log('processGraphData finished. rawNodes length:', rawNodes.length);
 		};
 
 		console.log('Mounting component. data.graphData length:', data?.graphData?.length);
+		
+		$effect(() => {
+			const currentData = data?.graphData;
+			if (currentData && currentData.length > 0) {
+				processGraphData(currentData);
+			}
+		});
+
 		// Run immediately with SSR/fallback data
 		if (data && data.graphData) {
 			processGraphData(data.graphData);
@@ -534,7 +504,7 @@
 			<!-- Removed zoom controls since SvelteFlow provides its own <Controls /> -->
 		</div>
 
-		<div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 10;">
+		<div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; z-index: 10;">
 			{#if isGraphEmpty}
 				<div class="empty-state">
 					<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -543,21 +513,18 @@
 				</div>
 			{/if}
 			{#if isMounted}
-				<SvelteFlow {nodes} {edges} {nodeTypes} {edgeTypes} fitView colorMode="dark"
-					onpaneclick={() => selectedNode = null}
-					onnodeclick={(...args: any[]) => {
-						// Handle different event shapes between SvelteFlow versions
-						const node = args.length > 1 ? args[1] : (args[0]?.node || args[0]?.detail?.node);
-						if (node) {
-							selectedNode = { id: node.id, ...node.data };
-							trackEvent('node_clicked', { nodeId: node.id, nodeType: node.data?.type });
-						}
-					}}
-				>
-					<Background variant={BackgroundVariant.Dots} />
-					<Controls />
-					<MiniMap />
-				</SvelteFlow>
+			<SvelteFlow {nodes} {edges} {nodeTypes} {edgeTypes} fitView colorMode="dark"
+				onpaneclick={() => selectedNode = null}
+				onnodeclick={(...args: any[]) => {
+					// Handle different event shapes between SvelteFlow versions
+					const node = args.length > 1 ? args[1] : (args[0]?.node || args[0]?.detail?.node);
+					if (node) selectedNode = { id: node.id, ...node.data };
+				}}
+			>
+				<Background variant={BackgroundVariant.Dots} />
+				<Controls />
+				<MiniMap />
+			</SvelteFlow>
 			{/if}
 		</div>
 
