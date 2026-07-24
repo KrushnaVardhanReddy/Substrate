@@ -4,34 +4,7 @@ test.describe('Cross-Repo Blast Radius E2E (Suite 13)', () => {
 
     test('should display blast radius alert on C when A is broken in A -> B -> C chain', async ({ page }) => {
         // We will mock the API response for the graph endpoint to simulate the chain
-        await page.route('**/api/v1/graph/*', async (route) => {
-            const graphEdges = [
-                // A -> B
-                {
-                    provider_id: "repo-A",
-                    provider: "repo-A",
-                    consumer_id: "repo-B",
-                    consumer: "repo-B",
-                    status: "breaking", // A broke B
-                    schema_type: "protobuf"
-                },
-                // B -> C
-                {
-                    provider_id: "repo-B",
-                    provider: "repo-B",
-                    consumer_id: "repo-C",
-                    consumer: "repo-C",
-                    status: "breaking", // Blast radius propagation
-                    schema_type: "protobuf"
-                }
-            ];
 
-            await route.fulfill({
-                status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify(graphEdges)
-            });
-        });
 
         await page.goto('/org/test-org/graph');
 

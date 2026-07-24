@@ -3,12 +3,8 @@ import { test, expect } from '@playwright/test';
 test.describe('Onboarding E2E Flow', () => {
 	test('user can complete zero-to-one onboarding journey', async ({ page }) => {
 		// Mock the API responses needed for /org/demo/graph to load
-		await page.route('**/api/v1/repos/*', async route => {
-			await route.fulfill({ json: [] });
-		});
-		await page.route('**/api/v1/graph/*', async route => {
-			await route.fulfill({ json: [] });
-		});
+
+
 
 		// 1. Visit /onboarding
 		await page.goto('/onboarding');

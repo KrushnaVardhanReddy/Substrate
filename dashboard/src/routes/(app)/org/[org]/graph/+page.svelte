@@ -176,7 +176,7 @@
 		let fNodes = rawNodes;
 		
 		if (showOnlyBreaking) {
-			fNodes = fNodes.filter(n => n.data.status === 'BREAKING');
+			fNodes = fNodes.filter(n => String(n.data.status).toUpperCase() === 'BREAKING');
 		}
 
 		if (protocolFilter !== 'All') {
@@ -312,94 +312,93 @@
 			});
 	};
 
-	// We'll manage nodes and edges mapping inside onMount
-	onMount(() => {
-		isMounted = true;
-		const processGraphData = (edgesData: any) => {
-			let newNodesMap = new Map<string, Node>();
-			let newEdges: Edge[] = [];
 
-			const addTeamNode = (teamName: string) => {
-				if (!teamName) return;
-				const teamId = `team-${teamName}`;
-				if (!newNodesMap.has(teamId)) {
-					newNodesMap.set(teamId, {
-						id: teamId,
-						type: 'teamGroup',
-						position: { x: 0, y: 0 },
-						data: { label: teamName }
-					});
-				}
-			};
+	const processGraphData = (edgesData: any) => {
+		let newNodesMap = new Map<string, Node>();
+		let newEdges: Edge[] = [];
 
-			const addNode = (id: string, status: string, type: string, metadata: any = {}) => {
-				let teamName = metadata?.team || null;
-				if (teamName) addTeamNode(teamName);
-
-				if (!newNodesMap.has(id)) {
-					const existingNode = rawNodes.find(n => n.id === id);
-					const volatilityScore = existingNode?.data?.volatilityScore !== undefined
-						? existingNode.data.volatilityScore
-						: Math.floor(Math.random() * 101);
-
-					const node: Node = {
-						id,
-						type: 'service',
-						position: { x: 0, y: 0 },
-						data: { label: id, status, type, metadata, volatilityScore }
-					};
-					if (teamName) {
-						node.parentId = `team-${teamName}`;
-						node.extent = 'parent';
-					}
-					newNodesMap.set(id, node);
-				} else {
-					const existing = newNodesMap.get(id);
-					if (existing) {
-						if (status === 'BREAKING') existing.data.status = 'BREAKING';
-						if (metadata && Object.keys(metadata).length > 0) {
-							existing.data.metadata = metadata;
-						}
-						if (teamName && !existing.parentId) {
-							existing.parentId = `team-${teamName}`;
-							existing.extent = 'parent';
-						}
-					}
-				}
-			};
-
-			edgesData.forEach((edge: any) => {
-				addNode(edge.provider, edge.status, 'provider', edge.provider_metadata);
-				addNode(edge.consumer, 'SAFE', 'consumer', edge.consumer_metadata);
-
-				newEdges.push({
-					id: `e-${edge.provider}-${edge.consumer}`,
-					source: edge.provider,
-					target: edge.consumer,
-					type: edgesData.length < 150 ? 'interactive' : 'straight',
-					animated: true,
-					style: `stroke: ${edge.status === 'BREAKING' ? '#EF4444' : '#64748b'}; stroke-width: 2px;`
+		const addTeamNode = (teamName: string) => {
+			if (!teamName) return;
+			const teamId = `team-${teamName}`;
+			if (!newNodesMap.has(teamId)) {
+				newNodesMap.set(teamId, {
+					id: teamId,
+					type: 'teamGroup',
+					position: { x: 0, y: 0 },
+					data: { label: teamName }
 				});
-			});
-
-			rawNodes = Array.from(newNodesMap.values());
-			rawEdges = newEdges;
-			console.log('processGraphData finished. rawNodes length:', rawNodes.length);
+			}
 		};
 
-		console.log('Mounting component. data.graphData length:', data?.graphData?.length);
-		
-		$effect(() => {
-			const currentData = data?.graphData;
-			if (currentData && currentData.length > 0) {
-				processGraphData(currentData);
+		const addNode = (id: string, status: string, type: string, metadata: any = {}) => {
+			let teamName = metadata?.team || null;
+			if (teamName) addTeamNode(teamName);
+
+			if (!newNodesMap.has(id)) {
+				const existingNode = rawNodes.find(n => n.id === id);
+				const volatilityScore = existingNode?.data?.volatilityScore !== undefined
+					? existingNode.data.volatilityScore
+					: Math.floor(Math.random() * 101);
+
+				const node: Node = {
+					id,
+					type: 'service',
+					position: { x: 0, y: 0 },
+					data: { label: id, status, type, metadata, volatilityScore }
+				};
+				if (teamName) {
+					node.parentId = `team-${teamName}`;
+					node.extent = 'parent';
+				}
+				newNodesMap.set(id, node);
+			} else {
+				const existing = newNodesMap.get(id);
+				if (existing) {
+					if (String(status).toUpperCase() === 'BREAKING') existing.data.status = 'BREAKING';
+					if (metadata && Object.keys(metadata).length > 0) {
+						existing.data.metadata = metadata;
+					}
+					if (teamName && !existing.parentId) {
+						existing.parentId = `team-${teamName}`;
+						existing.extent = 'parent';
+					}
+				}
 			}
+		};
+
+		edgesData.forEach((edge: any) => {
+			addNode(edge.provider, edge.status, 'provider', edge.provider_metadata);
+			addNode(edge.consumer, 'SAFE', 'consumer', edge.consumer_metadata);
+
+			newEdges.push({
+				id: `e-${edge.provider}-${edge.consumer}`,
+				source: edge.provider,
+				target: edge.consumer,
+				type: edgesData.length < 150 ? 'interactive' : 'straight',
+				animated: true,
+				style: `stroke: ${String(edge.status).toUpperCase() === 'BREAKING' ? '#EF4444' : '#64748b'}; stroke-width: 2px;`
+			});
 		});
 
-		// Run immediately with SSR/fallback data
-		if (data && data.graphData) {
+		rawNodes = Array.from(newNodesMap.values());
+		rawEdges = newEdges;
+	};
+
+	$effect(() => {
+		if (data?.graphData && Array.isArray(data.graphData)) {
 			processGraphData(data.graphData);
 		}
+	});
+
+
+	onMount(() => {
+		isMounted = true;
+
+
+		console.log('Mounting component. data.graphData length:', data?.graphData?.length);
+
+
+
 
 		const fetchInitialGraph = async () => {
 			if ($page.params.org === 'stress-test') return;
@@ -598,7 +597,7 @@
 					<div class="meta-label">License</div>
 					<div class="meta-value monospace">MIT</div>
 					<div class="meta-label">Status</div>
-					<div class="meta-value {selectedNode.status === 'BREAKING' ? 'error-text' : ''}">{selectedNode.status}</div>
+					<div class="meta-value {String(selectedNode.status).toUpperCase() === 'BREAKING' ? 'error-text' : ''}">{selectedNode.status}</div>
 				</div>
 			</section>
 

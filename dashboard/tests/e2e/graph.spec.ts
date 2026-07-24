@@ -1,33 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Dependency Graph', () => {
-	test.beforeEach(async ({ page }) => {
-		await page.route('**/api/v1/repos/*', async (route) => {
-			await route.fulfill({
-				status: 200,
-				contentType: 'application/json',
-				body: JSON.stringify([
-					{ id: '1', name: 'core-auth', full_name: 'core/auth' }
-				])
-			});
-		});
 
-		await page.route('**/api/v1/graph/*', async (route) => {
-			await route.fulfill({
-				status: 200,
-				contentType: 'application/json',
-				body: JSON.stringify([
-					{ 
-						provider: 'core/auth', 
-						consumer: 'frontend/dashboard', 
-						status: 'SAFE',
-						provider_metadata: { type: 'database', team: 'Platform' },
-						consumer_metadata: { type: 'frontend' }
-					}
-				])
-			});
-		});
-	});
 
 	test('should render graph container and filter controls', async ({ page }) => {
 		const responsePromise = page.waitForResponse('**/api/v1/graph/*');

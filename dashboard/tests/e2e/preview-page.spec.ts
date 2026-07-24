@@ -15,16 +15,7 @@ test.describe('Public Preview Page', () => {
 	});
 
 	test('should display schema diff when base_schema and head_schema are present', async ({ page }) => {
-		await page.route(`**/api/v1/preview/${MOCK_TOKEN}`, async (route) => {
-			await route.fulfill({
-				status: 200,
-				contentType: 'application/json',
-				body: JSON.stringify({
-					base_schema: 'old schema content\nline 2',
-					head_schema: 'new schema content\nline 2'
-				})
-			});
-		});
+
 
 		await page.goto(`/preview/${MOCK_TOKEN}`);
 
@@ -48,13 +39,7 @@ test.describe('Public Preview Page', () => {
 			}
 		};
 
-		await page.route(`**/api/v1/preview/${MOCK_TOKEN}`, async (route) => {
-			await route.fulfill({
-				status: 200,
-				contentType: 'application/json',
-				body: JSON.stringify(mockReport)
-			});
-		});
+
 
 		await page.goto(`/preview/${MOCK_TOKEN}`);
 
@@ -65,13 +50,7 @@ test.describe('Public Preview Page', () => {
 	});
 
 	test('should display expiration error on 410 status', async ({ page }) => {
-		await page.route(`**/api/v1/preview/${MOCK_TOKEN}`, async (route) => {
-			await route.fulfill({
-				status: 410,
-				contentType: 'application/json',
-				body: JSON.stringify({ message: 'gone' })
-			});
-		});
+
 
 		await page.goto(`/preview/${MOCK_TOKEN}`);
 
@@ -80,13 +59,7 @@ test.describe('Public Preview Page', () => {
 	});
 
 	test('should display not found error on 404 status', async ({ page }) => {
-		await page.route(`**/api/v1/preview/${MOCK_TOKEN}`, async (route) => {
-			await route.fulfill({
-				status: 404,
-				contentType: 'application/json',
-				body: JSON.stringify({ message: 'not found' })
-			});
-		});
+
 
 		await page.goto(`/preview/${MOCK_TOKEN}`);
 
@@ -95,13 +68,7 @@ test.describe('Public Preview Page', () => {
 	});
 
 	test('should display general error on 500 status', async ({ page }) => {
-		await page.route(`**/api/v1/preview/${MOCK_TOKEN}`, async (route) => {
-			await route.fulfill({
-				status: 500,
-				contentType: 'application/json',
-				body: JSON.stringify({ message: 'internal error' })
-			});
-		});
+
 
 		await page.goto(`/preview/${MOCK_TOKEN}`);
 

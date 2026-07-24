@@ -1,28 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('AI Playground', () => {
-	test.beforeEach(async ({ page }) => {
-		await page.route('**/api/v1/ai/analyze', async (route) => {
-			// Mock the Server-Sent Events (SSE) stream returned by the AI bridge
-			const sseBody = [
-				`data: {"type":"thinking","content":"Analyzing GraphQL schema for breaking changes..."}`,
-				``,
-				`data: {"type":"finding","severity":"BREAKING","content":"Field 'user_id' was removed from User type."}`,
-				``,
-				`data: {"type":"fix","code":"type User {\\n  id: ID!\\n  user_id: String! @deprecated(reason: \\"Use id instead\\")\\n  name: String\\n  email: String\\n}"}`,
-				``,
-				`data: {"type":"done"}`,
-				``,
-				``
-			].join('\n');
 
-			await route.fulfill({
-				status: 200,
-				contentType: 'text/event-stream',
-				body: sseBody
-			});
-		});
-	});
 
 	test('should stream AI analysis and apply auto-fix', async ({ page }) => {
 		// Navigate to the playground
@@ -74,17 +53,7 @@ paths:
 
   test('should stream AI analysis and display findings', async ({ page }) => {
     // a. Mock the AI analyze endpoint for SSE
-    await page.route(ANALYZE_API, async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'text/event-stream',
-        headers: {
-          'Connection': 'keep-alive',
-          'Cache-Control': 'no-cache',
-        },
-        body: 'data: {"type":"finding","severity":"BREAKING","content":"Field userId removed"}\n\ndata: {"type":"fix","code":"openapi: 3.0.0\\ninfo:\\n  title: Fixed API"}\n\ndata: {"type":"done"}\n\n'
-      });
-    });
+
 
     // b. Navigate to playground
     await page.goto('/playground');
@@ -115,13 +84,7 @@ paths:
     });
 
     // Repeat Test 1 setup
-    await page.route(ANALYZE_API, async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'text/event-stream',
-        body: 'data: {"type":"finding","severity":"BREAKING","content":"Field userId removed"}\n\ndata: {"type":"fix","code":"Fixed Content"}\n\ndata: {"type":"done"}\n\n'
-      });
-    });
+
 
     await page.goto('/playground');
     const editor = page.locator('textarea, [contenteditable="true"]').first();
@@ -152,13 +115,7 @@ paths:
     });
 
     // a. Mock 400 error
-    await page.route(ANALYZE_API, async (route) => {
-      await route.fulfill({
-        status: 400,
-        contentType: 'application/json',
-        body: JSON.stringify({ error: 'Invalid schema format' })
-      });
-    });
+
 
     // b. Navigate
     await page.goto('/playground');

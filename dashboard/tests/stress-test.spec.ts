@@ -12,40 +12,9 @@ test.describe('1,000-Node UI Stress Test', () => {
 			console.log(`Console message: "${msg.text()}"`);
 		});
 
-		await page.route('**/api/v1/repos/**', async (route) => {
-			await route.fulfill({
-				status: 200,
-				contentType: 'application/json',
-				body: JSON.stringify([
-					{ id: '1', name: 'core-auth', full_name: 'core/auth' }
-				])
-			});
-		});
 
-		await page.route('**/api/v1/graph/**', async route => {
-			const json = [];
-			
-			// Guarantee exactly 200 unique nodes by creating a straight line
-			for (let i = 0; i < 199; i++) {
-				json.push({
-					provider: `node-${i}`,
-					consumer: `node-${i + 1}`,
-					status: 'SAFE'
-				});
-			}
-			
-			// Add 600 more random edges, strictly provider < consumer to keep it acyclic
-			for (let i = 0; i < 600; i++) {
-				const providerIdx = Math.floor(Math.random() * 198);
-				const consumerIdx = providerIdx + 1 + Math.floor(Math.random() * (199 - providerIdx));
-				json.push({
-					provider: `node-${providerIdx}`,
-					consumer: `node-${consumerIdx}`,
-					status: Math.random() > 0.95 ? 'BREAKING' : 'SAFE'
-				});
-			}
-			await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(json) });
-		});
+
+
 
 		const startTime = Date.now();
 		

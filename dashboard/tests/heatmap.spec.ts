@@ -3,13 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Heatmap Mode', () => {
 	test('can toggle Heatmap Mode and nodes change styles', async ({ page }) => {
 		// Mock graph data
-		await page.route('**/api/v1/graph/*', async route => {
-			const json = [
-				{ provider: 'service-A', consumer: 'service-B', status: 'SAFE' },
-				{ provider: 'service-C', consumer: 'service-D', status: 'BREAKING' }
-			];
-			await route.fulfill({ json });
-		});
+
 
 		await page.goto('/org/myorg/graph');
 

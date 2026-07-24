@@ -13,26 +13,7 @@ test.describe('Support Copilot Widget', () => {
 		});
 
 		// Mock the AI API endpoint with Server-Sent Events stream
-		await page.route('/api/v1/ai/analyze', async (route) => {
-			// Instead of a direct standard json response, we need to mock a stream response.
-			// Playwright route.fulfill allows sending body strings. Since it's SSE, we just send a formatted string.
-			const streamData = [
-				'data: {"type":"thinking","content":"Let me check that for you."}\n\n',
-				'data: {"type":"finding","severity":"SAFE","content":"Looking good."}\n\n',
-				'data: {"type":"fix","language":"yaml","code":"consumer:\\n  name: Test"}\n\n',
-				'data: [DONE]\n\n'
-			].join('');
 
-			await route.fulfill({
-				status: 200,
-				headers: {
-					'Content-Type': 'text/event-stream',
-					'Cache-Control': 'no-cache',
-					'Connection': 'keep-alive'
-				},
-				body: streamData
-			});
-		});
 
 		await page.goto('/org/default/catalog');
 	});

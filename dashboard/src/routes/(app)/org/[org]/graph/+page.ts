@@ -4,7 +4,7 @@ import { env } from '$env/dynamic/public';
 export const load: PageLoad = async ({ fetch, params }) => {
 	const org = params.org;
 	const apiUrl = env.PUBLIC_API_URL || 'http://localhost:8090';
-	const token = env.PUBLIC_API_TOKEN || '';
+	const token = env.PUBLIC_API_TOKEN || 'local-dev-token';
 
 	// Procedurally generate 200 nodes and 600 edges for the stress-test org demo
 	if (org === 'stress-test') {
@@ -21,8 +21,7 @@ export const load: PageLoad = async ({ fetch, params }) => {
 	}
 
 	// Use relative URL in browser so Playwright can intercept it easily
-	const isBrowser = typeof window !== 'undefined';
-	const baseUrl = isBrowser ? '' : (env.PUBLIC_API_URL || 'http://localhost:8090');
+	const baseUrl = env.PUBLIC_API_URL || 'http://localhost:8090';
 	
 	try {
 		const response = await fetch(`${baseUrl}/api/v1/graph/${org}`, {
@@ -41,38 +40,9 @@ export const load: PageLoad = async ({ fetch, params }) => {
 		console.error(`Error fetching graph:`, e);
 	}
 
-	// Fallback mock data for demo purposes if backend fails
+	// Fallback mock data removed
 	return {
 		org,
-		graphData: [
-			{ 
-				provider: "demo-org/core-service", 
-				consumer: "demo-org/gateway-service", 
-				status: "SAFE",
-				provider_metadata: { type: "backend", team: "platform", databases: ["postgres", "redis"] },
-				consumer_metadata: { type: "service", team: "infrastructure" }
-			},
-			{ 
-				provider: "demo-org/postgres-driver", 
-				consumer: "demo-org/core-service", 
-				status: "SAFE",
-				provider_metadata: { type: "database", team: "data", databases: ["postgres"] },
-				consumer_metadata: { type: "backend", team: "platform", databases: ["postgres", "redis"] }
-			},
-			{ 
-				provider: "demo-org/gateway-service", 
-				consumer: "demo-org/frontend-dashboard", 
-				status: "SAFE",
-				provider_metadata: { type: "service", team: "infrastructure" },
-				consumer_metadata: { type: "frontend", team: "product" }
-			},
-			{ 
-				provider: "demo-org/gateway-service", 
-				consumer: "demo-org/mobile-ios", 
-				status: "BREAKING",
-				provider_metadata: { type: "service", team: "infrastructure" },
-				consumer_metadata: { type: "mobile", team: "mobile" }
-			}
-		]
+		graphData: []
 	};
 };
