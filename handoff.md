@@ -28,16 +28,15 @@
 - ✅ **P-RBAC-01** (RBAC Breadth E2E)
 - ✅ **P-UI-DIFF** (UI Diff, Impact, Governance E2E)
 - ✅ **P-UI-INS** (Insurance Settings UI E2E)
+- ✅ **P-ROI-01** (FinOps ROI API E2E)
+- ✅ **P-INS-01** (Schema Insurance API E2E)
+- ✅ **P-UI-ZOMBIE** (Zombies Dashboard UI)
+- ✅ **P-UI-PREVIEW** (Public Preview UI)
+- ✅ **P-CLI-POST** (CLI Commands)
+- ✅ **P-PART-01** (Partners CRUD)
 
 ### Active Wave — Jules is processing
-| Task ID | Description | Jules Session |
-|---|---|---|
-| P-ROI-01 | FinOps ROI API E2E | `11199779014464194148` |
-| P-INS-01 | Schema Insurance API E2E | `3219450072316982265` |
-| P-UI-ZOMBIE | Zombies Dashboard UI | `5645360832303796603` |
-| P-UI-PREVIEW | Public Preview UI | `11876745616660687606` |
-| P-CLI-POST | CLI Commands | `14442739058769857613` |
-| P-PART-01 | Partners CRUD | `17579933883785818153` |
+> (All tasks completed for this wave)
 
 ### Next Wave — Ready for Prompts & Submission
 > All specs and prompts are currently processing! 🎉
