@@ -20,11 +20,34 @@ CRITICAL READING — DO THIS BEFORE WRITING A SINGLE LINE OF CODE
 ═══════════════════════════════════════════════════════════════
 DELIVERABLES
 ═══════════════════════════════════════════════════════════════
-1. FILE: scripts/e2e/phase14_api_test.go (NEW)
+5. FILE: scripts/e2e/phase14_api_test.go (NEW)
    - API assertions.
 
-2. FILE: dashboard/playwright/phase14.spec.ts (NEW)
+6. FILE: dashboard/tests/e2e/phase14.spec.ts (NEW)
    - UI assertions.
+
+═══════════════════════════════════════════════════════════════
+🚨 CRITICAL RULES FOR THIS RUN 🚨
+═══════════════════════════════════════════════════════════════
+1. NO INTERNAL PACKAGE MOCKING:
+   - Your Go tests in `scripts/e2e/` are in a separate module. You CANNOT import `github.com/KrushnaVardhanReddy/Substrate/api/internal/...` to directly call handlers.
+   - You MUST make external HTTP requests (`http.NewRequest`) to the live API running at `http://localhost:8090`.
+
+2. DATABASE & PGLITE:
+   - PGlite runs on port `54320`.
+   - The connection string MUST be: `postgres://postgres:postgres@localhost:54320/postgres?sslmode=disable&default_query_exec_mode=exec&statement_cache_capacity=0&pgbouncer=true`
+   - You MUST clean up and seed your own data in your test file by instantiating `pgxpool.New` with the above URL.
+
+3. CYTOSCAPE PLAYWRIGHT TESTS:
+   - Cytoscape is an HTML canvas. You CANNOT use standard DOM locators for graph nodes.
+   - You MUST interact with the graph using `page.evaluate(() => window.cyInstance...)` and wait for it to load using `waitForFunction`.
+
+4. VENDOR PRESERVATION:
+   - Do NOT modify or delete anything inside `scripts/e2e/vendor/pglite/`.
+   - If you need to add Go dependencies to `scripts/e2e`, run `go mod vendor` inside `scripts/e2e/`.
+
+5. RIVER QUEUE CRASHES:
+   - PGlite is incompatible with River Queue. The server runs with `SKIP_RIVER="true"`. Do not attempt to start or test River background jobs natively on PGlite.
 
 Commit message: "test: P14 add Phase 14 full-stack E2E tests"
 Target branch: feature/dev
