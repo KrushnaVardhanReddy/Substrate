@@ -74,6 +74,7 @@
 | Task | Priority | Title | Assignee | Status | Spec |
 |---|---|---|---|---|---|
 | **CC-T01** | 🛡️ P1 | **PASETO Security Migration** — Replace all `golang-jwt` usage in `middleware.go` with PASETO `v4.local` for internal auth, and prepare for PASETO `v4.public` in P15-T15. | Jules | ✅ PR Merged | `docs/wiki/concepts/architecture.md` |
+| **CC-T02** | 🚀 P1 | **E2E Overhaul: Vendored PGlite + Tear-down Pipeline** — Vendor the PGlite WASM bundle and create a Node.js wrapper to spin up an in-memory Postgres TCP server. Seed data and point Go E2E tests to this local instance, entirely replacing external database dependencies. | Jules | ⏳ Ready to Start | `prompts/e2e/pglite_migration.txt` |
 
 ---
 
