@@ -49,7 +49,14 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REPO_SOURCE = "sources/github/KrushnaVardhanReddy/Substrate"
 
 # Parse branch from args if provided
-BRANCH = "feature/dev"
+import subprocess
+def get_current_branch():
+    try:
+        return subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD'], text=True).strip()
+    except Exception:
+        return "feature/dev"
+
+BRANCH = get_current_branch()
 if "--branch" in sys.argv:
     idx = sys.argv.index("--branch")
     if idx + 1 < len(sys.argv):
@@ -895,6 +902,11 @@ TASKS = {
         "name": "CC-T02 — E2E Overhaul: Full-Stack PGlite Harness",
         "phase": "cross-cutting",
         "prompt": _load_prompt("prompts/e2e/pglite_infrastructure.txt"),
+    },
+    1: {
+        "name": "P3-T12 — Phase 3 Contract Registry E2E Validation (Pipeline Phase 1)",
+        "phase": "phase-3-registry",
+        "prompt": _load_prompt("prompts/phase-3-registry/t12_e2e_validation.txt"),
     },
     312: {
         "name": "P3-T12 — Phase 3 Contract Registry E2E Validation",
