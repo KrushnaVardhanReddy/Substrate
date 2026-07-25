@@ -913,6 +913,11 @@ TASKS = {
         "phase": "phase-4-ai",
         "prompt": _load_prompt("prompts/phase-4/t10_e2e_validation.txt"),
     },
+    3: {
+        "name": "P5-T06 — Phase 5 Discovery Scanners E2E Validation (Pipeline Phase 3)",
+        "phase": "phase-5-discovery",
+        "prompt": _load_prompt("prompts/phase-5-discovery/t06_e2e_tests.txt"),
+    },
     312: {
         "name": "P3-T12 — Phase 3 Contract Registry E2E Validation",
         "phase": "phase-3-registry",
