@@ -137,6 +137,11 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 	r.Post("/api/v1/ai/autofix", services.AIAutofixHandler())
 	r.Post("/api/v1/ai/impact", services.AIImpactHandler())
 
+	// Phase 5 Discovery Routes
+	r.Method("POST", "/api/v1/discovery/scan/{org}/{repo}", serviceTokenMW(http.HandlerFunc(handlers.TriggerScanHandler(riverClient))))
+	r.Method("GET", "/api/v1/discovery/results/{org}/{repo}", serviceTokenMW(http.HandlerFunc(handlers.GetScanResultsHandler())))
+
+
 	// Public registry routes
 	r.Route("/api/v1/registry/public", func(r chi.Router) {
 		r.Post("/{namespace}/{name}/{version}", registry.HandlePublishSchema(store))

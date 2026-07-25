@@ -302,6 +302,24 @@
 					padding: 50
 				}
 			});
+
+			if (browser) {
+				(window as any).cyInstance = cyInstance;
+			}
+			cyInstance.on('tap', 'node', (evt) => {
+				const nodeData = evt.target.data();
+				const fullNode = rawNodes.find((n: any) => n.id === nodeData.id);
+				if (fullNode) {
+					// We construct an object matching what the detail panel expects
+					selectedNode = {
+						id: fullNode.id,
+						label: fullNode.data.label,
+						status: fullNode.data.status,
+						metadata: fullNode.data.metadata,
+						version: fullNode.data.version
+					};
+				}
+			});
 		});
 	});
 

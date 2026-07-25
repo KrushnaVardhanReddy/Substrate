@@ -16,7 +16,7 @@ import (
 
 const (
 	p3ApiURL           = "http://localhost:8090"
-	p3DbURL            = "postgres://postgres:postgres@localhost:5432/substrate?sslmode=disable"
+	p3DbURL            = "postgres://postgres:postgres@localhost:54320/postgres?sslmode=disable&default_query_exec_mode=exec&statement_cache_capacity=0&pgbouncer=true"
 	p3RegistryAPIToken = "local-dev-token"
 )
 
@@ -73,11 +73,11 @@ func TestPhase3ContractRegistry(t *testing.T) {
 	require.NoError(t, err)
 
 	var providerRepoID string
-	err = pool.QueryRow(ctx, "INSERT INTO repositories (org_id, github_repo_id, name, full_name) VALUES ($1, $2, $3, $4) RETURNING id", orgID, 3101, "backend", "p3-org/backend").Scan(&providerRepoID)
+	err = pool.QueryRow(ctx, "INSERT INTO repositories (org_id, github_repo_id, name, full_name, metadata) VALUES ($1, $2, $3, $4, $5) RETURNING id", orgID, 3101, "backend", "p3-org/backend", "{}").Scan(&providerRepoID)
 	require.NoError(t, err)
 
 	var consumerRepoID string
-	err = pool.QueryRow(ctx, "INSERT INTO repositories (org_id, github_repo_id, name, full_name) VALUES ($1, $2, $3, $4) RETURNING id", orgID, 3102, "frontend", "p3-org/frontend").Scan(&consumerRepoID)
+	err = pool.QueryRow(ctx, "INSERT INTO repositories (org_id, github_repo_id, name, full_name, metadata) VALUES ($1, $2, $3, $4, $5) RETURNING id", orgID, 3102, "frontend", "p3-org/frontend", "{}").Scan(&consumerRepoID)
 	require.NoError(t, err)
 
 	var contractID string

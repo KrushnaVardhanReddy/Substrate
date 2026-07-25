@@ -1,43 +1,30 @@
-TASK: P14-T07 — Phase 14 E2E Validation (No Mocks)
+TASK: P14 — Phase 14 Predictive Intelligence Full-Stack E2E Validation
 
 ═══════════════════════════════════════════════════════════════
 OBJECTIVE
 ═══════════════════════════════════════════════════════════════
-Validate all Phase 14 features (Contract Score Badge, Archaeology CLI, Contract Negotiation) end-to-end.
+Using the new Full-Stack PGlite Test Harness (CC-T02), implement the complete E2E 
+test suite for Phase 14 (Predictive Intelligence). 
 
-Spec (READ ONLY — implement from it, never edit):
-  docs/specs/phase-14/p14-t07-e2e-validation.md
-
-═══════════════════════════════════════════════════════════════
-CONSTRAINTS & RULES
-═══════════════════════════════════════════════════════════════
-- No mock interceptors. Use real HTTP, real DB, real CLI binaries.
-- Test repos and issues created during test runs must be deleted after.
-- Guard all tests with `if testing.Short() { t.Skip(...) }`.
+You must write BOTH the Go API tests AND the Playwright UI tests.
 
 ═══════════════════════════════════════════════════════════════
-CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+CRITICAL READING — DO THIS BEFORE WRITING A SINGLE LINE OF CODE
 ═══════════════════════════════════════════════════════════════
-Follow patterns in `scripts/e2e/phase8_e2e_test.go`:
-- Same package `main`, file in `scripts/e2e/`.
-- Uses `pgxpool.New(ctx, dbURL)` for real DB — assumes `make postgres` is running.
-- Uses `exec.Command(binPath, ...)` to run the real compiled `engine` binary.
+1. docs/specs/e2e/phase14-predictive.md
+   → Read the exact API assertions and UI actions required.
 
-For the badge test, make a direct HTTP call to `GET /api/badges/:org/:repo` and assert it returns `Content-Type: image/svg+xml`.
-For the archaeology test, run the compiled binary: `exec.Command(binPath, "archaeology", "--since", "30-days")` against a test repo.
-
-═══════════════════════════════════════════════════════════════
-IMPLEMENTATION TIPS
-═══════════════════════════════════════════════════════════════
-- Add `waitForP14Services(t)` and `setupP14Database(t)` following the Phase 8 pattern.
-- Scenario 1: Test badge SVG endpoint returns valid SVG with correct score.
-- Scenario 2: Test archaeology CLI against a seeded repo history in the test DB.
+2. seed_mcp.sql
+   → Ensure the data is seeded properly for this phase.
 
 ═══════════════════════════════════════════════════════════════
 DELIVERABLES
 ═══════════════════════════════════════════════════════════════
-1. FILE: scripts/e2e/phase14_e2e_test.go (CREATE)
-2. Run `go test ./scripts/e2e/... -run TestPhase14`.
+1. FILE: scripts/e2e/phase14_api_test.go (NEW)
+   - API assertions.
 
-Commit: "test: P14-T07 phase 14 E2E validation suite"
+2. FILE: dashboard/playwright/phase14.spec.ts (NEW)
+   - UI assertions.
+
+Commit message: "test: P14 add Phase 14 full-stack E2E tests"
 Target branch: feature/dev
