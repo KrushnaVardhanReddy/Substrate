@@ -1,17 +1,17 @@
-TASK: P10 — Phase 10 Ecosystem & Zombie Pruning Full-Stack E2E Validation
+TASK: P9 — Phase 9 Compliance & Risk Scoring Full-Stack E2E Validation
 
 ═══════════════════════════════════════════════════════════════
 OBJECTIVE
 ═══════════════════════════════════════════════════════════════
 Using the new Full-Stack PGlite Test Harness (CC-T02), implement the complete E2E 
-test suite for Phase 10 (Ecosystem & Zombie Pruning). 
+test suite for Phase 9 (Compliance & Risk Scoring). 
 
 You must write BOTH the Go API tests AND the Playwright UI tests.
 
 ═══════════════════════════════════════════════════════════════
 CRITICAL READING — DO THIS BEFORE WRITING A SINGLE LINE OF CODE
 ═══════════════════════════════════════════════════════════════
-1. docs/specs/e2e/phase10-ecosystem.md
+1. docs/specs/e2e/phase9-compliance.md
    → Read the exact API assertions and UI actions required.
 
 2. seed_mcp.sql
@@ -20,11 +20,11 @@ CRITICAL READING — DO THIS BEFORE WRITING A SINGLE LINE OF CODE
 ═══════════════════════════════════════════════════════════════
 DELIVERABLES
 ═══════════════════════════════════════════════════════════════
-1. FILE: scripts/e2e/phase10_api_test.go (NEW)
+1. FILE: scripts/e2e/phase9_api_test.go (NEW)
    - API assertions.
 
-2. FILE: dashboard/playwright/phase10.spec.ts (NEW)
+2. FILE: dashboard/playwright/phase9.spec.ts (NEW)
    - UI assertions.
 
-Commit message: "test: P10 add Phase 10 full-stack E2E tests"
+Commit message: "test: P9 add Phase 9 full-stack E2E tests"
 Target branch: feature/dev

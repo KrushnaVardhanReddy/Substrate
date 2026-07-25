@@ -933,6 +933,56 @@ TASKS = {
         "phase": "phase-6-qa",
         "prompt": _load_prompt("prompts/phase-6-qa/t10_e2e_tests.txt"),
     },
+    70: {
+        "name": "P7-T07 — Phase 7 Enterprise E2E Validation",
+        "phase": "phase-7-enterprise",
+        "prompt": _load_prompt("prompts/phase-7-enterprise/t07_e2e_tests.txt"),
+    },
+    80: {
+        "name": "P8-T10 — Phase 8 Readiness, Authz & Jobs E2E Validation",
+        "phase": "phase-8-readiness",
+        "prompt": _load_prompt("prompts/phase-8-readiness/t10_e2e_tests.txt"),
+    },
+    90: {
+        "name": "P9-T17 — Phase 9 Compliance E2E Validation",
+        "phase": "phase-9-compliance",
+        "prompt": _load_prompt("prompts/phase-9-compliance/t17_e2e_validation.txt"),
+    },
+    100: {
+        "name": "P10-T20 — Phase 10 Ecosystem E2E Validation",
+        "phase": "phase-10-ecosystem",
+        "prompt": _load_prompt("prompts/phase-10/t20_e2e_validation.txt"),
+    },
+    110: {
+        "name": "P11-T18 — Phase 11 Graph UI E2E Validation",
+        "phase": "phase-11-ui",
+        "prompt": _load_prompt("prompts/phase-11/t18_e2e_validation.txt"),
+    },
+    120: {
+        "name": "P12-T12 — Phase 12 SSE & Scaling E2E Validation",
+        "phase": "phase-12-qa",
+        "prompt": _load_prompt("prompts/phase-12/t12_system_e2e.txt"),
+    },
+    130: {
+        "name": "P13-T01 — Phase 13 God Mode E2E Validation",
+        "phase": "phase-13-god-mode",
+        "prompt": _load_prompt("prompts/phase-13/t01_finops_e2e.txt"),
+    },
+    140: {
+        "name": "P14-T07 — Phase 14 Predictive Intelligence E2E Validation",
+        "phase": "phase-14",
+        "prompt": _load_prompt("prompts/phase-14/t07_e2e_validation.txt"),
+    },
+    150: {
+        "name": "P15-T13 — Phase 15 Monetization & Insurance E2E Validation",
+        "phase": "phase-15",
+        "prompt": _load_prompt("prompts/phase-15/t13_e2e_validation.txt"),
+    },
+    990: {
+        "name": "P-MCP-01 — Cross-Cutting MCP Parity E2E Validation",
+        "phase": "cross-cutting",
+        "prompt": _load_prompt("prompts/cross_cutting/p_mcp_01_full_parity.txt"),
+    },
     312: {
         "name": "P3-T12 — Phase 3 Contract Registry E2E Validation",
         "phase": "phase-3-registry",

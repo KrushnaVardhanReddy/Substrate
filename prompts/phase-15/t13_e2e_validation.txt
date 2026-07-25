@@ -1,44 +1,30 @@
-TASK: P15-T13 — Phase 15 E2E Validation (No Mocks)
+TASK: P15 — Phase 15 Monetization & Insurance Full-Stack E2E Validation
 
 ═══════════════════════════════════════════════════════════════
 OBJECTIVE
 ═══════════════════════════════════════════════════════════════
-Live E2E tests for all Phase 15 features: NL Governance, Marketplace, Schema Insurance, Startups profile.
+Using the new Full-Stack PGlite Test Harness (CC-T02), implement the complete E2E 
+test suite for Phase 15 (Monetization & Insurance). 
 
-Spec (READ ONLY — implement from it, never edit):
-  docs/specs/phase-15/p15-t13-e2e-validation.md
-
-═══════════════════════════════════════════════════════════════
-CONSTRAINTS & RULES
-═══════════════════════════════════════════════════════════════
-- Zero mock interceptors. Use real DB, real API, real compiled CLI binary.
-- Use sandbox/test-mode credentials for all external services (AWS KMS, Vault).
-- Guard all tests with `if testing.Short() { t.Skip(...) }`.
+You must write BOTH the Go API tests AND the Playwright UI tests.
 
 ═══════════════════════════════════════════════════════════════
-CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+CRITICAL READING — DO THIS BEFORE WRITING A SINGLE LINE OF CODE
 ═══════════════════════════════════════════════════════════════
-Follow patterns in `scripts/e2e/phase8_e2e_test.go` (the canonical reference):
-- Same package `main`, file in `scripts/e2e/`.
-- Uses real `pgxpool.New(ctx, dbURL)` — assumes `make postgres` is running.
-- Helper pattern: `waitForP15Services(t)` + `setupP15Database(t)`.
-- Sub-test structure: `t.Run("Scenario N: ...", func(t *testing.T) {...})`.
+1. docs/specs/e2e/phase15-monetization.md
+   → Read the exact API assertions and UI actions required.
 
-JWT auth helper exists as `createJWT(org, role string) string` in `scripts/e2e/phase8_e2e_test.go` — re-use it directly (same package).
-
-═══════════════════════════════════════════════════════════════
-IMPLEMENTATION TIPS
-═══════════════════════════════════════════════════════════════
-- Scenario 1 (NL Governance): POST a plain-English rule to `/api/governance/generate-cel`, assert a valid CEL string is returned.
-- Scenario 2 (Marketplace): Call `substrate plugin install substrate-plugin-hipaa` via `exec.Command(binPath, ...)` and assert the plugin appears in the DB.
-- Scenario 3 (Public Profile): Hit `GET /api/v1/public/profile/acme` without auth and assert HTTP 200 with reliability metrics.
-- Scenario 4 (Insurance): POST a claim to `/api/insurance/claims` and assert the verification logic returns the correct status.
+2. seed_mcp.sql
+   → Ensure the data is seeded properly for this phase.
 
 ═══════════════════════════════════════════════════════════════
 DELIVERABLES
 ═══════════════════════════════════════════════════════════════
-1. FILE: scripts/e2e/phase15_e2e_test.go (CREATE)
-2. Run `go test ./scripts/e2e/... -run TestPhase15`.
+1. FILE: scripts/e2e/phase15_api_test.go (NEW)
+   - API assertions.
 
-Commit: "test: P15-T13 phase 15 E2E validation suite"
+2. FILE: dashboard/playwright/phase15.spec.ts (NEW)
+   - UI assertions.
+
+Commit message: "test: P15 add Phase 15 full-stack E2E tests"
 Target branch: feature/dev

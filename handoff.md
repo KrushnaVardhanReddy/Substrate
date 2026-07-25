@@ -30,25 +30,25 @@
 
 ## 🗺️ E2E Full-Stack Roadmap (The 15 Prompts)
 
-To achieve **100% Full-Stack coverage** of the entire application (API, MCP, and UI) using our new PGlite offline architecture, we will need to execute a total of **15 Prompts**. 
+We have successfully submitted the first four phases. The remaining phases have been fully generated and wired up in `scripts/jules_submit.py` for batch submission (3 sessions at a time):
 
-We have just submitted **Phase 0 (Infrastructure)**, **Phase 1 (Contract Registry)**, **Phase 2 (AI Diff Engine)**, and **Phase 3 (Discovery Scanners)**. This leaves **11 Prompts** remaining for the Evening/Night shift:
-
-1. ✅ **Phase 0:** PGlite Infrastructure (CC-T02) -> *Submitted*
-2. ✅ **Phase 1:** Contract Registry (Phase 3) -> *Submitted*
-3. ✅ **Phase 2:** AI Diff Engine & Analyzers (Phase 4) -> *Submitted*
-4. ✅ **Phase 3:** Discovery Scanners (Phase 5) -> *Submitted*
-5. ⏳ **Phase 4:** QA & Shadow API (Phase 6)
-6. ⏳ **Phase 5:** Enterprise Rollout & Drift (Phase 7)
-7. ⏳ **Phase 6:** Readiness, Authz & Jobs (Phase 8)
-8. ⏳ **Phase 7:** Compliance & Risk Scoring (Phase 9)
-9. ⏳ **Phase 8:** Ecosystem & Zombie Pruning (Phase 10)
-10. ⏳ **Phase 9:** Graph UI & Visual Studio (Phase 11)
-11. ⏳ **Phase 10:** SSE Boundaries & Scaling (Phase 12)
-12. ⏳ **Phase 11:** God Mode & FinOps (Phase 13)
-13. ⏳ **Phase 12:** Predictive Intelligence (Phase 14)
-14. ⏳ **Phase 13:** Monetization & Insurance (Phase 15)
-15. ⏳ **Phase 14:** MCP Parity & Cross-Cutting
+1. ✅ **Phase 0:** PGlite Infrastructure (CC-T02) -> *Submitted* (`--task 0`)
+2. ✅ **Phase 1:** Contract Registry (Phase 3) -> *Submitted* (`--task 1`)
+3. ✅ **Phase 2:** AI Diff Engine & Analyzers (Phase 4) -> *Submitted* (`--task 2`)
+4. ✅ **Phase 3:** Discovery Scanners (Phase 5) -> *Submitted* (`--task 3`)
+5. 📝 **Phase 4:** QA & Shadow API (Phase 6) -> *Generated* (`--task 60`)
+6. 📝 **Phase 5:** Enterprise Rollout & Drift (Phase 7) -> *Generated* (`--task 70`)
+7. 📝 **Phase 6:** Readiness, Authz & Jobs (Phase 8) -> *Generated* (`--task 80`)
+8. 📝 **Phase 7:** Compliance & Risk Scoring (Phase 9) -> *Generated* (`--task 90`)
+9. 📝 **Phase 8:** Ecosystem & Zombie Pruning (Phase 10) -> *Generated* (`--task 100`)
+10. 📝 **Phase 9:** Graph UI & Visual Studio (Phase 11) -> *Generated* (`--task 110`)
+11. 📝 **Phase 10:** SSE Boundaries & Scaling (Phase 12) -> *Generated* (`--task 120`)
+12. 📝 **Phase 11:** God Mode & FinOps (Phase 13) -> *Generated* (`--task 130`)
+13. 📝 **Phase 12:** Predictive Intelligence (Phase 14) -> *Generated* (`--task 140`)
+14. 📝 **Phase 13:** Monetization & Insurance (Phase 15) -> *Generated* (`--task 150`)
+15. 📝 **Phase 14:** MCP Parity & Cross-Cutting -> *Generated* (`--task 990`)
+16. 📝 **Application Phase 1:** Core Diff Engine -> *Generated* (`--task 10`)
+17. 📝 **Application Phase 2:** GitHub App -> *Generated* (`--task 20`)
 
 ---
 

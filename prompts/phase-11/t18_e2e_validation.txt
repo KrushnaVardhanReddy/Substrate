@@ -1,115 +1,30 @@
-TASK: P11-T18 — Phase 11 Backend E2E Validation
+TASK: P11 — Phase 11 Graph UI & Visual Studio Full-Stack E2E Validation
 
 ═══════════════════════════════════════════════════════════════
 OBJECTIVE
 ═══════════════════════════════════════════════════════════════
-Create a Go-based E2E test suite in `scripts/e2e/phase11_e2e_test.go` to validate
-the Phase 11 backend APIs: the Dependency Graph / Blast Radius endpoint, the Impact
-Analysis endpoint, the SSE real-time event stream, and the diff report persistence
-round-trip. These backend routes are LIVE but have ZERO E2E test coverage today.
+Using the new Full-Stack PGlite Test Harness (CC-T02), implement the complete E2E 
+test suite for Phase 11 (Graph UI & Visual Studio). 
+
+You must write BOTH the Go API tests AND the Playwright UI tests.
 
 ═══════════════════════════════════════════════════════════════
 CRITICAL READING — DO THIS BEFORE WRITING A SINGLE LINE OF CODE
 ═══════════════════════════════════════════════════════════════
-You MUST read the following files IN FULL before starting. Do not skip any of them.
-The entire test file structure, boilerplate, and assertion style must follow these
-exactly — do not invent a new pattern.
+1. docs/specs/e2e/phase11-ui.md
+   → Read the exact API assertions and UI actions required.
 
-1. scripts/e2e/phase7_e2e_test.go
-   → Study: waitForP7Services(), setupP7Database(), TestPhase7SystemE2E() structure,
-     how DB is seeded directly via pgxpool, how HTTP calls are made via net/http,
-     how t.Run() sub-tests are used, how assertions use require/assert.
-
-2. scripts/e2e/phase9_e2e_test.go
-   → Study: setupP9Database() pattern, how it cleans tables before each run.
-
-3. scripts/e2e/phase10_e2e_test.go
-   → Study: setupP10Database() pattern — this is the most recent example and inserts
-     organizations AND repositories before running scenarios (critical for FK integrity).
-
-4. scripts/e2e/v1_e2e_test.go
-   → Study: how the DB is seeded with org → repo → contract → dependency chain
-     (lines ~260–290). You will replicate this exact pattern for seeding the graph.
-
-5. api/internal/server/router.go
-   → Find the exact routes for:
-       GET /api/v1/graph/{org}          (GraphHandler)
-       GET /api/v1/impact/{org}/{repo}  (ImpactHandler)
-       GET /api/v1/events               (EventsHandler)
-       GET /api/v1/diff/{id}            (GetDiffReportHandler)
-   → Note which middleware wraps each route (service token vs authz JWT).
-   → The service token is "local-dev-token" (REGISTRY_API_TOKEN env var).
-
-6. docs/specs/phase-11/p11-t18-e2e-validation.md
-   → Read the full spec for all 4 scenarios and their assertions.
-
-═══════════════════════════════════════════════════════════════
-CONSTRAINTS & RULES
-═══════════════════════════════════════════════════════════════
-- File MUST be named: scripts/e2e/phase11_e2e_test.go
-- Package: package main (same as all other files in scripts/e2e/)
-- Prefix ALL package-level consts/funcs with p11 to avoid naming collisions
-  (e.g., p11ApiURL, setupP11Database, waitForP11Services).
-- Do NOT add any new dependencies to scripts/e2e/go.mod. Use only imports already
-  present in phase7_e2e_test.go.
-- Do NOT modify any file in api/ or engine/. This is test-only.
-- Use real local Postgres — NO mock DB. Connection string:
-  postgres://postgres:postgres@localhost:5432/substrate?sslmode=disable
-- Use real local API server — NO mock HTTP. Base URL: http://localhost:8090
-- All HTTP calls must include: Authorization: Bearer local-dev-token
-- All scenarios run as sub-tests of a single TestPhase11SystemE2E(t *testing.T).
+2. seed_mcp.sql
+   → Ensure the data is seeded properly for this phase.
 
 ═══════════════════════════════════════════════════════════════
 DELIVERABLES
 ═══════════════════════════════════════════════════════════════
-1. FILE: scripts/e2e/phase11_e2e_test.go (NEW)
+1. FILE: scripts/e2e/phase11_api_test.go (NEW)
+   - API assertions.
 
-   Implement the following 4 t.Run() sub-tests inside TestPhase11SystemE2E:
+2. FILE: dashboard/playwright/phase11.spec.ts (NEW)
+   - UI assertions.
 
-   a. "Scenario 1: Dependency Graph returns correct edges"
-      - setupP11Database cleans: drift_anomalies, endpoint_traffic, governance_rules,
-        breaking_change_history, diff_reports, dependencies, contracts, repositories,
-        organizations (in that FK-safe order).
-      - Seed DB directly via pgxpool (copy pattern from v1_e2e_test.go lines ~262–284):
-          INSERT INTO organizations → INSERT INTO repositories (provider) →
-          INSERT INTO repositories (consumer) → INSERT INTO contracts →
-          INSERT INTO dependencies (status='active')
-      - HTTP GET /api/v1/graph/p11-org with Bearer token.
-      - Assert status 200.
-      - Unmarshal response as []map[string]interface{}.
-      - Assert len > 0.
-      - Assert result[0]["consumer"] == "p11-org/frontend".
-      - Assert result[0]["provider"] == "p11-org/backend".
-
-   b. "Scenario 2: Impact analysis enumerates downstream consumers"
-      - Reuse same DB state (do NOT re-seed — run this immediately after Scenario 1
-        inside the same test function scope where pool is still available).
-      - HTTP GET /api/v1/impact/p11-org/backend with Bearer token.
-      - Assert status 200.
-      - Unmarshal response as []string or []map[string]interface{}.
-      - Assert response body contains "p11-org/frontend".
-
-   c. "Scenario 3: SSE stream connects and delivers heartbeat"
-      - Create an http.Client with NO timeout (use context with 7-second cancel).
-      - HTTP GET /api/v1/events with Bearer token, using the cancellable context.
-      - Assert response status 200.
-      - Assert response header Content-Type == "text/event-stream".
-      - Read response.Body in a loop for up to 6 seconds using a bufio.Scanner.
-      - Assert that at least one non-empty line starting with "data:" is received.
-      - Cancel context; assert no panic and connection terminates cleanly.
-
-   d. "Scenario 4: Diff report persistence and retrieval"
-      - HTTP POST /api/v1/diff with payload:
-          {"diff_report": {"summary": {"breaking_count": 1}}, "org": "p11-org"}
-        and Bearer token. Assert status 201.
-      - Extract "id" string from JSON response.
-      - HTTP GET /api/v1/diff/{id} with Bearer token. Assert status 200.
-      - Unmarshal and assert report_data is not nil/empty.
-
-2. Verify and test:
-   - Run: cd scripts/e2e && go test -v -p 1 -run TestPhase11SystemE2E ./...
-   - All 4 scenarios must PASS (Scenario 3 may require 6s wait — that is expected).
-   - Fix any compilation errors before committing.
-
-Commit message: "test: P11-T18 add Phase 11 backend E2E validation suite"
+Commit message: "test: P11 add Phase 11 full-stack E2E tests"
 Target branch: feature/dev
