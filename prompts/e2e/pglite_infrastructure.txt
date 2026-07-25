@@ -1,59 +1,57 @@
-TASK: CC-T02 — E2E Overhaul: Vendored PGlite + Tear-down Pipeline
+TASK: CC-T02 — E2E Overhaul: Full-Stack PGlite Harness (API, MCP, Playwright)
 
 ═══════════════════════════════════════════════════════════════
 OBJECTIVE
 ═══════════════════════════════════════════════════════════════
-Migrate our E2E testing infrastructure from relying on an external PostgreSQL 
-database to using a completely self-contained, offline PGlite (WASM) database. 
-This must be done WITHOUT rewriting our existing Go E2E tests.
-
-We will achieve this by downloading PGlite, creating a Node.js wrapper that 
-starts it as a Postgres TCP server, seeding it, and wrapping our Go `go test` 
-runs within a bash script that handles the tear-up and tear-down of the server.
+Build a completely self-contained, offline Full-Stack E2E Test Harness. 
+Instead of just testing the Go backend, you will write a runner that spins up 
+the entire application stack (PGlite database, Go API, MCP Server, and 
+SvelteKit frontend) to run Go API tests, MCP tests, and Playwright UI tests 
+in a single CI pass.
 
 ═══════════════════════════════════════════════════════════════
 CRITICAL READING — DO THIS BEFORE WRITING A SINGLE LINE OF CODE
 ═══════════════════════════════════════════════════════════════
-You MUST read the following files IN FULL before starting.
+You MUST read the following files IN FULL before starting:
 
 1. docs/specs/e2e/pglite-infrastructure.md
-   → Read the exact requirements for the wrapper script and the runner script.
+   → Read the exact 4-Tier tear-up requirements for the runner script.
 
-2. scripts/e2e/run.sh (or similar E2E entrypoint if it exists)
-   → See how Go tests are currently executed.
-
-3. seed_mcp.sql and api/internal/db/schema/*.sql
+2. seed_mcp.sql and api/internal/db/schema/*.sql
    → Understand the data that must be executed upon PGlite startup.
 
 ═══════════════════════════════════════════════════════════════
 CONSTRAINTS & RULES
 ═══════════════════════════════════════════════════════════════
 - Do NOT rewrite any Go tests. They must remain in Go.
-- Do NOT use npm install for PGlite during the CI run. You MUST vendor the 
-  `@electric-sql/pglite` package inside `scripts/e2e/vendor/pglite` and commit it.
-- The Node wrapper (`pglite_server.js`) must bind to 127.0.0.1 on a specific port (e.g., 54320).
-- The `run.sh` script must trap EXIT signals to kill the Node process, preventing 
-  zombie processes if `go test` panics.
+- Vendor the `@electric-sql/pglite` package inside `scripts/e2e/vendor/pglite`.
+- The Node wrapper (`pglite_server.js`) must bind to 127.0.0.1 on a specific port.
+- The `run_full_e2e.sh` script MUST aggressively trap EXIT, SIGINT, and SIGTERM 
+  to cleanly kill the Vite, Go, MCP, and Node processes. No zombie ports allowed.
 
 ═══════════════════════════════════════════════════════════════
 DELIVERABLES
 ═══════════════════════════════════════════════════════════════
 1. DIRECTORY: scripts/e2e/vendor/pglite/
-   - Download the PGlite core WASM files and node modules here.
+   - Download the PGlite core WASM files.
 
 2. FILE: scripts/e2e/pglite_server.js (NEW)
-   - Imports vendored PGlite.
    - Starts a TCP server bridging the Postgres wire protocol to PGlite.
-   - Reads `seed_mcp.sql` (or primary seed files) and executes them on startup.
-   - Logs "PGLITE_READY" to stdout when it is ready to accept connections.
+   - Executes seed SQL on startup.
+   - Logs "PGLITE_READY" to stdout.
 
-3. FILE: scripts/e2e/run_e2e_pglite.sh (NEW)
-   - Bash script.
-   - Traps EXIT to kill background jobs.
-   - Starts `node scripts/e2e/pglite_server.js &`
-   - Waits for "PGLITE_READY".
-   - Exports `DATABASE_URL=postgres://postgres:postgres@127.0.0.1:54320/postgres?sslmode=disable`
-   - Runs `go test -v ./scripts/e2e/...`
-   
-Commit message: "test: CC-T02 build PGlite E2E infrastructure and wrapper"
+3. FILE: scripts/e2e/run_full_e2e.sh (NEW)
+   - Bash script with rigorous trap handling.
+   - Tier 1: Start `pglite_server.js` & wait.
+   - Tier 2: Start Go Backend & wait for `:8090`.
+   - Tier 3: Start MCP Server.
+   - Tier 4: Start SvelteKit (`npm run dev`) & wait for `:5173`.
+   - Execution: Run Go tests, MCP tests, and Playwright tests sequentially.
+
+4. DIRECTORY: dashboard/playwright/ (NEW)
+   - Initialize Playwright in the `/dashboard` directory.
+   - Write a single skeleton UI test `dashboard.spec.ts` that navigates to 
+     `localhost:5173` and verifies the page title.
+
+Commit message: "test: CC-T02 build Full-Stack PGlite harness with Playwright"
 Target branch: feature/dev
