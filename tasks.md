@@ -74,7 +74,7 @@
 | Task | Priority | Title | Assignee | Status | Spec |
 |---|---|---|---|---|---|
 | **CC-T01** | 🛡️ P1 | **PASETO Security Migration** — Replace all `golang-jwt` usage in `middleware.go` with PASETO `v4.local` for internal auth, and prepare for PASETO `v4.public` in P15-T15. | Jules | ✅ PR Merged | `docs/wiki/concepts/architecture.md` |
-| **CC-T02** | 🚀 P1 | **E2E Overhaul: Full-Stack PGlite Harness (API, MCP, Playwright)** — Vendor the PGlite WASM bundle and create a Node.js 4-tier tear-up runner. Spin up PGlite, the Go backend API, the MCP Server, and the SvelteKit frontend in the background to execute Go tests, MCP tests, and Playwright UI tests in a single offline pass. | Jules | ⏳ Ready to Start | `prompts/e2e/pglite_infrastructure.txt` |
+| **CC-T02** | 🚀 P1 | **E2E Overhaul: Full-Stack PGlite Harness (API, MCP, Playwright)** — Vendor the PGlite WASM bundle and create a Node.js 4-tier tear-up runner. Spin up PGlite, the Go backend API, the MCP Server, and the SvelteKit frontend in the background to execute Go tests, MCP tests, and Playwright UI tests in a single offline pass. | Jules | 🤖 Submitted to Jules (PR pending) | `prompts/e2e/pglite_infrastructure.txt` |
 
 ---
 
