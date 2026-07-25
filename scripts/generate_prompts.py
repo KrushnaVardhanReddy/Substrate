@@ -2,6 +2,8 @@ import os
 import re
 
 phases = [
+    (1, "Core Diff Engine", "phase1-diff-engine.md", "phase-1-diff-engine/t08_e2e_validation.txt"),
+    (2, "GitHub App", "phase2-github-app.md", "phase-2-github-app/t05_e2e_validation.txt"),
     (8, "Readiness, Authz & Jobs", "phase8-readiness.md", "phase-8-readiness/t10_e2e_tests.txt"),
     (9, "Compliance & Risk Scoring", "phase9-compliance.md", "phase-9-compliance/t17_e2e_validation.txt"),
     (10, "Ecosystem & Zombie Pruning", "phase10-ecosystem.md", "phase-10/t20_e2e_validation.txt"),
