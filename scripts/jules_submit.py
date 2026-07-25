@@ -891,6 +891,11 @@ TASKS = {
         "phase": "phase-11-ui",
         "prompt": _load_prompt("prompts/phase-11/t18_e2e_validation.txt"),
     },
+    0: {
+        "name": "CC-T02 — E2E Overhaul: Full-Stack PGlite Harness",
+        "phase": "cross-cutting",
+        "prompt": _load_prompt("prompts/e2e/pglite_infrastructure.txt"),
+    },
     312: {
         "name": "P3-T12 — Phase 3 Contract Registry E2E Validation",
         "phase": "phase-3-registry",
