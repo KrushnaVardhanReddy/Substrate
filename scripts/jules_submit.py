@@ -908,6 +908,11 @@ TASKS = {
         "phase": "phase-3-registry",
         "prompt": _load_prompt("prompts/phase-3-registry/t12_e2e_validation.txt"),
     },
+    2: {
+        "name": "P4-T10 — Phase 4 AI Diff Engine E2E Validation (Pipeline Phase 2)",
+        "phase": "phase-4-ai",
+        "prompt": _load_prompt("prompts/phase-4/t10_e2e_validation.txt"),
+    },
     312: {
         "name": "P3-T12 — Phase 3 Contract Registry E2E Validation",
         "phase": "phase-3-registry",
