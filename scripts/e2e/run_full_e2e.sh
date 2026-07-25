@@ -53,16 +53,16 @@ sleep 5
 
 echo "✅ All tiers running! Executing Phase 5 E2E Tests..."
 
-# Run Phase 3 Go API Tests
-echo "🧪 Running Go API Tests (Phase 3)..."
+# Run Phase 4 Go API Tests
+echo "🧪 Running Go API Tests (Phase 4)..."
 cd scripts/e2e
-go test -v phase3_e2e_test.go
+go test -v phase4_api_test.go
 cd ../..
 
 # Run Playwright UI Tests
-echo "🧪 Running Playwright UI Tests (Phase 3)..."
+echo "🧪 Running Playwright UI Tests (Phase 4)..."
 cd dashboard
-npx playwright test tests/e2e/graph.spec.ts --project=chromium
+npx playwright test tests/e2e/ai_diff.spec.ts --project=chromium
 cd ..
 
 # Trap handles cleanup
