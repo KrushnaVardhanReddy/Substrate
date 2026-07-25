@@ -12,8 +12,9 @@ api/internal/mcp/testdata/test-server
 .env.local
 .dev.vars
 
-# Node
+# Node & Vendor
 node_modules/
+scripts/e2e/vendor/
 
 # Go Build artifacts
 engine/bin/
