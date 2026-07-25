@@ -3,6 +3,7 @@ module e2e
 go 1.26.4
 
 require (
+	aidanwoods.dev/go-paseto v1.6.0
 	github.com/KrushnaVardhanReddy/substrate/api v0.0.0-00010101000000-000000000000
 	github.com/KrushnaVardhanReddy/substrate/engine v0.0.0-00010101000000-000000000000
 	github.com/golang-jwt/jwt/v5 v5.3.1
@@ -13,7 +14,6 @@ require (
 )
 
 require (
-	aidanwoods.dev/go-paseto v1.6.0 // indirect
 	aidanwoods.dev/go-result v0.3.1 // indirect
 	cel.dev/expr v0.25.1 // indirect
 	cloud.google.com/go v0.123.0 // indirect
