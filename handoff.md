@@ -1,55 +1,21 @@
 # Substrate — Shift Handoff Document
 
-> **Date:** 2026-07-23
-> **Current Focus:** Full E2E Coverage & Headless MCP Parity
+> **Date:** 2026-07-25
+> **Current Focus:** Fixing Dependency Graph Frontend Rendering (Svelte 5 + Cytoscape)
 
 ## ✅ Completed This Session
 
-1. **sqlc Pipeline Restored (2026-07-23)**
-   - ✅ Fixed `sqlc.yaml` and all `.sql` query files
-   - ✅ Generated to `api/internal/db/sqlcgen/`
-   - ✅ `api/` builds cleanly
-
-2. **E2E Coverage Audit (2026-07-23)**
-   - ✅ Full audit of all 15 phases — identified ~78% backend API coverage
-   - ✅ Identified 13 E2E test gap tasks (all tracked in `tasks.md`)
-   - ✅ Wrote specs for high priority gaps (History, Sync, RBAC, UI Diff)
-
-3. **Tasks Merged**
-   - ✅ **P11-T18** (Phase 11 Backend E2E)
-   - ✅ **P3-T12** (Phase 3 Registry E2E)
-   - ✅ **P-MCP-01** (Full MCP Server Parity)
+1. **Dependency Graph Rendering Engine Migration**
+   - ✅ **Issue:** The dependency graph on the frontend (`/org/[org]/graph`) was completely blank. This was caused by `SvelteFlow` v1.6.2 throwing `lifecycle_outside_component` context tracker errors in Svelte 5, especially when combined with async data loading in SvelteKit's declarative routing.
+   - ✅ **Fix:** We ripped out the incompatible `SvelteFlow` library and reverted the rendering engine back to **Cytoscape** and **cytoscape-dagre**, which the project originally used 10 days ago.
+   - ✅ **Integration:** Integrated Cytoscape directly with the new Server-Sent Events (SSE) logic natively in Svelte 5 using the `$effect` rune.
+   - ✅ **Layout:** Fixed CSS layout overlap bugs by setting the `cyContainer` flex wrapper to `flex: 1` rather than absolute positioning, allowing it to seamlessly fit below the header.
+   - ✅ **Styling:** Updated the node padding and sizing styles (`width: 'auto'`, `height: 'auto'`) to conform to modern Cytoscape standards (preventing text bleed and deprecation warnings).
+   - ✅ **Clean up:** Removed the manual `getLayoutedElements` DAGRE math function (since Cytoscape computes layout natively), cleaned up all `local-dev-token` hardcoding, and purged all temporary API proxy endpoints/debug files created during the debugging session.
 
 ---
 
-### Active Wave — Merged and Verified!
-- ✅ **P-HIST-01** (History & Changes API E2E)
-- ✅ **P-SYNC-01** (Contract Sync Pipeline E2E)
-- ✅ **P-RBAC-01** (RBAC Breadth E2E)
-- ✅ **P-UI-DIFF** (UI Diff, Impact, Governance E2E)
-- ✅ **P-UI-INS** (Insurance Settings UI E2E)
-- ✅ **P-ROI-01** (FinOps ROI API E2E)
-- ✅ **P-INS-01** (Schema Insurance API E2E)
-- ✅ **P-UI-ZOMBIE** (Zombies Dashboard UI)
-- ✅ **P-UI-PREVIEW** (Public Preview UI)
-- ✅ **P-CLI-POST** (CLI Commands)
-- ✅ **P-PART-01** (Partners CRUD)
+## 🔁 Next Steps for the Evening Shift
 
-### Active Wave — Jules is processing
-> (All tasks completed for this wave)
-
-### Next Wave — Ready for Prompts & Submission
-> All specs and prompts are currently processing! 🎉
-
-
----
-
-## 🔁 After Active PRs Merge
-
-1. Update `tasks.md`: flip P11-T18, P3-T12, P-MCP-01 from `🤖 Jules` → `✅ PR Merged`
-2. Update E2E Coverage Tracker table in `tasks.md`: mark rows `✅ Green`
-3. Run full E2E suite to confirm pass:
-   ```bash
-   export GITHUB_TOKEN=mock_token
-   cd scripts/e2e && go test -v -p 1 -run "." ./...
-   ```
+1. **Verify Backend/Frontend Synchronization:** Ensure the graph properly interacts with the newly verified MCP parity server.
+2. **Review Node Rendering:** Check if the nodes correctly reflect the live DB state.
