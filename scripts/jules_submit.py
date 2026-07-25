@@ -918,6 +918,21 @@ TASKS = {
         "phase": "phase-5-discovery",
         "prompt": _load_prompt("prompts/phase-5-discovery/t06_e2e_tests.txt"),
     },
+    10: {
+        "name": "P1-T08 — Phase 1 Core Diff Engine E2E Validation",
+        "phase": "phase-1-diff-engine",
+        "prompt": _load_prompt("prompts/phase-1-diff-engine/t08_e2e_validation.txt"),
+    },
+    20: {
+        "name": "P2-T05 — Phase 2 GitHub App E2E Validation",
+        "phase": "phase-2-github-app",
+        "prompt": _load_prompt("prompts/phase-2-github-app/t05_e2e_validation.txt"),
+    },
+    60: {
+        "name": "P6-T10 — Phase 6 QA & Shadow API E2E Validation",
+        "phase": "phase-6-qa",
+        "prompt": _load_prompt("prompts/phase-6-qa/t10_e2e_tests.txt"),
+    },
     312: {
         "name": "P3-T12 — Phase 3 Contract Registry E2E Validation",
         "phase": "phase-3-registry",

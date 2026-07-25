@@ -1,0 +1,38 @@
+TASK: P1-T08 — Phase 1 Core Diff Engine Full-Stack E2E Validation
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Using the Full-Stack PGlite Test Harness (CC-T02), implement the complete E2E 
+test suite for the Phase 1 Core Diff Engine (oasdiff integration). 
+
+You must write BOTH the Go API tests (to assert diff analysis) 
+AND the Playwright UI tests (to ensure the diff viewer highlights breaking changes).
+
+═══════════════════════════════════════════════════════════════
+CRITICAL READING — DO THIS BEFORE WRITING A SINGLE LINE OF CODE
+═══════════════════════════════════════════════════════════════
+1. docs/specs/e2e/phase1-diff-engine.md
+   → Read the exact API assertions and UI actions required.
+
+2. dashboard/src/routes/(app)/org/[org]/diff-reports/+page.svelte
+   → Review the DOM structure of the Diff Reports page. Locate the "Approve Override" button.
+
+3. seed_mcp.sql
+   → Ensure the diff report endpoints and baseline schemas are seeded.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: scripts/e2e/phase1_api_test.go (NEW)
+   - Assert POST `/api/v1/diff/analyze` successfully detects breaking changes.
+   - Assert POST `/api/v1/cli/override` successfully applies the override.
+
+2. FILE: dashboard/playwright/diff_engine.spec.ts (NEW)
+   - Navigate to `/org/mcp-org/diff-reports`.
+   - Click the generated diff report.
+   - Assert breaking changes are highlighted in red.
+   - Click "Approve Override" and assert status change.
+
+Commit message: "test: P1-T08 add Phase 1 full-stack E2E tests (Core Diff Engine)"
+Target branch: feature/dev
