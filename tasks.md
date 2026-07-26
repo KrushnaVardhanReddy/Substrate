@@ -243,3 +243,24 @@ cd api && DATABASE_URL="postgresql://postgres:postgres@localhost:5432/substrate?
   GITHUB_CLIENT_SECRET="mock-client-secret" DASHBOARD_URL="http://localhost:5173" \
   ENVIRONMENT="development" go run ./cmd/server/main.go
 ```
+
+---
+
+## 🧪 Final Manual QA Checklist
+
+Once all automated E2E tests are complete, these four manual workflows must be verified to clear Substrate for production:
+
+- `[ ]` **1. GitHub App (Real-World Webhooks)**
+  - Install the Substrate GitHub App on a live test repository.
+  - Push a breaking OpenAPI change.
+  - Verify the Substrate Bot successfully posts a Markdown comment on the PR containing the correct blast radius formatting.
+- `[ ]` **2. VS Code Extension & UI Feel**
+  - Verify the Cytoscape dependency graph renders correctly *inside* the VS Code extension webview panel.
+  - Open the SvelteKit Dashboard in a browser and load the 1,000-node scale test to ensure the UI remains snappy and responsive.
+- `[ ]` **3. MCP Server in Claude/Cursor**
+  - Add the `substrate-mcp` server to your `claude_desktop_config.json`.
+  - Ask Claude an impact analysis question (e.g., *"What happens if I delete the email field from the Payments API?"*).
+  - Verify Claude correctly invokes the `get_blast_radius` tool and hallucinates nothing.
+- `[ ]` **4. Zero-Config Scaffold (`substrate init`)**
+  - Run `substrate init` in a fresh, empty directory.
+  - Verify the generated `substrate.yaml` and `.github/workflows/substrate.yml` are perfectly formatted and intuitive.
