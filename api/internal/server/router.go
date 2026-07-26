@@ -12,6 +12,7 @@ import (
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/github"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/handler"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/handlers"
+
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/marketplace"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/registry"
@@ -116,11 +117,18 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 	// Governance Rules Generate CEL endpoint
 	r.Method("POST", "/api/governance/generate-cel", jwtValidMW(handlers.GenerateCELHandler()))
 
+
 	// Route uses GitHub OAuth token directly, not the internal JWT, so we skip authMW.
 	// The endpoint validates the token by making a call to GitHub.
 	r.Method("POST", "/api/v1/org/{org}/enforce", authzMW(http.HandlerFunc(handlers.EnforceGlobalHandler())))
 
 	// Governance Rules API
+	r.Method("POST", "/api/v1/enterprise/webhook", serviceTokenMW(http.HandlerFunc(webhook.EnterpriseWebhookPingHandler())))
+	r.Method("POST", "/api/v1/enterprise/rules/validate", serviceTokenMW(http.HandlerFunc(handlers.ValidateCELRuleHandler())))
+	r.Method("GET", "/api/v1/enterprise/drift/{org}/{repo}", serviceTokenMW(http.HandlerFunc(handlers.GetDriftReportHandler(store))))
+	r.Method("POST", "/api/v1/enterprise/webhook", serviceTokenMW(http.HandlerFunc(webhook.EnterpriseWebhookPingHandler())))
+	r.Method("POST", "/api/v1/enterprise/rules/validate", serviceTokenMW(http.HandlerFunc(handlers.ValidateCELRuleHandler())))
+	r.Method("GET", "/api/v1/enterprise/drift/{org}/{repo}", serviceTokenMW(http.HandlerFunc(handlers.GetDriftReportHandler(store))))
 	governanceHandler := handlers.NewGovernanceRulesHandler(store)
 	r.Method("GET", "/api/v1/org/{org}/rules", authzMW(http.HandlerFunc(governanceHandler.ListRules)))
 	r.Method("POST", "/api/v1/org/{org}/rules", authzMW(http.HandlerFunc(governanceHandler.CreateRule)))
