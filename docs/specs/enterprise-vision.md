@@ -126,7 +126,7 @@ This turns Substrate from a **gate** into a **governance workflow**, directly co
 ---
 
 #### "Time to Break" Predictive Scoring (Upgrade to P4b-T02/T03)
-P4b-T02/T03 define anomaly detection and predictive breaking change detection but lack a concrete user-facing output. This should manifest as a **"Time to Break" score** visible on each node in the Svelte Flow graph:
+P4b-T02/T03 define anomaly detection and predictive breaking change detection but lack a concrete user-facing output. This should manifest as a **"Time to Break" score** visible on each node in the Cytoscape graph:
 
 - Using accumulated schema change velocity data, calculate: *"Based on the current rate of change in the `payments-api`, there is a **78% probability** a breaking change will land in the next 2 sprints."*
 - Surface this as a color-coded risk indicator on graph nodes (Red = High churn risk, Blue = Stable).

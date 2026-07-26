@@ -10,7 +10,7 @@ The SvelteKit frontend is highly interactive. We must ensure no UI regressions o
     *   **Spec:** Automate the entire user journey. Simulate a new user entering a mock GitHub token, clicking "Connect," waiting for the "Scanning Repositories" progress bar to finish, and successfully redirecting to the dynamic `/org/{PUBLIC_ORG_NAME}/graph` route (or `/org/demo/graph` fallback).
     *   **Success:** Playwright trace shows the graph view loads successfully with the sidebar visible.
 
-*   **P12-T02 — Svelte Flow Interaction Tests**
+*   **P12-T02 — Cytoscape Interaction Tests**
     *   **Spec:** Load the graph. Simulate clicking a node to ensure the "Cascading Blast Radius" triggers (assert CSS class changes). Toggle the "Volatility Heatmap" switch and assert node colors change. Hover over an edge and assert the Tooltip is visible in the DOM.
     *   **Success:** Complex canvas interactions do not throw Svelte `$state` exceptions.
 
@@ -27,14 +27,14 @@ The backend must handle high concurrency and massive payloads.
     *   **Spec:** Automated JS-to-WASM bridge tests. Ensure that passing massively malformed strings (e.g., 50MB of garbage data) from the Svelte frontend into the Go WASM engine returns a safe JS error payload instead of a fatal WebAssembly panic.
 
 *   **P12-T06 — 200-Node Stress Test**
-    *   **Spec:** Generate a massive mock dependency graph (200 microservices, 600 strictly acyclic edges) and load it into the Svelte Flow canvas. (Note: Edges must be strictly directed without cycles to prevent the Dagre layout engine from infinite looping).
+    *   **Spec:** Generate a massive mock dependency graph (200 microservices, 600 strictly acyclic edges) and load it into the Cytoscape canvas. (Note: Edges must be strictly directed without cycles to prevent the Dagre layout engine from infinite looping).
     *   **Success:** Ensure the Dagre layout algorithm computes in under 2 seconds and the UI runs at 60fps without browser lockup.
 
 ## Wave 3: Launch Readiness
 Final preparations before directing public traffic to the V2.0 dashboard.
 
 *   **P12-T07 — Telemetry & Crash Reporting**
-    *   **Spec:** Integrate a lightweight privacy-first telemetry system (e.g., PostHog or Sentry) so we know immediately if the Svelte Flow canvas crashes in production for a real user.
+    *   **Spec:** Integrate a lightweight privacy-first telemetry system (e.g., PostHog or Sentry) so we know immediately if the Cytoscape canvas crashes in production for a real user.
 
 *   **P12-T08 — V2.0 Production Cutover**
     *   **Spec:** Final updates to the Docker/Helm CI/CD pipelines to ensure the WASM binaries and Svelte static assets are perfectly bundled into the single-binary deployment.

@@ -3,7 +3,7 @@
 ## 1. Overview
 As Substrate evolves from a strict CI/CD breaking change detector into a full **Internal Developer Portal (IDP)**, the dependency graph needs to provide more architectural context at a glance. 
 
-This specification introduces a `metadata` block to the `substrate.yaml` file, allowing developers to tag their repositories with rich taxonomy (service type, owning team, connected databases). This metadata will be parsed, stored in the PostgreSQL database, and surfaced in the Svelte Flow graph through visually distinct nodes and a detailed metadata panel.
+This specification introduces a `metadata` block to the `substrate.yaml` file, allowing developers to tag their repositories with rich taxonomy (service type, owning team, connected databases). This metadata will be parsed, stored in the PostgreSQL database, and surfaced in the Cytoscape graph through visually distinct nodes and a detailed metadata panel.
 
 ## 2. Requirements
 
@@ -22,7 +22,7 @@ This specification introduces a `metadata` block to the `substrate.yaml` file, a
 ### 2.3 API Modifications
 - The Registry API endpoint responsible for serving the dependency graph (`/api/v1/graph/...`) MUST be updated to include `consumer_metadata` and `provider_metadata` JSON objects inside the returned dependency edge payload.
 
-### 2.4 UI Visualization (Svelte Flow)
+### 2.4 UI Visualization (Cytoscape)
 - **Visual Node Icons:** The custom `ServiceNode.svelte` MUST render a distinct Lucide SVG icon enclosed in a tinted `.icon-wrapper` based on the `metadata.type` property:
   - `frontend` → `AppWindow` Icon with Purple tint (`#8B5CF6`)
   - `database` → `Database` Icon with Cyan tint (`#06B6D4`)
@@ -36,5 +36,5 @@ This specification introduces a `metadata` block to the `substrate.yaml` file, a
 
 ## 3. Success Criteria
 1. Submitting a `substrate.yaml` with a `metadata` block successfully updates the `repositories` table in PostgreSQL.
-2. The Svelte Flow canvas renders visually distinct icons for frontends, databases, and standard services.
+2. The Cytoscape canvas renders visually distinct icons for frontends, databases, and standard services.
 3. Clicking a node populates the Detail Panel with the correct team, type, and database badges.

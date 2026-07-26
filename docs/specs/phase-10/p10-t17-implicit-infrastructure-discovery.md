@@ -37,4 +37,4 @@ A package might be installed but unused. To achieve 100% accuracy, IID will pars
 2. **Shallow Clone:** The worker pulls the manifest files (`package.json`, `docker-compose.yml`, etc.) but skips massive directories.
 3. **Heuristic Engine:** The Go backend runs the manifest against a pre-compiled mapping dictionary.
 4. **Graph Upsert:** The backend upserts the discovered implicit nodes into the Postgres DB alongside the explicitly defined `substrate.yaml` dependencies.
-5. **Real-time UI:** The Svelte Flow graph renders the new infrastructure topologies.
+5. **Real-time UI:** The Cytoscape graph renders the new infrastructure topologies.

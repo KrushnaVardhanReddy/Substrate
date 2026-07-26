@@ -5,5 +5,5 @@ Correlate schema endpoints with live Datadog/OTel metrics to detect unused "zomb
 
 ## 2. Requirements
 - Ingest OpenTelemetry/Datadog metrics.
-- Overlay traffic data on the Svelte Flow graph.
+- Overlay traffic data on the Cytoscape graph.
 - Highlight endpoints with 0 traffic in the last 30 days.

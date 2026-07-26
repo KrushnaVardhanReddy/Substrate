@@ -1,10 +1,10 @@
 # P10-T20: Phase 10 E2E Validation (No Mocks)
 
 ## Overview
-End-to-end testing of OTel webhook ingestion, zombie API detection, governance rules CRUD, and auto-SDK generation. Must use a real local Postgres instance and zero mock APIs for database/API interactions.
+End-to-end testing of OTel webhook ingestion, zombie API detection, governance rules CRUD, and auto-SDK generation. Must use a real local PGlite instance and zero mock APIs for database/API interactions.
 
 ## Requirements
-1. **Test Environments**: Use a real local PostgreSQL instance (connection: `postgres://postgres:postgres@localhost:5432/substrate`). The API server must be running at `http://localhost:8090`.
+1. **Test Environments**: Use a real local PostgreSQL instance (connection: `postgres://postgres:postgres@localhost:54320/postgres?sslmode=disable&default_query_exec_mode=exec&statement_cache_capacity=0&pgbouncer=true`). The API server must be running at `http://localhost:8090`.
 2. **Coverage**: Tests must cover OTel metric ingestion, zombie endpoint detection, governance rule creation, and SDK generation triggers.
 3. **No Mocks for DB/API**: All database and HTTP calls use real connections. GitHub/Forgejo PR comment assertions are skipped gracefully when a local Forgejo instance is not available (not a test failure).
 4. **CI Integration**: The test suite runs as part of `go test ./...` in `scripts/e2e/`.

@@ -1,7 +1,7 @@
 # Spec: P11-T13 - Time-Travel Graph Replay
 
 ## 1. Overview
-Add a timeline scrubber (slider) to the bottom of the Svelte Flow graph visualization. This allows enterprise architects to drag a slider back in time and view the exact state of their microservice dependencies on any historical date.
+Add a timeline scrubber (slider) to the bottom of the Cytoscape graph visualization. This allows enterprise architects to drag a slider back in time and view the exact state of their microservice dependencies on any historical date.
 
 ## 2. Requirements
 - Create `TimeTravelScrubber.svelte` as a floating component anchored to the bottom-center of the graph view.

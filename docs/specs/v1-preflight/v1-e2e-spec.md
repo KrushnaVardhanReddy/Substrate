@@ -16,7 +16,7 @@ Since Substrate consists of multiple components (GitHub Worker, Go API Registry,
 
 **CRITICAL: True System Integration**
 The E2E suite MUST connect to the real, locally running PostgreSQL database and the real, locally running Go API server via HTTP. 
-- **No Mock Drivers:** Do not use sqlite or mock DB drivers. Connect directly to `postgres://postgres:postgres@localhost:5432/substrate`.
+- **No Mock Drivers:** Do not use sqlite or mock DB drivers. Connect directly to `postgres://postgres:postgres@localhost:54320/postgres?sslmode=disable&default_query_exec_mode=exec&statement_cache_capacity=0&pgbouncer=true`.
 - **Real HTTP:** Fire actual HTTP requests with `Authorization: Bearer local-dev-token` to `http://localhost:8090/api/v1/webhook`.
 - **Mocks Allowed:** Only external systems like GitHub APIs and LLM (OpenAI) endpoints may be mocked via local HTTP test servers.
 

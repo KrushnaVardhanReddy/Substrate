@@ -16,7 +16,7 @@ By integrating a real Git server locally:
 
 1. **Git Server:** Forgejo running locally in a Docker container (exposed on port `3000` for HTTP and `2222` for SSH).
 2. **Webhook Target:** The Forgejo repository will be configured to send webhooks to the locally running Substrate Cloudflare Worker (`http://host.docker.internal:8787`).
-3. **API & UI:** The worker processes the event and communicates with the local Go backend, which updates the Postgres DB, triggering SSE events to dynamically update the Svelte Flow Graph UI.
+3. **API & UI:** The worker processes the event and communicates with the local Go backend, which updates the Postgres DB, triggering SSE events to dynamically update the Cytoscape Graph UI.
 
 ## Implementation Steps
 

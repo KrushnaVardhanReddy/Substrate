@@ -309,7 +309,7 @@ Every dashboard page is a product feature. Each needs a real E2E assertion.
 | Page | URL | Test |
 |---|---|---|
 | Home / Org overview | `/org/admin` | Shows repo list with real synced repos |
-| Dependency Graph | `/org/admin/graph` | Renders Svelte Flow canvas with all 7 provider nodes (via search) |
+| Dependency Graph | `/org/admin/graph` | Renders Cytoscape canvas with all 7 provider nodes (via search) |
 | Impact Matrix | `/org/admin/matrix` | Shows provider × consumer matrix with risk scores |
 | Repo Catalog | `/org/admin/catalog` | Lists all registered repos with schema types |
 | Repo Detail | `/org/admin/catalog/microservices-demo` | Shows schema history, diff viewer, consumer list |

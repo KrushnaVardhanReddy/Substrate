@@ -19,7 +19,7 @@ Automate the complete new-user journey from the landing page through GitHub toke
 5. Assert the "Scanning Repositories" progress indicator / spinner appears.
 6. Mock `GET /api/v1/repos/{org}` to return a JSON array of 3 repositories.
 7. Assert the page navigates to `/org/{org}/graph` (assert `page.url()` contains `/graph`).
-8. Assert `.svelte-flow` canvas is visible.
+8. Assert `.cytoscape` canvas is visible.
 9. Assert `.filter-panel` sidebar is visible.
 
 ### Error Path
