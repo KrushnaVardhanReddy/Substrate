@@ -78,6 +78,9 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 	r.Method("POST", "/api/v1/schema/smell", serviceTokenMW(http.HandlerFunc(handlers.SchemaSmellHandler())))
 	r.Method("POST", "/api/v1/plugins/publish", serviceTokenMW(http.HandlerFunc(marketplace.PublishHandler(store))))
 
+	// Risk score endpoint
+	r.Method("GET", "/api/v1/risk/{org}/{repo}/{pr}", http.HandlerFunc(handlers.RiskScoreHandler()))
+
 	// Protected routes (Service Token OR JWT)
 	authMW := AuthMiddleware(registryApiToken, jwtSecret)
 	authzMW := AuthzMiddleware(registryApiToken, jwtSecret)
