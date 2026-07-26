@@ -217,9 +217,16 @@ sleep 3
 echo ""
 echo "💰 Seeding insurance policies via SQL (no HTTP POST endpoint available)..."
 
-DB_URL="postgres://postgres:postgres@localhost:54320/postgres"
+cat << 'EOF' > /tmp/seed_insurance.js
+const { Client } = require('pg');
 
-psql "$DB_URL" <<'EOSQL'
+async function run() {
+  const client = new Client({
+    connectionString: "postgres://postgres:postgres@127.0.0.1:54320/postgres?sslmode=disable"
+  });
+  await client.connect();
+
+  const sql = `
 -- Resolve org UUIDs from the names registered by sync above
 DO $$
 DECLARE
@@ -251,7 +258,20 @@ BEGIN
     ON CONFLICT DO NOTHING;
   END IF;
 END$$;
-EOSQL
+  `;
+
+  await client.query(sql);
+  await client.end();
+}
+
+run().catch(err => {
+  console.error("Insurance seed failed:", err);
+  process.exit(1);
+});
+EOF
+
+npm install --prefix scripts/e2e pg --no-save > /dev/null 2>&1
+NODE_PATH=scripts/e2e/node_modules node /tmp/seed_insurance.js
 
 echo "  ✅ Insurance policies seeded"
 
