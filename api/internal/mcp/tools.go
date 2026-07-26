@@ -5,6 +5,10 @@ import (
 	"time"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+
+	"github.com/spf13/viper"
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/services"
@@ -531,7 +535,7 @@ func RegisterTools(server *Server, store db.Store) {
 	})
 
 	server.RegisterTool(Tool{
-		Name:        "get_breaking_history",
+		Name:        "get_breaking_change_history",
 		Description: "Get breaking change history for a repo.",
 		InputSchema: map[string]any{
 			"type": "object",
@@ -555,10 +559,39 @@ func RegisterTools(server *Server, store db.Store) {
 			if limit == 0 {
 				limit = 10
 			}
-			history, err := store.GetBreakingChangeHistory(context.Background(), args.Org, args.Repo, limit)
+
+			registryURL := viper.GetString("REGISTRY_API_URL")
+			if registryURL == "" {
+				registryURL = "http://localhost:8090"
+			}
+
+			url := fmt.Sprintf("%s/api/v1/history/%s/%s?limit=%d", registryURL, args.Org, args.Repo, limit)
+			req, err := http.NewRequest(http.MethodGet, url, nil)
 			if err != nil {
 				return nil, err
 			}
+
+			token := viper.GetString("REGISTRY_API_TOKEN")
+			if token != "" {
+				req.Header.Set("Authorization", "Bearer "+token)
+			}
+
+			resp, err := http.DefaultClient.Do(req)
+			if err != nil {
+				return nil, err
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				body, _ := io.ReadAll(resp.Body)
+				return nil, fmt.Errorf("registry API returned %d: %s", resp.StatusCode, string(body))
+			}
+
+			var history any
+			if err := json.NewDecoder(resp.Body).Decode(&history); err != nil {
+				return nil, err
+			}
+
 			return history, nil
 		},
 	})

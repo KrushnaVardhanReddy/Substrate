@@ -1,7 +1,13 @@
 package services
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"strings"
+
+	"github.com/spf13/viper"
 )
 
 // MCP Tool definitions for OpenAI
@@ -23,8 +29,18 @@ var mcpTools = []map[string]interface{}{
 			"name":        "get_breaking_change_history",
 			"description": "Gets past breaking changes and their resolutions for this repository.",
 			"parameters": map[string]interface{}{
-				"type":       "object",
-				"properties": map[string]interface{}{},
+				"type": "object",
+				"properties": map[string]interface{}{
+					"repo": map[string]interface{}{
+						"type":        "string",
+						"description": "The repository to check (e.g. 'myorg/backend-api')",
+					},
+					"limit": map[string]interface{}{
+						"type":        "integer",
+						"description": "Maximum number of records to return (default 10)",
+					},
+				},
+				"required": []string{"repo"},
 			},
 		},
 	},
@@ -63,8 +79,55 @@ func executeTool(name string, args string, req AIAnalyzeRequest) (string, error)
 		return "[]", nil
 
 	case "get_breaking_change_history":
-		// Return some mock history for the org
-		return fmt.Sprintf("History for %s:\n- 2023-01-01: Removed 'user_id', resulted in 3 broken builds. Remediation: added @deprecated.", req.Org), nil
+		var params struct {
+			Repo  string `json:"repo"`
+			Limit int    `json:"limit"`
+		}
+		if err := json.Unmarshal([]byte(args), &params); err != nil {
+			return "", err
+		}
+		if params.Repo == "" {
+			return "", fmt.Errorf("repo is required")
+		}
+		parts := strings.SplitN(params.Repo, "/", 2)
+		if len(parts) != 2 {
+			return "", fmt.Errorf("repo must be in format org/repo")
+		}
+
+		limit := params.Limit
+		if limit == 0 {
+			limit = 10
+		}
+
+		registryURL := viper.GetString("REGISTRY_API_URL")
+		if registryURL == "" {
+			registryURL = "http://localhost:8090"
+		}
+
+		url := fmt.Sprintf("%s/api/v1/history/%s/%s?limit=%d", registryURL, parts[0], parts[1], limit)
+
+		httpReq, err := http.NewRequest(http.MethodGet, url, nil)
+		if err != nil {
+			return "", err
+		}
+
+		token := viper.GetString("REGISTRY_API_TOKEN")
+		if token != "" {
+			httpReq.Header.Set("Authorization", "Bearer "+token)
+		}
+
+		resp, err := http.DefaultClient.Do(httpReq)
+		if err != nil {
+			return "", err
+		}
+		defer resp.Body.Close()
+
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return "", err
+		}
+
+		return string(body), nil
 
 	default:
 		return "", fmt.Errorf("unknown tool: %s", name)
