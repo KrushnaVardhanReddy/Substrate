@@ -79,3 +79,4 @@ env:
   JWT_SECRET: ""
   REGISTRY_API_TOKEN: ""
   DASHBOARD_URL: ""
+# Substrate Enterprise Helm Chart

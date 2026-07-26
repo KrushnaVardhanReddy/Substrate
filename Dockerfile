@@ -12,6 +12,14 @@ FROM docker.io/library/golang:alpine AS go-builder
 WORKDIR /app
 COPY engine/ ./engine/
 COPY api/ ./api/
+
+# Copy the frontend built assets into the Go source tree before building
+# so that //go:embed can bundle them into the single binary
+RUN mkdir -p /app/api/internal/server/static
+COPY --from=node-builder /app/dashboard/build/ /app/api/internal/server/static/
+# Copy the WASM binary as well, since it's loaded from root
+COPY --from=node-builder /app/dashboard/static/engine.wasm /app/api/internal/server/static/engine.wasm
+
 WORKDIR /app/api
 RUN go mod download
 # Build static binary (no CGO for distroless compatibility)
@@ -20,11 +28,8 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /app/subs
 
 # ─── Stage 3: Final minimal image ────────────────────────────────────────────
 FROM gcr.io/distroless/static-debian12
-# Copy the compiled Go API binary
+# Copy the single compiled Go API binary (which now contains the embedded UI)
 COPY --from=go-builder /app/substrate /substrate
-# Copy SvelteKit built static assets to /static (served at "/" by the Go binary)
-COPY --from=node-builder /app/dashboard/build /static
-# Copy the Go WASM binary (built separately and checked into dashboard/static/)
-COPY --from=node-builder /app/dashboard/static/engine.wasm /static/engine.wasm
+
 EXPOSE 8090
 ENTRYPOINT ["/substrate"]
