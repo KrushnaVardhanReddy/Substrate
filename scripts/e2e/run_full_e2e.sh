@@ -115,9 +115,9 @@ curl -s http://localhost:8080/health > /dev/null 2>&1 && echo "  ✅ Engine :808
 curl -s http://localhost:5173 > /dev/null 2>&1 && echo "  ✅ Frontend :5173 OK" || echo "  ❌ Frontend :5173 DOWN"
 
 # Run All Playwright UI Tests
-echo "🧪 Running Playwright UI Tests (All Phases)..."
+echo "🧪 Running Playwright UI Tests..."
 cd dashboard
-npx playwright test tests/e2e/system-matrix-full.spec.ts --project=chromium
+npx playwright test playwright/dashboard.spec.ts --project=chromium
 cd ..
 
 # Trap handles cleanup
