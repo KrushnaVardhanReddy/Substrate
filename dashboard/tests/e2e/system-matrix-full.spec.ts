@@ -568,4 +568,128 @@ type User { id: ID!, name: String!, email: String }
     });
   });
 
+  test.describe.serial('Repo: ml-models (AI/ML Phase 1f)', () => {
+    const REPO_NAME = 'ml-models';
+    const BASE_SUBSTRATE_YAML = `schema_type: aiml
+base_schema: model.yaml
+head_schema: model.yaml
+
+consumers:
+  - name: recommendation-engine
+    provider_repo: admin/ml-models
+    schema_type: aiml
+    provider_spec_path: model.yaml
+    provider_branch: main
+`;
+    const BASE_AIML = `service: fraud-detector
+ml_model:
+  name: "FraudDetector"
+  version: "1.0"
+  inputs:
+    - name: "amount"
+      type: "float"
+      required: true
+  outputs:
+    - name: "fraud_probability"
+      type: "float"
+      required: true
+`;
+    test('Setup & Seeding: Push initial valid schema', async () => {
+      await pushToForgejo(REPO_NAME, {
+        'substrate.yaml': BASE_SUBSTRATE_YAML,
+        'model.yaml': BASE_AIML
+      });
+      await new Promise(r => setTimeout(r, 2000));
+    });
+
+    test('Red Path: Push breaking change', async ({ page }) => {
+      const BREAKING_AIML = `service: fraud-detector
+ml_model:
+  name: "FraudDetector"
+  version: "1.0"
+  inputs:
+    - name: "amount"
+      type: "float"
+      required: true
+    - name: "new_required_field"
+      type: "string"
+      required: true
+  outputs:
+    - name: "fraud_probability"
+      type: "float"
+      required: true
+`;
+      await pushToForgejo(REPO_NAME, {
+        'substrate.yaml': BASE_SUBSTRATE_YAML,
+        'model.yaml': BREAKING_AIML
+      });
+      await page.waitForTimeout(3000);
+      await waitForGraphSearch(page, 'ml', 2);
+      
+      await page.waitForFunction(() => {
+          const cy = (window as any).cyInstance;
+          if (!cy) return false;
+          return cy.edges('[status = "BREAKING"]').length > 0;
+      }, { timeout: 10000 });
+      
+      const breakingCount = await page.evaluate(() => {
+          return (window as any).cyInstance.edges('[status = "BREAKING"]').length;
+      });
+      expect(breakingCount).toBe(1);
+    });
+  });
+
+  test.describe.serial('Repo: salesforce-crm (Enterprise Phase 1g)', () => {
+    const REPO_NAME = 'salesforce-crm';
+    const BASE_SUBSTRATE_YAML = `schema_type: salesforce
+base_schema: Account.object
+head_schema: Account.object
+
+consumers:
+  - name: sync-worker
+    provider_repo: admin/salesforce-crm
+    schema_type: salesforce
+    provider_spec_path: Account.object
+    provider_branch: main
+`;
+    const BASE_SOAP = \`<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fields>
+        <fullName>AnnualRevenue</fullName>
+        <type>Currency</type>
+        <required>false</required>
+    </fields>
+</CustomObject>\`;
+    test('Setup & Seeding: Push initial valid schema', async () => {
+      await pushToForgejo(REPO_NAME, {
+        'substrate.yaml': BASE_SUBSTRATE_YAML,
+        'Account.object': BASE_SOAP
+      });
+      await new Promise(r => setTimeout(r, 2000));
+    });
+
+    test('Red Path: Push breaking change', async ({ page }) => {
+      const BREAKING_SOAP = \`<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+</CustomObject>\`;
+      await pushToForgejo(REPO_NAME, {
+        'substrate.yaml': BASE_SUBSTRATE_YAML,
+        'Account.object': BREAKING_SOAP
+      });
+      await page.waitForTimeout(3000);
+      await waitForGraphSearch(page, 'salesforce', 2);
+      
+      await page.waitForFunction(() => {
+          const cy = (window as any).cyInstance;
+          if (!cy) return false;
+          return cy.edges('[status = "BREAKING"]').length > 0;
+      }, { timeout: 10000 });
+      
+      const breakingCount = await page.evaluate(() => {
+          return (window as any).cyInstance.edges('[status = "BREAKING"]').length;
+      });
+      expect(breakingCount).toBe(1);
+    });
+  });
+
 });
