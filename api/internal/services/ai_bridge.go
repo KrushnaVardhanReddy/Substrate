@@ -1,7 +1,12 @@
 package services
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+
+	"github.com/spf13/viper"
 )
 
 // MCP Tool definitions for OpenAI
@@ -63,8 +68,54 @@ func executeTool(name string, args string, req AIAnalyzeRequest) (string, error)
 		return "[]", nil
 
 	case "get_breaking_change_history":
-		// Return some mock history for the org
-		return fmt.Sprintf("History for %s:\n- 2023-01-01: Removed 'user_id', resulted in 3 broken builds. Remediation: added @deprecated.", req.Org), nil
+		var parsedArgs struct {
+			Repo  string `json:"repo"`
+			Limit *int   `json:"limit,omitempty"`
+		}
+		if err := json.Unmarshal([]byte(args), &parsedArgs); err != nil {
+			return "", fmt.Errorf("invalid arguments: %w", err)
+		}
+		if parsedArgs.Repo == "" {
+			return "", fmt.Errorf("repo is required")
+		}
+		limit := 10
+		if parsedArgs.Limit != nil {
+			limit = *parsedArgs.Limit
+		}
+
+		registryURL := viper.GetString("REGISTRY_API_URL")
+		if registryURL == "" {
+			registryURL = "http://localhost:8090"
+		}
+
+		url := fmt.Sprintf("%s/api/v1/history/%s/%s?limit=%d", registryURL, req.Org, parsedArgs.Repo, limit)
+		httpReq, err := http.NewRequest(http.MethodGet, url, nil)
+		if err != nil {
+			return "", fmt.Errorf("failed to create request: %w", err)
+		}
+
+		token := viper.GetString("REGISTRY_API_TOKEN")
+		if token != "" {
+			httpReq.Header.Set("Authorization", "Bearer "+token)
+		}
+
+		resp, err := http.DefaultClient.Do(httpReq)
+		if err != nil {
+			return "", fmt.Errorf("failed to fetch history: %w", err)
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			body, _ := io.ReadAll(resp.Body)
+			return "", fmt.Errorf("registry API returned status %d: %s", resp.StatusCode, string(body))
+		}
+
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return "", fmt.Errorf("failed to read response: %w", err)
+		}
+
+		return string(body), nil
 
 	default:
 		return "", fmt.Errorf("unknown tool: %s", name)
