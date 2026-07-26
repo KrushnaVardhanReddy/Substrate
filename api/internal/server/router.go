@@ -152,7 +152,6 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 	r.Method("POST", "/api/v1/discovery/scan/{org}/{repo}", serviceTokenMW(http.HandlerFunc(handlers.TriggerScanHandler(riverClient))))
 	r.Method("GET", "/api/v1/discovery/results/{org}/{repo}", serviceTokenMW(http.HandlerFunc(handlers.GetScanResultsHandler())))
 
-
 	// Public registry routes
 	r.Route("/api/v1/registry/public", func(r chi.Router) {
 		r.Post("/{namespace}/{name}/{version}", registry.HandlePublishSchema(store))
@@ -170,5 +169,8 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 
 	// Webhook for Postman integrations
 	ServeDashboard(r)
+	r.Method("GET", "/api/v1/qa/postman/{org}/{repo}", http.HandlerFunc(handlers.QAPostmanHandler(store)))
+	r.Method("POST", "/api/v1/qa/shadow/replay", http.HandlerFunc(handlers.QAShadowReplayHandler(store)))
+	r.Method("GET", "/api/v1/qa/coverage/{org}/{repo}", http.HandlerFunc(handlers.QACoverageHandler(store)))
 	return otelhttp.NewHandler(r, "substrate-api")
 }
