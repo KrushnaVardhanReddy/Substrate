@@ -26,11 +26,17 @@ test.describe('Phase 11: Graph UI & Visual Studio', () => {
 		// Assert page renders correctly
 		await expect(page.locator('h1.page-title')).toContainText('Dependency Graph');
 
-		// Wait for cytoscape instance to be ready
-		await page.waitForFunction(() => (window as any).cyInstance !== undefined && (window as any).cyInstance !== null);
+		// The graph is search-gated: cyInstance is null until a search query is typed
+		const searchInput = page.locator('input.filter-input, input[placeholder*="Search"]').first();
+		await expect(searchInput).toBeVisible({ timeout: 10000 });
+		await searchInput.fill('backend');
+		await page.waitForTimeout(800); // debounce
+
+		// Wait for cytoscape instance to be ready (set on window after search)
+		await page.waitForFunction(() => (window as any).cyInstance !== undefined && (window as any).cyInstance !== null, { timeout: 15000 });
 
 		// Ensure graph is populated
-		await page.waitForFunction(() => (window as any).cyInstance.nodes().length > 0);
+		await page.waitForFunction(() => (window as any).cyInstance.nodes().length > 0, { timeout: 10000 });
 
 		// Click the node via Cytoscape API
 		await page.evaluate(() => {

@@ -79,6 +79,14 @@ func setupP15Database(t *testing.T) (*pgxpool.Pool, string, string) {
 	_, err = pool.Exec(ctx, "INSERT INTO insurance_claims (id, org_id, policy_id, github_pr_url, incident_date, status, amount_cents) VALUES ($1, $2, $3, $4, NOW(), $5, $6)", uuid.New().String(), orgID, policyID, "https://github.com/mcp-org/repo/pull/10", "APPROVED", 15000)
 	require.NoError(t, err)
 
+	// Seed marketplace plugin so CLI test can install it
+	_, err = pool.Exec(ctx, "INSERT INTO marketplace_plugins (id, name, description, schema_content) VALUES ($1, $2, $3, $4) ON CONFLICT(name) DO NOTHING", uuid.New().String(), "substrate-plugin-hipaa", "HIPAA Compliance Plugin", "{}")
+	if err != nil {
+		// Fallback in case ID is generated internally or there's a constraint we missed
+		_, err = pool.Exec(ctx, "INSERT INTO marketplace_plugins (name, description, schema_content) VALUES ($1, $2, $3) ON CONFLICT(name) DO NOTHING", "substrate-plugin-hipaa", "HIPAA Compliance Plugin", "{}")
+		require.NoError(t, err)
+	}
+
 	return pool, orgID, policyID
 }
 

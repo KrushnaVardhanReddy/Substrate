@@ -20,7 +20,7 @@ func setupP7_2Database(t *testing.T) *pgxpool.Pool {
 	ctx := context.Background()
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
-		dbURL = "postgres://substrate:substrate@localhost:5432/substrate?sslmode=disable"
+		dbURL = "postgres://postgres:postgres@localhost:54320/postgres?sslmode=disable&default_query_exec_mode=exec&statement_cache_capacity=0&pgbouncer=true"
 	}
 	pool, err := pgxpool.New(ctx, dbURL)
 	if err != nil {

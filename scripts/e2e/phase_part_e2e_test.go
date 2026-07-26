@@ -20,7 +20,7 @@ const (
 	pPartRegistryAPIToken = "local-dev-token"
 	pPartJWTSecret        = "local-jwt-secret"
 	pPartApiURL           = "http://localhost:8090"
-	pPartDbURL            = "postgres://postgres:postgres@localhost:5432/substrate?sslmode=disable"
+	pPartDbURL            = "postgres://postgres:postgres@localhost:54320/postgres?sslmode=disable&default_query_exec_mode=exec&statement_cache_capacity=0&pgbouncer=true"
 )
 
 func waitForPPartServices(t *testing.T) {

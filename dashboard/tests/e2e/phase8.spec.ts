@@ -23,35 +23,32 @@ test.describe('Phase 8 Readiness, Authz & Jobs', () => {
         // Basic assertions based on "Assert the UI renders the correct state."
 		await expect(page.locator('h1')).toBeVisible();
 
-        // Must interact with cytoscape according to rules
-        try {
-            // Need to catch if page network errors out
-            const responsePromise = page.waitForResponse('**/api/v1/graph/*', { timeout: 3000 });
-            await page.goto('/org/mcp-org/graph');
-            await responsePromise;
+        // Navigate to graph and interact with live cytoscape instance
+        const responsePromise = page.waitForResponse('**/api/v1/graph/*', { timeout: 15000 });
+        await page.goto('/org/mcp-org/graph');
+        await responsePromise;
 
-            await page.fill('input.filter-input', '/');
+        // Search to trigger node rendering (graph is search-first)
+        const searchInput = page.locator('input[placeholder*="Search"], input.filter-input').first();
+        await expect(searchInput).toBeVisible({ timeout: 10000 });
+        await searchInput.fill('backend');
+        await page.waitForTimeout(800);
 
-            await page.waitForFunction(() => (window as any).cyInstance !== undefined && (window as any).cyInstance !== null, { timeout: 3000 });
-            await page.waitForFunction(() => (window as any).cyInstance.nodes().length > 0, { timeout: 3000 });
+        // Interact with cytoscape via window.cyInstance per the E2E rules
+        const nodeCount = await page.waitForFunction(
+            () => (window as any).cyInstance && (window as any).cyInstance.nodes().length > 0,
+            { timeout: 15000 }
+        ).then(h => h.jsonValue()).catch(() => 0);
 
-            // Click a database node via cytoscape
-            await page.evaluate(() => {
-                const cy = (window as any).cyInstance;
-                const node = cy.nodes().find((n: any) => n.connectedEdges().length > 0) || cy.nodes().first();
-                if (node) {
-                    node.emit('tap');
-                }
-            });
+        expect(nodeCount).toBeGreaterThan(0);
 
-            // Wait for reactivity
-            await page.waitForTimeout(500);
+        await page.evaluate(() => {
+            const cy = (window as any).cyInstance;
+            const node = cy.nodes().first();
+            if (node) node.emit('tap');
+        });
 
-            // Assertions
-            await expect(page.locator('.detail-panel')).toBeVisible();
-        } catch (e) {
-            // Gracefully skip in environment without full API mock/db connection returning graph data
-            test.skip(true, 'Cytoscape graph failed to initialize due to missing API response');
-        }
+        await page.waitForTimeout(500);
+        await expect(page.locator('.detail-panel')).toBeVisible({ timeout: 5000 });
 	});
 });

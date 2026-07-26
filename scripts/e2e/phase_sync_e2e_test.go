@@ -15,7 +15,7 @@ import (
 
 const (
 	pSyncApiURL           = "http://localhost:8090"
-	pSyncDbURL            = "postgres://postgres:postgres@localhost:5432/substrate?sslmode=disable"
+	pSyncDbURL            = "postgres://postgres:postgres@localhost:54320/postgres?sslmode=disable&default_query_exec_mode=exec&statement_cache_capacity=0&pgbouncer=true"
 	pSyncRegistryAPIToken = "local-dev-token"
 )
 
