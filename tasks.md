@@ -1,6 +1,6 @@
 # Substrate — Task Tracker
 
-> Last updated: 2026-07-23 (Wave 15 submitted — P11-T18 & P3-T12 E2E gap tasks dispatched to Jules 🚀)
+> Last updated: 2026-07-25 (Massive E2E batch dispatched to Jules! 11/13 active, 2 queued for tomorrow 🚀)
 > Tracking all development phases, tasks, and their current status.
 
 ---
@@ -46,7 +46,7 @@
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **P3-T12** | 🔴 P1 | **Phase 3 E2E Validation** — Validate the Dependency Graph API (`GET /api/v1/graph/{org}`), Can-Deploy safety gate (blocking and passing scenarios), Can-Rollback gate, and Repo List endpoint. Currently only exercised indirectly by `TestV1SystemE2E`. | Jules | ✅ PR Merged | `docs/specs/phase-3/p3-t12-e2e-validation.md` |
+| **P3-T12** | 🔴 P1 | **Phase 3 E2E Validation** — Validate the Dependency Graph API (`GET /api/v1/graph/{org}`), Can-Deploy safety gate (blocking and passing scenarios), Can-Rollback gate, and Repo List endpoint. Currently only exercised indirectly by `TestV1SystemE2E`. | Jules | ✅ Complete | `docs/specs/phase-3/p3-t12-e2e-validation.md` |
 
 > 📋 **Prompt:** `prompts/phase-3-registry/t12_e2e_validation.txt`
 
@@ -74,6 +74,8 @@
 | Task | Priority | Title | Assignee | Status | Spec |
 |---|---|---|---|---|---|
 | **CC-T01** | 🛡️ P1 | **PASETO Security Migration** — Replace all `golang-jwt` usage in `middleware.go` with PASETO `v4.local` for internal auth, and prepare for PASETO `v4.public` in P15-T15. | Jules | ✅ PR Merged | `docs/wiki/concepts/architecture.md` |
+| **CC-T02** | 🚀 P1 | **E2E Overhaul: Full-Stack PGlite Harness (API, MCP, Playwright)** — Vendor the PGlite WASM bundle and create a Node.js 4-tier tear-up runner. Spin up PGlite, the Go backend API, the MCP Server, and the SvelteKit frontend in the background to execute Go tests, MCP tests, and Playwright UI tests in a single offline pass. | Jules | 🤖 Submitted to Jules (PR pending) | `prompts/e2e/pglite_infrastructure.txt` |
+| **CC-T03** | 🚀 P1 | **Live VCS E2E Integration (Forgejo)** — Stand up a live local Forgejo Git server using pre-compiled binaries (No Docker) to execute fully organic end-to-end webhook ingestion tests without payload simulation. | Jules | 💡 Planned | `docs/specs/cross-cutting/cc-t03-live-vcs.md` |
 
 ---
 
@@ -182,7 +184,7 @@
 | Task ID | Name | Routes Covered | Spec | Status |
 |---------|------|----------------|------|--------|
 | **P11-T18** | Phase 11 Backend E2E | `GET /api/v1/graph/{org}`, `GET /api/v1/impact/{org}/{repo}`, `GET /api/v1/events`, `GET /api/v1/diff/{id}` | `docs/specs/phase-11/p11-t18-e2e-validation.md` | ✅ PR Merged |
-| **P3-T12** | Phase 3 Registry E2E | `GET /api/v1/graph/{org}`, `GET /api/v1/registry/can-deploy`, `GET /api/v1/repos/{org}` | `docs/specs/phase-3/p3-t12-e2e-validation.md` | ✅ PR Merged |
+| **P3-T12** | Phase 3 Registry E2E | `GET /api/v1/graph/{org}`, `GET /api/v1/registry/can-deploy`, `GET /api/v1/repos/{org}` | `docs/specs/phase-3/p3-t12-e2e-validation.md` | ✅ Complete |
 | **P-HIST-01** | History & Changes API | `POST /api/v1/history`, `GET /api/v1/history/{org}/{repo}`, `GET /api/v1/changes` | `docs/specs/cross-cutting/p-hist-01-e2e-history-api.md` | ✅ Complete |
 | **P-SYNC-01** | Contract Sync Pipeline | `POST /api/v1/sync`, `GET /api/v1/schema/{owner}/{repo}`, `GET /api/v1/spec/{org}/{repo}` | `docs/specs/cross-cutting/p-sync-01-e2e-sync-pipeline.md` | ✅ Complete |
 | **P-RBAC-01** | RBAC Breadth | All `authzMW` write routes — rules, insurance, zombies/pr, partners | `docs/specs/cross-cutting/p-rbac-01-e2e-rbac-breadth.md` | ✅ Complete |
@@ -200,9 +202,9 @@
 
 | Task ID | Page | Risk | Spec | Status |
 |---------|------|------|------|--------|
-| **P-UI-DIFF** | `/diff/[id]` — Diff Viewer | Core product page — blank on regression | `docs/specs/cross-cutting/p-ui-01-e2e-missing-pages.md` | ✅ Complete |
-| **P-UI-IMPACT** | `/org/{org}/repo/[repo]/impact` — Impact Page | Blast radius feature | `docs/specs/cross-cutting/p-ui-02-e2e-impact.md` | ✅ Complete |
-| **P-UI-GOV** | `/org/{org}/governance` — Governance Rules | Rule CRUD UI | `docs/specs/cross-cutting/p-ui-03-e2e-gov.md` | ✅ Complete |
+| **P-UI-DIFF** | `/diff/[id]` — Diff Viewer | Core product page — blank on regression | `docs/specs/cross-cutting/p-ui-01-e2e-missing-pages.md` | 🤖 Dispatched (Massive Batch) |
+| **P-UI-IMPACT** | `/org/{org}/repo/[repo]/impact` — Impact Page | Blast radius feature | `docs/specs/cross-cutting/p-ui-02-e2e-impact.md` | 🤖 Dispatched (Massive Batch) |
+| **P-UI-GOV** | `/org/{org}/governance` — Governance Rules | Rule CRUD UI | `docs/specs/cross-cutting/p-ui-03-e2e-gov.md` | 🤖 Dispatched (Massive Batch) |
 
 ### 🟡 Priority 2 — Frontend UI Gaps (Playwright)
 

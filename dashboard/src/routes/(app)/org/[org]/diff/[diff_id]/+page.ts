@@ -3,7 +3,7 @@ import { env } from '$env/dynamic/public';
 
 export async function load({ params, fetch }) {
 	const apiUrl = env.PUBLIC_API_URL || 'http://localhost:8090';
-	const id = params.id;
+	const id = params.diff_id;
 
 	try {
 		const res = await fetch(`${apiUrl}/api/v1/diff/${id}`);

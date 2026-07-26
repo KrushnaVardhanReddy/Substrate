@@ -1,0 +1,39 @@
+TASK: P4-T10 — Phase 4 AI Diff Engine Full-Stack E2E Validation
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Using the new Full-Stack PGlite Test Harness (CC-T02), implement the complete E2E 
+test suite for the Phase 4 AI Diff Engine and Analyzers. 
+
+You must write BOTH the Go API tests (to assert AI streaming and patch logic) 
+AND the Playwright UI tests (to ensure the AI diff viewer streams correctly).
+
+═══════════════════════════════════════════════════════════════
+CRITICAL READING — DO THIS BEFORE WRITING A SINGLE LINE OF CODE
+═══════════════════════════════════════════════════════════════
+1. docs/specs/e2e/phase4-ai-diff.md
+   → Read the exact API assertions and UI actions required.
+
+2. dashboard/src/routes/(app)/org/[org]/diff/[diff_id]/+page.svelte
+   → Review the DOM structure of the Diff Viewer. Locate the "Generate AI Patch" 
+     button and the component where the SSE stream is injected.
+
+3. seed_mcp.sql
+   → Ensure the diff and patch entities are seeded appropriately.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: scripts/e2e/phase4_api_test.go (NEW)
+   - Assert GET `/api/v1/diff/stream/{org}/{repo}` successfully initiates an SSE connection.
+   - Assert POST `/api/v1/diff/upgrade` returns a valid PR comment payload.
+
+2. FILE: dashboard/playwright/ai_diff.spec.ts (NEW)
+   - Navigate to `/org/mcp-org/diff/diff-123`.
+   - Wait for the Diff Viewer to load.
+   - Click "Generate AI Patch".
+   - Assert the UI receives the SSE stream and the "Apply Patch" button enables.
+
+Commit message: "test: P4-T10 add Phase 4 full-stack E2E tests (AI Diff Engine)"
+Target branch: feature/dev

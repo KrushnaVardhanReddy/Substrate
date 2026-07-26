@@ -1,42 +1,53 @@
-TASK: P10-T20 — Phase 10 E2E Validation (No Mocks)
+TASK: P10 — Phase 10 Ecosystem & Zombie Pruning Full-Stack E2E Validation
 
 ═══════════════════════════════════════════════════════════════
 OBJECTIVE
 ═══════════════════════════════════════════════════════════════
-End-to-end testing for all Phase 10 features using real environments — no mock interceptors.
+Using the new Full-Stack PGlite Test Harness (CC-T02), implement the complete E2E 
+test suite for Phase 10 (Ecosystem & Zombie Pruning). 
 
-Spec (READ ONLY — implement from it, never edit):
-  docs/specs/phase-10/p10-t20-e2e-validation.md
-
-═══════════════════════════════════════════════════════════════
-CONSTRAINTS & RULES
-═══════════════════════════════════════════════════════════════
-- No `mock.On(...)` or fake HTTP handlers for external services.
-- All external git interactions should hit the local Forgejo instance.
-- Tests must clean up resources after themselves.
+You must write BOTH the Go API tests AND the Playwright UI tests.
 
 ═══════════════════════════════════════════════════════════════
-CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+CRITICAL READING — DO THIS BEFORE WRITING A SINGLE LINE OF CODE
 ═══════════════════════════════════════════════════════════════
-Follow the EXACT patterns established in `scripts/e2e/phase8_e2e_test.go`:
-- Same package `main`, same file location `scripts/e2e/`.
-- Uses real `pgxpool.New(ctx, dbURL)` — no Testcontainers needed (Postgres is expected to be running locally via `make postgres`).
-- Tests use `t.Run("Scenario N: ...", ...)` sub-test structure.
-- Uses `exec.Command(binPath, ...)` to run real compiled CLI binary.
+1. docs/specs/e2e/phase10-ecosystem.md
+   → Read the exact API assertions and UI actions required.
 
-There is already a `scripts/e2e/phase10_13_e2e_test.go` — check it for context before writing new tests to avoid duplication.
-
-═══════════════════════════════════════════════════════════════
-IMPLEMENTATION TIPS
-═══════════════════════════════════════════════════════════════
-- Add scenarios covering: OTel webhook ingestion, zombie detection query, governance rules CRUD, and auto-SDK generation trigger.
-- For the governance rules scenario, hit `POST /api/v1/org/:org/governance/rules` and then `POST /api/v1/diff` and assert the PR comment contains "📏 API Governance".
+2. seed_mcp.sql
+   → Ensure the data is seeded properly for this phase.
 
 ═══════════════════════════════════════════════════════════════
 DELIVERABLES
 ═══════════════════════════════════════════════════════════════
-1. FILE: scripts/e2e/phase10_e2e_test.go (CREATE)
-2. Run `go test ./scripts/e2e/... -run TestPhase10`.
+5. FILE: scripts/e2e/phase10_api_test.go (NEW)
+   - API assertions.
 
-Commit: "test: P10-T20 phase 10 E2E validation suite"
+6. FILE: dashboard/tests/e2e/phase10.spec.ts (NEW)
+   - UI assertions.
+
+═══════════════════════════════════════════════════════════════
+🚨 CRITICAL RULES FOR THIS RUN 🚨
+═══════════════════════════════════════════════════════════════
+1. NO INTERNAL PACKAGE MOCKING:
+   - Your Go tests in `scripts/e2e/` are in a separate module. You CANNOT import `github.com/KrushnaVardhanReddy/Substrate/api/internal/...` to directly call handlers.
+   - You MUST make external HTTP requests (`http.NewRequest`) to the live API running at `http://localhost:8090`.
+
+2. DATABASE & PGLITE:
+   - PGlite runs on port `54320`.
+   - The connection string MUST be: `postgres://postgres:postgres@localhost:54320/postgres?sslmode=disable&default_query_exec_mode=exec&statement_cache_capacity=0&pgbouncer=true`
+   - You MUST clean up and seed your own data in your test file by instantiating `pgxpool.New` with the above URL.
+
+3. CYTOSCAPE PLAYWRIGHT TESTS:
+   - Cytoscape is an HTML canvas. You CANNOT use standard DOM locators for graph nodes.
+   - You MUST interact with the graph using `page.evaluate(() => window.cyInstance...)` and wait for it to load using `waitForFunction`.
+
+4. VENDOR PRESERVATION:
+   - Do NOT modify or delete anything inside `scripts/e2e/vendor/pglite/`.
+   - If you need to add Go dependencies to `scripts/e2e`, run `go mod vendor` inside `scripts/e2e/`.
+
+5. RIVER QUEUE CRASHES:
+   - PGlite is incompatible with River Queue. The server runs with `SKIP_RIVER="true"`. Do not attempt to start or test River background jobs natively on PGlite.
+
+Commit message: "test: P10 add Phase 10 full-stack E2E tests"
 Target branch: feature/dev

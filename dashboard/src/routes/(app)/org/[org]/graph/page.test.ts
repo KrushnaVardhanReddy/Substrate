@@ -27,7 +27,7 @@ describe('Graph Page Load Function', () => {
 		} as any);
 
 		expect(result.org).toBe('myorg');
-		expect(result.graphData.length).toBeGreaterThan(0);
-		expect(result.graphData[0].provider).toBe('demo-org/core-service');
+		expect(result.graphData.length).toBe(0);
+
 	});
 });

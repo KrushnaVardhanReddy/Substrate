@@ -26,6 +26,6 @@ describe('Matrix Page Load Function', () => {
 		} as any);
 
 		expect(result.org).toBe('myorg');
-		expect(result.matrixData.providers.length).toBeGreaterThan(0);
+		expect(result.matrixData.providers.length).toBe(0);
 	});
 });

@@ -1,39 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Compatibility Matrix', () => {
-	test.beforeEach(async ({ page }) => {
-		await page.route('**/api/v1/repos/*', async (route) => {
-			await route.fulfill({
-				status: 200,
-				contentType: 'application/json',
-				body: JSON.stringify([
-					{ id: '1', name: 'core-auth', full_name: 'core/auth' }
-				])
-			});
-		});
 
-		await page.route('**/api/v1/matrix/*', async (route) => {
-			await route.fulfill({
-				status: 200,
-				contentType: 'application/json',
-				body: JSON.stringify({
-					providers: ['users-api'],
-					consumers: ['frontend-web (PROD)'],
-					grid: [
-						{
-							provider: 'users-api',
-							versions: [
-								{
-									version: 'v2.1.0',
-									results: ['INCOMPATIBLE']
-								}
-							]
-						}
-					]
-				})
-			});
-		});
-	});
 
 	test('should render matrix and show breaking change alert on click', async ({ page }) => {
 		// Navigate directly to the matrix page (SSR is disabled in tests)

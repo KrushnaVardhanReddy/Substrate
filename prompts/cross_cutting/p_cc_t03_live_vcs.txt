@@ -1,0 +1,12 @@
+# Task: CC-T03 — Live VCS E2E Integration (Forgejo)
+
+Please implement the specifications defined in `docs/specs/cross-cutting/cc-t03-live-vcs.md`.
+
+## Critical Requirements
+1. **NO DOCKER:** You must not use Docker or docker-compose to run Forgejo.
+2. **Download Binary:** Update `scripts/e2e/run_full_e2e.sh` to download the pre-compiled `forgejo` binary (e.g., from `codeberg.org/forgejo/forgejo/releases`) if it doesn't exist locally, make it executable, and run it as a background process on port 3000.
+3. **Robust Cleanup:** Ensure the Forgejo background process is properly tracked by PID and killed gracefully when `run_full_e2e.sh` exits or is interrupted, exactly like the PGlite and Vite servers.
+4. **Go Test Helper:** Create a Go helper that uses the Forgejo REST API to initialize an organization, repo, and webhook pointing to the local Substrate API before E2E tests begin.
+5. **Phase 2 Update:** Update `scripts/e2e/phase2_api_test.go` to use this live setup to push a commit and wait for the webhook, instead of simulating the payload.
+
+Remember: Mandatory Rule #1 strictly forbids mocking business logic in the backend. This task extends that rule by removing external mock simulation where possible.

@@ -39,6 +39,8 @@
 		"@stoplight/elements": "^9.0.24",
 		"@types/diff": "^7.0.2",
 		"@xyflow/svelte": "^1.6.2",
+		"cytoscape": "^3.34.0",
+		"cytoscape-dagre": "^4.0.0",
 		"d3": "^7.9.0",
 		"dagre": "^0.8.5",
 		"diff": "^9.0.0",

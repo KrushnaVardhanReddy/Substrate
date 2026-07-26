@@ -5,10 +5,7 @@ const testOrgName = process.env.PUBLIC_ORG_NAME || 'myorg';
 
 test('dashboard loads and displays the empty state', async ({ page }) => {
 	// Mock the API response
-	await page.route('**/api/v1/repos/*', async route => {
-		const json = [{ id: '1', name: 'repo-1', full_name: 'org/repo-1' }];
-		await route.fulfill({ json });
-	});
+
 
 	await page.goto('/');
 

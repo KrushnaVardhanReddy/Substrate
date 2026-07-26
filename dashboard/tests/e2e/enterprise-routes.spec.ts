@@ -6,9 +6,7 @@ test.describe('Enterprise Dashboard Routes (Suite 11)', () => {
 
     test('should render /org/admin/graph correctly', async ({ page }) => {
         // Intercept API call to avoid 404 from backend missing
-        await page.route('**/api/v1/graph/*', async (route) => {
-            await route.fulfill({ status: 200, json: [] });
-        });
+
 
         await page.goto(`/org/${ORG}/graph`);
 

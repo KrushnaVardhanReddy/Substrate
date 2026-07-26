@@ -1,55 +1,60 @@
 # Substrate — Shift Handoff Document
 
-> **Date:** 2026-07-23
-> **Current Focus:** Full E2E Coverage & Headless MCP Parity
+> **Date:** 2026-07-25
+> **Current Focus:** E2E Massive Batch Dispatch
 
 ## ✅ Completed This Session
 
-1. **sqlc Pipeline Restored (2026-07-23)**
-   - ✅ Fixed `sqlc.yaml` and all `.sql` query files
-   - ✅ Generated to `api/internal/db/sqlcgen/`
-   - ✅ `api/` builds cleanly
+1. **Dependency Graph Rendering Engine Migration**
+   - ✅ **Issue:** The dependency graph on the frontend (`/org/[org]/graph`) was completely blank. This was caused by `SvelteFlow` v1.6.2 throwing `lifecycle_outside_component` context tracker errors in Svelte 5, especially when combined with async data loading in SvelteKit's declarative routing.
+   - ✅ **Fix:** We ripped out the incompatible `SvelteFlow` library and reverted the rendering engine back to **Cytoscape** and **cytoscape-dagre**, which the project originally used 10 days ago.
+   - ✅ **Integration:** Integrated Cytoscape directly with the new Server-Sent Events (SSE) logic natively in Svelte 5 using the `$effect` rune.
+   - ✅ **Layout:** Fixed CSS layout overlap bugs by setting the `cyContainer` flex wrapper to `flex: 1` rather than absolute positioning, allowing it to seamlessly fit below the header.
+   - ✅ **Styling:** Updated the node padding and sizing styles (`width: 'auto'`, `height: 'auto'`) to conform to modern Cytoscape standards (preventing text bleed and deprecation warnings).
+   - ✅ **Clean up:** Removed the manual `getLayoutedElements` DAGRE math function (since Cytoscape computes layout natively), cleaned up all `local-dev-token` hardcoding, and purged all temporary API proxy endpoints/debug files created during the debugging session.
 
-2. **E2E Coverage Audit (2026-07-23)**
-   - ✅ Full audit of all 15 phases — identified ~78% backend API coverage
-   - ✅ Identified 13 E2E test gap tasks (all tracked in `tasks.md`)
-   - ✅ Wrote specs for high priority gaps (History, Sync, RBAC, UI Diff)
+### 1. Vendor PGlite & Wrapper Script
+- We will download the PGlite WASM binaries into the repository.
+- Jules will write a lightweight Node.js wrapper (`scripts/e2e/pglite_server.js`) that spins up PGlite on a local TCP port and seeds it.
 
-3. **Tasks Merged**
-   - ✅ **P11-T18** (Phase 11 Backend E2E)
-   - ✅ **P3-T12** (Phase 3 Registry E2E)
-   - ✅ **P-MCP-01** (Full MCP Server Parity)
+### 2. The Full-Stack Tear-Up Pipeline
+- The runner (`scripts/e2e/run_full_e2e.sh`) will spin up the PGlite Database, the Go Backend API, the MCP Server, and the SvelteKit Frontend in the background.
+- It will execute the Go API tests, the MCP tests, and Playwright UI tests in a single, offline CI pass.
+- **Status:** Prompt created and submitted to Jules (`CC-T02`).
 
----
-
-### Active Wave — Merged and Verified!
-- ✅ **P-HIST-01** (History & Changes API E2E)
-- ✅ **P-SYNC-01** (Contract Sync Pipeline E2E)
-- ✅ **P-RBAC-01** (RBAC Breadth E2E)
-- ✅ **P-UI-DIFF** (UI Diff, Impact, Governance E2E)
-- ✅ **P-UI-INS** (Insurance Settings UI E2E)
-- ✅ **P-ROI-01** (FinOps ROI API E2E)
-- ✅ **P-INS-01** (Schema Insurance API E2E)
-- ✅ **P-UI-ZOMBIE** (Zombies Dashboard UI)
-- ✅ **P-UI-PREVIEW** (Public Preview UI)
-- ✅ **P-CLI-POST** (CLI Commands)
-- ✅ **P-PART-01** (Partners CRUD)
-
-### Active Wave — Jules is processing
-> (All tasks completed for this wave)
-
-### Next Wave — Ready for Prompts & Submission
-> All specs and prompts are currently processing! 🎉
-
+### 3. E2E Phase 1 (Contract Registry)
+- Re-wrote the Contract Registry prompt to use the new full-stack harness (Go API + Playwright UI).
+- **Status:** Prompt created and submitted to Jules (`P3-T12`).
 
 ---
 
-## 🔁 After Active PRs Merge
+## 🗺️ E2E Full-Stack Roadmap (The 15 Prompts)
 
-1. Update `tasks.md`: flip P11-T18, P3-T12, P-MCP-01 from `🤖 Jules` → `✅ PR Merged`
-2. Update E2E Coverage Tracker table in `tasks.md`: mark rows `✅ Green`
-3. Run full E2E suite to confirm pass:
-   ```bash
-   export GITHUB_TOKEN=mock_token
-   cd scripts/e2e && go test -v -p 1 -run "." ./...
-   ```
+We successfully submitted the massive E2E batch for all remaining phases! We triggered 13 jobs concurrently, 11 of which successfully created PR sessions. 2 hit rate-limiting quotas and will be triggered tomorrow.
+
+1. ✅ **Phase 0:** PGlite Infrastructure (CC-T02) -> *Merged!*
+2. ✅ **Phase 1:** Contract Registry (Phase 3) -> *Merged!* 
+3. ✅ **Phase 2:** AI Diff Engine & Analyzers (Phase 4) -> *Merged!*
+4. ✅ **Phase 3:** Discovery Scanners (Phase 5) -> *Merged!*
+5. 🤖 **Phase 4:** QA & Shadow API (Phase 6) -> *Dispatched (Massive Batch)*
+6. 🤖 **Phase 5:** Enterprise Rollout & Drift (Phase 7) -> *Dispatched (Massive Batch)*
+7. 🤖 **Phase 6:** Readiness, Authz & Jobs (Phase 8) -> *Dispatched (Massive Batch)*
+8. 🤖 **Phase 7:** Compliance & Risk Scoring (Phase 9) -> *Dispatched (Massive Batch)*
+9. 🤖 **Phase 8:** Ecosystem & Zombie Pruning (Phase 10) -> *Dispatched (Massive Batch)*
+10. 🤖 **Phase 9:** Graph UI & Visual Studio (Phase 11) -> *Dispatched (Massive Batch)*
+11. 🤖 **Phase 10:** SSE Boundaries & Scaling (Phase 12) -> *Dispatched (Massive Batch)*
+12. 🤖 **Phase 11:** God Mode & FinOps (Phase 13) -> *Dispatched (Massive Batch)*
+13. 🤖 **Phase 12:** Predictive Intelligence (Phase 14) -> *Dispatched (Massive Batch)*
+14. 🤖 **Phase 13:** Monetization & Insurance (Phase 15) -> *Dispatched (Massive Batch)*
+15. 🤖 **Phase 14:** MCP Parity & Cross-Cutting -> *Dispatched (Massive Batch)*
+16. 🤖 **Application Phase 1:** Core Diff Engine -> *Dispatched (Massive Batch)*
+17. 🤖 **Application Phase 2:** GitHub App -> *Dispatched (Massive Batch)*
+
+> Note: 2 of the 13 dispatched jobs hit a `FAILED_PRECONDITION` rate limit. They will be manually resumed tomorrow.
+
+---
+
+## 🔁 Next Steps for Tomorrow
+
+1. **Check PRs & Resolve Quota Rejects:** Review the 11 PRs generated by Jules overnight. Identify the 2 tasks that failed due to rate limiting, and dispatch them individually.
+2. **Merge E2E PRs:** Review and merge the new Playwright UI + Go API tests into our PGlite E2E harness.

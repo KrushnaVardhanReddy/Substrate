@@ -1,118 +1,41 @@
-TASK: P3-T12 — Phase 3 Contract Registry E2E Validation
+TASK: P3-T12 — Phase 3 Contract Registry Full-Stack E2E Validation
 
 ═══════════════════════════════════════════════════════════════
 OBJECTIVE
 ═══════════════════════════════════════════════════════════════
-Create a Go-based E2E test suite in `scripts/e2e/phase3_e2e_test.go` to validate
-the Phase 3 Contract Registry APIs: dependency graph correctness, the can-deploy
-safety gate (blocking and passing), and the repo listing endpoint. These routes
-are partially exercised by TestV1SystemE2E but are NEVER directly asserted with
-clean, isolated test scenarios. Any regression in graph traversal or can-deploy
-logic would reach production silently.
+Using the new Full-Stack PGlite Test Harness (CC-T02), implement the complete E2E 
+test suite for the Phase 3 Contract Registry. 
+
+You must write BOTH the Go API tests (to assert graph traversal and safety gates) 
+AND the Playwright UI tests (to ensure the graph renders correctly on the frontend).
 
 ═══════════════════════════════════════════════════════════════
 CRITICAL READING — DO THIS BEFORE WRITING A SINGLE LINE OF CODE
 ═══════════════════════════════════════════════════════════════
-You MUST read the following files IN FULL before starting.
+1. docs/specs/e2e/phase3-graph.md
+   → Read the exact API assertions and UI actions required.
 
-1. scripts/e2e/v1_e2e_test.go
-   → This is your primary reference. Study the ENTIRE file:
-     - waitForServices() → copy and rename to waitForP3Services()
-     - setupDatabase() → copy and rename to setupP3Database()
-     - TestV1SystemE2E/Step 5 (lines ~254–307): This seeds org → provider repo →
-       consumer repo → contract → dependency → breaking_change_history. You will
-       replicate this EXACT seeding pattern for Scenarios 1, 2, and 3.
-     - Step 5 asserts on /api/v1/registry/can-rollback (exit code 1). Scenario 2
-       of this task validates the same for /api/v1/registry/can-deploy.
+2. dashboard/src/routes/(app)/org/[org]/graph/+page.svelte
+   → Review the DOM structure. Note that the Cytoscape canvas is mounted inside a 
+     div bound to `cyContainer`. You must assert the presence of nodes inside it.
 
-2. scripts/e2e/phase7_e2e_test.go
-   → Study: package-level const naming pattern (p7ApiURL, p7RegistryAPIToken).
-     Replicate for p3.
-
-3. scripts/e2e/phase10_e2e_test.go
-   → Study: setupP10Database() — how it deletes in FK-safe order. Use same order.
-
-4. api/internal/server/router.go
-   → Find the exact routes for:
-       GET  /api/v1/graph/{org}                         (GraphHandler)
-       GET  /api/v1/repos/{org}                         (ListReposHandler or similar)
-       GET  /api/v1/registry/can-deploy                 (check query params: repo, commit)
-       GET  /api/v1/registry/can-rollback               (check query params)
-   → Confirm which middleware wraps each route. All use service token (Bearer local-dev-token).
-
-5. docs/specs/phase-3/p3-t12-e2e-validation.md
-   → Read all 4 scenarios and expected status codes.
-
-6. docs/specs/phase-3/contract-registry.md
-   → Understand the DependencyEdge JSON structure returned by /api/v1/graph/{org}.
-     Key fields: "consumer" (full_name string), "provider" (full_name string),
-     "status" string.
-
-═══════════════════════════════════════════════════════════════
-CONSTRAINTS & RULES
-═══════════════════════════════════════════════════════════════
-- File MUST be named: scripts/e2e/phase3_e2e_test.go
-- Package: package main
-- Prefix ALL package-level consts/funcs with p3 (e.g., p3ApiURL, setupP3Database).
-- Do NOT add new go.mod dependencies.
-- Do NOT modify api/ or engine/ source code.
-- Use real local Postgres. Connection: postgres://postgres:postgres@localhost:5432/substrate?sslmode=disable
-- Use real local API. Base URL: http://localhost:8090
-- All HTTP requests must include: Authorization: Bearer local-dev-token
-- All scenarios run as sub-tests of TestPhase3ContractRegistry(t *testing.T).
-- setupP3Database must delete tables in FK-safe order BEFORE seeding.
+3. seed_mcp.sql
+   → Ensure the provider and consumer repo exist in the seed data so your tests 
+     have graph nodes to render.
 
 ═══════════════════════════════════════════════════════════════
 DELIVERABLES
 ═══════════════════════════════════════════════════════════════
-1. FILE: scripts/e2e/phase3_e2e_test.go (NEW)
+1. FILE: scripts/e2e/phase3_api_test.go (NEW)
+   - Read the `DATABASE_URL` env variable to connect to the PGlite instance.
+   - Assert GET `/api/v1/graph/mcp-org` returns 200 OK and contains the `mcp-org/frontend` dependency.
+   - Insert a breaking change into the database and assert GET `/api/v1/registry/can-deploy` returns 409 Conflict.
 
-   Implement the following 4 t.Run() sub-tests inside TestPhase3ContractRegistry:
+2. FILE: dashboard/playwright/graph.spec.ts (NEW)
+   - Navigate to `/org/mcp-org/graph`.
+   - Wait for the DOM and cytoscape elements to load.
+   - Assert the nodes for backend and frontend are visible.
+   - Click the backend node and assert the detail panel opens.
 
-   a. "Scenario 1: Dependency graph returns correct edges"
-      - setupP3Database: delete (in order): drift_anomalies, endpoint_traffic,
-        governance_rules, breaking_change_history, diff_reports, dependencies,
-        contracts, repositories, organizations.
-      - Seed (copy from v1_e2e_test.go ~L262–284, rename vars to p3 prefix):
-          org: github_installation_id=3001, github_org_name="p3-org"
-          provider repo: github_repo_id=3101, name="backend", full_name="p3-org/backend"
-          consumer repo: github_repo_id=3102, name="frontend", full_name="p3-org/frontend"
-          contract: schema_type="openapi", spec_path="openapi.yaml",
-                    latest_commit_sha="sha-base", raw_content="mock-content"
-          dependency: status="active"
-      - HTTP GET /api/v1/graph/p3-org → assert 200.
-      - Unmarshal as []map[string]interface{}.
-      - assert len(edges) >= 1.
-      - Find the edge where consumer == "p3-org/frontend". Assert it exists.
-      - Assert that edge's "provider" == "p3-org/backend".
-      - Assert that edge's "status" == "active".
-
-   b. "Scenario 2: Can-deploy gate blocks breaking change"
-      - Reuse same DB pool and same seeded data from Scenario 1.
-      - INSERT INTO breaking_change_history:
-          repo_id = (p3 provider repo id), org_name="p3-org", repo_name="backend",
-          git_sha="sha-breaking", breaking_changes='{"breaking_count":1}'
-      - HTTP GET /api/v1/registry/can-deploy?repo=p3-org/backend&commit=sha-breaking
-        → assert status 409.
-      - Unmarshal response and assert body contains "p3-org/frontend"
-        (proves the consumer is surfaced in the block reason).
-
-   c. "Scenario 3: Can-deploy gate passes safe commit"
-      - HTTP GET /api/v1/registry/can-deploy?repo=p3-org/backend&commit=sha-safe
-        (sha-safe has NO breaking_change_history entry).
-      - assert status 200.
-
-   d. "Scenario 4: List repos returns registered repos"
-      - HTTP GET /api/v1/repos/p3-org → assert 200.
-      - Unmarshal as []map[string]interface{} or []string.
-      - Assert response contains at least 2 entries.
-      - Assert at least one entry matches "p3-org/backend".
-      - Assert at least one entry matches "p3-org/frontend".
-
-2. Verify and test:
-   - Run: cd scripts/e2e && go test -v -p 1 -run TestPhase3ContractRegistry ./...
-   - All 4 scenarios must PASS.
-   - Fix any compilation errors before committing.
-
-Commit message: "test: P3-T12 add Phase 3 contract registry E2E validation suite"
+Commit message: "test: P3-T12 add Phase 3 full-stack E2E tests (API + UI)"
 Target branch: feature/dev

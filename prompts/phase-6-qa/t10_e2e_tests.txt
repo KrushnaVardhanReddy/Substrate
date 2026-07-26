@@ -1,0 +1,40 @@
+TASK: P6-T10 — Phase 6 QA & Shadow API Full-Stack E2E Validation
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Using the new Full-Stack PGlite Test Harness (CC-T02), implement the complete E2E 
+test suite for the Phase 6 QA & Shadow API modules. 
+
+You must write BOTH the Go API tests (to assert Postman export and Shadow replay) 
+AND the Playwright UI tests (to ensure the QA dashboard renders correctly).
+
+═══════════════════════════════════════════════════════════════
+CRITICAL READING — DO THIS BEFORE WRITING A SINGLE LINE OF CODE
+═══════════════════════════════════════════════════════════════
+1. docs/specs/e2e/phase6-qa.md
+   → Read the exact API assertions and UI actions required.
+
+2. dashboard/src/routes/(app)/org/[org]/qa/[repo]/+page.svelte
+   → Review the DOM structure of the QA Dashboard. Note the trigger mechanism 
+     for the "Replay Traffic" button in the Time Machine tab.
+
+3. seed_mcp.sql
+   → Ensure the QA test repo `mcp-org/shadow-api-repo` and mock traffic are seeded.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: scripts/e2e/phase6_api_test.go (NEW)
+   - Assert GET `/api/v1/qa/postman/{org}/{repo}` returns a valid JSON collection.
+   - Assert POST `/api/v1/qa/shadow/replay` triggers the mock replay engine.
+   - Assert GET `/api/v1/qa/coverage/{org}/{repo}` returns the computed coverage score.
+
+2. FILE: dashboard/playwright/qa.spec.ts (NEW)
+   - Navigate to `/org/mcp-org/qa/mcp-org/shadow-api-repo`.
+   - Click "Export Postman Collection".
+   - Navigate to the "Time Machine" tab, select a timestamp, and click "Replay Traffic".
+   - Assert the UI status updates to "Replaying...".
+
+Commit message: "test: P6-T10 add Phase 6 full-stack E2E tests (QA & Shadow API)"
+Target branch: feature/dev

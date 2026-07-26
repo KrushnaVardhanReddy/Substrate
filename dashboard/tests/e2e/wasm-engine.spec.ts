@@ -9,10 +9,12 @@ test.describe('WASM Engine E2E (Suite 8)', () => {
 
     test('should process Protobuf/OpenAPI diffs entirely in-browser without calling backend', async ({ page }) => {
         let backendCalled = false;
-        await page.route('**/api/v1/diff', (route) => {
-            backendCalled = true;
-            route.continue();
-        });
+		page.on('request', request => {
+			if (request.url().includes('/api/v1/diff')) {
+				backendCalled = true;
+			}
+		});
+
 
         await page.goto('/playground');
 
