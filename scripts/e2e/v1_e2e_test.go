@@ -70,11 +70,12 @@ func TestV1SystemE2E(t *testing.T) {
 	engineDir, err := filepath.Abs("../../engine")
 	require.NoError(t, err)
 
-	binPath := filepath.Join(engineDir, "substrate_test_bin")
-	cmdBuild := exec.Command("go", "build", "-o", "substrate_test_bin", "./cmd/substrate")
-	cmdBuild.Dir = engineDir
-	err = cmdBuild.Run()
-	require.NoError(t, err, "Failed to compile the substrate CLI")
+	binPath := filepath.Join(engineDir, "substrate_test_bin_v1")
+
+	buildCmd := exec.Command("go", "build", "-o", "substrate_test_bin_v1", "./cmd/substrate/...")
+	buildCmd.Dir = engineDir
+	buildOut, err := buildCmd.CombinedOutput()
+	require.NoError(t, err, "Failed to build CLI: %s", string(buildOut))
 	defer os.Remove(binPath) // Cleanup
 
 	pool := setupDatabase(t)
@@ -180,7 +181,7 @@ func TestV1SystemE2E(t *testing.T) {
 		require.NoError(t, err)
 
 		// Run diff and get JSON output
-		cmd := exec.Command(binPath, "diff", basePath, breakPath, "--format", "json")
+		cmd := exec.Command(binPath, "diff", basePath, breakPath, "--format", "json", "--config", "/does/not/exist.yaml")
 		out, err := cmd.CombinedOutput()
 
 		require.Error(t, err, "Breaking change should cause diff command to fail")
@@ -243,8 +244,11 @@ func TestV1SystemE2E(t *testing.T) {
 		assert.NoError(t, err, "Validation should pass with exit code 0: %s", string(out))
 
 		// To actually verify the diff is safe (since validate is a placeholder), let's run diff
-		cmdDiff := exec.Command(binPath, "diff", basePath, fixPath, "--format", "json")
+		cmdDiff := exec.Command(binPath, "diff", basePath, fixPath, "--format", "json", "--config", "/does/not/exist.yaml")
 		outDiff, errDiff := cmdDiff.CombinedOutput()
+		if errDiff != nil {
+			t.Logf("Diff failed with output: %s", string(outDiff))
+		}
 		assert.NoError(t, errDiff, "Diff should be safe (exit code 0)")
 
 		var diffReport map[string]interface{}

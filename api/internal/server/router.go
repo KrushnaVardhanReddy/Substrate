@@ -67,7 +67,7 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 	limitsMW := TierLimitsMiddleware(store)
 
 	r.Method("POST", "/api/v1/sync", serviceTokenMW(limitsMW(http.HandlerFunc(handlers.SyncHandler(store, riverClient)))))
-	r.Method("POST", "/api/v1/webhook", serviceTokenMW(http.HandlerFunc(webhook.PushHandler(store, github.NewRESTClient(), riverClient))))
+	r.Method("POST", "/api/v1/webhook", http.HandlerFunc(webhook.PushHandler(store, github.NewRESTClient(), riverClient)))
 	r.Method("POST", "/api/v1/webhook/reaction", serviceTokenMW(http.HandlerFunc(webhook.ReactionHandler(store, github.NewRESTClient()))))
 	r.Method("POST", "/api/v1/cross-repo-check", serviceTokenMW(limitsMW(http.HandlerFunc(handlers.CrossRepoCheckHandler(store, riverClient)))))
 	r.Method("POST", "/api/v1/history", serviceTokenMW(http.HandlerFunc(handlers.HistoryHandler(store))))

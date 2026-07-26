@@ -6,10 +6,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"hash/crc32"
+	"hash/fnv"
 	"log"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/google/uuid"
 	"time"
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/config"
@@ -35,6 +38,11 @@ type PushPayload struct {
 }
 
 func ProcessPush(ctx context.Context, store db.Store, ghClient github.Client, req PushPayload) (int, error) {
+	// Fetch old provider contracts BEFORE we overwrite them in the DB!
+	// This is required so DiffEngine can compare the OLD schema vs the NEW schema.
+	providerContracts, _ := store.GetContractsByProviderFullName(ctx, req.Repo)
+
+	// In a real app, we would resolve the organization name to an internal Org ID
 	orgID, err := store.UpsertOrg(ctx, req.InstallationID, req.Org)
 	if err != nil {
 		return 0, fmt.Errorf("internal error on UpsertOrg: %w", err)
@@ -50,10 +58,13 @@ func ProcessPush(ctx context.Context, store db.Store, ghClient github.Client, re
 
 	var matchPatterns []string
 	var repoMetadata json.RawMessage = json.RawMessage("{}")
+	var newContractID uuid.UUID
+	var parsedCfg *config.SubstrateConfig
 	for _, file := range req.Files {
 		if file.Path == "substrate.yaml" {
 			cfg, err := config.Parse([]byte(file.Content))
 			if err == nil {
+				parsedCfg = cfg
 				if cfg.Discovery != nil && len(cfg.Discovery.MatchPatterns) > 0 {
 					matchPatterns = cfg.Discovery.MatchPatterns
 				}
@@ -68,10 +79,60 @@ func ProcessPush(ctx context.Context, store db.Store, ghClient github.Client, re
 		}
 	}
 
-	consumerRepoID, err := store.UpsertRepo(ctx, orgID, req.GithubRepoID, consumerName, req.Repo, repoMetadata)
+	repoID, err := store.UpsertRepo(ctx, orgID, req.GithubRepoID, consumerName, req.Repo, repoMetadata)
 	if err != nil {
 		return 0, fmt.Errorf("internal error on UpsertRepo: %w", err)
 	}
+
+	// If this repo acts as a provider, upsert its contract
+	for _, file := range req.Files {
+		if file.Path == "substrate.yaml" {
+			cfg, err := config.Parse([]byte(file.Content))
+			if err == nil && cfg.SchemaType != "" && cfg.HeadSchema != "" {
+				var headContent string
+				for _, f := range req.Files {
+					if f.Path == cfg.HeadSchema {
+						headContent = f.Content
+						break
+					}
+				}
+				if headContent != "" {
+					var err error
+					newContractID, err = store.UpsertContract(ctx, repoID, cfg.SchemaType, cfg.HeadSchema, "main", req.CommitSHA, headContent)
+					if err == nil {
+						for _, consumer := range cfg.Consumers {
+							consumerOrgID, err := store.UpsertOrg(ctx, req.InstallationID, req.Org)
+							if err == nil {
+								// Generate a unique fake github_repo_id for the consumer
+								fullName := req.Org + "/" + consumer.Name
+								h := fnv.New32a()
+								h.Write([]byte(fullName))
+								fakeRepoID := -int64(h.Sum32())
+
+								// consumer.Name is the repo name (e.g. frontend, emailservice)
+								cRepoID, err := store.UpsertRepo(ctx, consumerOrgID, fakeRepoID, consumer.Name, fullName, json.RawMessage("{}"))
+								if err == nil {
+									err = store.UpsertDependency(ctx, cRepoID, newContractID, 1.0, 30)
+									if err != nil {
+										log.Printf("ProcessPush: Failed to UpsertDependency for consumer %s: %v", consumer.Name, err)
+									} else {
+										log.Printf("ProcessPush: Successfully upserted dependency for consumer %s", consumer.Name)
+									}
+								} else {
+									log.Printf("ProcessPush: Failed to UpsertRepo for consumer %s: %v", consumer.Name, err)
+								}
+							} else {
+								log.Printf("ProcessPush: Failed to UpsertOrg for consumer %s: %v", consumer.Name, err)
+							}
+						}
+					}
+				}
+			}
+			break
+		}
+	}
+
+	consumerRepoID := repoID
 
 	envScanner := discovery.NewEnvScanner(matchPatterns)
 
@@ -117,11 +178,10 @@ func ProcessPush(ctx context.Context, store db.Store, ghClient github.Client, re
 		}
 	}
 
+	// Cross-Repo Autofix Logic
 	// We comment out the Autofix generation to remove the import cycle to handlers for now.
 	// Since this is offloading logic to services, we would typically have GenerateAutofixPatch inside services
 	// but it's part of handlers currently. Let's not call GenerateAutofixPatch directly here for now, or we can move it to services.
-	// Cross-Repo Autofix Logic
-	providerContracts, _ := store.GetContractsByProviderFullName(ctx, req.Repo)
 	diffEngineURL := os.Getenv("DIFF_ENGINE_URL")
 	if diffEngineURL == "" {
 		diffEngineURL = "http://localhost:8080"
@@ -180,9 +240,35 @@ func ProcessPush(ctx context.Context, store db.Store, ghClient github.Client, re
 					}
 				}
 
-				consumers, _ := store.GetConsumersByProviderContract(ctx, contract.ID)
+				// Update the status on the NEW contractID that we just created
+				consumers, err := store.GetConsumersByProviderContract(ctx, newContractID)
+				log.Printf("ProcessPush: GetConsumersByProviderContract returned %d consumers for new contract %v, err: %v", len(consumers), newContractID, err)
 				for _, consumer := range consumers {
-					_ = store.UpdateDependencyStatus(ctx, consumer.ConsumerRepoID, contract.ID, statusToSet)
+					consumerStatus := statusToSet
+					if consumerStatus == "BREAKING" && parsedCfg != nil {
+						// Check if this consumer has an override
+						parts := strings.Split(consumer.ConsumerFullName, "/")
+						consumerName := consumer.ConsumerFullName
+						if len(parts) == 2 {
+							consumerName = parts[1]
+						}
+						
+						log.Printf("ProcessPush DEBUG: Checking overrides for consumer: %s (fullName: %s)", consumerName, consumer.ConsumerFullName)
+						for _, cfgConsumer := range parsedCfg.Consumers {
+							if cfgConsumer.Name == consumerName {
+								log.Printf("ProcessPush DEBUG: Found matching consumer in parsedCfg: %s with %d overrides", cfgConsumer.Name, len(cfgConsumer.Overrides))
+								for _, o := range cfgConsumer.Overrides {
+									if o.RuleID == "*" {
+										consumerStatus = "WARNING"
+										log.Printf("ProcessPush DEBUG: Override matched! Setting status to WARNING")
+										break
+									}
+								}
+							}
+						}
+					}
+					log.Printf("ProcessPush DEBUG: Updating dependency for %s to %s", consumer.ConsumerFullName, consumerStatus)
+					_ = store.UpdateDependencyStatus(ctx, consumer.ConsumerRepoID, newContractID, consumerStatus)
 				}
 
 				if diffReport.Summary.BreakingCount > 0 {

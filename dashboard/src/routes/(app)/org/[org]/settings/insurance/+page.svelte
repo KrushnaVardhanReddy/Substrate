@@ -1,6 +1,5 @@
 <script lang="ts">
   import { page } from '$app/stores';
-  import { onMount } from 'svelte';
 
   let orgId = $page.params.org;
 
@@ -16,8 +15,13 @@
   let filingClaim = $state(false);
   let fileClaimError = $state('');
 
-  onMount(async () => {
-    await fetchPolicyAndClaims();
+  let fetched = false;
+
+  $effect(() => {
+    if (!fetched) {
+      fetched = true;
+      fetchPolicyAndClaims();
+    }
   });
 
   async function fetchPolicyAndClaims() {
@@ -25,14 +29,17 @@
     error = '';
 
     try {
-      const policyRes = await fetch(`/api/v1/org/${orgId}/insurance/policy`);
+      const token = window.localStorage.getItem('substrate-token') || window.localStorage.getItem('auth_token') || 'local-dev-token';
+      const headers = { 'Authorization': `Bearer ${token}` };
+
+      const policyRes = await fetch(`/api/v1/org/${orgId}/insurance/policy`, { headers });
       if (policyRes.ok) {
         policy = await policyRes.json();
       } else if (policyRes.status !== 404) {
         error = 'Failed to load policy';
       }
 
-      const claimsRes = await fetch(`/api/v1/org/${orgId}/insurance/claims`);
+      const claimsRes = await fetch(`/api/v1/org/${orgId}/insurance/claims`, { headers });
       if (claimsRes.ok) {
         claims = await claimsRes.json();
       } else {
@@ -55,9 +62,15 @@
     fileClaimError = '';
 
     try {
+      const token = window.localStorage.getItem('substrate-token') || window.localStorage.getItem('auth_token') || 'local-dev-token';
+      const headers = { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` 
+      };
+
       const res = await fetch(`/api/v1/org/${orgId}/insurance/claims`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           github_pr_url: newClaimPR,
           incident_date: new Date(newClaimDate).toISOString(),

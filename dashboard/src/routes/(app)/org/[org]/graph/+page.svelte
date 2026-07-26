@@ -224,8 +224,14 @@
 		}
 
 		for (const edge of displayData.edges) {
+			let finalStatus = edge.status;
+			if (!finalStatus || finalStatus === 'SAFE') {
+				if (edge.style?.includes('#EF4444')) finalStatus = 'BREAKING';
+				else if (edge.style?.includes('#F59E0B')) finalStatus = 'WARNING';
+				else finalStatus = 'SAFE';
+			}
 			elements.push({
-				data: { source: edge.source, target: edge.target, status: edge.style?.includes('red') ? 'BREAKING' : 'SAFE' }
+				data: { source: edge.source, target: edge.target, status: finalStatus }
 			});
 		}
 
@@ -390,7 +396,7 @@
 				target: edge.consumer,
 				type: edgesData.length < 150 ? 'interactive' : 'straight',
 				animated: true,
-				style: `stroke: ${edge.status === 'BREAKING' ? '#EF4444' : '#64748b'}; stroke-width: 2px;`
+				style: `stroke: ${edge.status === 'BREAKING' ? '#EF4444' : edge.status === 'WARNING' ? '#F59E0B' : '#64748b'}; stroke-width: 2px;`
 			});
 		});
 

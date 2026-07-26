@@ -33,41 +33,50 @@ async function pushToForgejo(repoName: string, files: Record<string, string>, br
     // We use ENABLE_PUSH_CREATE behavior if the repo doesn't exist.
     // If it fails because the repo needs to be created first via API, we handle that.
     try {
+      // 1. Try to create the repo (ignore if it fails because it already exists)
+      await fetch(`http://localhost:3000/api/v1/user/repos`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${Buffer.from(`${FORGEJO_USER}:${FORGEJO_PASS}`).toString('base64')}`
+        },
+        body: JSON.stringify({ name: repoName, private: false })
+      });
+
+      // 2. Ensure webhook is registered BEFORE pushing
+      const hooksListRes = await fetch(`http://localhost:3000/api/v1/repos/${FORGEJO_USER}/${repoName}/hooks`, {
+        headers: { 'Authorization': `Basic ${Buffer.from(`${FORGEJO_USER}:${FORGEJO_PASS}`).toString('base64')}` }
+      });
+      const hooks = await hooksListRes.json();
+      if (Array.isArray(hooks)) {
+        for (const hook of hooks) {
+          await fetch(`http://localhost:3000/api/v1/repos/${FORGEJO_USER}/${repoName}/hooks/${hook.id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Basic ${Buffer.from(`${FORGEJO_USER}:${FORGEJO_PASS}`).toString('base64')}` }
+          });
+        }
+      }
+
+      // Always create exactly one fresh webhook
+      const hookRes = await fetch(`http://localhost:3000/api/v1/repos/${FORGEJO_USER}/${repoName}/hooks`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${Buffer.from(`${FORGEJO_USER}:${FORGEJO_PASS}`).toString('base64')}`
+        },
+        body: JSON.stringify({
+          type: 'gitea',
+          config: { url: 'http://localhost:8090/api/v1/webhook', content_type: 'json' },
+          events: ['push', 'pull_request'],
+          active: true
+        })
+      });
+      console.log(`Webhook creation response: ${hookRes.status} ${await hookRes.text()}`);
+
+      // 3. Now perform the push, so the webhook fires
       execSync(`git push -u origin main -f`, { cwd: tempDir, stdio: 'pipe' });
     } catch (e: any) {
-      if (e.stderr && (e.stderr.toString().includes('repository does not exist') || e.stderr.toString().includes('403'))) {
-        console.log(`Repo ${repoName} does not exist, attempting to create via API...`);
-        const createRes = await fetch(`http://localhost:3000/api/v1/user/repos`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Basic ${Buffer.from(`${FORGEJO_USER}:${FORGEJO_PASS}`).toString('base64')}`
-          },
-          body: JSON.stringify({ name: repoName, private: false })
-        });
-        if (createRes.ok) {
-           // Create the webhook
-           await fetch(`http://localhost:3000/api/v1/repos/${FORGEJO_USER}/${repoName}/hooks`, {
-             method: 'POST',
-             headers: {
-               'Content-Type': 'application/json',
-               'Authorization': `Basic ${Buffer.from(`${FORGEJO_USER}:${FORGEJO_PASS}`).toString('base64')}`
-             },
-             body: JSON.stringify({
-               type: 'gitea',
-               config: { url: 'http://localhost:8787/', content_type: 'json' },
-               events: ['push', 'pull_request'],
-               active: true
-             })
-           });
-           // Try push again
-           execSync(`git push -u origin main -f`, { cwd: tempDir, stdio: 'pipe' });
-        } else {
-           throw new Error(`Failed to create repo via API: ${await createRes.text()}`);
-        }
-      } else {
-        throw e;
-      }
+      throw e;
     }
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
@@ -86,7 +95,11 @@ async function waitForGraphSearch(page: any, searchTerm: string, expectedNodesCo
   
   // We expect at least the specified number of nodes to eventually appear
   await expect(async () => {
-    expect(await page.locator('.svelte-flow__node').count()).toBeGreaterThanOrEqual(expectedNodesCount);
+    await page.waitForFunction(() => (window as any).cyInstance !== undefined && (window as any).cyInstance !== null, { timeout: 10000 });
+    const count = await page.evaluate(() => {
+        return (window as any).cyInstance.nodes().length;
+    });
+    expect(count).toBeGreaterThanOrEqual(expectedNodesCount);
   }).toPass({ timeout: 30000 });
 }
 
@@ -166,8 +179,17 @@ message Empty {}
       await waitForGraphSearch(page, 'microservices', 5); // 1 provider + 4 consumers
       
       // Since it's broken, consumers should show blast radius alert (breaking status)
-      const alertNodes = page.locator('.status-indicator.breaking');
-      await expect(alertNodes).toHaveCount(1, { timeout: 10000 });
+      await page.waitForFunction(() => {
+          const cy = (window as any).cyInstance;
+          if (!cy) return false;
+          return cy.edges('[status = "BREAKING"]').length > 0;
+      }, { timeout: 10000 });
+      
+      const breakingCount = await page.evaluate(() => {
+          return (window as any).cyInstance.edges('[status = "BREAKING"]').length;
+      });
+      // The provider affects 4 consumers, so 4 edges should be breaking
+      expect(breakingCount).toBe(4);
     });
 
     test('Green Path: Push safe change', async ({ page }) => {
@@ -186,11 +208,22 @@ message Empty {}
         'protos/demo.proto': SAFE_PROTO
       });
       
+      // Wait for pipeline processing
       await page.waitForTimeout(3000);
       await waitForGraphSearch(page, 'microservices', 5);
       
+      // Wait for it to become safe (0 breaking edges)
+      await page.waitForFunction(() => {
+          const cy = (window as any).cyInstance;
+          if (!cy) return false;
+          return cy.edges('[status = "BREAKING"]').length === 0;
+      }, { timeout: 15000 });
+      
       // No breaking alerts
-      await expect(page.locator('.status-indicator.breaking')).toHaveCount(0, { timeout: 10000 });
+      const breakingCount = await page.evaluate(() => {
+          return (window as any).cyInstance ? (window as any).cyInstance.edges('[status = "BREAKING"]').length : 0;
+      });
+      expect(breakingCount).toBe(0);
     });
 
     test('Yellow Path: Push breaking change with override', async ({ page }) => {
@@ -246,8 +279,20 @@ consumers:
       await waitForGraphSearch(page, 'microservices', 5);
 
       // No breaking alerts, but expecting warning instead
-      await expect(page.locator('.status-indicator.breaking')).toHaveCount(0, { timeout: 10000 });
-      await expect(page.locator('.status-indicator.warning')).toHaveCount(4, { timeout: 10000 }); // All 4 consumers
+      const breakingCount = await page.evaluate(() => {
+          return (window as any).cyInstance ? (window as any).cyInstance.edges('[status = "BREAKING"]').length : 0;
+      });
+      expect(breakingCount).toBe(0);
+      await page.waitForFunction(() => {
+          const cy = (window as any).cyInstance;
+          if (!cy) return false;
+          return cy.edges('[status = "WARNING"]').length > 0;
+      }, { timeout: 10000 });
+      
+      const warningCount = await page.evaluate(() => {
+          return (window as any).cyInstance.edges('[status = "WARNING"]').length;
+      });
+      expect(warningCount).toBe(4); // All 4 consumers
     });
   });
 
@@ -333,8 +378,16 @@ paths:
       await page.waitForTimeout(3000);
       await waitForGraphSearch(page, 'stripe', 2); // 1 provider + 1 consumer
       
-      const alertNodes = page.locator('.status-indicator.breaking');
-      await expect(alertNodes).toHaveCount(1, { timeout: 10000 });
+      await page.waitForFunction(() => {
+          const cy = (window as any).cyInstance;
+          if (!cy) return false;
+          return cy.edges('[status = "BREAKING"]').length > 0;
+      }, { timeout: 10000 });
+      
+      const breakingCount = await page.evaluate(() => {
+          return (window as any).cyInstance.edges('[status = "BREAKING"]').length;
+      });
+      expect(breakingCount).toBe(1);
     });
 
     test('Green Path: Push safe change', async ({ page }) => {
@@ -374,7 +427,10 @@ paths:
       await page.waitForTimeout(3000);
       await waitForGraphSearch(page, 'stripe', 2);
       
-      await expect(page.locator('.status-indicator.breaking')).toHaveCount(0, { timeout: 10000 });
+      const breakingCount = await page.evaluate(() => {
+          return (window as any).cyInstance ? (window as any).cyInstance.edges('[status = "BREAKING"]').length : 0;
+      });
+      expect(breakingCount).toBe(0);
     });
 
     test('Yellow Path: Push breaking change with override', async ({ page }) => {
@@ -425,8 +481,20 @@ consumers:
       await page.waitForTimeout(3000);
       await waitForGraphSearch(page, 'stripe', 2);
 
-      await expect(page.locator('.status-indicator.breaking')).toHaveCount(0, { timeout: 10000 });
-      await expect(page.locator('.status-indicator.warning')).toHaveCount(1, { timeout: 10000 });
+      const breakingCount = await page.evaluate(() => {
+          return (window as any).cyInstance ? (window as any).cyInstance.edges('[status = "BREAKING"]').length : 0;
+      });
+      expect(breakingCount).toBe(0);
+      await page.waitForFunction(() => {
+          const cy = (window as any).cyInstance;
+          if (!cy) return false;
+          return cy.edges('[status = "WARNING"]').length > 0;
+      }, { timeout: 10000 });
+      
+      const warningCount = await page.evaluate(() => {
+          return (window as any).cyInstance.edges('[status = "WARNING"]').length;
+      });
+      expect(warningCount).toBe(1);
     });
   });
 
@@ -469,8 +537,16 @@ type User { id: ID! }
       await page.waitForTimeout(3000);
       await waitForGraphSearch(page, 'github', 2); // 1 provider + 1 consumer
 
-      const alertNodes = page.locator('.status-indicator.breaking');
-      await expect(alertNodes).toHaveCount(1, { timeout: 10000 });
+      await page.waitForFunction(() => {
+          const cy = (window as any).cyInstance;
+          if (!cy) return false;
+          return cy.edges('[status = "BREAKING"]').length > 0;
+      }, { timeout: 10000 });
+      
+      const breakingCount = await page.evaluate(() => {
+          return (window as any).cyInstance.edges('[status = "BREAKING"]').length;
+      });
+      expect(breakingCount).toBe(1);
     });
 
     test('Green Path: Push safe change', async ({ page }) => {
@@ -485,7 +561,10 @@ type User { id: ID!, name: String!, email: String }
       await page.waitForTimeout(3000);
       await waitForGraphSearch(page, 'github', 2);
 
-      await expect(page.locator('.status-indicator.breaking')).toHaveCount(0, { timeout: 10000 });
+      const breakingCount = await page.evaluate(() => {
+          return (window as any).cyInstance ? (window as any).cyInstance.edges('[status = "BREAKING"]').length : 0;
+      });
+      expect(breakingCount).toBe(0);
     });
   });
 

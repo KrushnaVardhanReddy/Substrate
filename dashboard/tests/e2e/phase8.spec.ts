@@ -35,11 +35,11 @@ test.describe('Phase 8 Readiness, Authz & Jobs', () => {
         await page.waitForTimeout(800);
 
         // Interact with cytoscape via window.cyInstance per the E2E rules
-        const nodeCount = await page.waitForFunction(
+        await page.waitForFunction(
             () => (window as any).cyInstance && (window as any).cyInstance.nodes().length > 0,
             { timeout: 15000 }
-        ).then(h => h.jsonValue()).catch(() => 0);
-
+        );
+        const nodeCount = await page.evaluate(() => (window as any).cyInstance.nodes().length);
         expect(nodeCount).toBeGreaterThan(0);
 
         await page.evaluate(() => {

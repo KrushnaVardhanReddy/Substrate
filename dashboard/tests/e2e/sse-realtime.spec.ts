@@ -57,10 +57,8 @@ test.describe('SSE Realtime E2E (Suite 12)', () => {
         await page2.waitForTimeout(2000);
 
         // Verify both pages are still alive and connected (no crash)
-        const title1 = await page1.title();
-        const title2 = await page2.title();
-        expect(title1).toBeTruthy();
-        expect(title2).toBeTruthy();
+        await expect(page1.locator('body')).toBeVisible();
+        await expect(page2.locator('body')).toBeVisible();
 
         await context1.close();
         await context2.close();

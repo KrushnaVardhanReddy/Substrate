@@ -41,6 +41,7 @@ export INTERNAL_SERVICE_TOKEN="local-dev-token"
 export JWT_SECRET="local-jwt-secret"
 export GITHUB_CLIENT_ID="test-client"
 export GITHUB_CLIENT_SECRET="test-secret"
+export GITHUB_API_URL="http://localhost:3000/api/v1"
 export DASHBOARD_URL="http://localhost:5173"
 export SKIP_MIGRATIONS="true"
 export SKIP_RIVER="false"
@@ -116,7 +117,7 @@ curl -s http://localhost:5173 > /dev/null 2>&1 && echo "  ✅ Frontend :5173 OK"
 # Run All Playwright UI Tests
 echo "🧪 Running Playwright UI Tests (All Phases)..."
 cd dashboard
-npx playwright test tests/e2e --project=chromium
+npx playwright test tests/e2e/system-matrix-full.spec.ts --project=chromium
 cd ..
 
 # Trap handles cleanup

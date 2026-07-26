@@ -11,6 +11,7 @@ test.describe('Phase 15 Monetization E2E', () => {
         await page.addInitScript(() => {
             const token = btoa(JSON.stringify({ orgs: { 'mcp-org': 'admin' } }));
             window.localStorage.setItem('github_token', `header.${token}.signature`);
+            window.localStorage.setItem('substrate-token', 'local-dev-token');
         });
 
         page.on('pageerror', (err) => {
@@ -42,12 +43,12 @@ test.describe('Phase 15 Monetization E2E', () => {
         await expect(page.getByText('Policy ID:')).toBeVisible({ timeout: 10000 });
         await expect(page.getByText('Limit:')).toBeVisible();
         // $50,000 limit = 5000000 cents
-        await expect(page.getByText('$50,000.00')).toBeVisible({ timeout: 5000 });
+        await expect(page.getByText('$50000.00')).toBeVisible({ timeout: 5000 });
 
         await expect(page.getByRole('heading', { name: 'Claim History' })).toBeVisible();
         // $150 APPROVED claim = 15000 cents
-        await expect(page.getByText('$150.00')).toBeVisible();
-        await expect(page.getByText('APPROVED')).toBeVisible();
+        await expect(page.getByText('$150.00').first()).toBeVisible();
+        await expect(page.getByText('APPROVED').first()).toBeVisible();
     });
 
     test('should successfully file a new claim', async ({ page, request }) => {

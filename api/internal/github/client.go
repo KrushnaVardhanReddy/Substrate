@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 )
@@ -37,10 +38,14 @@ type RESTClient struct {
 }
 
 func NewRESTClient() *RESTClient {
+	apiURL := os.Getenv("GITHUB_API_URL")
+	if apiURL == "" {
+		apiURL = "https://api.github.com"
+	}
 	return &RESTClient{
 		client: &http.Client{},
 		token:  os.Getenv("GITHUB_TOKEN"),
-		apiURL: "https://api.github.com",
+		apiURL: apiURL,
 	}
 }
 
@@ -94,6 +99,8 @@ func (c *RESTClient) GetFileContent(ctx context.Context, owner, repo, path strin
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		log.Printf("GetFileContent %s returned %d: %s", url, resp.StatusCode, string(bodyBytes))
 		return "", fmt.Errorf("get file content failed with status: %d", resp.StatusCode)
 	}
 

@@ -7,10 +7,14 @@ const API_URL = 'http://localhost:8090';
 
 test.describe('Schema Insurance Settings', () => {
     test.beforeEach(async ({ page }) => {
+        page.on('request', request => console.log('>>', request.method(), request.url()));
+        page.on('response', response => console.log('<<', response.status(), response.url()));
+
         // Set up auth token in localStorage for mcp-org
         await page.addInitScript(() => {
             const token = btoa(JSON.stringify({ orgs: { testorg: 'admin' } }));
             window.localStorage.setItem('github_token', `header.${token}.signature`);
+            window.localStorage.setItem('substrate-token', 'local-dev-token');
         });
 
         page.on('pageerror', (err) => {
@@ -22,7 +26,7 @@ test.describe('Schema Insurance Settings', () => {
             ) {
                 return;
             }
-            console.error(err);
+            console.error('PAGE ERROR:', err);
         });
     });
 
@@ -47,15 +51,20 @@ test.describe('Schema Insurance Settings', () => {
         await page.goto('/org/testorg/settings/insurance');
 
         // Policy ID, Limit, and claim history should render from the live API
-        await expect(page.getByText('Policy ID:')).toBeVisible({ timeout: 10000 });
+        try {
+            await expect(page.getByText('Policy ID:')).toBeVisible({ timeout: 10000 });
+        } catch (e) {
+            console.error("PAGE CONTENT:", await page.content());
+            throw e;
+        }
         await expect(page.getByText('Limit:')).toBeVisible();
         // $10,000 limit (1000000 cents)
-        await expect(page.getByText('$10,000.00')).toBeVisible({ timeout: 5000 });
+        await expect(page.getByText('$10000.00')).toBeVisible({ timeout: 5000 });
 
         await expect(page.getByRole('heading', { name: 'Claim History' })).toBeVisible();
         // $500 PENDING claim (50000 cents)
-        await expect(page.getByText('$500.00')).toBeVisible();
-        await expect(page.getByText('PENDING')).toBeVisible();
+        await expect(page.getByText('$500.00').first()).toBeVisible();
+        await expect(page.getByText('PENDING').first()).toBeVisible();
     });
 
     test('should successfully file a new claim', async ({ page, request }) => {

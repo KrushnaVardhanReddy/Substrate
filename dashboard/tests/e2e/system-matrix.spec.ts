@@ -243,33 +243,52 @@ test.describe.serial('System Matrix E2E — 7 Demo Repos', () => {
 
         test('Dashboard graph page renders nodes for each provider when searched', async ({ page }) => {
             await page.goto(`/org/${ORG}/graph`);
-            await expect(page.locator('.svelte-flow')).toBeVisible({ timeout: 15000 });
+            await expect(page.locator('.main-canvas')).toBeVisible({ timeout: 15000 });
 
             // Graph is search-first: nodes only appear after typing into search
             const searchTerms = ['microservices', 'graphql', 'stripe', 'openai', 'realworld', 'slack', 'jaffle'];
-            const searchInput = page.locator('input[placeholder*="Search"]');
+            const searchInput = page.locator('input.filter-input, input[placeholder*="Search"]').first();
             await expect(searchInput).toBeVisible({ timeout: 10000 });
 
             for (const term of searchTerms) {
                 await searchInput.fill(term);
                 await page.waitForTimeout(800); // debounce
-                const node = page.locator('.svelte-flow__node').filter({ hasText: new RegExp(term, 'i') }).first();
-                await expect(node).toBeVisible({ timeout: 10000 });
+                
+                await page.waitForFunction(() => (window as any).cyInstance !== undefined && (window as any).cyInstance !== null, { timeout: 10000 });
+                const hasMatchingNode = await page.evaluate((t) => {
+                    const cy = (window as any).cyInstance;
+                    if (!cy) return false;
+                    const nodes = cy.nodes();
+                    let found = false;
+                    const termLower = t.toLowerCase();
+                    for (let i = 0; i < nodes.length; i++) {
+                        const id = nodes[i].data('id') || '';
+                        const label = nodes[i].data('label') || '';
+                        if (id.toLowerCase().includes(termLower) || label.toLowerCase().includes(termLower)) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    return found;
+                }, term);
+                expect(hasMatchingNode).toBe(true);
             }
         });
 
         test('Dashboard shows multiple nodes when searching for microservices', async ({ page }) => {
             await page.goto(`/org/${ORG}/graph`);
-            await expect(page.locator('.svelte-flow')).toBeVisible({ timeout: 15000 });
+            await expect(page.locator('.main-canvas')).toBeVisible({ timeout: 15000 });
 
             // Search for microservices to load provider + 4 consumers
-            const searchInput = page.locator('input[placeholder*="Search"]');
+            const searchInput = page.locator('input.filter-input, input[placeholder*="Search"]').first();
             await expect(searchInput).toBeVisible({ timeout: 10000 });
             await searchInput.fill('microservices');
             await page.waitForTimeout(1500); // debounce
 
-            const nodes = page.locator('.svelte-flow__node');
-            const count = await nodes.count();
+            await page.waitForFunction(() => (window as any).cyInstance !== undefined && (window as any).cyInstance !== null, { timeout: 10000 });
+            const count = await page.evaluate(() => {
+                return (window as any).cyInstance.nodes().length;
+            });
             // microservices-demo provider + at least some consumers visible
             expect(count).toBeGreaterThanOrEqual(1);
         });
@@ -286,16 +305,18 @@ test.describe.serial('System Matrix E2E — 7 Demo Repos', () => {
             await new Promise(r => setTimeout(r, 3000));
 
             await page.goto(`/org/${ORG}/graph`);
-            await expect(page.locator('.svelte-flow')).toBeVisible({ timeout: 15000 });
+            await expect(page.locator('.main-canvas')).toBeVisible({ timeout: 15000 });
 
             // Search-first: type to load nodes
-            const searchInput = page.locator('input[placeholder*="Search"]');
+            const searchInput = page.locator('input.filter-input, input[placeholder*="Search"]').first();
             await expect(searchInput).toBeVisible({ timeout: 10000 });
             await searchInput.fill('microservices');
             await page.waitForTimeout(1500); // debounce
 
-            const nodes = page.locator('.svelte-flow__node');
-            const count = await nodes.count();
+            await page.waitForFunction(() => (window as any).cyInstance !== undefined && (window as any).cyInstance !== null, { timeout: 10000 });
+            const count = await page.evaluate(() => {
+                return (window as any).cyInstance.nodes().length;
+            });
             expect(count).toBeGreaterThan(0);
 
             console.log(`[Red Path] Graph shows ${count} nodes for microservices after breaking sync.`);
@@ -307,16 +328,19 @@ test.describe.serial('System Matrix E2E — 7 Demo Repos', () => {
             await new Promise(r => setTimeout(r, 3000));
 
             await page.goto(`/org/${ORG}/graph`);
-            await expect(page.locator('.svelte-flow')).toBeVisible({ timeout: 15000 });
+            await expect(page.locator('.main-canvas')).toBeVisible({ timeout: 15000 });
 
             // Search-first: type to load nodes
-            const searchInput = page.locator('input[placeholder*="Search"]');
+            const searchInput = page.locator('input.filter-input, input[placeholder*="Search"]').first();
             await expect(searchInput).toBeVisible({ timeout: 10000 });
             await searchInput.fill('microservices');
             await page.waitForTimeout(1500);
 
-            const nodes = page.locator('.svelte-flow__node');
-            expect(await nodes.count()).toBeGreaterThan(0);
+            await page.waitForFunction(() => (window as any).cyInstance !== undefined && (window as any).cyInstance !== null, { timeout: 10000 });
+            const count = await page.evaluate(() => {
+                return (window as any).cyInstance.nodes().length;
+            });
+            expect(count).toBeGreaterThan(0);
         });
     });
 
