@@ -14,6 +14,24 @@
 	import TimeTravelScrubber from '$lib/components/TimeTravelScrubber.svelte';
 	import InteractiveEdge from '$lib/components/InteractiveEdge.svelte';
 
+	interface Node {
+		id: string;
+		type: string;
+		position: { x: number; y: number };
+		data: any;
+		parentId?: string;
+		extent?: string;
+	}
+
+	interface Edge {
+		id: string;
+		source: string;
+		target: string;
+		type?: string;
+		animated?: boolean;
+		style?: string;
+	}
+
 	let cyContainer: HTMLElement | undefined = $state();
 	let cyInstance: cytoscape.Core | null = null;
 	let { data }: { data: any } = $props();
@@ -300,8 +318,22 @@
 					rankSep: 150,
 					fit: true,
 					padding: 50
+				} as cytoscape.LayoutOptions
+			});
+
+			cyInstance.on('tap', 'node', (evt) => {
+				const nodeData = evt.target.data();
+				const fullNode = rawNodes.find(n => n.id === nodeData.id);
+				if (fullNode) {
+					selectedNode = fullNode.data;
+				} else {
+					selectedNode = nodeData;
 				}
 			});
+
+			if (browser) {
+				(window as any).cyInstance = cyInstance;
+			}
 		});
 	});
 
