@@ -25,9 +25,11 @@ CONSTRAINTS & RULES
 ═══════════════════════════════════════════════════════════════
 - Do NOT rewrite any Go tests. They must remain in Go.
 - Vendor the `@electric-sql/pglite` package inside `scripts/e2e/vendor/pglite`.
-- The Node wrapper (`pglite_server.js`) must bind to 127.0.0.1 on a specific port.
+- The Node wrapper (`pglite_server.js`) must bind to 127.0.0.1 on port 54320.
 - The `run_full_e2e.sh` script MUST aggressively trap EXIT, SIGINT, and SIGTERM 
   to cleanly kill the Vite, Go, MCP, and Node processes. No zombie ports allowed.
+- ANTI-HALLUCINATION GUARDRAILS: Do NOT use `Svelte Flow` in the Playwright test (the UI uses Cytoscape). Do NOT introduce fake methods like `telemetry.PublishSSEEvent`.
+- Do NOT use hardcoded `waitForTimeout` for DOM syncing in Playwright; use `waitForFunction`.
 
 ═══════════════════════════════════════════════════════════════
 DELIVERABLES
