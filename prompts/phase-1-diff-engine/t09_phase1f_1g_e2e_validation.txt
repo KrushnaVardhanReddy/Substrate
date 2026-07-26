@@ -1,0 +1,16 @@
+TASK: P1-T09 — Phase 1f (AI/ML) and 1g (Salesforce) E2E Validation
+
+Role: Backend SDET (Go)
+
+You are responsible for writing the E2E Go tests for the AI/ML and Salesforce Enterprise metadata schema diff adapters.
+
+REQUIREMENTS:
+1. Create `scripts/e2e/phase1f_1g_e2e_test.go`.
+2. Follow the spec at `docs/specs/e2e/phase1f-1g-adapters.md`.
+3. You must use `testcontainers-go` or direct localhost connection to `pglite` running on port `54320` (`postgres://postgres:postgres@localhost:54320/postgres?sslmode=disable&default_query_exec_mode=exec&statement_cache_capacity=0&pgbouncer=true`).
+4. Validate both Red Path (Breaking) and Green Path (Safe) scenarios for `aiml` and `salesforce` schema types.
+5. VENDOR PRESERVATION: If you add new Go dependencies, you MUST run `go mod vendor` inside the `scripts/e2e` directory and commit the vendor changes.
+6. NO HALLUCINATIONS: Do not mock any backend APIs or use non-existent telemetry/SSE event methods. Just use standard HTTP requests via `httpexpect` against the local API server on `:8090`.
+7. You DO NOT need to write any Playwright tests (they have already been handled).
+
+When you are done, commit your changes.

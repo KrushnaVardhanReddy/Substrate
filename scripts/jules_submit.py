@@ -178,6 +178,11 @@ TASKS = {
         "phase": "phase-1-diff-engine",
         "prompt": _load_prompt("prompts/phase-1-diff-engine/t07_init_command.txt"),
     },
+    9: {
+        "name": "P1-T09 — Phase 1f (AI/ML) and 1g (Salesforce) E2E Validation",
+        "phase": "phase-1-diff-engine",
+        "prompt": _load_prompt("prompts/phase-1-diff-engine/t09_phase1f_1g_e2e_validation.txt"),
+    },
 
     # ── Phase 1b: SQL Migrations ─────────────────────────────────────────────
     101: {
