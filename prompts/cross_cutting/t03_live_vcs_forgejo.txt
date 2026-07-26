@@ -1,0 +1,38 @@
+TASK: CC-T03 — Live VCS E2E Integration (Forgejo)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Enhance the "No Mocks" testing paradigm by integrating a fully live Git Version Control System (VCS) into the E2E harness. 
+This eliminates the need for simulating GitHub webhook payloads by enabling organic, end-to-end `git push` lifecycles directly against a local repository that fires authentic webhooks to Substrate.
+
+═══════════════════════════════════════════════════════════════
+CRITICAL READING — DO THIS BEFORE WRITING A SINGLE LINE OF CODE
+═══════════════════════════════════════════════════════════════
+You MUST read the following files IN FULL before starting:
+
+1. docs/specs/cross-cutting/cc-t03-live-vcs.md
+   → Read the exact implementation details for Dockerized Forgejo orchestration.
+
+2. scripts/e2e/run_full_e2e.sh
+   → Understand where the Docker spin-up and tear-down logic needs to go.
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Do NOT rewrite any Go tests. They must remain in Go.
+- The test harness should utilize the existing `docker-compose.forgejo.yml` container to spin up Forgejo.
+- The Git server must store its data inside an ephemeral volume or temporary directory that is automatically purged/reset when tests complete using `docker-compose down -v`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. Update `scripts/e2e/run_full_e2e.sh` to include `docker-compose -f ../../docker-compose.forgejo.yml up -d` before the tests, and `docker-compose down -v` on script exit.
+2. Create a Go helper `scripts/e2e/helpers/forgejo.go` that executes before the test suites to:
+   - Use the Forgejo REST API to create a mock user and organization (e.g., `mcp-org`).
+   - Initialize a blank repository.
+   - Configure a webhook on the repository pointing to `http://localhost:8090/api/v1/webhook`.
+3. Update `scripts/e2e/v1_e2e_test.go` (Step 1: Auto-Discovery Webhook) to actually perform a `git push` against the live Forgejo repository to trigger the webhook organically, rather than mocking the JSON payload.
+
+Commit message: "test(e2e): CC-T03 implement live VCS integration with Forgejo"
+Target branch: feature/dev

@@ -908,6 +908,11 @@ TASKS = {
         "phase": "cross-cutting",
         "prompt": _load_prompt("prompts/e2e/pglite_infrastructure.txt"),
     },
+    333: {
+        "name": "CC-T03 — Live VCS E2E Integration (Forgejo)",
+        "phase": "cross-cutting",
+        "prompt": _load_prompt("prompts/cross_cutting/t03_live_vcs_forgejo.txt"),
+    },
     1: {
         "name": "P3-T12 — Phase 3 Contract Registry E2E Validation (Pipeline Phase 1)",
         "phase": "phase-3-registry",

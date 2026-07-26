@@ -75,7 +75,7 @@
 |---|---|---|---|---|---|
 | **CC-T01** | 🛡️ P1 | **PASETO Security Migration** — Replace all `golang-jwt` usage in `middleware.go` with PASETO `v4.local` for internal auth, and prepare for PASETO `v4.public` in P15-T15. | Jules | ✅ PR Merged | `docs/wiki/concepts/architecture.md` |
 | **CC-T02** | 🚀 P1 | **E2E Overhaul: Full-Stack PGlite Harness (API, MCP, Playwright)** — Vendor the PGlite WASM bundle and create a Node.js 4-tier tear-up runner. Spin up PGlite, the Go backend API, the MCP Server, and the SvelteKit frontend in the background to execute Go tests, MCP tests, and Playwright UI tests in a single offline pass. | Jules | ✅ Complete | `prompts/e2e/pglite_infrastructure.txt` |
-| **CC-T03** | 🚀 P1 | **Live VCS E2E Integration (Forgejo)** — Stand up a live local Forgejo Git server using pre-compiled binaries (No Docker) to execute fully organic end-to-end webhook ingestion tests without payload simulation. | Jules | 💡 Planned | `docs/specs/cross-cutting/cc-t03-live-vcs.md` |
+| **CC-T03** | 🚀 P1 | **Live VCS E2E Integration (Forgejo)** — Stand up a live local Forgejo Git server using the existing `docker-compose.forgejo.yml` container to execute fully organic end-to-end webhook ingestion tests without payload simulation. | Jules | 🤖 Submitted to Jules (PR pending) | `docs/specs/cross-cutting/cc-t03-live-vcs.md` |
 
 ---
 
