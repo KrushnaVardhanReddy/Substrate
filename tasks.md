@@ -183,7 +183,7 @@
 
 | Task ID | Name | Routes Covered | Spec | Status |
 |---------|------|----------------|------|--------|
-| **P1-T09** | Phase 1f/1g E2E Validation | AI/ML and Salesforce schema adapters | `docs/specs/e2e/phase1f-1g-adapters.md` | 🤖 Dispatched (Massive Batch) |
+| **P1-T09** | Phase 1f/1g E2E Validation | AI/ML and Salesforce schema adapters | `docs/specs/e2e/phase1f-1g-adapters.md` | ✅ Complete |
 | **P11-T18** | Phase 11 Backend E2E | `GET /api/v1/graph/{org}`, `GET /api/v1/impact/{org}/{repo}`, `GET /api/v1/events`, `GET /api/v1/diff/{id}` | `docs/specs/phase-11/p11-t18-e2e-validation.md` | ✅ PR Merged |
 | **P3-T12** | Phase 3 Registry E2E | `GET /api/v1/graph/{org}`, `GET /api/v1/registry/can-deploy`, `GET /api/v1/repos/{org}` | `docs/specs/phase-3/p3-t12-e2e-validation.md` | ✅ Complete |
 | **P-HIST-01** | History & Changes API | `POST /api/v1/history`, `GET /api/v1/history/{org}/{repo}`, `GET /api/v1/changes` | `docs/specs/cross-cutting/p-hist-01-e2e-history-api.md` | ✅ Complete |
