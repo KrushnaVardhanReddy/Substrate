@@ -1,6 +1,6 @@
 # Substrate — Task Tracker
 
-> Last updated: 2026-07-23 (Wave 15 submitted — P11-T18 & P3-T12 E2E gap tasks dispatched to Jules 🚀)
+> Last updated: 2026-07-25 (Massive E2E batch dispatched to Jules! 11/13 active, 2 queued for tomorrow 🚀)
 > Tracking all development phases, tasks, and their current status.
 
 ---
@@ -201,9 +201,9 @@
 
 | Task ID | Page | Risk | Spec | Status |
 |---------|------|------|------|--------|
-| **P-UI-DIFF** | `/diff/[id]` — Diff Viewer | Core product page — blank on regression | `docs/specs/cross-cutting/p-ui-01-e2e-missing-pages.md` | ✅ Complete |
-| **P-UI-IMPACT** | `/org/{org}/repo/[repo]/impact` — Impact Page | Blast radius feature | `docs/specs/cross-cutting/p-ui-02-e2e-impact.md` | ✅ Complete |
-| **P-UI-GOV** | `/org/{org}/governance` — Governance Rules | Rule CRUD UI | `docs/specs/cross-cutting/p-ui-03-e2e-gov.md` | ✅ Complete |
+| **P-UI-DIFF** | `/diff/[id]` — Diff Viewer | Core product page — blank on regression | `docs/specs/cross-cutting/p-ui-01-e2e-missing-pages.md` | 🤖 Dispatched (Massive Batch) |
+| **P-UI-IMPACT** | `/org/{org}/repo/[repo]/impact` — Impact Page | Blast radius feature | `docs/specs/cross-cutting/p-ui-02-e2e-impact.md` | 🤖 Dispatched (Massive Batch) |
+| **P-UI-GOV** | `/org/{org}/governance` — Governance Rules | Rule CRUD UI | `docs/specs/cross-cutting/p-ui-03-e2e-gov.md` | 🤖 Dispatched (Massive Batch) |
 
 ### 🟡 Priority 2 — Frontend UI Gaps (Playwright)
 
