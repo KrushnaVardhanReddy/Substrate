@@ -1,0 +1,23 @@
+service: churn-predictor
+ml_model:
+  name: churn-predictor
+  version: 2.1.0
+  framework: pytorch
+  task: classification
+  inputs:
+    - name: tenure_months
+      type: float
+      required: true
+    - name: contract_type
+      type: string
+      required: true
+      enum: [Month-to-month, One year, Two year]
+  outputs:
+    - name: churn_label
+      type: string
+      enum: [Yes, No]
+  serving:
+    endpoint: /predict
+    method: POST
+    input_format: json
+    output_format: json
