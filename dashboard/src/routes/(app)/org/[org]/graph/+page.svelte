@@ -110,7 +110,7 @@
 		}
 
 		const matchedIds = new Set(fNodes.map(n => n.id));
-		let fEdges: Edge[] = [];
+		let fEdges: any[] = [];
 
 		if (includeNeighbors) {
 			const affectedIds = new Set(matchedIds);
@@ -295,11 +295,11 @@
 				],
 				layout: {
 					name: 'dagre',
-					rankDir: 'LR',
-					nodeSep: 50,
-					rankSep: 150,
-					fit: true,
-					padding: 50
+
+
+
+
+
 				}
 			});
 
@@ -328,8 +328,8 @@
 	};
 
 	const processGraphData = (edgesData: any) => {
-		let newNodesMap = new Map<string, Node>();
-		let newEdges: Edge[] = [];
+		let newNodesMap = new Map<string, any>();
+		let newEdges: any[] = [];
 
 		const addTeamNode = (teamName: string) => {
 			if (!teamName) return;
@@ -354,7 +354,7 @@
 					? existingNode.data.volatilityScore
 					: Math.floor(Math.random() * 101);
 
-				const node: Node = {
+				const node: any = {
 					id,
 					type: 'service',
 					position: { x: 0, y: 0 },
