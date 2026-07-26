@@ -4,17 +4,15 @@
 Enhance the "No Mocks" testing paradigm by integrating a fully live Git Version Control System (VCS) into the E2E harness. This eliminates the need for simulating GitHub webhook payloads by enabling organic, end-to-end `git push` lifecycles directly against a local repository that fires authentic webhooks to Substrate.
 
 ## Constraints
-1. **Strictly No Docker:** The E2E test harness (`run_full_e2e.sh`) must remain blazing fast and lightweight. Do NOT rely on `docker run`.
-2. **Pre-compiled Binaries Only:** The harness should dynamically download (and cache) a pre-compiled standalone binary of [Forgejo](https://forgejo.org/) or Gitea for the current OS/Arch.
-3. **Ephemeral Storage:** The Git server must store its data inside a temporary directory that is automatically purged when `run_full_e2e.sh` exits.
+1. **Dockerized Environment:** The test harness should utilize the existing `docker-compose.forgejo.yml` container to spin up Forgejo.
+2. **Ephemeral State:** The Git server must store its data inside an ephemeral volume or temporary directory that is automatically purged/reset when tests complete.
 
 ## Implementation Details
 
 ### 1. E2E Runner Enhancements
-Update `scripts/e2e/run_full_e2e.sh`:
-- Detect if the Forgejo binary exists locally. If not, download it from the official releases page.
-- Spin up the Forgejo binary as a background process on a designated port (e.g., `3000`).
-- Ensure the background process is properly tracked and killed on script exit alongside PGlite and SvelteKit.
+Update the E2E scripts to orchestrate the container:
+- Before running the Go E2E test suite, execute `docker-compose -f docker-compose.forgejo.yml up -d`.
+- Ensure the container is torn down and volumes are pruned automatically at the end of the script using `docker-compose down -v`.
 
 ### 2. E2E Setup Phase
 Create a Go helper or bash script (e.g., `scripts/e2e/helpers/forgejo.go`) that executes before the test suites:
