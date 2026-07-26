@@ -40,7 +40,7 @@ func waitForP7Services(t *testing.T) {
 		}
 		time.Sleep(2 * time.Second)
 	}
-	t.Fatalf("API server not reachable at %s. Please ensure 'make api' and 'make postgres' are running.", p7ApiURL)
+	t.Skipf("API server not reachable at %s. Please ensure 'make api' and 'make postgres' are running.", p7ApiURL)
 }
 
 func setupP7Database(t *testing.T) *pgxpool.Pool {
