@@ -20,7 +20,7 @@
 ### 2. The Full-Stack Tear-Up Pipeline
 - The runner (`scripts/e2e/run_full_e2e.sh`) will spin up the PGlite Database, the Go Backend API, the MCP Server, and the SvelteKit Frontend in the background.
 - It will execute the Go API tests, the MCP tests, and Playwright UI tests in a single, offline CI pass.
-- **Status:** Prompt created and submitted to Jules (`CC-T02`).
+- **Status:** ✅ Merged! (`CC-T02`).
 
 ### 3. E2E Phase 1 (Contract Registry)
 - Re-wrote the Contract Registry prompt to use the new full-stack harness (Go API + Playwright UI).
