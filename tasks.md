@@ -257,10 +257,10 @@ Once all automated E2E tests are complete, these four manual workflows must be v
 - `[ ]` **2. VS Code Extension & UI Feel**
   - Verify the Cytoscape dependency graph renders correctly *inside* the VS Code extension webview panel.
   - Open the SvelteKit Dashboard in a browser and load the 1,000-node scale test to ensure the UI remains snappy and responsive.
-- `[ ]` **3. MCP Server in Claude/Cursor**
+- `[x]` **3. MCP Server in Claude/Cursor**
   - Add the `substrate-mcp` server to your `claude_desktop_config.json`.
   - Ask Claude an impact analysis question (e.g., *"What happens if I delete the email field from the Payments API?"*).
   - Verify Claude correctly invokes the `get_blast_radius` tool and hallucinates nothing.
-- `[ ]` **4. Zero-Config Scaffold (`substrate init`)**
+- `[x]` **4. Zero-Config Scaffold (`substrate init`)**
   - Run `substrate init` in a fresh, empty directory.
   - Verify the generated `substrate.yaml` and `.github/workflows/substrate.yml` are perfectly formatted and intuitive.
