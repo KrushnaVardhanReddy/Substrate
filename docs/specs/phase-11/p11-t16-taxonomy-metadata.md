@@ -27,7 +27,9 @@ This specification introduces a `metadata` block to the `substrate.yaml` file, a
   - `frontend` (`.frontend` class) → `AppWindow` Icon data URI with Purple tint border (`#8B5CF6`)
   - `database` (`.database` class) → `Database` Icon data URI with Cyan tint border (`#06B6D4`)
   - `mobile` (`.mobile` class) → `Smartphone` Icon data URI with Rose tint border (`#F43F5E`)
-  - `backend` / `service` / default (`.backend` class) → `Server` Icon data URI with Indigo tint border (`#6366F1`)
+  - `backend` (`.backend` class) → `Server` Icon data URI with Emerald tint border (`#10B981`)
+  - `service` / default (`.service` class) → Default border (`#a855f7`)
+- **String Matching Fallback:** If `metadata.type` is missing from the API response, the UI MUST intelligently infer the node type by string-matching the repository label (e.g., if the label contains 'db' or 'postgres' it falls back to `database`, 'front' to `frontend`, etc.).
 - **Aesthetics:** Nodes MUST use a 15% opacity background of the same stroke color to create a dynamic, premium "glow" aesthetic. The SVG background image should be centered (`background-position-x: 12px`, `background-position-y: center`) with a fixed `background-width`/`background-height` (e.g., `16px`).
 - **Taxonomy Detail Panel:** When a node is selected, the right-hand Detail Panel (`<aside class="detail-panel">`) MUST dynamically render the taxonomy data if present:
   - Display the `team` name.

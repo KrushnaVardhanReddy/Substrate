@@ -118,25 +118,31 @@
 		if (includeNeighbors) {
 			const affectedIds = new Set(matchedIds);
 			
-			// 1. One layer Upstream (Dependencies)
+			// 1. Recursive Upstream (Dependencies)
 			// Edge direction: source (provider) -> target (consumer)
-			// If a matched node is a consumer (target), add its direct provider
-			for (const edge of rawEdges) {
-				if (matchedIds.has(edge.target)) {
-					affectedIds.add(edge.source);
+			let upQueue = Array.from(matchedIds);
+			while (upQueue.length > 0) {
+				const current = upQueue.shift()!;
+				for (const edge of rawEdges) {
+					if (edge.target === current) {
+						if (!affectedIds.has(edge.source)) {
+							affectedIds.add(edge.source);
+							upQueue.push(edge.source);
+						}
+					}
 				}
 			}
 
 			// 2. Recursive Downstream (Blast Radius)
-			// If a node is a provider (source), recursively add all its consumers (target)
-			const queue = Array.from(matchedIds);
-			while (queue.length > 0) {
-				const current = queue.shift()!;
+			// Edge direction: source (provider) -> target (consumer)
+			let downQueue = Array.from(matchedIds);
+			while (downQueue.length > 0) {
+				const current = downQueue.shift()!;
 				for (const edge of rawEdges) {
 					if (edge.source === current) {
 						if (!affectedIds.has(edge.target)) {
 							affectedIds.add(edge.target);
-							queue.push(edge.target);
+							downQueue.push(edge.target);
 						}
 					}
 				}
@@ -304,9 +310,9 @@
 					{
 						selector: '.backend',
 						style: {
-							'background-color': '#312e81', // Indigo tint
-							'border-color': '#6366F1',
-							'background-image': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM2MzY2RjEiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIyIiB5PSIyIiB3aWR0aD0iMjAiIGhlaWdodD0iOCIgcng9IjIiIHJ5PSIyIi8+PHJlY3QgeD0iMiIgeT0iMTQiIHdpZHRoPSIyMCIgaGVpZ2h0PSI4IiByeD0iMiIgcnk9IjIiLz48bGluZSB4MT0iNiIgeTE9IjYiIHgyPSI2LjAxIiB5Mj0iNiIvPjxsaW5lIHgxPSI2IiB5MT0iMTgiIHgyPSI2LjAxIiB5Mj0iMTgiLz48L3N2Zz4='
+							'background-color': '#064e3b', // Emerald tint
+							'border-color': '#10B981',
+							'background-image': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxMEI5ODEiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIyIiB5PSIyIiB3aWR0aD0iMjAiIGhlaWdodD0iOCIgcng9IjIiIHJ5PSIyIi8+PHJlY3QgeD0iMiIgeT0iMTQiIHdpZHRoPSIyMCIgaGVpZ2h0PSI4IiByeD0iMiIgcnk9IjIiLz48bGluZSB4MT0iNiIgeTE9IjYiIHgyPSI2LjAxIiB5Mj0iNiIvPjxsaW5lIHgxPSI2IiB5MT0iMTgiIHgyPSI2LjAxIiB5Mj0iMTgiLz48L3N2Zz4='
 						}
 					},
 					{
@@ -412,6 +418,16 @@
 			let teamName = metadata?.team || null;
 			if (teamName) addTeamNode(teamName);
 
+			let inferredType = metadata?.type;
+			if (!inferredType) {
+				const lbl = id.toLowerCase();
+				if (lbl.includes('front')) inferredType = 'frontend';
+				else if (lbl.includes('db') || lbl.includes('postgres') || lbl.includes('redis') || lbl.includes('mysql')) inferredType = 'database';
+				else if (lbl.includes('mobile') || lbl.includes('ios') || lbl.includes('android')) inferredType = 'mobile';
+				else if (lbl.includes('back') || lbl.includes('api') || lbl.includes('core')) inferredType = 'backend';
+				else inferredType = 'service';
+			}
+
 			if (!newNodesMap.has(id)) {
 				const existingNode = rawNodes.find(n => n.id === id);
 				const volatilityScore = existingNode?.data?.volatilityScore !== undefined
@@ -420,7 +436,7 @@
 
 				const node: any = {
 					id,
-					type: metadata?.type || 'service',
+					type: inferredType,
 					position: { x: 0, y: 0 },
 					data: { label: id, status, type, metadata, volatilityScore }
 				};
