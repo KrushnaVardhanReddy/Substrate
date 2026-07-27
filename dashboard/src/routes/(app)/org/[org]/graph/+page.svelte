@@ -217,8 +217,12 @@
 		const elements: cytoscape.ElementDefinition[] = [];
 
 		for (const node of displayData.nodes) {
+			const dataObj: any = { id: node.id, label: node.data.label, status: node.data.status };
+			if (node.parentId) {
+				dataObj.parent = node.parentId;
+			}
 			elements.push({
-				data: { id: node.id, label: node.data.label, status: node.data.status },
+				data: dataObj,
 				classes: node.type
 			});
 		}
@@ -298,16 +302,16 @@
 							'border-style': 'dashed'
 						}
 					}
-				],
-				layout: {
-					name: 'dagre',
-
-
-
-
-
-				}
+				]
 			});
+
+			cyInstance.layout({
+				name: 'dagre',
+				rankDir: layoutDirection,
+				padding: 50
+			}).run();
+			
+			cyInstance.fit();
 
 			if (browser) {
 				(window as any).cyInstance = cyInstance;
@@ -670,6 +674,8 @@
 
 	.main-canvas {
 		flex-grow: 1;
+		display: flex;
+		flex-direction: column;
 		position: relative;
 		padding: 24px;
 		overflow: hidden;
