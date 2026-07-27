@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"e2e/helpers"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -82,44 +83,49 @@ func TestV1SystemE2E(t *testing.T) {
 	defer pool.Close()
 
 	// Step 1: Zero-Touch Onboarding (V1-T01)
-	// Simulate the GitHub App Webhook receiving a new repository installation,
-	// asserting it triggers the Auto-Discovery PR by firing a payload via real HTTP to the API.
+	// Simulate the GitHub App Webhook receiving a new repository installation by
+	// actually interacting with the live Forgejo VCS to fire a real webhook.
 	t.Run("Step 1: Auto-Discovery Webhook", func(t *testing.T) {
-		payload := map[string]interface{}{
-			"installation_id": 9999,
-			"org":             "testorg",
-			"repo":            "testorg/testconsumer",
-			"github_repo_id":  12345,
-			"commit_sha":      "abcdef123456",
-			"files": []map[string]interface{}{
-				{
-					"path":    ".env.example",
-					"content": "TEST_API_URL=http://testprovider:8080",
-				},
-			},
-		}
+		orgName := "mcp-org"
+		repoName := "enterprise-repo"
 
-		body, err := json.Marshal(payload)
+		cloneURL, _, err := helpers.SetupForgejo(orgName, repoName)
+		require.NoError(t, err, "Failed to setup Forgejo")
+
+		tempDir := t.TempDir()
+
+		// Clone the repo
+		cloneCmd := exec.Command("git", "clone", cloneURL, ".")
+		cloneCmd.Dir = tempDir
+		out, err := cloneCmd.CombinedOutput()
+		require.NoError(t, err, "Failed to clone repo: %s", string(out))
+
+		// Set git config
+		exec.Command("git", "-C", tempDir, "config", "user.email", "test@example.com").Run()
+		exec.Command("git", "-C", tempDir, "config", "user.name", "E2E Test").Run()
+
+		// Write OpenAPI spec
+		err = os.WriteFile(filepath.Join(tempDir, "openapi.yaml"), []byte("openapi: 3.0.0\ninfo:\n  title: Example API\n  version: 1.0.0\n"), 0644)
 		require.NoError(t, err)
 
-		req, err := http.NewRequest("POST", apiURL+"/api/v1/webhook", bytes.NewReader(body))
-		require.NoError(t, err)
+		// Commit and push
+		exec.Command("git", "-C", tempDir, "add", ".").Run()
+		exec.Command("git", "-C", tempDir, "commit", "-m", "Initial commit").Run()
 
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", "Bearer "+registryAPIToken)
+		pushCmd := exec.Command("git", "-C", tempDir, "push", "origin", "main")
+		out, err = pushCmd.CombinedOutput()
+		require.NoError(t, err, "Failed to push: %s", string(out))
 
-		client := &http.Client{Timeout: 5 * time.Second}
-		resp, err := client.Do(req)
-		require.NoError(t, err)
-		defer resp.Body.Close()
-
-		require.Equal(t, http.StatusAccepted, resp.StatusCode)
-
-		var respData map[string]string
-		err = json.NewDecoder(resp.Body).Decode(&respData)
-		require.NoError(t, err)
-
-		assert.Equal(t, "queued", respData["status"], "Should have queued the webhook for processing")
+		// Wait for webhook processing to occur in the API by checking if it exists in the database
+		// The API handles push webhooks asynchronously via River. We just want to ensure it was received and a repo/org was created.
+		require.Eventually(t, func() bool {
+			var exists bool
+			err := pool.QueryRow(context.Background(), "SELECT EXISTS(SELECT 1 FROM organizations WHERE github_org_name = $1)", orgName).Scan(&exists)
+			if err != nil {
+				return false
+			}
+			return exists
+		}, 30*time.Second, 1*time.Second, "Organization should be created via live webhook")
 	})
 
 	// Step 2: AI Architect Scaffolding (V1-T02)

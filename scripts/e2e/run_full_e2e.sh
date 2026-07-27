@@ -12,7 +12,18 @@ fuser -k 5173/tcp 2>/dev/null || true
 sleep 1
 
 # Trap cleanup to run on exit or error
-trap 'echo "🧹 Cleaning up background processes..."; kill $FRONTEND_PID $API_PID $ENGINE_PID $PGLITE_PID 2>/dev/null || true; fuser -k 8090/tcp 2>/dev/null || true; fuser -k 8080/tcp 2>/dev/null || true; fuser -k 54320/tcp 2>/dev/null || true; fuser -k 5173/tcp 2>/dev/null || true' EXIT
+trap 'echo "🧹 Cleaning up background processes..."; kill $FRONTEND_PID $API_PID $ENGINE_PID $PGLITE_PID 2>/dev/null || true; fuser -k 8090/tcp 2>/dev/null || true; fuser -k 8080/tcp 2>/dev/null || true; fuser -k 54320/tcp 2>/dev/null || true; fuser -k 5173/tcp 2>/dev/null || true; echo "🧹 Tearing down Forgejo..."; docker compose -f '"$PWD"'/docker-compose.forgejo.yml down -v' EXIT
+
+echo "🐙 Starting Forgejo Container..."
+docker compose -f docker-compose.forgejo.yml up -d
+echo "⏳ Waiting for Forgejo to initialize..."
+for i in $(seq 1 30); do
+  if curl -s http://127.0.0.1:3000/api/v1/version > /dev/null 2>&1; then
+    echo "✅ Forgejo is ready!"
+    break
+  fi
+  sleep 2
+done
 
 # 1. Start PGlite Database
 echo "📦 Starting PGlite Server..."
@@ -41,7 +52,7 @@ export INTERNAL_SERVICE_TOKEN="local-dev-token"
 export JWT_SECRET="local-jwt-secret"
 export GITHUB_CLIENT_ID="test-client"
 export GITHUB_CLIENT_SECRET="test-secret"
-export GITHUB_API_URL="http://localhost:3000/api/v1"
+export GITHUB_API_URL="http://127.0.0.1:3000/api/v1"
 export DASHBOARD_URL="http://localhost:5173"
 export SKIP_MIGRATIONS="true"
 export SKIP_RIVER="false"
