@@ -1,60 +1,51 @@
 # Substrate — Shift Handoff Document
 
-> **Date:** 2026-07-25
-> **Current Focus:** E2E Massive Batch Dispatch
+> **Date:** 2026-07-26
+> **Current Focus:** E2E Massive Batch Re-Dispatch & Infrastructure Stabilization
 
 ## ✅ Completed This Session
 
-1. **Dependency Graph Rendering Engine Migration**
-   - ✅ **Issue:** The dependency graph on the frontend (`/org/[org]/graph`) was completely blank. This was caused by `SvelteFlow` v1.6.2 throwing `lifecycle_outside_component` context tracker errors in Svelte 5, especially when combined with async data loading in SvelteKit's declarative routing.
-   - ✅ **Fix:** We ripped out the incompatible `SvelteFlow` library and reverted the rendering engine back to **Cytoscape** and **cytoscape-dagre**, which the project originally used 10 days ago.
-   - ✅ **Integration:** Integrated Cytoscape directly with the new Server-Sent Events (SSE) logic natively in Svelte 5 using the `$effect` rune.
-   - ✅ **Layout:** Fixed CSS layout overlap bugs by setting the `cyContainer` flex wrapper to `flex: 1` rather than absolute positioning, allowing it to seamlessly fit below the header.
-   - ✅ **Styling:** Updated the node padding and sizing styles (`width: 'auto'`, `height: 'auto'`) to conform to modern Cytoscape standards (preventing text bleed and deprecation warnings).
-   - ✅ **Clean up:** Removed the manual `getLayoutedElements` DAGRE math function (since Cytoscape computes layout natively), cleaned up all `local-dev-token` hardcoding, and purged all temporary API proxy endpoints/debug files created during the debugging session.
+### 1. The Full-Stack PGlite Harness (`CC-T02`)
+- Completely replaced the fragile mock testing architecture with an offline, offline-first PGlite pipeline.
+- The `scripts/e2e/run_full_e2e.sh` runner now cleanly spins up the PGlite Database (WASM), Go Backend API, SvelteKit Frontend, and MCP server concurrently.
+- Re-architected Playwright to hit live local API endpoints.
+- **Status:** ✅ Merged!
 
-### 1. Vendor PGlite & Wrapper Script
-- We will download the PGlite WASM binaries into the repository.
-- Jules will write a lightweight Node.js wrapper (`scripts/e2e/pglite_server.js`) that spins up PGlite on a local TCP port and seeds it.
+### 2. Dependency Graph Rendering Migration
+- Ripped out `SvelteFlow` (which was causing Svelte 5 lifecycle context tracker errors).
+- Reverted the UI back to **Cytoscape** and **cytoscape-dagre**.
+- Updated Cytoscape styles to eliminate text bleeding and correctly size nodes dynamically.
+- **Status:** ✅ Merged!
 
-### 2. The Full-Stack Tear-Up Pipeline
-- The runner (`scripts/e2e/run_full_e2e.sh`) will spin up the PGlite Database, the Go Backend API, the MCP Server, and the SvelteKit Frontend in the background.
-- It will execute the Go API tests, the MCP tests, and Playwright UI tests in a single, offline CI pass.
-- **Status:** ✅ Merged! (`CC-T02`).
-
-### 3. E2E Phase 1 (Contract Registry)
-- Re-wrote the Contract Registry prompt to use the new full-stack harness (Go API + Playwright UI).
-- **Status:** Prompt created and submitted to Jules (`P3-T12`).
+### 3. Backend Task Recovery
+- Merged **`P8-T09`** (Enterprise Docker & Helm Delivery): UI is now bundled directly into the Go binary via `//go:embed`.
+- Merged **`P4-T09`** (Breaking Change History): MCP tool correctly wired to hit the Live Postgres database.
+- Merged **`P1-T09`** (Phase 1f/1g E2E Validation): Go API tests for AI/ML and Salesforce Enterprise schema adapters.
 
 ---
 
-## 🗺️ E2E Full-Stack Roadmap (The 15 Prompts)
+## 🏃 In Progress
 
-We successfully submitted the massive E2E batch for all remaining phases! We triggered 13 jobs concurrently, 11 of which successfully created PR sessions. 2 hit rate-limiting quotas and will be triggered tomorrow.
-
-1. ✅ **Phase 0:** PGlite Infrastructure (CC-T02) -> *Merged!*
-2. ✅ **Phase 1:** Contract Registry (Phase 3) -> *Merged!* 
-3. ✅ **Phase 2:** AI Diff Engine & Analyzers (Phase 4) -> *Merged!*
-4. ✅ **Phase 3:** Discovery Scanners (Phase 5) -> *Merged!*
-5. 🤖 **Phase 4:** QA & Shadow API (Phase 6) -> *Dispatched (Massive Batch)*
-6. 🤖 **Phase 5:** Enterprise Rollout & Drift (Phase 7) -> *Dispatched (Massive Batch)*
-7. 🤖 **Phase 6:** Readiness, Authz & Jobs (Phase 8) -> *Dispatched (Massive Batch)*
-8. 🤖 **Phase 7:** Compliance & Risk Scoring (Phase 9) -> *Dispatched (Massive Batch)*
-9. 🤖 **Phase 8:** Ecosystem & Zombie Pruning (Phase 10) -> *Dispatched (Massive Batch)*
-10. 🤖 **Phase 9:** Graph UI & Visual Studio (Phase 11) -> *Dispatched (Massive Batch)*
-11. 🤖 **Phase 10:** SSE Boundaries & Scaling (Phase 12) -> *Dispatched (Massive Batch)*
-12. 🤖 **Phase 11:** God Mode & FinOps (Phase 13) -> *Dispatched (Massive Batch)*
-13. 🤖 **Phase 12:** Predictive Intelligence (Phase 14) -> *Dispatched (Massive Batch)*
-14. 🤖 **Phase 13:** Monetization & Insurance (Phase 15) -> *Dispatched (Massive Batch)*
-15. 🤖 **Phase 14:** MCP Parity & Cross-Cutting -> *Dispatched (Massive Batch)*
-16. 🤖 **Application Phase 1:** Core Diff Engine -> *Dispatched (Massive Batch) - Session: 15882487719605363218*
-17. 🤖 **Application Phase 2:** GitHub App -> *Dispatched (Massive Batch) - Session: 2268221969989443710*
-
-> Note: All 13 jobs have now been successfully dispatched (the final 2 rate-limited jobs were manually resumed).
+### 1. Live VCS E2E Integration (Forgejo) (`CC-T03`)
+- **Objective:** Eliminate mock JSON webhooks entirely by using `docker-compose.forgejo.yml`. The test harness will create an ephemeral Git repository, perform a real `git push`, and validate that the Go API webhook pipeline operates natively.
+- **Status:** 🤖 Submitted to Jules (Session `2301301246904378490` is currently processing).
 
 ---
 
-## 🔁 Next Steps for Tomorrow
+## 🔁 Next Steps (Urgent)
 
-1. **Check PRs & Resolve Quota Rejects:** Review the 11 PRs generated by Jules overnight. Identify the 2 tasks that failed due to rate limiting, and dispatch them individually.
-2. **Merge E2E PRs:** Review and merge the new Playwright UI + Go API tests into our PGlite E2E harness.
+### 1. Re-run All E2E Validation Phases!
+Because our previous massive batch was launched asynchronously *while* we were pushing rapid branch updates, those PRs had stale snapshot trees that wiped out our work. 
+
+**Now that the PGlite E2E Infrastructure is fully stable and merged into our branch, we must re-trigger the E2E testing tasks for all phases.**
+
+* Action Item: Run `scripts/jules_submit.py` for all remaining UI and API validation phases.
+* Let Jules write the Playwright/Go tests using the new offline PGlite pipeline.
+* Fix any test breakages that Jules uncovers.
+
+### 2. Final Manual QA
+Review the checklist at the bottom of `tasks.md` before final release:
+- Test GitHub App on a live remote repository.
+- Test Cytoscape scaling (1000 nodes) and VS Code Extension rendering.
+- Test `substrate-mcp` locally via Claude Desktop.
+- Run `substrate init` in an empty folder.
