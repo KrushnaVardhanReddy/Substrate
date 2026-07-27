@@ -28,7 +28,7 @@
 
 ### 1. Live VCS E2E Integration (Forgejo) (`CC-T03`)
 - **Objective:** Eliminate mock JSON webhooks entirely by using `docker-compose.forgejo.yml`. The test harness will create an ephemeral Git repository, perform a real `git push`, and validate that the Go API webhook pipeline operates natively.
-- **Status:** 🤖 Submitted to Jules (Session `2301301246904378490` is currently processing).
+- **Status:** ✅ Merged!
 
 ---
 
