@@ -1003,6 +1003,11 @@ TASKS = {
         "phase": "cross-cutting",
         "prompt": _load_prompt("prompts/cross_cutting/p_mcp_01_full_parity.txt"),
     },
+    2000: {
+        "name": "E2E-BACKFILL — Backfill Missing Full-Stack E2E Validation Tests",
+        "phase": "cross-cutting",
+        "prompt": _load_prompt("prompts/e2e_backfill_prompt.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
