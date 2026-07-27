@@ -105,6 +105,11 @@ async function waitForGraphSearch(page: any, searchTerm: string, expectedNodesCo
 }
 
 test.describe.serial('Full E2E System Matrix — Real Git Push Pipeline', () => {
+    test.beforeEach(async ({ context }) => {
+        await context.addInitScript((t) => {
+            localStorage.setItem("github_token", t);
+        }, process.env.E2E_AUTH_TOKEN || "placeholder");
+    });
 
   test.beforeAll(async () => {
     // We could set up all repos here, but for now we'll do them per-describe.

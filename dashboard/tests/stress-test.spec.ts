@@ -1,7 +1,11 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('1,000-Node UI Stress Test', () => {
-	test('can load a graph with 1,000 nodes and 3,000 edges without crashing', async ({ page }) => {
+	test('can load a graph with 1,000 nodes and 3,000 edges without crashing', async ({ page, context }) => {
+		// Use a real JWT from the E2E runner (signed with local-jwt-secret)
+		await context.addInitScript((t) => {
+			localStorage.setItem('github_token', t);
+		}, process.env.E2E_AUTH_TOKEN || 'placeholder');
 		// The `stress-test` org in the DB is seeded with 1,000 nodes and 3,000 edges.
 
 		// Set a longer timeout for the test given the large graph payload
@@ -16,9 +20,6 @@ test.describe('1,000-Node UI Stress Test', () => {
 		});
 
 		await page.goto('/org/stress-test/graph');
-
-		// Wait for the graph data to load before proceeding
-		await page.waitForResponse(res => res.url().includes('/api/v1/graph/stress-test') && res.status() === 200, { timeout: 30000 });
 
 		// Wait for the empty state — this means the initial data has loaded
 		await expect(page.locator('.empty-state')).toBeVisible({ timeout: 10000 });

@@ -3,6 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Telemetry ROI E2E (Suite 14)', () => {
 
     test('should validate ROI metrics dashboard updates based on telemetry events', async ({ page, context }) => {
+
         // Use a real JWT from the E2E runner (signed with local-jwt-secret)
 		await context.addInitScript((t) => {
 			localStorage.setItem('github_token', t);

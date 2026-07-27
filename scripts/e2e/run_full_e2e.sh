@@ -147,17 +147,9 @@ curl -s http://localhost:8080/health > /dev/null 2>&1 && echo "  ✅ Engine :808
 
 # Generate a real JWT signed with the test JWT_SECRET for use in Playwright tests
 # Payload: {"orgs":{"admin":"admin","mcp-org":"admin","testorg":"admin","p3-org":"admin","stress-test":"admin"}}
-E2E_AUTH_TOKEN=$(node -e "
-const secret = 'local-jwt-secret';
-const crypto = require('crypto');
-const header = Buffer.from(JSON.stringify({alg:'HS256',typ:'JWT'})).toString('base64url');
-const payload = Buffer.from(JSON.stringify({
-  orgs:{admin:'admin','mcp-org':'admin',testorg:'admin','p3-org':'admin','stress-test':'admin'},
-  exp: Math.floor(Date.now()/1000) + 86400
-})).toString('base64url');
-const sig = crypto.createHmac('sha256', secret).update(header+'.'+payload).digest('base64url');
-console.log(header+'.'+payload+'.'+sig);
-")
+cd api
+E2E_AUTH_TOKEN=$(go run ../scripts/e2e/gen_paseto/main.go)
+cd ..
 export E2E_AUTH_TOKEN
 
 # 5. Run Playwright UI Tests

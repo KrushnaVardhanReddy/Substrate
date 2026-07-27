@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/state';
-	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
 
 	interface ROIMetrics {
 		total_prevented_outages: number;
@@ -12,18 +11,26 @@
 	let roiData: ROIMetrics | null = $state(null);
 	let loadError = $state(false);
 
-	onMount(async () => {
-		try {
-			const res = await fetch(`/api/v1/telemetry/roi/${page.params.org}`);
-			if (res.ok) {
-				roiData = await res.json();
-			} else {
+	$effect(() => {
+		const fetchRoi = async () => {
+			console.log("Telemetry effect called with org:", $page.params.org);
+			try {
+				const token = localStorage.getItem('github_token');
+				const headers: Record<string, string> = {};
+				if (token) headers['Authorization'] = `Bearer ${token}`;
+
+				const res = await fetch(`/api/v1/telemetry/roi/${$page.params.org}`, { headers });
+				if (res.ok) {
+					roiData = await res.json();
+				} else {
+					loadError = true;
+				}
+			} catch (e) {
+				console.error('Failed to load telemetry ROI data', e);
 				loadError = true;
 			}
-		} catch (e) {
-			console.error('Failed to load telemetry ROI data', e);
-			loadError = true;
-		}
+		};
+		fetchRoi();
 	});
 </script>
 
