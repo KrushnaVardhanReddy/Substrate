@@ -22,6 +22,8 @@
 
 
 
+
+
 	let showOnlyBreaking = $state(false);
 	let hideOrphans = $state(false);
 	let protocolFilter = $state('All');
@@ -110,6 +112,7 @@
 		}
 
 		const matchedIds = new Set(fNodes.map(n => n.id));
+
 		let fEdges: any[] = [];
 
 		if (includeNeighbors) {
@@ -145,6 +148,14 @@
 			fEdges = rawEdges.filter(e => matchedIds.has(e.source) && matchedIds.has(e.target));
 		}
 
+		if (protocolFilter !== 'All') {
+			fEdges = fEdges.filter(e => e.protocol === protocolFilter);
+			// Also filter nodes to only those connected by the remaining edges
+			const connectedIds = new Set<string>();
+			fEdges.forEach(e => { connectedIds.add(e.source); connectedIds.add(e.target); });
+			fNodes = fNodes.filter(n => connectedIds.has(n.id) || n.type === 'teamGroup');
+		}
+
 		if (hideOrphans) {
 			const connectedIds = new Set<string>();
 			fEdges.forEach(e => { connectedIds.add(e.source); connectedIds.add(e.target); });
@@ -164,6 +175,7 @@
 				if (parentNode) fNodes.push(parentNode);
 			}
 		});
+
 
 		return { nodes: fNodes, edges: fEdges };
 	});
@@ -251,21 +263,58 @@
 					{
 						selector: 'node',
 						style: {
-							'background-color': '#1e293b',
+							'background-color': '#312e81', // 15% opacity of indigo
 							'border-width': 2,
-							'border-color': '#3b82f6',
+							'border-color': '#6366F1',
 							'color': '#f8fafc',
-							'text-valign': 'center',
+							'text-valign': 'bottom',
 							'text-halign': 'center',
+							'text-margin-y': 8,
 							'text-wrap': 'wrap',
 							'text-max-width': '140px',
 							'font-size': '12px',
 							'font-family': 'monospace',
-							'padding': '16px',
 							'shape': 'round-rectangle',
 							'label': 'data(label)',
-							'width': 'label',
-							'height': 'label'
+							'width': 48,
+							'height': 48,
+							'background-image': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM2MzY2RjEiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIyIiB5PSIyIiB3aWR0aD0iMjAiIGhlaWdodD0iOCIgcng9IjIiIHJ5PSIyIi8+PHJlY3QgeD0iMiIgeT0iMTQiIHdpZHRoPSIyMCIgaGVpZ2h0PSI4IiByeD0iMiIgcnk9IjIiLz48bGluZSB4MT0iNiIgeTE9IjYiIHgyPSI2LjAxIiB5Mj0iNiIvPjxsaW5lIHgxPSI2IiB5MT0iMTgiIHgyPSI2LjAxIiB5Mj0iMTgiLz48L3N2Zz4=',
+							'background-width': '16px',
+							'background-height': '16px',
+							'background-position-x': '50%',
+							'background-position-y': '50%'
+						}
+					},
+					{
+						selector: '.database',
+						style: {
+							'background-color': '#164e63', // Cyan tint
+							'border-color': '#06B6D4',
+							'background-image': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMwNkI2RDQiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48ZWxsaXBzZSBjeD0iMTIiIGN5PSI1IiByeD0iOSIgcnk9IjMiLz48cGF0aCBkPSJNMyA1VjE5QTkgMyAwIDAgMCAyMSAxOVY1Ii8+PHBhdGggZD0iTTMgMTJBOSAzIDAgMCAwIDIxIDEyIi8+PC9zdmc+'
+						}
+					},
+					{
+						selector: '.frontend',
+						style: {
+							'background-color': '#4c1d95', // Purple tint
+							'border-color': '#8B5CF6',
+							'background-image': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM4QjVDRjYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIyIiB5PSI0IiB3aWR0aD0iMjAiIGhlaWdodD0iMTYiIHJ4PSIyIi8+PHBhdGggZD0iTTEwIDR2NCIvPjxwYXRoIGQ9Ik0yIDhoMjAiLz48cGF0aCBkPSJNNiA0djQiLz48L3N2Zz4='
+						}
+					},
+					{
+						selector: '.backend',
+						style: {
+							'background-color': '#312e81', // Indigo tint
+							'border-color': '#6366F1',
+							'background-image': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM2MzY2RjEiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIyIiB5PSIyIiB3aWR0aD0iMjAiIGhlaWdodD0iOCIgcng9IjIiIHJ5PSIyIi8+PHJlY3QgeD0iMiIgeT0iMTQiIHdpZHRoPSIyMCIgaGVpZ2h0PSI4IiByeD0iMiIgcnk9IjIiLz48bGluZSB4MT0iNiIgeTE9IjYiIHgyPSI2LjAxIiB5Mj0iNiIvPjxsaW5lIHgxPSI2IiB5MT0iMTgiIHgyPSI2LjAxIiB5Mj0iMTgiLz48L3N2Zz4='
+						}
+					},
+					{
+						selector: '.mobile',
+						style: {
+							'background-color': '#881337', // Rose tint
+							'border-color': '#F43F5E',
+							'background-image': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNGNDNGNUUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSI1IiB5PSIyIiB3aWR0aD0iMTQiIGhlaWdodD0iMjAiIHJ4PSIyIiByeT0iMiIvPjxsaW5lIHgxPSIxMiIgeTE9IjE4IiB4Mj0iMTIuMDEiIHkyPSIxOCIvPjwvc3ZnPg=='
 						}
 					},
 					{
@@ -309,6 +358,7 @@
 
 			cyInstance.layout({
 				name: 'dagre',
+				// @ts-ignore
 				rankDir: layoutDirection,
 				padding: 50,
 				nodeSep: 80,
@@ -370,7 +420,7 @@
 
 				const node: any = {
 					id,
-					type: 'service',
+					type: metadata?.type || 'service',
 					position: { x: 0, y: 0 },
 					data: { label: id, status, type, metadata, volatilityScore }
 				};
@@ -492,12 +542,16 @@
 	<!-- Main Canvas: Dependency Graph -->
 	<main class="main-canvas">
 		<div class="canvas-header">
-			<h1 class="page-title">Dependency Graph</h1>
+			<h1 class="page-title">Dependency Graph (Tracing)</h1>
 			<p class="page-subtitle">Visualizing dependencies for {$page.params.org}</p>
-			<div style="margin-top: 8px; padding: 4px 8px; background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-radius: 4px; font-size: 12px; display: inline-block;">
-				Debug: {rawNodes.length} nodes loaded
-			</div>
 		</div>
+
+		{#if isGraphEmpty}
+			<div class="empty-state">
+				<h2>Search for a repository</h2>
+				<p>Type in the search box to see its dependencies and blast radius.</p>
+			</div>
+		{/if}
 
 		<!-- Graph Controls overlay -->
 		<div class="graph-controls" style="z-index: 20; display: flex; gap: 8px;">
@@ -551,12 +605,6 @@
 			<button class="btn-zoom" onclick={() => cyInstance && cyInstance.zoom(cyInstance.zoom() * 0.8)} title="Zoom Out">-</button>
 			<button class="btn-zoom" onclick={() => cyInstance && cyInstance.fit(undefined, 50)} title="Fit to Screen">Fit</button>
 		</div>
-		{#if isGraphEmpty}
-			<div class="empty-state">
-				<h2>Search for a repository</h2>
-				<p>Enter a repository name to view its blast radius and dependencies.</p>
-			</div>
-		{/if}
 
 		<!-- Time Travel Scrubber -->
 		<div class="scrubber-wrapper">

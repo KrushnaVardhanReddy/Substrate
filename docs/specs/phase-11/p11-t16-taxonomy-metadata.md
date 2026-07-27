@@ -23,12 +23,12 @@ This specification introduces a `metadata` block to the `substrate.yaml` file, a
 - The Registry API endpoint responsible for serving the dependency graph (`/api/v1/graph/...`) MUST be updated to include `consumer_metadata` and `provider_metadata` JSON objects inside the returned dependency edge payload.
 
 ### 2.4 UI Visualization (Cytoscape)
-- **Visual Node Icons:** The custom `ServiceNode.svelte` MUST render a distinct Lucide SVG icon enclosed in a tinted `.icon-wrapper` based on the `metadata.type` property:
-  - `frontend` → `AppWindow` Icon with Purple tint (`#8B5CF6`)
-  - `database` → `Database` Icon with Cyan tint (`#06B6D4`)
-  - `mobile` → `Smartphone` Icon with Rose tint (`#F43F5E`)
-  - `backend` / `service` / default → `Server` Icon with Indigo tint (`#6366F1`)
-- **Aesthetics:** Icons MUST be placed on a 15% opacity background of the same stroke color to create a dynamic, premium "glow" aesthetic.
+- **Visual Node Icons:** The Cytoscape node style MUST render a distinct Lucide SVG icon embedded as a data URI (`background-image`) based on the `metadata.type` property:
+  - `frontend` (`.frontend` class) → `AppWindow` Icon data URI with Purple tint border (`#8B5CF6`)
+  - `database` (`.database` class) → `Database` Icon data URI with Cyan tint border (`#06B6D4`)
+  - `mobile` (`.mobile` class) → `Smartphone` Icon data URI with Rose tint border (`#F43F5E`)
+  - `backend` / `service` / default (`.backend` class) → `Server` Icon data URI with Indigo tint border (`#6366F1`)
+- **Aesthetics:** Nodes MUST use a 15% opacity background of the same stroke color to create a dynamic, premium "glow" aesthetic. The SVG background image should be centered (`background-position-x: 12px`, `background-position-y: center`) with a fixed `background-width`/`background-height` (e.g., `16px`).
 - **Taxonomy Detail Panel:** When a node is selected, the right-hand Detail Panel (`<aside class="detail-panel">`) MUST dynamically render the taxonomy data if present:
   - Display the `team` name.
   - Display the `type` (capitalized).

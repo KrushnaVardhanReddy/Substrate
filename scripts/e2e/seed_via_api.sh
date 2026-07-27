@@ -58,7 +58,7 @@ post_sync '{
     "schema_type": "openapi",
     "spec_path": "openapi.yaml",
     "branch": "main",
-    "raw_content": "openapi: 3.0.0\ninfo:\n  title: Backend API\n  version: 1.0.0\npaths:\n  /users:\n    get:\n      responses:\n        \"200\":\n          description: OK"
+    "raw_content": "openapi: 3.0.0\nmetadata:\n  type: frontend\n  team: platform-core\ninfo:\n  title: Backend API\n  version: 1.0.0\npaths:\n  /users:\n    get:\n      responses:\n        \"200\":\n          description: OK"
   }]
 }'
 
@@ -76,7 +76,25 @@ post_sync '{
     "schema_type": "openapi",
     "spec_path": "openapi.yaml",
     "branch": "main",
-    "raw_content": "openapi: 3.0.0\ninfo:\n  title: Backend API\n  version: 1.0.0\npaths:\n  /users:\n    get:\n      responses:\n        \"200\":\n          description: OK"
+    "raw_content": "openapi: 3.0.0\nmetadata:\n  type: backend\n  team: platform-core\n  databases:\n    - postgres\n    - redis\ninfo:\n  title: Backend API\n  version: 1.0.0\npaths:\n  /users:\n    get:\n      responses:\n        \"200\":\n          description: OK"
+  }]
+}'
+
+# backend → postgres (adding a database)
+echo "📦 mcp-org: backend → postgres-db"
+post_sync '{
+  "installation_id": 123456,
+  "org": "mcp-org",
+  "consumer_repo": "mcp-org/backend",
+  "consumer_github_repo_id": 10101,
+  "commit_sha": "sha-mcp-backend-002",
+  "dependencies": [{
+    "provider_repo": "mcp-org/postgres-db",
+    "provider_github_repo_id": 10105,
+    "schema_type": "openapi",
+    "spec_path": "substrate.yaml",
+    "branch": "main",
+    "raw_content": "schema_type: openapi\nmetadata:\n  type: database\n  team: backend-core\n"
   }]
 }'
 

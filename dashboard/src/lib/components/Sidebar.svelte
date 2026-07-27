@@ -30,13 +30,5 @@
 			{/if}
 		{/if}
 
-		{#if repos && repos.length > 0}
-		<div class="repo-list">
-			<div class="repo-list-title">Repositories</div>
-			{#each repos as repo}
-				<a href="/org/{org}/repo/{repo.name}" class="nav-item {pathname.includes(`/repo/${repo.name}`) ? 'active' : ''} block" style="text-decoration:none;">{repo.full_name}</a>
-			{/each}
-		</div>
-		{/if}
 	</div>
 </div>
