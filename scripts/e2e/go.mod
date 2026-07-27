@@ -6,6 +6,7 @@ require (
 	aidanwoods.dev/go-paseto v1.6.0
 	github.com/KrushnaVardhanReddy/substrate/api v0.0.0-00010101000000-000000000000
 	github.com/KrushnaVardhanReddy/substrate/engine v0.0.0-00010101000000-000000000000
+	github.com/gavv/httpexpect/v2 v2.17.0
 	github.com/google/go-github/v62 v62.0.0
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.10.0
@@ -29,7 +30,6 @@ require (
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.10.1 // indirect
-	github.com/gavv/httpexpect/v2 v2.17.0 // indirect
 	github.com/getkin/kin-openapi v0.140.0 // indirect
 	github.com/go-openapi/jsonpointer v0.22.5 // indirect
 	github.com/go-openapi/swag/jsonname v0.25.5 // indirect

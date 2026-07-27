@@ -169,8 +169,7 @@ check-token:
 	fi
 
 e2e: check-token
-
-	cd dashboard && npm run test:e2e tests/e2e/system-matrix-full.spec.ts
+	bash scripts/e2e/run_full_e2e.sh
 
 
 
