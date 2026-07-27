@@ -28,9 +28,8 @@ Automate the complete new-user journey from the landing page through GitHub toke
 12. Assert an error message appears in the UI (e.g., text contains "Invalid token" or similar).
 
 ## 5. Technical Constraints
-- Must use `page.route()` to intercept API calls — no real GitHub requests.
-- The mock data should include at least 1 repo with `full_name: "testorg/core-service"`.
-- Tests must not depend on real network or real GitHub auth.
+- **No `page.route()` mocking.** All API calls must go to the live backend.
+- The test should use the `E2E_AUTH_TOKEN` or follow the real flow against a seeded database.
 
 ## 6. Success Criteria
 - `npx playwright test tests/e2e/onboarding.spec.ts` exits with code 0.

@@ -119,22 +119,22 @@ head_schema: protos/demo.proto
 
 consumers:
   - name: frontend
-    provider_repo: admin/microservices-demo
+    provider_repo: adminuser/microservices-demo
     schema_type: protobuf
     provider_spec_path: protos/demo.proto
     provider_branch: main
   - name: checkoutservice
-    provider_repo: admin/microservices-demo
+    provider_repo: adminuser/microservices-demo
     schema_type: protobuf
     provider_spec_path: protos/demo.proto
     provider_branch: main
   - name: recommendationservice
-    provider_repo: admin/microservices-demo
+    provider_repo: adminuser/microservices-demo
     schema_type: protobuf
     provider_spec_path: protos/demo.proto
     provider_branch: main
   - name: emailservice
-    provider_repo: admin/microservices-demo
+    provider_repo: adminuser/microservices-demo
     schema_type: protobuf
     provider_spec_path: protos/demo.proto
     provider_branch: main
@@ -243,28 +243,28 @@ head_schema: protos/demo.proto
 
 consumers:
   - name: frontend
-    provider_repo: admin/microservices-demo
+    provider_repo: adminuser/microservices-demo
     schema_type: protobuf
     provider_spec_path: protos/demo.proto
     provider_branch: main
     overrides:
       - rule_id: "*"
   - name: checkoutservice
-    provider_repo: admin/microservices-demo
+    provider_repo: adminuser/microservices-demo
     schema_type: protobuf
     provider_spec_path: protos/demo.proto
     provider_branch: main
     overrides:
       - rule_id: "*"
   - name: recommendationservice
-    provider_repo: admin/microservices-demo
+    provider_repo: adminuser/microservices-demo
     schema_type: protobuf
     provider_spec_path: protos/demo.proto
     provider_branch: main
     overrides:
       - rule_id: "*"
   - name: emailservice
-    provider_repo: admin/microservices-demo
+    provider_repo: adminuser/microservices-demo
     schema_type: protobuf
     provider_spec_path: protos/demo.proto
     provider_branch: main
@@ -306,7 +306,7 @@ head_schema: openapi.yaml
 
 consumers:
   - name: billing-service
-    provider_repo: admin/stripe-api
+    provider_repo: adminuser/stripe-api
     schema_type: openapi
     provider_spec_path: openapi.yaml
     provider_branch: main
@@ -467,7 +467,7 @@ head_schema: openapi.yaml
 
 consumers:
   - name: billing-service
-    provider_repo: admin/stripe-api
+    provider_repo: adminuser/stripe-api
     schema_type: openapi
     provider_spec_path: openapi.yaml
     provider_branch: main
@@ -508,7 +508,7 @@ head_schema: schema.graphql
 
 consumers:
   - name: github-action-runner
-    provider_repo: admin/github-graphql
+    provider_repo: adminuser/github-graphql
     schema_type: graphql
     provider_spec_path: schema.graphql
     provider_branch: main
@@ -577,7 +577,7 @@ head_schema: model.yaml
 
 consumers:
   - name: recommendation-engine
-    provider_repo: admin/ml-models
+    provider_repo: adminuser/ml-models
     schema_type: aiml
     provider_spec_path: model.yaml
     provider_branch: main
@@ -648,7 +648,7 @@ head_schema: Account.object
 
 consumers:
   - name: sync-worker
-    provider_repo: admin/salesforce-crm
+    provider_repo: adminuser/salesforce-crm
     schema_type: salesforce
     provider_spec_path: Account.object
     provider_branch: main

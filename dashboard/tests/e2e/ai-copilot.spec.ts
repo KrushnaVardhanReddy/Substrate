@@ -49,7 +49,7 @@ test.describe('Support Copilot Widget', () => {
         await expect(page.getByText('BREAKING', { exact: false }).first()).toBeVisible({ timeout: 15000 });
 
         // 6. Close the widget
-        const closeButton = page.getByRole('button', { name: /Close.*Copilot/i });
+        const closeButton = page.getByRole('button', { name: 'Close Copilot', exact: true });
         await closeButton.click();
         await expect(page.getByText('Support Copilot', { exact: true })).not.toBeVisible();
     });

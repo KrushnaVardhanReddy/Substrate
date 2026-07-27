@@ -17,6 +17,9 @@ test.describe('1,000-Node UI Stress Test', () => {
 
 		await page.goto('/org/stress-test/graph');
 
+		// Wait for the graph data to load before proceeding
+		await page.waitForResponse(res => res.url().includes('/api/v1/graph/stress-test') && res.status() === 200, { timeout: 30000 });
+
 		// Wait for the empty state — this means the initial data has loaded
 		await expect(page.locator('.empty-state')).toBeVisible({ timeout: 10000 });
 

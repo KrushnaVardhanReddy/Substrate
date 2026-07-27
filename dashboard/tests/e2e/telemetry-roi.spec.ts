@@ -8,7 +8,7 @@ test.describe('Telemetry ROI E2E (Suite 14)', () => {
 			localStorage.setItem('github_token', t);
 		}, process.env.E2E_AUTH_TOKEN || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdzIjp7ImFkbWluIjoiYWRtaW4ifSwiZXhwIjo5OTk5OTk5OTk5fQ.placeholder');
 
-        await page.goto('/org/admin/telemetry');
+        await page.goto('/org/testorg/telemetry');
 
         // Wait for the API call to resolve — either the ROI card or error appears
         // Hours Saved can legitimately be 0 if no telemetry events have been processed yet
