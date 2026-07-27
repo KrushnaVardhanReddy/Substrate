@@ -43,7 +43,7 @@ func setupP3Database(t *testing.T) *pgxpool.Pool {
 		"endpoint_traffic",
 		"governance_rules",
 		"breaking_change_history",
-		"diff_reports",
+		"preview_sessions", "diff_reports",
 		"dependencies",
 		"contracts",
 		"repositories",

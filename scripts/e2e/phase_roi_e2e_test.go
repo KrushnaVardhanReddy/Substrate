@@ -41,7 +41,8 @@ func pRoiSetupDatabase(t *testing.T) *pgxpool.Pool {
 	require.NoError(t, err, "Failed to connect to real PostgreSQL")
 
 	// Clean tables
-	_, err = pool.Exec(ctx, "DELETE FROM diff_reports")
+	_, err = pool.Exec(ctx, "DELETE FROM preview_sessions")
+	pool.Exec(ctx, "DELETE FROM diff_reports")
 	require.NoError(t, err)
 	_, err = pool.Exec(ctx, "DELETE FROM drift_anomalies")
 	require.NoError(t, err)

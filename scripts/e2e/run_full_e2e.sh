@@ -69,7 +69,11 @@ export REGISTRY_API_TOKEN="local-dev-token"
 export INTERNAL_SERVICE_TOKEN="local-dev-token"
 export PGLITE_PORT=54320
 export GITHUB_API_URL="http://127.0.0.1:3005/api/v1"
-export GITHUB_TOKEN="dummy"
+echo "🔑 Generating Forgejo token for API..."
+# Delete any existing token with the same name first to avoid errors on rerun
+podman exec forgejo su git -c "gitea admin user delete-access-token --username adminuser --token-name e2etoken" > /dev/null 2>&1 || true
+export GITHUB_TOKEN=$(podman exec forgejo su git -c "gitea admin user generate-access-token --username adminuser --token-name e2etoken --raw")
+echo "✅ Forgejo token generated!"
 export FORGEJO_PORT="3005"
 export FORGEJO_USER="adminuser"
 export FORGEJO_PASS="Admin123!"
@@ -155,7 +159,7 @@ export E2E_AUTH_TOKEN
 # 5. Run Playwright UI Tests
 echo "🧪 Running Playwright UI Tests..."
 cd dashboard
-E2E_AUTH_TOKEN="$E2E_AUTH_TOKEN" npx playwright test
+FORGEJO_PORT="3005" FORGEJO_USER="adminuser" FORGEJO_PASS="Admin123!" E2E_AUTH_TOKEN="$E2E_AUTH_TOKEN" npx playwright test
 cd ..
 
 echo "🎉 E2E Test Run Complete!"

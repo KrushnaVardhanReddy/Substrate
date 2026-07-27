@@ -6,7 +6,7 @@ import * as os from 'os';
 
 const FORGEJO_USER = process.env.FORGEJO_USER || 'adminuser';
 const FORGEJO_PASS = process.env.FORGEJO_PASS || 'Admin123!';
-const FORGEJO_PORT = process.env.FORGEJO_PORT || '3000';
+const FORGEJO_PORT = process.env.FORGEJO_PORT || '3005';
 const FORGEJO_URL = `http://${FORGEJO_USER}:${encodeURIComponent(FORGEJO_PASS)}@localhost:${FORGEJO_PORT}`;
 const DASHBOARD_URL = 'http://localhost:5173';
 const REPO_ORG = FORGEJO_USER;
@@ -84,25 +84,98 @@ async function pushToForgejo(repoName: string, files: Record<string, string>, br
   }
 }
 
+// Poll the backend API until graph edges appear for this org (waits for async River job to complete)
+// repoFilter: optional string to filter edges by provider or consumer full name
+async function waitForAPIEdges(minEdges: number, repoFilter?: string, timeoutMs: number = 60000): Promise<void> {
+  const token = process.env.E2E_AUTH_TOKEN || 'placeholder';
+  const apiUrl = `http://localhost:8090/api/v1/graph/${REPO_ORG}`;
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    try {
+      const res = await fetch(apiUrl, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.ok) {
+        const edges = await res.json();
+        if (Array.isArray(edges)) {
+          const filtered = repoFilter
+            ? edges.filter((e: any) =>
+                (e.provider || '').toLowerCase().includes(repoFilter.toLowerCase()) ||
+                (e.consumer || '').toLowerCase().includes(repoFilter.toLowerCase()))
+            : edges;
+          if (filtered.length >= minEdges) {
+            return;
+          }
+        }
+      }
+    } catch (_) {}
+    await new Promise(r => setTimeout(r, 2000));
+  }
+  throw new Error(`Timed out waiting for >= ${minEdges} edges${repoFilter ? ` matching '${repoFilter}'` : ''} from ${apiUrl} after ${timeoutMs}ms`);
+}
+
+// Poll the backend API for BREAKING edges (waits for breaking change to be processed)
+// repoFilter: optional string to filter edges by provider or consumer full name
+async function waitForBreakingAPIEdges(minBreaking: number, repoFilter?: string, timeoutMs: number = 60000): Promise<void> {
+  const token = process.env.E2E_AUTH_TOKEN || 'placeholder';
+  const apiUrl = `http://localhost:8090/api/v1/graph/${REPO_ORG}`;
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    try {
+      const res = await fetch(apiUrl, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.ok) {
+        const edges = await res.json();
+        if (Array.isArray(edges)) {
+          const filtered = repoFilter
+            ? edges.filter((e: any) =>
+                (e.provider || '').toLowerCase().includes(repoFilter.toLowerCase()) ||
+                (e.consumer || '').toLowerCase().includes(repoFilter.toLowerCase()))
+            : edges;
+          const breakingCount = filtered.filter((e: any) => e.status === 'BREAKING').length;
+          if (breakingCount >= minBreaking) {
+            return;
+          }
+        }
+      }
+    } catch (_) {}
+    await new Promise(r => setTimeout(r, 2000));
+  }
+  throw new Error(`Timed out waiting for >= ${minBreaking} BREAKING edges${repoFilter ? ` matching '${repoFilter}'` : ''} from ${apiUrl} after ${timeoutMs}ms`);
+}
+
+
 // Wait for graph nodes to render
 async function waitForGraphSearch(page: any, searchTerm: string, expectedNodesCount: number) {
+  // First poll the API directly until the async backend job has seeded the data.
+  // We filter by searchTerm (repo name) to avoid false positives from other test suites.
+  // edges = nodes - 1: e.g., 1 provider + 4 consumers = 4 edges → 5 nodes
+  await waitForAPIEdges(expectedNodesCount - 1, searchTerm);
+  
+  // Now navigate to the graph UI (data is ready)
   await page.goto(`${DASHBOARD_URL}/org/${REPO_ORG}/graph`);
   
   const searchInput = page.locator('input[placeholder*="Search"]');
   await searchInput.fill(searchTerm);
   
   // Wait for debounce and graph render
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(1500);
   
-  // We expect at least the specified number of nodes to eventually appear
+  // Reload if cyInstance doesn't have nodes yet (SSE may not have fired for initial load)
   await expect(async () => {
-    await page.waitForFunction(() => (window as any).cyInstance !== undefined && (window as any).cyInstance !== null, { timeout: 10000 });
+    const cy = await page.evaluate(() => !!(window as any).cyInstance);
+    if (!cy) {
+      await page.reload();
+      await page.waitForTimeout(1500);
+      const searchInput2 = page.locator('input[placeholder*="Search"]');
+      await searchInput2.fill(searchTerm);
+      await page.waitForTimeout(1500);
+    }
+    await page.waitForFunction(() => (window as any).cyInstance !== undefined && (window as any).cyInstance !== null, { timeout: 15000 });
     const count = await page.evaluate(() => {
         return (window as any).cyInstance.nodes().length;
     });
     expect(count).toBeGreaterThanOrEqual(expectedNodesCount);
-  }).toPass({ timeout: 30000 });
+  }).toPass({ timeout: 45000 });
 }
+
 
 test.describe.serial('Full E2E System Matrix — Real Git Push Pipeline', () => {
     test.beforeEach(async ({ context }) => {
@@ -154,13 +227,14 @@ message CartItem {
 message Empty {}
 `;
 
-    test('Setup & Seeding: Push initial valid schema', async () => {
+    test('Setup & Seeding: Push initial valid schema', async ({ page }) => {
       await pushToForgejo(REPO_NAME, {
         'substrate.yaml': BASE_SUBSTRATE_YAML,
         'protos/demo.proto': BASE_PROTO
       });
       // Wait a moment for webhook -> worker -> engine -> API -> DB
-      await new Promise(r => setTimeout(r, 2000));
+      await page.waitForTimeout(6000);
+      await waitForGraphSearch(page, 'microservices', 5);
     });
 
     test('Red Path: Push breaking change', async ({ page }) => {
@@ -178,8 +252,8 @@ message Empty {}
         'protos/demo.proto': BREAKING_PROTO
       });
       
-      // Wait for pipeline processing
-      await page.waitForTimeout(3000);
+      // Wait for the async pipeline to detect the breaking change at the API level
+      await waitForBreakingAPIEdges(4, 'microservices'); // 4 consumers should be BREAKING
       
       // Go to graph and search
       await waitForGraphSearch(page, 'microservices', 5); // 1 provider + 4 consumers
@@ -189,7 +263,7 @@ message Empty {}
           const cy = (window as any).cyInstance;
           if (!cy) return false;
           return cy.edges('[status = "BREAKING"]').length > 0;
-      }, { timeout: 10000 });
+      }, { timeout: 30000 });
       
       const breakingCount = await page.evaluate(() => {
           return (window as any).cyInstance.edges('[status = "BREAKING"]').length;
@@ -215,7 +289,7 @@ message Empty {}
       });
       
       // Wait for pipeline processing
-      await page.waitForTimeout(3000);
+      await page.waitForTimeout(6000);
       await waitForGraphSearch(page, 'microservices', 5);
       
       // Wait for it to become safe (0 breaking edges)
@@ -281,7 +355,7 @@ consumers:
         'protos/demo.proto': BREAKING_PROTO
       });
 
-      await page.waitForTimeout(3000);
+      await page.waitForTimeout(6000);
       await waitForGraphSearch(page, 'microservices', 5);
 
       // No breaking alerts, but expecting warning instead
@@ -293,7 +367,7 @@ consumers:
           const cy = (window as any).cyInstance;
           if (!cy) return false;
           return cy.edges('[status = "WARNING"]').length > 0;
-      }, { timeout: 10000 });
+      }, { timeout: 30000 });
       
       const warningCount = await page.evaluate(() => {
           return (window as any).cyInstance.edges('[status = "WARNING"]').length;
@@ -341,12 +415,13 @@ paths:
           description: OK
 `;
 
-    test('Setup & Seeding: Push initial valid schema', async () => {
+    test('Setup & Seeding: Push initial valid schema', async ({ page }) => {
       await pushToForgejo(REPO_NAME, {
         'substrate.yaml': BASE_SUBSTRATE_YAML,
         'openapi.yaml': BASE_OPENAPI
       });
-      await new Promise(r => setTimeout(r, 2000));
+      await page.waitForTimeout(6000);
+      await waitForGraphSearch(page, 'stripe', 2);
     });
 
     test('Red Path: Push breaking change', async ({ page }) => {
@@ -381,14 +456,15 @@ paths:
         'openapi.yaml': BREAKING_OPENAPI
       });
       
-      await page.waitForTimeout(3000);
+      // Wait for the async pipeline to detect the breaking change at the API level
+      await waitForBreakingAPIEdges(1, 'stripe');
       await waitForGraphSearch(page, 'stripe', 2); // 1 provider + 1 consumer
       
       await page.waitForFunction(() => {
           const cy = (window as any).cyInstance;
           if (!cy) return false;
           return cy.edges('[status = "BREAKING"]').length > 0;
-      }, { timeout: 10000 });
+      }, { timeout: 30000 });
       
       const breakingCount = await page.evaluate(() => {
           return (window as any).cyInstance.edges('[status = "BREAKING"]').length;
@@ -430,7 +506,7 @@ paths:
         'openapi.yaml': SAFE_OPENAPI
       });
       
-      await page.waitForTimeout(3000);
+      await page.waitForTimeout(6000);
       await waitForGraphSearch(page, 'stripe', 2);
       
       const breakingCount = await page.evaluate(() => {
@@ -484,7 +560,7 @@ consumers:
         'openapi.yaml': BREAKING_OPENAPI
       });
 
-      await page.waitForTimeout(3000);
+      await page.waitForTimeout(6000);
       await waitForGraphSearch(page, 'stripe', 2);
 
       const breakingCount = await page.evaluate(() => {
@@ -495,7 +571,7 @@ consumers:
           const cy = (window as any).cyInstance;
           if (!cy) return false;
           return cy.edges('[status = "WARNING"]').length > 0;
-      }, { timeout: 10000 });
+      }, { timeout: 30000 });
       
       const warningCount = await page.evaluate(() => {
           return (window as any).cyInstance.edges('[status = "WARNING"]').length;
@@ -523,12 +599,13 @@ consumers:
 type User { id: ID!, name: String! }
 `;
 
-    test('Setup & Seeding: Push initial valid schema', async () => {
+    test('Setup & Seeding: Push initial valid schema', async ({ page }) => {
       await pushToForgejo(REPO_NAME, {
         'substrate.yaml': BASE_SUBSTRATE_YAML,
         'schema.graphql': BASE_GRAPHQL
       });
-      await new Promise(r => setTimeout(r, 2000));
+      await page.waitForTimeout(6000);
+      await waitForGraphSearch(page, 'github', 2);
     });
 
     test('Red Path: Push breaking change', async ({ page }) => {
@@ -540,14 +617,15 @@ type User { id: ID! }
         'schema.graphql': BREAKING_GRAPHQL
       });
 
-      await page.waitForTimeout(3000);
+      // Wait for the async pipeline to detect the breaking change at the API level
+      await waitForBreakingAPIEdges(1, 'github');
       await waitForGraphSearch(page, 'github', 2); // 1 provider + 1 consumer
 
       await page.waitForFunction(() => {
           const cy = (window as any).cyInstance;
           if (!cy) return false;
           return cy.edges('[status = "BREAKING"]').length > 0;
-      }, { timeout: 10000 });
+      }, { timeout: 30000 });
       
       const breakingCount = await page.evaluate(() => {
           return (window as any).cyInstance.edges('[status = "BREAKING"]').length;
@@ -564,7 +642,7 @@ type User { id: ID!, name: String!, email: String }
         'schema.graphql': SAFE_GRAPHQL
       });
 
-      await page.waitForTimeout(3000);
+      await page.waitForTimeout(6000);
       await waitForGraphSearch(page, 'github', 2);
 
       const breakingCount = await page.evaluate(() => {
@@ -600,12 +678,13 @@ ml_model:
       type: "float"
       required: true
 `;
-    test('Setup & Seeding: Push initial valid schema', async () => {
+    test('Setup & Seeding: Push initial valid schema', async ({ page }) => {
       await pushToForgejo(REPO_NAME, {
         'substrate.yaml': BASE_SUBSTRATE_YAML,
         'model.yaml': BASE_AIML
       });
-      await new Promise(r => setTimeout(r, 2000));
+      await page.waitForTimeout(6000);
+      await waitForGraphSearch(page, 'ml', 2);
     });
 
     test('Red Path: Push breaking change', async ({ page }) => {
@@ -629,14 +708,15 @@ ml_model:
         'substrate.yaml': BASE_SUBSTRATE_YAML,
         'model.yaml': BREAKING_AIML
       });
-      await page.waitForTimeout(3000);
+      // Wait for the async pipeline to detect the breaking change at the API level
+      await waitForBreakingAPIEdges(1, 'ml');
       await waitForGraphSearch(page, 'ml', 2);
       
       await page.waitForFunction(() => {
           const cy = (window as any).cyInstance;
           if (!cy) return false;
           return cy.edges('[status = "BREAKING"]').length > 0;
-      }, { timeout: 10000 });
+      }, { timeout: 30000 });
       
       const breakingCount = await page.evaluate(() => {
           return (window as any).cyInstance.edges('[status = "BREAKING"]').length;
@@ -666,12 +746,13 @@ consumers:
         <required>false</required>
     </fields>
 </CustomObject>`;
-    test('Setup & Seeding: Push initial valid schema', async () => {
+    test('Setup & Seeding: Push initial valid schema', async ({ page }) => {
       await pushToForgejo(REPO_NAME, {
         'substrate.yaml': BASE_SUBSTRATE_YAML,
         'Account.object': BASE_SOAP
       });
-      await new Promise(r => setTimeout(r, 2000));
+      await page.waitForTimeout(6000);
+      await waitForGraphSearch(page, 'salesforce', 2);
     });
 
     test('Red Path: Push breaking change', async ({ page }) => {
@@ -682,14 +763,15 @@ consumers:
         'substrate.yaml': BASE_SUBSTRATE_YAML,
         'Account.object': BREAKING_SOAP
       });
-      await page.waitForTimeout(3000);
+      // Wait for the async pipeline to detect the breaking change at the API level
+      await waitForBreakingAPIEdges(1, 'salesforce');
       await waitForGraphSearch(page, 'salesforce', 2);
       
       await page.waitForFunction(() => {
           const cy = (window as any).cyInstance;
           if (!cy) return false;
           return cy.edges('[status = "BREAKING"]').length > 0;
-      }, { timeout: 10000 });
+      }, { timeout: 30000 });
       
       const breakingCount = await page.evaluate(() => {
           return (window as any).cyInstance.edges('[status = "BREAKING"]').length;

@@ -42,7 +42,8 @@ func pSyncSetupDatabase(t *testing.T) *pgxpool.Pool {
 
 	_, err = pool.Exec(ctx, "DELETE FROM breaking_change_history")
 	require.NoError(t, err)
-	_, err = pool.Exec(ctx, "DELETE FROM diff_reports")
+	_, err = pool.Exec(ctx, "DELETE FROM preview_sessions")
+	pool.Exec(ctx, "DELETE FROM diff_reports")
 	require.NoError(t, err)
 	_, err = pool.Exec(ctx, "DELETE FROM dependencies")
 	require.NoError(t, err)

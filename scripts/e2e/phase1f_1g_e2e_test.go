@@ -37,7 +37,7 @@ func p1f1gSetupDB(t *testing.T) *pgxpool.Pool {
 
 	// Clean tables
 	tables := []string{
-		"diff_reports", "repositories", "organizations",
+		"preview_sessions", "diff_reports", "repositories", "organizations",
 	}
 	for _, table := range tables {
 		_, err := pool.Exec(ctx, "DELETE FROM "+table)

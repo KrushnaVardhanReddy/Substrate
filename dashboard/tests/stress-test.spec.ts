@@ -24,9 +24,7 @@ test.describe('1,000-Node UI Stress Test', () => {
 		// Wait for the empty state — this means the initial data has loaded
 		await expect(page.locator('.empty-state')).toBeVisible({ timeout: 10000 });
 
-		// Type a search query to trigger subset layout
-		await page.fill('input[placeholder="Search repository..."]', 'Service 15');
-
+		await page.fill('input[placeholder="Search repository..."]', 'node-15');
 		// Wait for the debounce (300ms) plus some render time
 		await page.waitForTimeout(600);
 
