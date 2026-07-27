@@ -37,7 +37,7 @@ func p1f1gSetupDB(t *testing.T) *pgxpool.Pool {
 
 	// Clean tables
 	tables := []string{
-		"diff_reports", "schema_snapshots", "repositories", "organizations",
+		"diff_reports", "repositories", "organizations",
 	}
 	for _, table := range tables {
 		_, err := pool.Exec(ctx, "DELETE FROM "+table)
@@ -48,20 +48,26 @@ func p1f1gSetupDB(t *testing.T) *pgxpool.Pool {
 
 	// Seed data
 	_, err = pool.Exec(ctx, `
-		INSERT INTO organizations (name, github_installation_id, billing_plan)
-		VALUES ('mcp-org', 12345, 'enterprise')
-		ON CONFLICT (name) DO NOTHING;
+		INSERT INTO organizations (github_org_name, github_installation_id)
+		VALUES ('mcp-org', 12345)
+		ON CONFLICT (github_installation_id) DO NOTHING;
 	`)
 	if err != nil {
 		t.Fatalf("Failed to seed org: %v", err)
 	}
 
 	_, err = pool.Exec(ctx, `
-		INSERT INTO repositories (org_name, name, language, schema_type, provider_type)
-		VALUES
-			('mcp-org', 'ml-models', 'python', 'ai-model', 'provider'),
-			('mcp-org', 'salesforce-crm', 'xml', 'salesforce-object', 'provider')
-		ON CONFLICT (org_name, name) DO NOTHING;
+		INSERT INTO repositories (org_id, github_repo_id, name, full_name)
+		SELECT id, 1001, 'ml-models', 'mcp-org/ml-models' FROM organizations WHERE github_installation_id = 12345
+		ON CONFLICT (github_repo_id) DO NOTHING;
+	`)
+	if err != nil {
+		t.Fatalf("Failed to seed repo 1: %v", err)
+	}
+	_, err = pool.Exec(ctx, `
+		INSERT INTO repositories (org_id, github_repo_id, name, full_name)
+		SELECT id, 1002, 'salesforce-crm', 'mcp-org/salesforce-crm' FROM organizations WHERE github_installation_id = 12345
+		ON CONFLICT (github_repo_id) DO NOTHING;
 	`)
 	if err != nil {
 		t.Fatalf("Failed to seed repos: %v", err)

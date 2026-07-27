@@ -652,14 +652,14 @@ consumers:
     provider_spec_path: Account.object
     provider_branch: main
 `;
-    const BASE_SOAP = \`<?xml version="1.0" encoding="UTF-8"?>
+    const BASE_SOAP = `<?xml version="1.0" encoding="UTF-8"?>
 <CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
     <fields>
         <fullName>AnnualRevenue</fullName>
         <type>Currency</type>
         <required>false</required>
     </fields>
-</CustomObject>\`;
+</CustomObject>`;
     test('Setup & Seeding: Push initial valid schema', async () => {
       await pushToForgejo(REPO_NAME, {
         'substrate.yaml': BASE_SUBSTRATE_YAML,
@@ -669,9 +669,9 @@ consumers:
     });
 
     test('Red Path: Push breaking change', async ({ page }) => {
-      const BREAKING_SOAP = \`<?xml version="1.0" encoding="UTF-8"?>
+      const BREAKING_SOAP = `<?xml version="1.0" encoding="UTF-8"?>
 <CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
-</CustomObject>\`;
+</CustomObject>`;
       await pushToForgejo(REPO_NAME, {
         'substrate.yaml': BASE_SUBSTRATE_YAML,
         'Account.object': BREAKING_SOAP

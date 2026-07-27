@@ -80,7 +80,7 @@ func SetupForgejo(orgName, repoName string) (string, string, error) {
 	time.Sleep(2 * time.Second)
 
 	webhookPayload := map[string]interface{}{
-		"type": "github",
+		"type": "gitea",
 		"config": map[string]string{
 			"url":          "http://127.0.0.1:8090/api/v1/webhook",
 			"content_type": "json",
