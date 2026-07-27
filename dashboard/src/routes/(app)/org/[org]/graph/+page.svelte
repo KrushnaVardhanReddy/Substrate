@@ -257,13 +257,15 @@
 							'color': '#f8fafc',
 							'text-valign': 'center',
 							'text-halign': 'center',
-							'font-size': '14px',
+							'text-wrap': 'wrap',
+							'text-max-width': '140px',
+							'font-size': '12px',
 							'font-family': 'monospace',
-							'padding': '15px',
+							'padding': '16px',
 							'shape': 'round-rectangle',
 							'label': 'data(label)',
-							'width': 'auto',
-							'height': 'auto'
+							'width': 'label',
+							'height': 'label'
 						}
 					},
 					{
@@ -308,7 +310,9 @@
 			cyInstance.layout({
 				name: 'dagre',
 				rankDir: layoutDirection,
-				padding: 50
+				padding: 50,
+				nodeSep: 80,
+				rankSep: 100
 			}).run();
 			
 			cyInstance.fit();
@@ -537,10 +541,16 @@
 					Clear Selection
 				</button>
 			{/if}
-			<!-- Removed zoom controls since SvelteFlow provides its own <Controls /> -->
 		</div>
 
 		<div bind:this={cyContainer} style="flex: 1; width: 100%; min-height: 0; position: relative; z-index: 10;"></div>
+		
+		<!-- Zoom controls for Cytoscape -->
+		<div class="zoom-controls">
+			<button class="btn-zoom" onclick={() => cyInstance && cyInstance.zoom(cyInstance.zoom() * 1.2)} title="Zoom In">+</button>
+			<button class="btn-zoom" onclick={() => cyInstance && cyInstance.zoom(cyInstance.zoom() * 0.8)} title="Zoom Out">-</button>
+			<button class="btn-zoom" onclick={() => cyInstance && cyInstance.fit(undefined, 50)} title="Fit to Screen">Fit</button>
+		</div>
 		{#if isGraphEmpty}
 			<div class="empty-state">
 				<h2>Search for a repository</h2>
@@ -679,6 +689,40 @@
 		position: relative;
 		padding: 24px;
 		overflow: hidden;
+	}
+
+	.zoom-controls {
+		position: absolute;
+		bottom: 120px;
+		right: 24px;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		z-index: 50;
+		background-color: var(--bg-hover);
+		padding: 8px;
+		border-radius: 8px;
+		border: 1px solid var(--border);
+	}
+
+	.btn-zoom {
+		background-color: var(--bg-dark);
+		border: 1px solid var(--border);
+		color: var(--text-main);
+		width: 32px;
+		height: 32px;
+		border-radius: 4px;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-weight: bold;
+		transition: background-color 0.2s;
+	}
+
+	.btn-zoom:hover {
+		background-color: var(--accent);
+		color: white;
 	}
 
 	.canvas-header {
