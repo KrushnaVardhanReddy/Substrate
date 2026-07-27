@@ -2,40 +2,42 @@ import { test, expect } from '@playwright/test';
 
 test.describe('1,000-Node UI Stress Test', () => {
 	test('can load a graph with 1,000 nodes and 3,000 edges without crashing', async ({ page }) => {
-		test.setTimeout(120000); // 2 minutes timeout for the whole test
+		// The `stress-test` org in the DB is seeded with 1,000 nodes and 3,000 edges.
 
-		page.on('pageerror', exception => {
-			console.log(`Uncaught exception: "${exception}"`);
+		// Set a longer timeout for the test given the large graph payload
+		test.setTimeout(120000);
+
+		// Listen for JS errors that indicate browser crash/OOM
+		const errors: string[] = [];
+		page.on('pageerror', err => {
+			if (!err.message.includes('hydration')) {
+				errors.push(err.message);
+			}
 		});
 
-		page.on('console', msg => {
-			console.log(`Console message: "${msg.text()}"`);
-		});
-
-
-
-
-
-		const startTime = Date.now();
-		
 		await page.goto('/org/stress-test/graph');
 
-		// Verify empty state is shown initially
+		// Wait for the empty state — this means the initial data has loaded
 		await expect(page.locator('.empty-state')).toBeVisible({ timeout: 10000 });
-		await expect(page.locator('.svelte-flow__node')).toHaveCount(0);
 
 		// Type a search query to trigger subset layout
-		await page.fill('input[placeholder="Search repository..."]', 'node-15');
+		await page.fill('input[placeholder="Search repository..."]', 'Service 15');
 
-		// Wait for dagre layout to mount the subset of nodes
-		// We expect > 0 nodes, not 200, since it's a subset
-		await expect(page.locator('.svelte-flow__node')).not.toHaveCount(0, { timeout: 30000 });
-		
-		// Verify that the UI is still responsive and didn't crash
-		const cyContainer = page.locator('.svelte-flow').first();
-		await expect(cyContainer).toBeVisible({ timeout: 15000 });
+		// Wait for the debounce (300ms) plus some render time
+		await page.waitForTimeout(600);
 
-		const endTime = Date.now();
-		console.log(`Stress test completed in ${endTime - startTime}ms`);
+		// Wait for cytoscape canvas to mount (it draws on a single canvas)
+		await page.waitForSelector('canvas[data-id="layer2-node"]', { state: 'attached', timeout: 30000 });
+
+		// Poll until cyInstance is populated (it may take a frame or two after canvas appears)
+		const nodeCount = await page.waitForFunction(() => {
+			const cy = (window as any).cyInstance;
+			return cy ? cy.nodes().length : 0;
+		}, { timeout: 15000 }).then(h => h.jsonValue() as Promise<number>);
+
+		expect(nodeCount).toBeGreaterThan(0);
+
+		// Assert no actual crashes
+		expect(errors.length).toBe(0);
 	});
 });

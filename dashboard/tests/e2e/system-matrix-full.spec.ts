@@ -4,11 +4,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 
-const FORGEJO_USER = 'admin';
-const FORGEJO_PASS = process.env.FORGEJO_PASSWORD || 'Buchu*89';
-const FORGEJO_URL = `http://${FORGEJO_USER}:${encodeURIComponent(FORGEJO_PASS)}@localhost:3000`;
+const FORGEJO_USER = process.env.FORGEJO_USER || 'adminuser';
+const FORGEJO_PASS = process.env.FORGEJO_PASS || 'Admin123!';
+const FORGEJO_PORT = process.env.FORGEJO_PORT || '3000';
+const FORGEJO_URL = `http://${FORGEJO_USER}:${encodeURIComponent(FORGEJO_PASS)}@localhost:${FORGEJO_PORT}`;
 const DASHBOARD_URL = 'http://localhost:5173';
-const REPO_ORG = 'admin';
+const REPO_ORG = FORGEJO_USER;
 
 // Helper to push files to Forgejo
 async function pushToForgejo(repoName: string, files: Record<string, string>, branch: string = 'main') {
@@ -34,7 +35,7 @@ async function pushToForgejo(repoName: string, files: Record<string, string>, br
     // If it fails because the repo needs to be created first via API, we handle that.
     try {
       // 1. Try to create the repo (ignore if it fails because it already exists)
-      await fetch(`http://localhost:3000/api/v1/user/repos`, {
+      await fetch(`http://localhost:${FORGEJO_PORT}/api/v1/user/repos`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -44,13 +45,13 @@ async function pushToForgejo(repoName: string, files: Record<string, string>, br
       });
 
       // 2. Ensure webhook is registered BEFORE pushing
-      const hooksListRes = await fetch(`http://localhost:3000/api/v1/repos/${FORGEJO_USER}/${repoName}/hooks`, {
+      const hooksListRes = await fetch(`http://localhost:${FORGEJO_PORT}/api/v1/repos/${FORGEJO_USER}/${repoName}/hooks`, {
         headers: { 'Authorization': `Basic ${Buffer.from(`${FORGEJO_USER}:${FORGEJO_PASS}`).toString('base64')}` }
       });
       const hooks = await hooksListRes.json();
       if (Array.isArray(hooks)) {
         for (const hook of hooks) {
-          await fetch(`http://localhost:3000/api/v1/repos/${FORGEJO_USER}/${repoName}/hooks/${hook.id}`, {
+          await fetch(`http://localhost:${FORGEJO_PORT}/api/v1/repos/${FORGEJO_USER}/${repoName}/hooks/${hook.id}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Basic ${Buffer.from(`${FORGEJO_USER}:${FORGEJO_PASS}`).toString('base64')}` }
           });
@@ -58,7 +59,7 @@ async function pushToForgejo(repoName: string, files: Record<string, string>, br
       }
 
       // Always create exactly one fresh webhook
-      const hookRes = await fetch(`http://localhost:3000/api/v1/repos/${FORGEJO_USER}/${repoName}/hooks`, {
+      const hookRes = await fetch(`http://localhost:${FORGEJO_PORT}/api/v1/repos/${FORGEJO_USER}/${repoName}/hooks`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

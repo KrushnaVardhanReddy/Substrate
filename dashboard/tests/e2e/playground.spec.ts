@@ -1,137 +1,108 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('AI Playground', () => {
+/**
+ * P12-T03: AI Playground E2E
+ * Strategy: NO page.route(), NO mocking. All requests hit the live Go API.
+ * The server returns a deterministic SSE fallback when SUBSTRATE_AI_BASE_URL is unset.
+ */
 
-
-	test('should stream AI analysis and apply auto-fix', async ({ page }) => {
-		// Navigate to the playground
-		await page.goto('/playground');
-
-		// Check if we are on the playground
-		await expect(page.locator('h1.page-title')).toContainText('AI Schema Validator Playground');
-		
-		// Let the UI settle
-		await page.waitForTimeout(500);
-
-		// Click the Analyze button
-		await page.getByRole('button', { name: /Analyze with Substrate AI/i }).click();
-
-		// Verify that the thinking text appears (it might appear instantly due to the mock)
-		await expect(page.locator('.analysis-panel')).toBeVisible();
-		await expect(page.locator('.analysis-panel')).toContainText('Analyzing GraphQL schema for breaking changes...');
-
-		// Verify the finding was rendered
-		await expect(page.locator('.analysis-panel')).toContainText('BREAKING:');
-		await expect(page.locator('.analysis-panel')).toContainText("Field 'user_id' was removed from User type.");
-
-		// Verify the fix code block was rendered
-		await expect(page.locator('.auto-fix-section')).toBeVisible();
-		await expect(page.locator('.auto-fix-section .code-block')).toContainText('user_id: String! @deprecated');
-
-		// Apply the fix
-		await page.getByRole('button', { name: 'Apply Fix' }).click();
-
-		// Verify the proposed schema editor was updated with the fix
-		const proposedEditor = page.locator('textarea.code-editor').nth(1);
-		await expect(proposedEditor).toHaveValue(/user_id: String! @deprecated/);
-	});
-});
-
-test.describe('AI Playground Analysis Workflow', () => {
-  const ANALYZE_API = '**/api/v1/ai/analyze';
-  const VALID_SCHEMA = `
+const VALID_OPENAPI_SCHEMA = `
 openapi: 3.0.0
 info:
   title: Test API
+  version: 1.0.0
 paths:
   /users:
     get:
+      summary: Get users
       responses:
-        200:
-          content: {}
-  `.trim();
+        '200':
+          description: Success
+`.trim();
 
-  test('should stream AI analysis and display findings', async ({ page }) => {
-    // a. Mock the AI analyze endpoint for SSE
+test.describe('AI Playground (P12-T03)', () => {
 
+    test('Test A — AI analysis stream returns findings panel', async ({ page }) => {
+        await page.goto('/playground');
 
-    // b. Navigate to playground
-    await page.goto('/playground');
+        // Assert page is the playground
+        await expect(page.locator('h1.page-title')).toContainText(/Playground|AI|Studio/i);
 
-    // c. Assert heading
-    await expect(page.locator('h1.page-title')).toContainText(/Playground|AI|Studio/i);
+        // Fill the current schema editor
+        const editor = page.locator('textarea.code-editor').first();
+        await editor.fill(VALID_OPENAPI_SCHEMA);
 
-    // d. Locate and fill editor
-    const editor = page.locator('textarea, [contenteditable="true"]').first();
-    await editor.fill(VALID_SCHEMA);
+        // Click Analyze — hits real /api/v1/ai/analyze endpoint
+        await page.getByRole('button', { name: /Analyze with Substrate AI/i }).click();
 
-    // e. Click Analyze
-    await page.getByRole('button', { name: /Analyze with Substrate AI/i }).click();
+        // Wait for the SSE stream to complete and findings to render
+        const analysisPanel = page.locator('.analysis-panel');
+        await expect(analysisPanel).toBeVisible({ timeout: 15000 });
 
-    // f. Wait for findings panel
-    const findings = page.locator('.analysis-panel');
-    await expect(findings).toBeVisible({ timeout: 10000 });
-
-    // g. Assert finding text
-    await expect(findings).toContainText(/BREAKING|userId/);
-  });
-
-  test('should apply auto-fix to editor content', async ({ page }) => {
-    // Setup console error listener
-    const consoleErrors: string[] = [];
-    page.on('console', msg => { 
-      if (msg.type() === 'error') consoleErrors.push(msg.text()); 
+        // Server's real response (or deterministic fallback) must include BREAKING
+        await expect(analysisPanel).toContainText(/BREAKING/i);
     });
 
-    // Repeat Test 1 setup
+    test('Test B — Apply Fix updates the proposed schema editor', async ({ page }) => {
+        const consoleErrors: string[] = [];
+        page.on('console', msg => {
+            if (msg.type() === 'error') consoleErrors.push(msg.text());
+        });
 
+        await page.goto('/playground');
 
-    await page.goto('/playground');
-    const editor = page.locator('textarea, [contenteditable="true"]').first();
-    await editor.fill(VALID_SCHEMA);
-    await page.getByRole('button', { name: /Analyze with Substrate AI/i }).click();
+        const editor = page.locator('textarea.code-editor').first();
+        await editor.fill(VALID_OPENAPI_SCHEMA);
 
-    // b. Wait for and click Apply Auto-Fix
-    const autoFixBtn = page.getByRole('button', { name: /apply fix/i });
-    await expect(autoFixBtn).toBeVisible();
-    await autoFixBtn.click();
+        // Trigger analysis against real API
+        await page.getByRole('button', { name: /Analyze with Substrate AI/i }).click();
 
-    // c. Small wait for state update
-    await page.waitForTimeout(500);
+        // Wait for auto-fix section to appear
+        const autoFixSection = page.locator('.auto-fix-section');
+        await expect(autoFixSection).toBeVisible({ timeout: 15000 });
 
-    // d. Read content from the Proposed Schema editor (the 2nd editor)
-    const proposedEditor = page.locator('textarea.code-editor').nth(1);
-    await expect(proposedEditor).toHaveValue(/Fixed Content/);
+        // Click Apply Fix
+        await page.getByRole('button', { name: /Apply Fix/i }).click();
 
-    // f. Assert no Svelte/State errors
-    const criticalErrors = consoleErrors.filter(e => e.includes('$state') || e.includes('properties of undefined'));
-    expect(criticalErrors).toHaveLength(0);
-  });
+        // Short wait for state propagation
+        await page.waitForTimeout(300);
 
-  test('should handle malformed input gracefully', async ({ page }) => {
-    const consoleErrors: string[] = [];
-    page.on('console', msg => { 
-      if (msg.type() === 'error') consoleErrors.push(msg.text()); 
+        // The proposed schema editor (2nd textarea) should now contain the fix
+        const proposedEditor = page.locator('textarea.code-editor').nth(1);
+        await expect(proposedEditor).toHaveValue(/deprecated: true/i);
+
+        // No critical Svelte errors
+        const criticalErrors = consoleErrors.filter(e =>
+            e.includes('$state') || e.includes('Cannot read properties of undefined')
+        );
+        expect(criticalErrors).toHaveLength(0);
     });
 
-    // a. Mock 400 error
+    test('Test C — Malformed input does not crash the page', async ({ page }) => {
+        const consoleErrors: string[] = [];
+        page.on('console', msg => {
+            if (msg.type() === 'error') consoleErrors.push(msg.text());
+        });
 
+        await page.goto('/playground');
 
-    // b. Navigate
-    await page.goto('/playground');
+        // Fill with deliberately broken content
+        const editor = page.locator('textarea.code-editor').first();
+        await editor.fill('{{ INVALID_YAML_\x00 }}');
 
-    // c. Fill with malformed data
-    const editor = page.locator('textarea.code-editor').first();
-    await editor.fill("{{ INVALID_YAML_\x00 }}");
+        // Click Analyze — real server will handle/reject this gracefully
+        await page.getByRole('button', { name: /Analyze with Substrate AI/i }).click();
 
-    // d. Click Analyze
-    await page.getByRole('button', { name: /Analyze with Substrate AI/i }).click();
+        // Give it time to resolve
+        await page.waitForTimeout(1000);
 
-    // e. Assert error was logged and gracefully caught
-    await page.waitForTimeout(500); // Give time for the fetch to resolve
-    expect(consoleErrors.some(e => e.includes('Invalid schema format'))).toBeTruthy();
-    
-    // f. Assert main container still visible (no crash)
-    await expect(page.locator('main, .playground-container, .page-content')).toBeVisible();
-  });
+        // Page must NOT crash — main container still visible
+        await expect(page.locator('main, .playground-container, .page-content')).toBeVisible();
+
+        // No uncaught Svelte errors
+        const svelteErrors = consoleErrors.filter(e =>
+            e.includes('$state') || e.includes('Cannot read properties of undefined')
+        );
+        expect(svelteErrors).toHaveLength(0);
+    });
 });

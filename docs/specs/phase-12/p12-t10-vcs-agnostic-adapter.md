@@ -41,7 +41,7 @@ The main worker `fetch` loop will inspect incoming headers to determine the VCS 
 
 ### 4. Configuration Driven
 We will add `VCS_API_BASE_URL` to the `.dev.vars` / Wrangler environment. 
-- If the provider is Gitea, it uses `VCS_API_BASE_URL` (e.g., `http://localhost:3000/api/v1`).
+- If the provider is Gitea, it uses `VCS_API_BASE_URL` (e.g., `http://localhost:3005/api/v1`).
 - If the provider is GitHub and `VCS_API_BASE_URL` is empty, it defaults to `https://api.github.com`.
 
 ## Implementation Steps (Phase 1)

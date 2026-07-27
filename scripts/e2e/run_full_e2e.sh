@@ -70,6 +70,9 @@ export INTERNAL_SERVICE_TOKEN="local-dev-token"
 export PGLITE_PORT=54320
 export GITHUB_API_URL="http://127.0.0.1:3005/api/v1"
 export GITHUB_TOKEN="dummy"
+export FORGEJO_PORT="3005"
+export FORGEJO_USER="adminuser"
+export FORGEJO_PASS="Admin123!"
 export DASHBOARD_URL="http://localhost:5173"
 export SKIP_MIGRATIONS="true"
 export SKIP_RIVER="false"
@@ -142,10 +145,25 @@ echo "🔍 Verifying services before Playwright run..."
 curl -s http://localhost:8090/health > /dev/null 2>&1 && echo "  ✅ API :8090 OK" || echo "  ❌ API :8090 DOWN"
 curl -s http://localhost:8080/health > /dev/null 2>&1 && echo "  ✅ Engine :8080 OK" || echo "  ❌ Engine :8080 DOWN"
 
+# Generate a real JWT signed with the test JWT_SECRET for use in Playwright tests
+# Payload: {"orgs":{"admin":"admin","mcp-org":"admin","testorg":"admin","p3-org":"admin","stress-test":"admin"}}
+E2E_AUTH_TOKEN=$(node -e "
+const secret = 'local-jwt-secret';
+const crypto = require('crypto');
+const header = Buffer.from(JSON.stringify({alg:'HS256',typ:'JWT'})).toString('base64url');
+const payload = Buffer.from(JSON.stringify({
+  orgs:{admin:'admin','mcp-org':'admin',testorg:'admin','p3-org':'admin','stress-test':'admin'},
+  exp: Math.floor(Date.now()/1000) + 86400
+})).toString('base64url');
+const sig = crypto.createHmac('sha256', secret).update(header+'.'+payload).digest('base64url');
+console.log(header+'.'+payload+'.'+sig);
+")
+export E2E_AUTH_TOKEN
+
 # 5. Run Playwright UI Tests
 echo "🧪 Running Playwright UI Tests..."
 cd dashboard
-npx playwright test
+E2E_AUTH_TOKEN="$E2E_AUTH_TOKEN" npx playwright test
 cd ..
 
 echo "🎉 E2E Test Run Complete!"

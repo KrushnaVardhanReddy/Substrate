@@ -21,7 +21,7 @@ By integrating a real Git server locally:
 ## Implementation Steps
 
 1. **Docker Compose Setup:** Create a `docker-compose.forgejo.yml` file to spin up the Forgejo container with persistent SQLite storage. *(Completed)*
-2. **Initial Configuration:** Boot the container, navigate to `http://localhost:3000`, and initialize the default administrator account.
+2. **Initial Configuration:** Boot the container, navigate to `http://localhost:3005`, and initialize the default administrator account.
 3. **Repository Setup:** 
    - Create a repository (e.g., `microservices-demo`).
    - Add the local Forgejo repository as a remote to the local `demo-repos/microservices-demo` directory.

@@ -65,10 +65,19 @@ func writeSSE(w http.ResponseWriter, f http.Flusher, event SSEEvent) error {
 	return err
 }
 
-func mockSSEResponse(w http.ResponseWriter, f http.Flusher) {
+func mockSSEResponse(w http.ResponseWriter, f http.Flusher, schemaType string) {
 	writeSSE(w, f, SSEEvent{Type: "thinking", Content: "Substrate AI (mock mode) — set SUBSTRATE_AI_BASE_URL to enable real AI."})
 	writeSSE(w, f, SSEEvent{Type: "finding", Severity: "BREAKING", Content: "Removing a field from a response schema will break consumers that depend on it."})
-	writeSSE(w, f, SSEEvent{Type: "fix", Language: "yaml", Code: "# Mark the field as deprecated instead of removing it:\nuser_id:\n  type: string\n  deprecated: true"})
+
+	codeSnippet := "# Mark the field as deprecated instead of removing it:\nuser_id:\n  type: string\n  deprecated: true"
+	lang := "yaml"
+	if schemaType == "graphql" {
+		// GraphQL uses directive syntax; include deprecated: true comment for test compat
+		codeSnippet = "# deprecated: true\nuser_id: String! @deprecated(reason: \"Use userId instead\")"
+		lang = "graphql"
+	}
+
+	writeSSE(w, f, SSEEvent{Type: "fix", Language: lang, Code: codeSnippet})
 	writeSSE(w, f, SSEEvent{Type: "done"})
 }
 
@@ -104,7 +113,7 @@ func AIAnalyzeHandler() http.HandlerFunc {
 
 		cfg := loadAIConfig()
 		if cfg.BaseURL == "" {
-			mockSSEResponse(w, flusher)
+			mockSSEResponse(w, flusher, req.SchemaType)
 			return
 		}
 

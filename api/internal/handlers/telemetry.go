@@ -56,3 +56,11 @@ func DriftTelemetryHandler(store ports.DiscoveryStore) http.HandlerFunc {
 		json.NewEncoder(w).Encode(map[string]string{"status": "accepted"})
 	}
 }
+
+func TrackTelemetryHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Accepts telemetry tracking events from the frontend UI
+		w.WriteHeader(http.StatusAccepted)
+		json.NewEncoder(w).Encode(map[string]string{"status": "accepted"})
+	}
+}

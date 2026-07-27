@@ -203,8 +203,9 @@ Inspired by PactFlow's compatibility matrix, this is the central enterprise cont
 To ensure the Phase 3 Enterprise Dashboard remains stable across releases, we require automated End-to-End (E2E) testing for the frontend UI. Playwright is the chosen framework to simulate user interactions within the SvelteKit dashboard.
 
 ### Testing Strategy
-- **Isolation via Network Mocking:** The frontend tests must run independently of the Go backend. All API calls (e.g., `/api/v1/repos/*`, `/api/v1/graph/*`, `/api/v1/matrix/*`) must be intercepted and mocked using Playwright's `page.route()`.
-- **Setup:** Configure `playwright.config.ts` to spin up the SvelteKit dev server (`npm run dev`) before executing tests.
+- **Live E2E Against Real Backend:** All frontend E2E tests run against the live Go API (`:8090`) and SvelteKit dev server (`:5173`). No `page.route()` interception or API mocking is permitted. Tests rely on the seeded database state from `scripts/e2e/seed_via_api.sh`.
+- **Auth:** Tests use a real JWT (signed with `JWT_SECRET=local-jwt-secret`) exported as `E2E_AUTH_TOKEN` by the E2E runner and set via `context.addInitScript`.
+- **Setup:** `playwright.config.ts` points to `http://localhost:5173` with `reuseExistingServer: true`.
 
 ### Required Scenarios (`dashboard/tests/e2e/`)
 1. **Navigation Flow (`navigation.spec.ts`)**:

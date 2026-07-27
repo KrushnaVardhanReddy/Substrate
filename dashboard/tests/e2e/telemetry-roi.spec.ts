@@ -2,44 +2,40 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Telemetry ROI E2E (Suite 14)', () => {
 
-    test('should validate ROI metrics dashboard updates based on telemetry events', async ({ page }) => {
-        // Intercept telemetry API response to provide mock data for the UI
+    test('should validate ROI metrics dashboard updates based on telemetry events', async ({ page, context }) => {
+        // Use a real JWT from the E2E runner (signed with local-jwt-secret)
+		await context.addInitScript((t) => {
+			localStorage.setItem('github_token', t);
+		}, process.env.E2E_AUTH_TOKEN || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdzIjp7ImFkbWluIjoiYWRtaW4ifSwiZXhwIjo5OTk5OTk5OTk5fQ.placeholder');
 
-
-        // The exact route isn't strictly defined, but "telemetry" was mapped in enterprise routes
         await page.goto('/org/admin/telemetry');
 
-        await page.waitForTimeout(500);
+        // Wait for the API call to resolve — either the ROI card or error appears
+        // Hours Saved can legitimately be 0 if no telemetry events have been processed yet
+        const roiCard = page.locator('[data-testid="roi-card"]');
+        await expect(roiCard).toBeVisible({ timeout: 8000 });
 
-        // We assert that it requests the data and tries to display it.
-        // If the page doesn't exist yet, we capture the natural fail for TDD.
-        const roiCard = page.locator('body').filter({ hasText: /45/i });
-        await expect(roiCard).toBeVisible({ timeout: 2000 });
+        // Verify "Hours Saved:" label is rendered (value can be any number including 0)
+        await expect(roiCard).toContainText(/Hours Saved:/i);
     });
 
     test('should track telemetry events via POST /api/v1/telemetry/track', async ({ page }) => {
-        let telemetryTracked = false;
-		page.on('request', request => {
-			if (request.url().includes('/api/v1/telemetry/track') && request.method() === 'POST') {
-				telemetryTracked = true;
-			}
-		});
-
-
-
-        // Trigger an action that should emit telemetry (e.g. playground analyze or graph search)
+        // Trigger an action that should emit telemetry (e.g. playground analyze)
         await page.goto('/playground');
-        await page.waitForTimeout(500);
 
-        // Sometimes just loading a dashboard page fires an event, or we interact.
         const analyzeBtn = page.getByRole('button', { name: /Analyze with Substrate AI/i });
-        if (await analyzeBtn.count() > 0) {
-            await analyzeBtn.click();
-            await page.waitForTimeout(500);
-        }
+        await expect(analyzeBtn).toBeVisible({ timeout: 5000 });
 
-        // If the frontend isn't instrumented yet, this naturally fails in TDD.
-        expect(telemetryTracked).toBe(true);
+        // Wait for the request to be fired when we click the button
+        const requestPromise = page.waitForRequest(
+            req => req.url().includes('/api/v1/telemetry/track') && req.method() === 'POST',
+            { timeout: 8000 }
+        );
+
+        await analyzeBtn.click();
+
+        const request = await requestPromise;
+        expect(request).toBeTruthy();
     });
 
 });

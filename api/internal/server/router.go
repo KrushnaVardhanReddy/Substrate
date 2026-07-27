@@ -102,6 +102,7 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 	r.Method("GET", "/api/v1/schema/{owner}/{repo}", authMW(http.HandlerFunc(handlers.SchemaHandler(store))))
 	r.Method("GET", "/api/v1/spec/{org}/{repo}", authMW(http.HandlerFunc(handlers.SpecHandler(store))))
 	r.Method("GET", "/api/v1/history/{org}/{repo}", authMW(http.HandlerFunc(handlers.HistoryGetHandler(store))))
+	r.Method("POST", "/api/v1/telemetry/track", http.HandlerFunc(handlers.TrackTelemetryHandler()))
 	r.Method("POST", "/api/v1/telemetry/traces", serviceTokenMW(http.HandlerFunc(handlers.TelemetryHandler(store))))
 	r.Method("POST", "/api/v1/telemetry/drift", serviceTokenMW(http.HandlerFunc(handlers.DriftTelemetryHandler(store))))
 	r.Method("GET", "/api/v1/telemetry/roi/{org}", authzMW(http.HandlerFunc(handlers.ROIHandler(store))))
@@ -163,6 +164,7 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 	r.Method("GET", "/api/marketplace/plugins", http.HandlerFunc(marketplace.ListPluginsHandler(store)))
 
 	// Public routes
+	r.Get("/api/v1/preview/{token}", handlers.GetPreviewHandler(store))
 	r.Get("/api/v1/diff/{id}", handlers.GetDiffHandler(store))
 	r.Get("/api/v1/changelog/{org}/{repo}", handlers.ChangelogHandler(store))
 	r.Get("/api/badges/{org}/{repo}", handlers.BadgesHandler(store))

@@ -9,10 +9,10 @@
 
 | Item | Status |
 |---|---|
-| Forgejo running | ✅ `localhost:3000` |
+| Forgejo running | ✅ `localhost:3005` |
 | System webhook configured | ✅ Points to worker URL |
 | Worker running with `GITEA_TOKEN` | ✅ Token set |
-| Repos in Forgejo | ⚠️ Only `admin/microservices-demo` exists |
+| Repos in Forgejo | ⚠️ Only `adminuser/microservices-demo` exists |
 | `substrate.yaml` in demo repos | ⚠️ Only `microservices-demo` has it (wrong org — `substrate-demo-testing` instead of `admin`) |
 | Other 6 repos (graphql, openai, stripe, realworld, slack, jaffle) | ❌ Not pushed to Forgejo yet |
 
@@ -24,7 +24,7 @@
 Test pushes real file change
         │
         ▼
-  Forgejo (localhost:3000)
+  Forgejo (localhost:3005)
         │  System Webhook (push event)
         ▼
   Cloudflare Worker (localhost:8787)
@@ -55,9 +55,9 @@ Test pushes real file change
 
 | Local Path | Forgejo Repo | Schema File | Type |
 |---|---|---|---|
-| `demo-repos/microservices-demo` | `admin/microservices-demo` | `protos/demo.proto` | protobuf |
-| `demo-repos/graphql-schema` | `admin/graphql-schema` | `schema.graphql` | graphql |
-| `demo-repos/openapi` (Stripe) | `admin/stripe-openapi` | `openapi/spec3.yaml` | openapi |
+| `demo-repos/microservices-demo` | `adminuser/microservices-demo` | `protos/demo.proto` | protobuf |
+| `demo-repos/graphql-schema` | `adminuser/graphql-schema` | `schema.graphql` | graphql |
+| `demo-repos/openapi` (Stripe) | `adminuser/stripe-openapi` | `openapi/spec3.yaml` | openapi |
 | `demo-repos/openai-openapi` | `admin/openai-openapi` | `openapi.yaml` | openapi |
 | `demo-repos/realworld` | `admin/realworld` | `specs/api/openapi.yml` | openapi |
 | `demo-repos/slack-api-specs` | `admin/slack-api-specs` | `events-api/slack_events_api_async_v1.json` | asyncapi |
@@ -69,22 +69,22 @@ Each repo needs its own `substrate.yaml`. Example for microservices-demo:
 ```yaml
 consumers:
   - name: frontend
-    provider_repo: admin/microservices-demo
+    provider_repo: adminuser/microservices-demo
     schema_type: protobuf
     provider_spec_path: protos/demo.proto
     provider_branch: main
   - name: checkoutservice
-    provider_repo: admin/microservices-demo
+    provider_repo: adminuser/microservices-demo
     schema_type: protobuf
     provider_spec_path: protos/demo.proto
     provider_branch: main
   - name: recommendationservice
-    provider_repo: admin/microservices-demo
+    provider_repo: adminuser/microservices-demo
     schema_type: protobuf
     provider_spec_path: protos/demo.proto
     provider_branch: main
   - name: emailservice
-    provider_repo: admin/microservices-demo
+    provider_repo: adminuser/microservices-demo
     schema_type: protobuf
     provider_spec_path: protos/demo.proto
     provider_branch: main
@@ -110,7 +110,7 @@ consumers:
 
 ### 2. `graphql-schema` — GraphQL (GitHub schema)
 
-**Consumer:** `admin/graphql-consumer`
+**Consumer:** `adminuser/graphql-consumer`
 **Provider spec:** `schema.graphql`
 **Key type:** `User { login, email, ... }`
 
@@ -124,7 +124,7 @@ consumers:
 
 ### 3. `stripe-openapi` — OpenAPI 3.0 (Stripe — enterprise scale)
 
-**Consumer:** `admin/stripe-consumer`
+**Consumer:** `adminuser/stripe-consumer`
 **Provider spec:** `openapi/spec3.yaml` (~60,000 lines — real shock-factor demo)
 **Key paths:** `/v1/charges`, `/v1/customers`
 
@@ -138,7 +138,7 @@ consumers:
 
 ### 4. `openai-openapi` — OpenAPI 3.0 (OpenAI)
 
-**Consumer:** `admin/ai-chatbot`
+**Consumer:** `adminuser/ai-chatbot`
 **Provider spec:** `openapi.yaml`
 **Key endpoint:** `POST /v1/chat/completions` — `function_call` field
 
@@ -280,8 +280,8 @@ The Go diff engine is compiled to WASM and runs directly in the browser. The Pla
 
 | Test | What it does | Expected |
 |---|---|---|
-| Impact API — no consumers | `GET /impact/admin/orphan-repo` | Returns `{"consumers": [], "risk_score": 0}` |
-| Impact API — `microservices-demo` | After seeding, `GET /impact/admin/microservices-demo` | Returns 4 consumers with risk score > 0 |
+| Impact API — no consumers | `GET /impact/adminuser/orphan-repo` | Returns `{"consumers": [], "risk_score": 0}` |
+| Impact API — `microservices-demo` | After seeding, `GET /impact/adminuser/microservices-demo` | Returns 4 consumers with risk score > 0 |
 | Impact API — breaking change | After pushing breaking proto, re-query impact | Response shows `broken_consumers > 0`, `is_safe: false` |
 | Impact API — safe change | After pushing safe proto, re-query impact | `is_safe: true`, no broken consumers |
 | Can-Deploy gate | `GET /registry/can-deploy?org=admin&repo=microservices-demo` | Returns `false` while breaking change is live |

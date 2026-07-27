@@ -537,6 +537,12 @@
 		</div>
 
 		<div bind:this={cyContainer} style="flex: 1; width: 100%; min-height: 0; position: relative; z-index: 10;"></div>
+		{#if isGraphEmpty}
+			<div class="empty-state">
+				<h2>Search for a repository</h2>
+				<p>Enter a repository name to view its blast radius and dependencies.</p>
+			</div>
+		{/if}
 
 		<!-- Time Travel Scrubber -->
 		<div class="scrubber-wrapper">
