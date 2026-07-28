@@ -142,6 +142,11 @@ TASKS = {
         "phase": "phase-15",
         "prompt": _load_prompt("prompts/phase-15/t02_granular_check_suite.txt"),
     },
+    1001: {
+        "name": "P10-T01 — Automated Schema Robustness Validation (QA Fuzzing)",
+        "phase": "phase-10-ecosystem",
+        "prompt": _load_prompt("prompts/phase-10/t01_security_fuzzing.txt"),
+    },
     # ── Phase 0: Specs (handled by Antigravity, not Jules) ────────────────────
     # (no Jules tasks for Phase 0)
 
