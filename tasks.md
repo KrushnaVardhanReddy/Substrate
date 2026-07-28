@@ -196,6 +196,12 @@
 | **P-CLI-POST** | `substrate postmortem`, `substrate schema-smell`, `substrate plugin publish` | ✅ Complete |
 | **P-PART-01** | Partners CRUD (`/api/v1/org/{org}/partners` full lifecycle) | ✅ Complete |
 
+### 🟣 Priority 4 — Frontend Unit Testing Gaps (Vitest)
+
+| Task ID | Component/Page | Status |
+|---------|----------------|--------|
+| **P-UNIT-01** | Backfill Svelte unit tests for QA Dashboard and API Keys pages (19 missing files) | 💡 Planned |
+
 ---
 
 ### E2E Quick Commands
