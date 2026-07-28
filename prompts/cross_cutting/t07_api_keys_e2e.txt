@@ -1,26 +1,20 @@
-TASK: CC-T05 — E2E Validation: UI Org Context
+TASK: CC-T07 — E2E Validation: API Keys Backend
 
 ═══════════════════════════════════════════════════════════════
 OBJECTIVE
 ═══════════════════════════════════════════════════════════════
-Add Playwright E2E coverage for the newly refactored UI Organization Context and API Keys scaffolding (CC-T04). This ensures that navigation works smoothly and the organizational context (`mcp-org`) is preserved when moving between features.
+Add full E2E testing coverage (both Go API tests and Playwright UI tests) for the new API Keys backend integration (CC-T06).
 
 Spec (READ ONLY — implement from it, never edit):
-  docs/specs/e2e/ui_org_context_e2e.md
+  docs/specs/e2e/api_keys_e2e.md
 
 ═══════════════════════════════════════════════════════════════
 CONSTRAINTS & RULES
 ═══════════════════════════════════════════════════════════════
-- Implement the test cases outlined in the spec under `dashboard/tests/e2e/org-context.spec.ts`.
+- Implement the test cases outlined in the spec under `scripts/e2e/api_keys_e2e_test.go` and `dashboard/tests/e2e/api-keys.spec.ts`.
 - Ensure standard Playwright assertions (`expect(page).toHaveURL`, `expect(locator).toBeVisible`) are used.
-- Ensure the default organizational context defaults to `process.env.PUBLIC_ORG_NAME || 'mcp-org'` so it aligns with other seeded E2E tests.
-- Reference existing E2E tests (e.g. `dashboard/tests/dashboard.spec.ts`) for examples of how to set up Playwright tests in this repository.
-
-═══════════════════════════════════════════════════════════════
-CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
-═══════════════════════════════════════════════════════════════
-Playwright tests are located in `dashboard/tests/` and `dashboard/tests/e2e/`.
-Reference `dashboard/tests/dashboard.spec.ts` for how tests connect to the root URL and navigate through the app.
+- Ensure the default organizational context defaults to `process.env.PUBLIC_ORG_NAME || 'mcp-org'` for the frontend UI.
+- Use `github-app` token logic or existing PASETO tokens in `scripts/e2e/helpers/` for the Go test setup.
 
 ═══════════════════════════════════════════════════════════════
 CRITICAL AGENT/CI TESTING ENVIRONMENT NOTES (MUST READ)

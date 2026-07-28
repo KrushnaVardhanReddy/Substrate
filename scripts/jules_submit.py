@@ -1018,6 +1018,16 @@ TASKS = {
         "phase": "cross-cutting",
         "prompt": _load_prompt("prompts/cross_cutting/t05_ui_org_context_e2e.txt"),
     },
+    2003: {
+        "name": "CC-T06 — API Keys Backend Integration",
+        "phase": "cross-cutting",
+        "prompt": _load_prompt("prompts/cross_cutting/t06_api_keys_backend.txt"),
+    },
+    2004: {
+        "name": "CC-T07 — E2E Validation: API Keys Backend",
+        "phase": "cross-cutting",
+        "prompt": _load_prompt("prompts/cross_cutting/t07_api_keys_e2e.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────

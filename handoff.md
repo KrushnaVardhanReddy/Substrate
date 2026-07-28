@@ -1,29 +1,13 @@
 # Substrate Handoff & Plan
 
 ## Current State
-- **Backend API E2E Tests:** ✅ 100% Passing.
-- **Frontend Playwright Tests:** ✅ Fixed the major dashboard timeout issues.
-- **Next Up:** Executing `CC-T05` (E2E Validation: UI Org Context) via Jules.
+- **System E2E Status:** 🟩 100% Passing (94 Playwright tests, Go API suites, MCP tools).
+- **Recent Work:** We successfully refactored the UI organization context (`CC-T04`) to move Marketplace and Playground under the `/org/[org]/` namespace, and built the API Keys UI scaffolding.
+- **Next Up:** Jules is currently executing `CC-T05` to build the Playwright E2E coverage for the new Organization Context routing.
 
-## Playwright UI Failures to Fix
-1. `tests/e2e/preview-page.spec.ts` (4 failures - schema missing errors / fallback)
-2. `tests/e2e/playground.spec.ts` (3 failures - AI streaming / autofix content)
-3. `playwright/enterprise.spec.ts` (1 failure - missing "Active Webhook" text)
-4. `tests/dashboard.spec.ts` (1 failure - empty state loading)
-5. `tests/discovery.spec.ts` (1 failure - P5-T06 Phase 5 discovery scanners)
-6. `tests/e2e/ai-autofix.spec.ts` (1 failure - AI patch application)
-7. `tests/e2e/ai-copilot.spec.ts` (1 failure - Support widget streaming)
-8. `tests/e2e/system-matrix-full.spec.ts` (1 failure - Microservices demo setup)
-9. `tests/e2e/telemetry-roi.spec.ts` (1 failure - ROI dashboard metrics)
-10. `tests/heatmap.spec.ts` (1 failure - Heatmap toggle)
-11. `tests/stress-test.spec.ts` (1 failure - 1000 node graph crash)
-
-## Plan to Fix
-1. **Analyze Failed Logs & DOM state:** For each failing spec, review the specific line it fails on (e.g., `toBeVisible()` assertions timing out).
-2. **Fix Locators:** Many tests use strict text matching (like `.getByText('Active Webhook')`). We need to update these to match the *actual* rendered text in SvelteKit or use more resilient `data-testid` attributes.
-3. **Handle Asynchrony:** Some tests fail on "AI streaming" and "auto-fix" flows which take time. We need to increase timeout limits for AI-dependent tests or wait for specific network requests (`page.waitForResponse`) instead of just arbitrary UI delays.
-4. **Graph / Heatmap Fixes:** Graph tests might be failing if the Canvas/Cytoscape instance isn't fully ready. Ensure the graph readiness state is verified before clicking nodes.
-5. **Spec First Approach Note:** If the tests reveal that the actual backend API logic or input/output structures need to change, we must update the OpenAPI / AsyncAPI / GraphQL specs *first* as the single source of truth.
+## Pending Jules Tasks
+- `CC-T05`: E2E Validation for UI Org Context (Dispatched, running in background).
+- `CC-T06`: API Keys Backend Integration (Dispatched, running in background).
 
 ## How to Execute E2E Tests
 
@@ -38,6 +22,6 @@ GITHUB_TOKEN=dummy make e2e
 If the backend is already running (via `make e2e` or manual setup) and you just want to run one UI test file:
 ```bash
 cd dashboard
-npx playwright test tests/e2e/playground.spec.ts --project=chromium --headed
+npx playwright test tests/e2e/org-context.spec.ts --project=chromium --headed
 ```
 *(Use `--headed` to see the browser UI while the test runs)*
