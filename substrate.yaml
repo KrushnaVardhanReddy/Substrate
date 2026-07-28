@@ -1,3 +1,12 @@
 service: substrate-engine
 schema_type: openapi
 spec_path: openapi.yaml
+consumers:
+  - name: substrate-dashboard
+    provider_repo: KrushnaVardhanReddy/Substrate
+    schema_type: openapi
+    provider_spec_path: openapi.yaml
+  - name: substrate-github-app
+    provider_repo: KrushnaVardhanReddy/Substrate
+    schema_type: openapi
+    provider_spec_path: openapi.yaml

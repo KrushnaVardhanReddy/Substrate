@@ -145,3 +145,45 @@ paths:
       responses:
         '200':
           description: Public profile details
+  /api/v1/sandbox/request:
+    post:
+      summary: Proxy request for API Sandbox
+      responses:
+        '200':
+          description: OK
+  /api/v1/scoring/{org}:
+    get:
+      summary: Get API Maturity Scorecards
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Scorecards details
+  /api/v1/events:
+    post:
+      summary: Ingest Ecosystem Event
+      responses:
+        '201':
+          description: Event ingested
+  /api/v1/events/{org}:
+    get:
+      summary: Get Ecosystem Events Timeline
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Event timeline
+  /api/v1/schema/prune:
+    post:
+      summary: Context-Aware Schema Pruning
+      responses:
+        '200':
+          description: Pruned schema
