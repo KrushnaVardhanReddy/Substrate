@@ -54,3 +54,5 @@ err.txt
 test_*.py
 test_*.sh
 dashboard/*.png
+scripts/e2e/*.logs
+demo-repos/microservices-demo/
