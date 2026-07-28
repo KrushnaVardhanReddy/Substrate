@@ -45,6 +45,7 @@ type RepoStore interface {
 type ContractStore interface {
 	UpsertContract(ctx context.Context, repoID uuid.UUID, schemaType, specPath, branch, commitSHA, rawContent string) (uuid.UUID, error)
 	GetContractsByProviderFullName(ctx context.Context, providerFullName string) ([]db.Contract, error)
+	GetSchema(ctx context.Context, org, repo string) (string, error)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -217,6 +218,8 @@ type PartnerStore interface {
 type PoolProvider interface {
 	InsertSchemaValidationGap(ctx context.Context, arg sqlcgen.InsertSchemaValidationGapParams) error
 	GetSchemaValidationGaps(ctx context.Context) ([]sqlcgen.SchemaValidationGap, error)
+	GetPrunedSchemaCache(ctx context.Context, arg sqlcgen.GetPrunedSchemaCacheParams) (sqlcgen.SchemaPruneCache, error)
+	UpsertPrunedSchemaCache(ctx context.Context, arg sqlcgen.UpsertPrunedSchemaCacheParams) error
 	Pool() *pgxpool.Pool
 }
 

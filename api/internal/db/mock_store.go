@@ -30,6 +30,7 @@ type MockStore struct {
 	UpsertContractFunc                 func(ctx context.Context, repoID uuid.UUID, schemaType, specPath, branch, commitSHA, rawContent string) (uuid.UUID, error)
 	UpsertDependencyFunc               func(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, confidenceScore int, requiredNoticeDays int) error
 	GetContractsByProviderFullNameFunc func(ctx context.Context, providerFullName string) ([]Contract, error)
+	GetSchemaFunc                      func(ctx context.Context, org, repo string) (string, error)
 	GetConsumersByProviderContractFunc func(ctx context.Context, providerContractID uuid.UUID) ([]ConsumerDependency, error)
 	ListReposByOrgFunc                 func(ctx context.Context, orgName string) ([]Repository, error)
 	GetDependencyGraphFunc             func(ctx context.Context, orgName string) ([]DependencyEdge, error)
@@ -64,6 +65,8 @@ type MockStore struct {
 	GetInsurancePolicyFunc             func(ctx context.Context, orgID uuid.UUID) (*InsurancePolicy, error)
 	CreateInsuranceClaimFunc           func(ctx context.Context, claim InsuranceClaim) (uuid.UUID, error)
 	GetInsuranceClaimsFunc             func(ctx context.Context, orgID uuid.UUID) ([]InsuranceClaim, error)
+	GetPrunedSchemaCacheFunc           func(ctx context.Context, arg sqlcgen.GetPrunedSchemaCacheParams) (sqlcgen.SchemaPruneCache, error)
+	UpsertPrunedSchemaCacheFunc        func(ctx context.Context, arg sqlcgen.UpsertPrunedSchemaCacheParams) error
 }
 
 func (m *MockStore) Pool() *pgxpool.Pool {
@@ -78,6 +81,27 @@ func (m *MockStore) GetPublicSchema(ctx context.Context, namespace, name, versio
 		return m.GetPublicSchemaFunc(ctx, namespace, name, version)
 	}
 	return nil, nil
+}
+
+func (m *MockStore) GetSchema(ctx context.Context, org, repo string) (string, error) {
+	if m.GetSchemaFunc != nil {
+		return m.GetSchemaFunc(ctx, org, repo)
+	}
+	return "", nil
+}
+
+func (m *MockStore) GetPrunedSchemaCache(ctx context.Context, arg sqlcgen.GetPrunedSchemaCacheParams) (sqlcgen.SchemaPruneCache, error) {
+	if m.GetPrunedSchemaCacheFunc != nil {
+		return m.GetPrunedSchemaCacheFunc(ctx, arg)
+	}
+	return sqlcgen.SchemaPruneCache{}, nil
+}
+
+func (m *MockStore) UpsertPrunedSchemaCache(ctx context.Context, arg sqlcgen.UpsertPrunedSchemaCacheParams) error {
+	if m.UpsertPrunedSchemaCacheFunc != nil {
+		return m.UpsertPrunedSchemaCacheFunc(ctx, arg)
+	}
+	return nil
 }
 
 func (m *MockStore) PublishPublicSchema(ctx context.Context, namespace, name, version, schemaType, content string) error {
