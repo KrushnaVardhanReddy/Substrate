@@ -19,7 +19,8 @@ The PGlite database must be seeded with:
 ### 2. Playwright UI Tests (`dashboard/playwright/qa_shadow.spec.ts`)
 - Navigate to `http://localhost:5173/org/mcp-org/qa/mcp-org/shadow-api-repo`.
 - Wait for the QA Dashboard to load.
-- Click "Export Postman Collection" and assert the download/modal triggers.
+- Click "Export Postman Collection" and assert the download triggers.
+- Click "Export OpenAPI Spec" and assert the generic OpenAPI JSON download triggers.
 - Navigate to the "Time Machine" tab.
 - Select a timestamp and click "Replay Traffic".
 - Assert the UI reflects a "Replaying..." status and eventually shows the coverage results.

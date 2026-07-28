@@ -29,6 +29,19 @@
     }
   }
 
+  async function exportOpenAPI() {
+    const res = await fetch(`/api/v1/schema/${org}/${repo}`);
+    if (res.ok) {
+      const data = await res.json();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `openapi-${(repo || "").replace(/\//g, '-')}.json`;
+      a.click();
+    }
+  }
+
   async function replayTraffic() {
     replaying = true;
     try {
@@ -59,12 +72,21 @@
 <div class="p-6">
   <h1 class="text-2xl font-bold mb-4">QA Dashboard: {repo}</h1>
 
-  <button
-    class="bg-blue-600 text-white px-4 py-2 rounded mb-6"
-    onclick={exportPostman}
-  >
-    Export Postman Collection
-  </button>
+  <div class="flex gap-4 mb-6">
+    <button
+      class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow transition-colors"
+      onclick={exportPostman}
+    >
+      Export Postman Collection
+    </button>
+    <button
+      class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded shadow transition-colors flex items-center gap-2"
+      onclick={exportOpenAPI}
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+      Export OpenAPI Spec
+    </button>
+  </div>
 
   <div class="border rounded p-4 mb-6">
     <h2 class="text-xl font-bold mb-2">Time Machine (Shadow API Replay)</h2>
