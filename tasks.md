@@ -116,9 +116,9 @@
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **P16-T01** | 🚀 P1 | **Markdown Guide Ingestion (Diátaxis)** — Pull `docs/**/*.md` files from provider repos alongside OpenAPI specs. Stitch human-written tutorials, how-tos, and references together with the auto-generated API schema in the UI. | Unassigned | 💡 Planned | `(Pending)` |
+| **P16-T01** | 🚀 P1 | **Markdown Guide Ingestion (Diátaxis)** — Pull `docs/**/*.md` files from provider repos alongside OpenAPI specs. Stitch human-written tutorials, how-tos, and references together with the auto-generated API schema in the UI. | Jules | ⏳ Next Up | `(Pending)` |
 | **P16-T02** | 🟡 P2 | **Business Metadata Block** — Expand `substrate.yaml` to accept `metadata` (PM, Slack channel, PagerDuty link, SLA Tier) and display it prominently at the top of the API's documentation page. | Unassigned | 💡 Planned | `(Pending)` |
-| **P16-T03** | 🔴 P1 | **Interactive API Sandbox ("Try It Out")** — Build an API proxy into the Go backend that allows developers to generate ephemeral test tokens and issue live requests to the API directly from the Substrate documentation UI. | Unassigned | 💡 Planned | `(Pending)` |
+| **P16-T03** | 🔴 P1 | **Interactive API Sandbox ("Try It Out")** — Build an API proxy into the Go backend that allows developers to generate ephemeral test tokens and issue live requests to the API directly from the Substrate documentation UI. | Jules | ⏳ Next Up | `(Pending)` |
 | **P16-T04** | 🟢 P3 | **Auto-Generated SDK Code Snippets** — Dynamically generate copy-pasteable request snippets (Curl, Python, Node, Go) for every endpoint in the documentation based on the OpenAPI schema. | Unassigned | 💡 Planned | `(Pending)` |
 | **P16-T05** | 🔵 P4 | **Configurable Graph Node Branding (YAML + MCP)** — Allow teams to define `metadata.node_color` in `substrate.yaml`. Plumb this custom hex color down to the Svelte Flow Dependency Graph UI *and* expose it via the MCP Server resources so AI agents know the visual branding of the nodes they are analyzing. | Unassigned | 💡 Planned | `(Pending)` |
 
@@ -130,11 +130,11 @@
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **P17-T01** | 🚀 P1 | **API Maturity Scorecards (Manager Dashboard)** — Provide a high-level UI grading APIs (A-F) based on documentation completeness, SOC2/PII compliance, volatility, and shadow test coverage. | Unassigned | 💡 Planned | `(Pending)` |
+| **P17-T01** | 🚀 P1 | **API Maturity Scorecards (Manager Dashboard)** — Provide a high-level UI grading APIs (A-F) based on documentation completeness, SOC2/PII compliance, volatility, and shadow test coverage. | Jules | ⏳ Next Up | `(Pending)` |
 | **P17-T02** | 🟡 P2 | **Legacy API FinOps Translation** — Expand the zombie API detection to calculate and display the exact estimated dollar amount saved by sunsetting legacy endpoints. | Unassigned | 💡 Planned | `(Pending)` |
-| **P17-T03** | 🔴 P1 | **GitOps API Gateway Sync (CRD Generation)** — Automatically generate Kubernetes CRDs (or Terraform state) for Kong/AWS API Gateway based on Substrate schemas, pushing them when PRs are merged. | Unassigned | 💡 Planned | `(Pending)` |
-| **P17-T04** | 🔴 P1 | **PagerDuty Blast Radius Injection** — Integrate with Datadog/PagerDuty. On incident creation, Substrate injects the visual Mermaid Dependency Graph into the incident description to instantly show downstream blast radius. | Unassigned | 💡 Planned | `(Pending)` |
-| **P17-T05** | 🚀 P1 | **Auto-Rollback via ArgoCD/Flux** — Wire Substrate's `Can-Rollback` and eBPF Drift engine to ArgoCD/Flux webhooks, automatically reverting a deployment if it causes severe schema violations in production. | Unassigned | 💡 Planned | `(Pending)` |
+| **P17-T03** | 🔴 P1 | **GitOps API Gateway Sync (CRD Generation)** — Automatically generate Kubernetes CRDs (or Terraform state) for Kong/AWS API Gateway based on Substrate schemas, pushing them when PRs are merged. | Jules | ⏳ Next Up | `(Pending)` |
+| **P17-T04** | 🔴 P1 | **PagerDuty Blast Radius Injection** — Integrate with Datadog/PagerDuty. On incident creation, Substrate injects the visual Mermaid Dependency Graph into the incident description to instantly show downstream blast radius. | Jules | ⏳ Next Up | `(Pending)` |
+| **P17-T05** | 🚀 P1 | **Auto-Rollback via ArgoCD/Flux** — Wire Substrate's `Can-Rollback` and eBPF Drift engine to ArgoCD/Flux webhooks, automatically reverting a deployment if it causes severe schema violations in production. | Jules | ⏳ Next Up | `(Pending)` |
 
 ---
 
@@ -144,8 +144,8 @@
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **P18-T01** | 🔴 P1 | **Granular MCP Tool Governance** — Allow FDAIEs to define "Agent Profiles" in Substrate (e.g., support vs. devops). Dynamically generate restricted MCP toolsets based on the profile, enforcing Human-in-the-Loop requirements for destructive `POST/DELETE` operations. | Unassigned | 💡 Planned | `(Pending)` |
-| **P18-T02** | 🚀 P1 | **Context-Aware Schema Pruning** — Implement a "Pruned Schema API" that takes natural language intent, determines the necessary subset of the OpenAPI spec, and returns only the relevant endpoints to minimize LLM token usage and latency. | Unassigned | 💡 Planned | `(Pending)` |
+| **P18-T01** | 🔴 P1 | **Granular MCP Tool Governance** — Allow FDAIEs to define "Agent Profiles" in Substrate (e.g., support vs. devops). Dynamically generate restricted MCP toolsets based on the profile, enforcing Human-in-the-Loop requirements for destructive `POST/DELETE` operations. | Jules | ⏳ Next Up | `(Pending)` |
+| **P18-T02** | 🚀 P1 | **Context-Aware Schema Pruning** — Implement a "Pruned Schema API" that takes natural language intent, determines the necessary subset of the OpenAPI spec, and returns only the relevant endpoints to minimize LLM token usage and latency. | Jules | ⏳ Next Up | `(Pending)` |
 | **P18-T03** | 🟡 P2 | **Agent Execution Audit Trails** — Build an AI Forensics Dashboard that logs every MCP tool request, the exact schema injected into the prompt context, and the final payload executed by the AI, providing a verifiable audit log for hallucinations. | Unassigned | 💡 Planned | `(Pending)` |
 | **P18-T04** | 🟢 P3 | **Dependency-Aware RAG Bundling** — Automatically bundle upstream and downstream service schemas into an agent's context window when modifying a target microservice, mathematically guaranteeing cross-repo contract safety. | Unassigned | 💡 Planned | `(Pending)` |
 
