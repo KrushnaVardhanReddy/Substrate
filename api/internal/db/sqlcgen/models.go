@@ -295,6 +295,7 @@ type Repository struct {
 	FullName     string
 	CreatedAt    pgtype.Timestamptz
 	Metadata     []byte
+	BaseUrl      pgtype.Text
 }
 
 type RiverJob struct {
@@ -344,6 +345,17 @@ type RiverQueue struct {
 	Metadata  []byte
 	PausedAt  pgtype.Timestamptz
 	UpdatedAt time.Time
+}
+
+type SandboxAuditLog struct {
+	ID         int32
+	Org        string
+	Repo       string
+	Method     string
+	Path       string
+	StatusCode pgtype.Int4
+	UserID     string
+	CreatedAt  time.Time
 }
 
 type SchemaValidationGap struct {
