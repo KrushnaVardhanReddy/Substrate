@@ -16,12 +16,13 @@
 				Catalog
 			</a>
 			<a href="/org/{org}/matrix" class="nav-item {pathname === `/org/${org}/matrix` ? 'active' : ''}">Compatibility Matrix</a>
+			<a href="/org/{org}/marketplace" class="nav-item {pathname === `/org/${org}/marketplace` ? 'active' : ''}">Marketplace</a>
+			<a href="/org/{org}/playground" class="nav-item {pathname === `/org/${org}/playground` ? 'active' : ''}" style="text-decoration:none;">✨ AI Playground</a>
+			<a href="/org/{org}/apikeys" class="nav-item {pathname === `/org/${org}/apikeys` ? 'active' : ''}">API Keys</a>
 		{:else}
 			<a href="/" class="nav-item {pathname === '/' ? 'active' : ''}">Dashboard</a>
 		{/if}
-		<a href="/marketplace" class="nav-item {pathname === '/marketplace' ? 'active' : ''}">Marketplace</a>
-		<a href="/playground" class="nav-item {pathname === '/playground' ? 'active' : ''}" style="text-decoration:none;">✨ AI Playground</a>
-		<div class="nav-item">API Keys</div>
+
 		{#if isAdmin}
 			{#if org}
 				<a href="/org/{org}/settings" class="nav-item {pathname === `/org/${org}/settings` ? 'active' : ''}">Settings</a>

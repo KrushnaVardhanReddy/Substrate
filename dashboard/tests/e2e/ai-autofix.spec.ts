@@ -9,7 +9,7 @@ import { test, expect } from '@playwright/test';
 test.describe('AI Autofix API E2E (Suite 10)', () => {
 
     test('should return finding via POST /api/v1/ai/analyze in playground UI', async ({ page }) => {
-        await page.goto('/playground');
+        await page.goto('/org/mcp-org/playground');
 
         // Fill an editor with valid content
         const editor = page.locator('textarea.code-editor').first();
@@ -26,7 +26,7 @@ test.describe('AI Autofix API E2E (Suite 10)', () => {
     });
 
     test('should apply fix patch via UI after POST /api/v1/ai/analyze completes', async ({ page }) => {
-        await page.goto('/playground');
+        await page.goto('/org/mcp-org/playground');
 
         const editor = page.locator('textarea.code-editor').first();
         await editor.fill('message User { string id = 1; }');

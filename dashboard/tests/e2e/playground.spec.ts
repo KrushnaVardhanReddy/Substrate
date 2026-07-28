@@ -23,7 +23,7 @@ paths:
 test.describe('AI Playground (P12-T03)', () => {
 
     test('Test A — AI analysis stream returns findings panel', async ({ page }) => {
-        await page.goto('/playground');
+        await page.goto('/org/mcp-org/playground');
 
         // Assert page is the playground
         await expect(page.locator('h1.page-title')).toContainText(/Playground|AI|Studio/i);
@@ -49,7 +49,7 @@ test.describe('AI Playground (P12-T03)', () => {
             if (msg.type() === 'error') consoleErrors.push(msg.text());
         });
 
-        await page.goto('/playground');
+        await page.goto('/org/mcp-org/playground');
 
         const editor = page.locator('textarea.code-editor').first();
         await editor.fill(VALID_OPENAPI_SCHEMA);
@@ -84,7 +84,7 @@ test.describe('AI Playground (P12-T03)', () => {
             if (msg.type() === 'error') consoleErrors.push(msg.text());
         });
 
-        await page.goto('/playground');
+        await page.goto('/org/mcp-org/playground');
 
         // Fill with deliberately broken content
         const editor = page.locator('textarea.code-editor').first();
