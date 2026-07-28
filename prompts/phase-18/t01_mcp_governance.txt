@@ -1,0 +1,49 @@
+TASK: P18-T01 — Granular MCP Tool Governance (Agent Profiles)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Allow FDAIEs to define "Agent Profiles" in Substrate that restrict which MCP tools an AI agent can invoke and enforce Human-in-the-Loop approval gates for destructive operations.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-18/p18-t01-mcp-governance.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- When a profile has `hitl_enabled=true`, ANY tool invocation that maps to a `POST`/`DELETE` operation MUST return `{ "status": "pending_approval", "queue_id": <id> }` instead of executing.
+- An MCP session without a `profile_id` retains its current full-access behaviour (backward compatible).
+- The `agent_profiles` and `hitl_queue` tables require a DB migration.
+- All new CRUD endpoints must require a valid PASETO token.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The MCP server is at `api/internal/mcp/server.go`. The `tools/list` handler returns all registered tools. Modify it to filter based on `profile.allowed_tools` when a `profile_id` session param is present.
+- MCP session state can be stored temporarily in a request-scoped context value. Add `ProfileID` to the MCP session context struct in `api/internal/mcp/context.go`.
+- API CRUD handlers live in `api/internal/handlers/`. Add `mcp_profiles.go` following the pattern of `org.go`.
+- The `ports.Store` interface is in `api/internal/ports/store.go`. Add methods for `CreateAgentProfile`, `ListAgentProfiles`, `GetAgentProfile`, `CreateHITLQueueItem`, `ListHITLQueue`.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- In `mcp/server.go`'s `tools/list` handler, after fetching all tools, check if the session context has a `ProfileID`. If yes, filter: `allowedTools := filter(allTools, profile.AllowedTools)`.
+- For HITL interception: in the `tools/call` handler, before dispatching, check if `profile.HITLEnabled` is true AND the tool maps to a write operation. If so, insert into `hitl_queue` and return the pending response immediately.
+- To determine if a tool is a "write" operation, add a `IsDestructive bool` field to the `Tool` struct in `mcp/tools.go` for all `POST`/`DELETE`-type tools.
+- The HITL Queue UI can be a simple table at `dashboard/src/routes/(app)/org/[org]/settings/hitl/+page.svelte` showing pending items with Approve/Reject buttons.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: api/internal/db/migrations/YYYYMMDD_add_agent_profiles_hitl.sql (CREATE)
+2. FILE: api/internal/handlers/mcp_profiles.go (CREATE)
+   - Include `mcp_profiles_test.go`
+3. MODIFY: api/internal/mcp/server.go — add profile-based tool filtering and HITL interception
+4. MODIFY: api/internal/ports/store.go — add new Store methods
+5. MODIFY: api/internal/db/pgstore.go — implement new Store methods
+6. FILE: dashboard/src/routes/(app)/org/[org]/settings/hitl/+page.svelte (CREATE)
+   - Include `+page.test.ts`
+7. Run `go test ./...` and `npm run test`.
+
+Commit: "jules: P18-T01 add granular MCP agent profiles and HITL governance"
+Target branch: feature/p18-t01-mcp-governance

@@ -1,0 +1,51 @@
+TASK: P17-T01 — API Maturity Scorecards (Manager Dashboard)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Build an automated API Health Grading engine that scores each registered API (A–F) based on documentation completeness, compliance risk, volatility, and QA shadow coverage. Surface grade badges in the Org Overview UI.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-17/p17-t01-maturity-scorecards.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Scores MUST be cached with a 1-hour TTL in the `scorecard_cache` table. Do NOT recompute on every request.
+- The scoring logic must be in its own package (`api/internal/scoring/`) so it can be unit tested in isolation.
+- Grade badge in the UI must be colour-coded: A=green, B=teal, C=yellow, D=orange, F=red.
+- Svelte grade badge component MUST have a Vitest unit test.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- Compliance flags are stored in the `compliance_flags` table (added in Phase 9).
+- Breaking changes are stored in `diff_reports` table — query by `org`, `repo`, `has_breaking_change=true`, `created_at > NOW() - INTERVAL '30 days'`.
+- Shadow coverage data is in the `shadow_coverage` table — query by `org`, `repo`.
+- The Org Overview page is `dashboard/src/routes/(app)/org/[org]/+page.svelte`. It currently lists repos. Add a "Health" column to that table.
+- API handlers follow the pattern in `api/internal/handlers/org.go`.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Create `api/internal/scoring/scorecard.go` with a `ComputeScore(ctx, store, org, repo string) (*Scorecard, error)` function that queries all 4 metrics and returns the grade.
+- For documentation completeness: fetch the stored OpenAPI JSON, unmarshal it, count paths where `description != ""`, divide by total paths.
+- Check if the scorecard cache is fresh (within 1 hour) before recomputing. Upsert the cache row on recompute.
+- The grade badge Svelte component should be a simple `<span class="grade-badge grade-{grade}">` where grade is A/B/C/D/F.
+- Make the badge clickable — clicking it should navigate to `/org/{org}/scorecard/{repo}` for a future detail view (just stub the route for now with a simple page showing the JSON breakdown).
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: api/internal/db/migrations/YYYYMMDD_add_scorecard_cache.sql (CREATE)
+2. FILE: api/internal/scoring/scorecard.go (CREATE)
+   - Include `scorecard_test.go` with table-driven tests for each grade boundary
+3. FILE: api/internal/handlers/scorecard.go (CREATE)
+   - Include `scorecard_handler_test.go`
+4. FILE: dashboard/src/lib/components/GradeBadge.svelte (CREATE)
+   - Include `GradeBadge.test.ts`
+5. MODIFY: dashboard/src/routes/(app)/org/[org]/+page.svelte — add Health column with GradeBadge
+6. Run `go test ./...` and `npm run test`.
+
+Commit: "jules: P17-T01 add API maturity scorecards for manager dashboard"
+Target branch: feature/p17-t01-maturity-scorecards

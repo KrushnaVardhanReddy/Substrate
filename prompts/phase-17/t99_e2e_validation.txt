@@ -1,0 +1,43 @@
+TASK: P17-T99 — Phase 17 E2E Validation (No Mocks)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Write comprehensive Go API tests and Playwright UI tests for all Phase 17 DevOps and Management Intelligence features.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-17/p17-t99-e2e.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- NO MOCKS — use real seeded Postgres for all scorecard and gateway tests.
+- For the GitHub PR test, use an `httptest.Server` that simulates the GitHub API (this is a real HTTP server, not a Go mock interface).
+- Playwright tests must wait for elements with `data-testid` attributes before asserting.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- Go E2E tests live in `scripts/e2e/`. Follow the pattern of `phase15_e2e_test.go`.
+- Playwright tests live in `dashboard/tests/`. Follow `dashboard.spec.ts` patterns.
+- DB seeding uses `scripts/e2e/helpers.go`.
+- The gateway sync endpoint is `POST /api/v1/gateway/sync/{org}/{repo}`.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Seed a `diff_reports` row with `has_breaking_change=true` and `created_at = NOW() - INTERVAL '5 days'` to test the volatility score deduction.
+- For the scorecard cache test: call the scorecard endpoint, note `computed_at`, call again immediately, assert `computed_at` is identical (cache hit).
+- Add `data-testid="health-grade-badge"` to the `GradeBadge` Svelte component so Playwright can locate it reliably.
+- Add the new test to `scripts/e2e/run_full_e2e.sh`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: scripts/e2e/phase17_e2e_test.go (CREATE)
+2. FILE: dashboard/tests/phase17.spec.ts (CREATE)
+3. MODIFY: scripts/e2e/run_full_e2e.sh — add phase17 test to the run list
+4. Run `go test ./scripts/e2e/... -run TestPhase17` and `npx playwright test phase17`.
+
+Commit: "jules: P17-T99 add Phase 17 E2E validation suite"
+Target branch: feature/p17-t99-e2e

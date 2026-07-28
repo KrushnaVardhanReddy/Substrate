@@ -1,0 +1,51 @@
+TASK: P17-T03 — GitOps API Gateway Sync (CRD Generation)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+When a schema PR is merged in Substrate, automatically generate a Kubernetes Kong Ingress or AWS API Gateway import payload from the OpenAPI spec and open a PR in the team's infrastructure repository.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-17/p17-t03-gitops-gateway-sync.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Only trigger gateway sync if `gateway.type` is configured in `substrate.yaml` for the repo. Skip silently if not configured.
+- The generated CRD MUST be valid YAML parseable by `sigs.k8s.io/yaml`.
+- The GitHub PR to the infra repo uses the existing `api/internal/integrations/github/client.go` — do NOT create a new GitHub client.
+- Store every generated CRD in `gateway_configs` for audit history regardless of whether the PR succeeds.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The merge webhook fires through `api/internal/handlers/webhook.go`. Add gateway sync as an async goroutine call there, after the existing schema sync, same pattern as guide ingestion.
+- The GitHub integration client is at `api/internal/integrations/github/client.go`. Use `CreatePR(owner, repo, title, branch, body string) error`.
+- `substrate.yaml` parsing is done in `api/internal/config/substrate_yaml.go`. Add `Gateway struct { Type string; InfraRepo string; OutputPath string }` to the config struct.
+- Kong CRD spec reference: a `KongIngress` with `route.paths` populated from the OpenAPI paths array.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Create `api/internal/gateway/kong_generator.go` with `GenerateKongCRD(spec *openapi3.T, repo string) (string, error)`. It should iterate `spec.Paths` and produce a YAML string.
+- Create `api/internal/gateway/aws_generator.go` similarly for `gateway: aws` mode.
+- Use a factory function `NewGenerator(gatewayType string) (Generator, error)` to select between Kong/AWS implementations.
+- For the infra repo PR: commit the generated YAML to a new branch `substrate/gateway-sync-{repo}-{timestamp}`, then open a PR. Use the `octokit` pattern from `github/client.go`.
+- Add `go get sigs.k8s.io/yaml` to the Go module.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: api/internal/db/migrations/YYYYMMDD_add_gateway_configs.sql (CREATE)
+2. FILE: api/internal/gateway/kong_generator.go (CREATE)
+   - Include `kong_generator_test.go`
+3. FILE: api/internal/gateway/aws_generator.go (CREATE)
+   - Include `aws_generator_test.go`
+4. FILE: api/internal/handlers/gateway.go (CREATE)
+   - Include `gateway_test.go`
+5. MODIFY: api/internal/config/substrate_yaml.go — add `Gateway` config struct
+6. MODIFY: api/internal/handlers/webhook.go — trigger gateway sync on merge
+7. Run `go test ./...`.
+
+Commit: "jules: P17-T03 add GitOps API gateway CRD generation"
+Target branch: feature/p17-t03-gitops-gateway
