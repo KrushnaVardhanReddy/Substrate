@@ -84,6 +84,11 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 	// Risk score endpoint
 	r.Method("GET", "/api/v1/risk/{org}/{repo}/{pr}", http.HandlerFunc(handlers.RiskScoreHandler()))
 
+	// Guides docs API
+	r.Method("GET", "/api/v1/docs/{org}/{repo}", http.HandlerFunc(handlers.ListGuidesHandler(store)))
+	r.Method("GET", "/api/v1/docs/{org}/{repo}/{slug}", http.HandlerFunc(handlers.GetGuideHandler(store)))
+	r.Method("GET", "/api/v1/docs/{org}/{repo}/{slug}/*", http.HandlerFunc(handlers.GetGuideHandler(store)))
+
 	// Protected routes (Service Token OR JWT)
 	authMW := AuthMiddleware(registryApiToken, jwtSecret)
 	authzMW := AuthzMiddleware(registryApiToken, jwtSecret)

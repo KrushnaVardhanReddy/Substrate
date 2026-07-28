@@ -35,6 +35,9 @@ type RepoStore interface {
 	UpsertRepoMetric(ctx context.Context, repoID uuid.UUID, score int) error
 	GetTimeSinceLastBreak(ctx context.Context, repoID uuid.UUID) (*time.Time, error)
 	GetDependencyGraph(ctx context.Context, orgName string) ([]db.DependencyEdge, error)
+	UpsertRepoGuide(ctx context.Context, org, repo, filePath, title, content string) error
+	ListRepoGuides(ctx context.Context, org, repo string) ([]db.RepoGuide, error)
+	GetRepoGuide(ctx context.Context, org, repo, slug string) (*db.RepoGuide, error)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

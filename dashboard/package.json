@@ -38,14 +38,18 @@
 		"@lucide/svelte": "^1.24.0",
 		"@stoplight/elements": "^9.0.24",
 		"@types/diff": "^7.0.2",
+		"@types/dompurify": "^3.0.5",
+		"@types/marked": "^5.0.2",
 		"@xyflow/svelte": "^1.6.2",
 		"cytoscape": "^3.34.0",
 		"cytoscape-dagre": "^4.0.0",
 		"d3": "^7.9.0",
 		"dagre": "^0.8.5",
 		"diff": "^9.0.0",
+		"dompurify": "^3.4.12",
 		"html-to-image": "^1.11.13",
 		"js-yaml": "^5.2.1",
-		"lucide-svelte": "^0.447.0"
+		"lucide-svelte": "^0.447.0",
+		"marked": "^18.0.7"
 	}
 }

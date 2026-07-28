@@ -333,3 +333,52 @@ func (s *PGStore) GetPrunedSchemaCache(ctx context.Context, arg sqlcgen.GetPrune
 func (s *PGStore) UpsertPrunedSchemaCache(ctx context.Context, arg sqlcgen.UpsertPrunedSchemaCacheParams) error {
 	return sqlcgen.New(s.pool).UpsertPrunedSchemaCache(ctx, arg)
 }
+
+func (s *PGStore) UpsertRepoGuide(ctx context.Context, org, repo, filePath, title, content string) error {
+	_, err := s.pool.Exec(ctx, `
+		INSERT INTO repo_guides (org, repo, file_path, title, content, updated_at)
+		VALUES ($1, $2, $3, $4, $5, NOW())
+		ON CONFLICT (org, repo, file_path) DO UPDATE
+		SET title = EXCLUDED.title, content = EXCLUDED.content, updated_at = NOW()
+	`, org, repo, filePath, title, content)
+	return err
+}
+
+func (s *PGStore) ListRepoGuides(ctx context.Context, org, repo string) ([]RepoGuide, error) {
+	rows, err := s.pool.Query(ctx, `
+		SELECT id, org, repo, file_path, title, content, updated_at
+		FROM repo_guides
+		WHERE org = $1 AND repo = $2
+		ORDER BY file_path ASC
+	`, org, repo)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var guides []RepoGuide
+	for rows.Next() {
+		var g RepoGuide
+		if err := rows.Scan(&g.ID, &g.Org, &g.Repo, &g.FilePath, &g.Title, &g.Content, &g.UpdatedAt); err != nil {
+			return nil, err
+		}
+		guides = append(guides, g)
+	}
+	if guides == nil {
+		guides = []RepoGuide{}
+	}
+	return guides, nil
+}
+
+func (s *PGStore) GetRepoGuide(ctx context.Context, org, repo, slug string) (*RepoGuide, error) {
+	var g RepoGuide
+	err := s.pool.QueryRow(ctx, `
+		SELECT id, org, repo, file_path, title, content, updated_at
+		FROM repo_guides
+		WHERE org = $1 AND repo = $2 AND file_path = $3
+	`, org, repo, slug).Scan(&g.ID, &g.Org, &g.Repo, &g.FilePath, &g.Title, &g.Content, &g.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &g, nil
+}
