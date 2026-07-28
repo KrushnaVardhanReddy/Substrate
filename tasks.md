@@ -57,7 +57,7 @@
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **P10-T01** | 🔴 P1 | **Automated Schema Robustness Validation (QA Fuzzing)** — Upgrade the Phase 6 fuzzer to inject boundary payloads based on the schema, acting as an automated robustness QA engine. | Jules | ⏳ Ready to Start | `docs/specs/phase-10/p10-t01-security-fuzzing.md` |
+| **P10-T01** | 🔴 P1 | **Automated Schema Robustness Validation (QA Fuzzing)** — Upgrade the Phase 6 fuzzer to inject boundary payloads based on the schema, acting as an automated robustness QA engine. | Jules | ✅ PR Merged | `docs/specs/phase-10/p10-t01-security-fuzzing.md` |
 | **P10-T03** | 🟢 P3 | **AI Mock Data Generator (QA)** — Scan QA repositories for JSON test fixtures and use the AI engine to auto-update mock data when the upstream API schema changes. | Jules | ✅ PR Merged | `(Pending)` |
 | **P10-T04** | 🔵 P4 | **AI Spectral Linter (API Governance)** — Enforce plain-English API design rules (e.g. "All endpoints must use camelCase") during the PR diff process to maintain org-wide consistency. | Jules | ✅ PR Merged | `(Pending)` |
 | **P10-T05** | ⚪ P5 | **Auto-SDK Generator PRs** — Automatically generate TypeScript/Swift/Go clients via OpenAPI Generator when a schema is merged, opening PRs directly in the downstream consumer repos. | Jules | ✅ PR Merged | `(Pending)` |
@@ -78,8 +78,8 @@
 | **CC-T03** | 🚀 P1 | **Live VCS E2E Integration (Forgejo)** — Stand up a live local Forgejo Git server using the existing `docker-compose.forgejo.yml` container to execute fully organic end-to-end webhook ingestion tests without payload simulation. | Jules | ✅ Complete | `docs/specs/cross-cutting/cc-t03-live-vcs.md` |
 | **CC-T04** | 🟢 P3 | **UI Org Context & API Keys Refactor** — Fix navigation context loss by moving global routes (Marketplace/AI Playground) into the `/org/[org]/...` namespace and build the scaffolding for Organization-scoped API keys to replace the dead sidebar item. | Jules | ✅ PR Merged | `docs/specs/ui/org_context_and_apikeys.md` |
 | **CC-T05** | 🟢 P3 | **E2E Validation: UI Org Context** — Add Playwright tests to ensure Marketplace, AI Playground, and API Keys preserve their organizational URL context and render correctly. | Jules | ✅ Complete | `docs/specs/e2e/ui_org_context_e2e.md` |
-| **CC-T06** | 🟢 P2 | **API Keys Backend Integration** — Implement PostgreSQL table, Go API endpoints (`GET/POST/DELETE`), and wire up SvelteKit UI for fully functional org-scoped API key generation and revocation. | Jules | 🤖 Dispatched | `docs/specs/ui/api_keys_backend.md` |
-| **CC-T07** | 🟢 P3 | **E2E Validation: API Keys Backend** — Add Go API test and Playwright test to validate API key generation, listing, and revocation flows. | Jules | ⏳ Ready to Start | `docs/specs/e2e/api_keys_e2e.md` |
+| **CC-T06** | 🟢 P2 | **API Keys Backend Integration** — Implement PostgreSQL table, Go API endpoints (`GET/POST/DELETE`), and wire up SvelteKit UI for fully functional org-scoped API key generation and revocation. | Jules | ✅ PR Merged | `docs/specs/ui/api_keys_backend.md` |
+| **CC-T07** | 🟢 P3 | **E2E Validation: API Keys Backend** — Add Go API test and Playwright test to validate API key generation, listing, and revocation flows. | Jules | ⚪ Redundant (Completed in T06) | `docs/specs/e2e/api_keys_e2e.md` |
 
 ---
 
