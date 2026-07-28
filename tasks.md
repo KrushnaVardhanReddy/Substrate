@@ -124,6 +124,20 @@
 
 ---
 
+## 📈 Phase 17: DevOps & Management Intelligence
+
+**Goal:** Surface financial, operational, and structural data to Engineering Managers and DevOps teams, providing zero-touch automation for API Gateways and high-level incident context.
+
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|---|---|---|---|---|---|
+| **P17-T01** | 🚀 P1 | **API Maturity Scorecards (Manager Dashboard)** — Provide a high-level UI grading APIs (A-F) based on documentation completeness, SOC2/PII compliance, volatility, and shadow test coverage. | Unassigned | 💡 Planned | `(Pending)` |
+| **P17-T02** | 🟡 P2 | **Legacy API FinOps Translation** — Expand the zombie API detection to calculate and display the exact estimated dollar amount saved by sunsetting legacy endpoints. | Unassigned | 💡 Planned | `(Pending)` |
+| **P17-T03** | 🔴 P1 | **GitOps API Gateway Sync (CRD Generation)** — Automatically generate Kubernetes CRDs (or Terraform state) for Kong/AWS API Gateway based on Substrate schemas, pushing them when PRs are merged. | Unassigned | 💡 Planned | `(Pending)` |
+| **P17-T04** | 🔴 P1 | **PagerDuty Blast Radius Injection** — Integrate with Datadog/PagerDuty. On incident creation, Substrate injects the visual Mermaid Dependency Graph into the incident description to instantly show downstream blast radius. | Unassigned | 💡 Planned | `(Pending)` |
+| **P17-T05** | 🚀 P1 | **Auto-Rollback via ArgoCD/Flux** — Wire Substrate's `Can-Rollback` and eBPF Drift engine to ArgoCD/Flux webhooks, automatically reverting a deployment if it causes severe schema violations in production. | Unassigned | 💡 Planned | `(Pending)` |
+
+---
+
 ## 🧪 E2E Coverage Tracker
 
 > **Purpose:** Track which phases have E2E test coverage. As a solo developer, E2E is the primary safety net against production regressions.
