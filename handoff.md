@@ -8,6 +8,7 @@
 ## Pending Jules Tasks
 - `CC-T05`: E2E Validation for UI Org Context (Dispatched, running in background).
 - `CC-T06`: API Keys Backend Integration (Dispatched, running in background).
+- `CC-T07`: E2E Validation for API Keys Backend (Ready to Start, blocked by CC-T06).
 
 ## How to Execute E2E Tests
 

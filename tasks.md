@@ -79,6 +79,7 @@
 | **CC-T04** | 🟢 P3 | **UI Org Context & API Keys Refactor** — Fix navigation context loss by moving global routes (Marketplace/AI Playground) into the `/org/[org]/...` namespace and build the scaffolding for Organization-scoped API keys to replace the dead sidebar item. | Jules | ✅ PR Merged | `docs/specs/ui/org_context_and_apikeys.md` |
 | **CC-T05** | 🟢 P3 | **E2E Validation: UI Org Context** — Add Playwright tests to ensure Marketplace, AI Playground, and API Keys preserve their organizational URL context and render correctly. | Jules | 🤖 Dispatched | `docs/specs/e2e/ui_org_context_e2e.md` |
 | **CC-T06** | 🟢 P2 | **API Keys Backend Integration** — Implement PostgreSQL table, Go API endpoints (`GET/POST/DELETE`), and wire up SvelteKit UI for fully functional org-scoped API key generation and revocation. | Jules | 🤖 Dispatched | `docs/specs/ui/api_keys_backend.md` |
+| **CC-T07** | 🟢 P3 | **E2E Validation: API Keys Backend** — Add Go API test and Playwright test to validate API key generation, listing, and revocation flows. | Jules | ⏳ Ready to Start | `docs/specs/e2e/api_keys_e2e.md` |
 
 ---
 
