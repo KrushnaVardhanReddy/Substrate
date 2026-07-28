@@ -138,6 +138,19 @@
 
 ---
 
+## 🤖 Phase 18: AI Agent Governance & FDAIE Tooling
+
+**Goal:** Provide Forward Deployed AI Engineers (FDAIEs) with the necessary tooling to safely deploy, monitor, and optimize AI agents communicating with enterprise APIs via the Model Context Protocol (MCP).
+
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|---|---|---|---|---|---|
+| **P18-T01** | 🔴 P1 | **Granular MCP Tool Governance** — Allow FDAIEs to define "Agent Profiles" in Substrate (e.g., support vs. devops). Dynamically generate restricted MCP toolsets based on the profile, enforcing Human-in-the-Loop requirements for destructive `POST/DELETE` operations. | Unassigned | 💡 Planned | `(Pending)` |
+| **P18-T02** | 🚀 P1 | **Context-Aware Schema Pruning** — Implement a "Pruned Schema API" that takes natural language intent, determines the necessary subset of the OpenAPI spec, and returns only the relevant endpoints to minimize LLM token usage and latency. | Unassigned | 💡 Planned | `(Pending)` |
+| **P18-T03** | 🟡 P2 | **Agent Execution Audit Trails** — Build an AI Forensics Dashboard that logs every MCP tool request, the exact schema injected into the prompt context, and the final payload executed by the AI, providing a verifiable audit log for hallucinations. | Unassigned | 💡 Planned | `(Pending)` |
+| **P18-T04** | 🟢 P3 | **Dependency-Aware RAG Bundling** — Automatically bundle upstream and downstream service schemas into an agent's context window when modifying a target microservice, mathematically guaranteeing cross-repo contract safety. | Unassigned | 💡 Planned | `(Pending)` |
+
+---
+
 ## 🧪 E2E Coverage Tracker
 
 > **Purpose:** Track which phases have E2E test coverage. As a solo developer, E2E is the primary safety net against production regressions.
