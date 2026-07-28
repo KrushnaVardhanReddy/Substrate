@@ -1,37 +1,38 @@
-# Substrate API Keys Backend Integration
+# Substrate UI Org Context & API Keys Refactor (Part 2: Backend)
 
 ## Objective
-Implement full backend and frontend integration for Organization-scoped API Keys to replace the current placeholder UI.
+Implement the full backend database schema, Go API endpoints, and SvelteKit integration for Organization-scoped API Keys to replace the current placeholder UI.
 
-## Problem Statement
-The "API Keys" page (`/org/[org]/apikeys`) currently features scaffolding and a non-functional "Generate New Key" button. To complete this functionality, we must allow users to generate, view, and revoke API keys for their organization.
-
-## Solution Specification
+## Backend Requirements
 
 ### 1. Database Schema
-Add a new PostgreSQL table `api_keys`:
-- `id`: UUID (Primary Key)
-- `org_name`: VARCHAR (References `organizations.name`)
-- `name`: VARCHAR (User-defined name for the key)
-- `key_hash`: VARCHAR (Bcrypt/Argon2 hash of the actual key)
-- `prefix`: VARCHAR (First 4-8 chars of the key for display purposes)
-- `created_at`: TIMESTAMP
-- `expires_at`: TIMESTAMP (Nullable)
+- Table: `api_keys`
+- Columns:
+  - `id` (UUID, primary key)
+  - `org_id` (UUID, foreign key to `organizations` ON DELETE CASCADE)
+  - `name` (VARCHAR)
+  - `prefix` (VARCHAR, e.g., first 4 chars of token + '...')
+  - `hash` (VARCHAR, bcrypt hash of the token)
+  - `created_at` (TIMESTAMP)
+  - `last_used_at` (TIMESTAMP, optional/nullable)
 
-### 2. Backend API Endpoints (Go)
-Implement the following routes under `/api/v1/org/{org}/apikeys`:
-- `GET /`: List all API keys for the organization (returns ID, Name, Prefix, CreatedAt).
-- `POST /`: Generate a new API key. Return the *raw* key exactly once in the response, and store the `key_hash` and `prefix` in the DB.
-- `DELETE /{id}`: Revoke/delete an API key.
+### 2. API Endpoints
+- `POST /api/v1/org/{org}/apikeys`
+  - Body: `{ "name": "My Key" }`
+  - Generates a secure token (e.g., using `crypto/rand` to generate a random 32-byte hex string or PASETO v4.local).
+  - Hashes token using bcrypt.
+  - Stores hash, prefix, name, org_id in DB.
+  - Returns raw token EXACTLY ONCE to the client along with the key metadata.
+- `GET /api/v1/org/{org}/apikeys`
+  - Returns a list of API keys for the organization (without the raw token, only prefix and metadata).
+- `DELETE /api/v1/org/{org}/apikeys/{id}`
+  - Revokes (deletes) the specified API key.
 
-### 3. Frontend Integration (SvelteKit)
-Update `dashboard/src/routes/(app)/org/[org]/apikeys/+page.svelte`:
-- Implement a data load function (`+page.server.ts` or standard fetch) to list the keys.
-- Wire the "Generate New Key" button to the `POST` endpoint.
-- Display the generated raw key in a copyable modal component (warning the user it will only be shown once).
-- Add a "Revoke" button to each row in the table, wired to the `DELETE` endpoint.
+### 3. Frontend Integration
+- Update `dashboard/src/routes/(app)/org/[org]/apikeys/+page.svelte` (and create `+page.ts`) to fetch and display the list of API keys.
+- Implement the "Generate New Key" button to call the POST endpoint and display the raw key in a modal or one-time alert.
+- Implement revocation/deletion from the UI.
 
-## Security Constraints
-- **Never** store raw API keys in plaintext in the database.
-- Use PASETO `v4.local` or secure token generation for the raw keys themselves.
-- Ensure the API endpoints are protected by the existing `authzMW` middleware to guarantee the user belongs to the requested `{org}`.
+### 4. Testing
+- Unit tests for API endpoints (`api_keys_test.go`).
+- Playwright E2E test for the UI flow (`dashboard/tests/e2e/api_keys.spec.ts`).

@@ -464,3 +464,19 @@ func (m *MockStore) DeletePartner(ctx context.Context, id uuid.UUID) error {
 	}
 	return nil
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// API Key Methods
+// ─────────────────────────────────────────────────────────────────────────────
+
+func (m *MockStore) CreateAPIKey(ctx context.Context, orgID uuid.UUID, name, prefix, hash string) (*APIKey, error) {
+	panic("not implemented")
+}
+
+func (m *MockStore) ListAPIKeys(ctx context.Context, orgID uuid.UUID) ([]*APIKey, error) {
+	panic("not implemented")
+}
+
+func (m *MockStore) DeleteAPIKey(ctx context.Context, id, orgID uuid.UUID) error {
+	panic("not implemented")
+}

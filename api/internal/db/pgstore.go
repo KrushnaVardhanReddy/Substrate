@@ -240,3 +240,69 @@ func (s *PGStore) DeletePartner(ctx context.Context, id uuid.UUID) error {
 	_, err := q.DeletePartner(ctx, pgUUID)
 	return err
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// API Key Methods
+// ─────────────────────────────────────────────────────────────────────────────
+
+func (s *PGStore) CreateAPIKey(ctx context.Context, orgID uuid.UUID, name, prefix, hash string) (*APIKey, error) {
+	row, err := sqlcgen.New(s.pool).CreateAPIKey(ctx, sqlcgen.CreateAPIKeyParams{
+		OrgID:  pgtype.UUID{Bytes: orgID, Valid: true},
+		Name:   name,
+		Prefix: prefix,
+		Hash:   hash,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &APIKey{
+		ID:         row.ID.Bytes,
+		OrgID:      row.OrgID.Bytes,
+		Name:       row.Name,
+		Prefix:     row.Prefix,
+		Hash:       row.Hash,
+		CreatedAt:  row.CreatedAt.Time,
+		LastUsedAt: func() *time.Time {
+			if row.LastUsedAt.Valid {
+				t := row.LastUsedAt.Time
+				return &t
+			}
+			return nil
+		}(),
+	}, nil
+}
+
+func (s *PGStore) ListAPIKeys(ctx context.Context, orgID uuid.UUID) ([]*APIKey, error) {
+	rows, err := sqlcgen.New(s.pool).ListAPIKeys(ctx, pgtype.UUID{Bytes: orgID, Valid: true})
+	if err != nil {
+		return nil, err
+	}
+
+	keys := make([]*APIKey, len(rows))
+	for i, row := range rows {
+		keys[i] = &APIKey{
+			ID:         row.ID.Bytes,
+			OrgID:      row.OrgID.Bytes,
+			Name:       row.Name,
+			Prefix:     row.Prefix,
+			Hash:       row.Hash,
+			CreatedAt:  row.CreatedAt.Time,
+			LastUsedAt: func() *time.Time {
+				if row.LastUsedAt.Valid {
+					t := row.LastUsedAt.Time
+					return &t
+				}
+				return nil
+			}(),
+		}
+	}
+	return keys, nil
+}
+
+func (s *PGStore) DeleteAPIKey(ctx context.Context, id, orgID uuid.UUID) error {
+	return sqlcgen.New(s.pool).DeleteAPIKey(ctx, sqlcgen.DeleteAPIKeyParams{
+		ID:    pgtype.UUID{Bytes: id, Valid: true},
+		OrgID: pgtype.UUID{Bytes: orgID, Valid: true},
+	})
+}
