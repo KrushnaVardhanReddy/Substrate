@@ -3,12 +3,15 @@ package db
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db/sqlcgen"
 )
+
+var ErrNotFound = errors.New("not found")
 
 type Contract struct {
 	ID              uuid.UUID `json:"id"`
@@ -130,6 +133,7 @@ type Store interface {
 	UpsertContract(ctx context.Context, repoID uuid.UUID, schemaType, specPath, branch, commitSHA, rawContent string) (uuid.UUID, error)
 	UpsertDependency(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, confidenceScore int, requiredNoticeDays int) error
 	GetContractsByProviderFullName(ctx context.Context, providerFullName string) ([]Contract, error)
+	GetSchema(ctx context.Context, org, repo string) (string, error)
 	GetConsumersByProviderContract(ctx context.Context, providerContractID uuid.UUID) ([]ConsumerDependency, error)
 	ListReposByOrg(ctx context.Context, orgName string) ([]Repository, error)
 	GetDependencyGraph(ctx context.Context, orgName string) ([]DependencyEdge, error)
@@ -183,6 +187,8 @@ type Store interface {
 	DeletePartner(ctx context.Context, id uuid.UUID) error
 	InsertSchemaValidationGap(ctx context.Context, arg sqlcgen.InsertSchemaValidationGapParams) error
 	GetSchemaValidationGaps(ctx context.Context) ([]sqlcgen.SchemaValidationGap, error)
+	GetPrunedSchemaCache(ctx context.Context, arg sqlcgen.GetPrunedSchemaCacheParams) (sqlcgen.SchemaPruneCache, error)
+	UpsertPrunedSchemaCache(ctx context.Context, arg sqlcgen.UpsertPrunedSchemaCacheParams) error
 	Pool() *pgxpool.Pool
 }
 

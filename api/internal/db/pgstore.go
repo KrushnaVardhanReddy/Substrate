@@ -315,3 +315,22 @@ func (s *PGStore) InsertSchemaValidationGap(ctx context.Context, arg sqlcgen.Ins
 func (s *PGStore) GetSchemaValidationGaps(ctx context.Context) ([]sqlcgen.SchemaValidationGap, error) {
 	return sqlcgen.New(s.pool).GetSchemaValidationGaps(ctx)
 }
+
+func (s *PGStore) GetSchema(ctx context.Context, org, repo string) (string, error) {
+	contracts, err := s.GetContractsByProviderFullName(ctx, org+"/"+repo)
+	if err != nil {
+		return "", err
+	}
+	if len(contracts) == 0 {
+		return "", ErrNotFound
+	}
+	return contracts[0].RawContent, nil
+}
+
+func (s *PGStore) GetPrunedSchemaCache(ctx context.Context, arg sqlcgen.GetPrunedSchemaCacheParams) (sqlcgen.SchemaPruneCache, error) {
+	return sqlcgen.New(s.pool).GetPrunedSchemaCache(ctx, arg)
+}
+
+func (s *PGStore) UpsertPrunedSchemaCache(ctx context.Context, arg sqlcgen.UpsertPrunedSchemaCacheParams) error {
+	return sqlcgen.New(s.pool).UpsertPrunedSchemaCache(ctx, arg)
+}

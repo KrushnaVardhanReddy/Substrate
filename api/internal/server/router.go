@@ -19,6 +19,7 @@ import (
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/services"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/webhook"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/workers"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/ai"
 )
 
 func ServiceTokenMiddleware(registryApiToken string) func(http.Handler) http.Handler {
@@ -182,5 +183,10 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 	r.Method("GET", "/api/v1/qa/coverage/{org}/{repo}", http.HandlerFunc(handlers.QACoverageHandler(store)))
 		fuzzerHandler := &handlers.FuzzerHandler{Store: store}
 	r.Method("GET", "/api/v1/fuzzer/gaps", http.HandlerFunc(fuzzerHandler.GetSchemaValidationGaps))
+
+	// Phase 18 schema pruning
+	aiClient := ai.NewClient()
+	r.Method("POST", "/api/v1/schema/prune", http.HandlerFunc(handlers.SchemaPruneHandler(store, aiClient)))
+
 	return otelhttp.NewHandler(r, "substrate-api")
 }

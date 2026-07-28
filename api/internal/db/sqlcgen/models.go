@@ -358,6 +358,14 @@ type SandboxAuditLog struct {
 	CreatedAt  time.Time
 }
 
+type SchemaPruneCache struct {
+	Org          string
+	Repo         string
+	IntentHash   string
+	PrunedSchema []byte
+	ComputedAt   time.Time
+}
+
 type SchemaValidationGap struct {
 	ID        pgtype.UUID
 	Method    string
