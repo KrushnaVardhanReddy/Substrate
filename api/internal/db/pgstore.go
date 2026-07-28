@@ -241,7 +241,6 @@ func (s *PGStore) DeletePartner(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
-
 // ─────────────────────────────────────────────────────────────────────────────
 // API Key Methods
 // ─────────────────────────────────────────────────────────────────────────────
@@ -258,12 +257,12 @@ func (s *PGStore) CreateAPIKey(ctx context.Context, orgID uuid.UUID, name, prefi
 	}
 
 	return &APIKey{
-		ID:         row.ID.Bytes,
-		OrgID:      row.OrgID.Bytes,
-		Name:       row.Name,
-		Prefix:     row.Prefix,
-		Hash:       row.Hash,
-		CreatedAt:  row.CreatedAt.Time,
+		ID:        row.ID.Bytes,
+		OrgID:     row.OrgID.Bytes,
+		Name:      row.Name,
+		Prefix:    row.Prefix,
+		Hash:      row.Hash,
+		CreatedAt: row.CreatedAt.Time,
 		LastUsedAt: func() *time.Time {
 			if row.LastUsedAt.Valid {
 				t := row.LastUsedAt.Time
@@ -283,12 +282,12 @@ func (s *PGStore) ListAPIKeys(ctx context.Context, orgID uuid.UUID) ([]*APIKey, 
 	keys := make([]*APIKey, len(rows))
 	for i, row := range rows {
 		keys[i] = &APIKey{
-			ID:         row.ID.Bytes,
-			OrgID:      row.OrgID.Bytes,
-			Name:       row.Name,
-			Prefix:     row.Prefix,
-			Hash:       row.Hash,
-			CreatedAt:  row.CreatedAt.Time,
+			ID:        row.ID.Bytes,
+			OrgID:     row.OrgID.Bytes,
+			Name:      row.Name,
+			Prefix:    row.Prefix,
+			Hash:      row.Hash,
+			CreatedAt: row.CreatedAt.Time,
 			LastUsedAt: func() *time.Time {
 				if row.LastUsedAt.Valid {
 					t := row.LastUsedAt.Time

@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/KrushnaVardhanReddy/substrate/engine/licensing"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/spf13/viper"
-	"github.com/KrushnaVardhanReddy/substrate/engine/licensing"
 )
 
 func generateTestKeys() (*rsa.PrivateKey, *rsa.PublicKey) {

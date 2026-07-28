@@ -81,7 +81,7 @@ func TestAPIKeyHandler(t *testing.T) {
 
 	var resp struct {
 		Key      *db.APIKey `json:"key"`
-		RawToken string      `json:"raw_token"`
+		RawToken string     `json:"raw_token"`
 	}
 	json.NewDecoder(rr.Body).Decode(&resp)
 

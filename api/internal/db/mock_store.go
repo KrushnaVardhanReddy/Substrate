@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db/sqlcgen"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -456,7 +456,6 @@ func (m *MockStore) DeleteGovernanceRule(ctx context.Context, ruleID uuid.UUID, 
 	return nil
 }
 
-
 func (m *MockStore) GetCRMSecrets(ctx context.Context, orgName string) (stripeKey, sfURL, sfToken, sfClientID, sfClientSecret, sfUsername, sfPassword string, err error) {
 	return "", "", "", "", "", "", "", nil
 }
@@ -511,4 +510,8 @@ func (m *MockStore) InsertSchemaValidationGap(ctx context.Context, arg sqlcgen.I
 
 func (m *MockStore) GetSchemaValidationGaps(ctx context.Context) ([]sqlcgen.SchemaValidationGap, error) {
 	return []sqlcgen.SchemaValidationGap{}, nil
+}
+
+func (m *MockStore) SaveGatewayConfig(ctx context.Context, org, repo, gatewayType, crdYaml, prUrl string) error {
+	return nil
 }

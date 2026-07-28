@@ -29,12 +29,6 @@ type ConsumerConfig struct {
 	Overrides        []OverrideConfig `yaml:"overrides,omitempty"`
 }
 
-type Gateway struct {
-	Type       string `yaml:"type"`
-	InfraRepo  string `yaml:"infra_repo"`
-	OutputPath string `yaml:"output_path"`
-}
-
 type SubstrateConfig struct {
 	Discovery  *Discovery       `yaml:"discovery,omitempty"`
 	Metadata   *Metadata        `yaml:"metadata,omitempty"`
@@ -42,7 +36,6 @@ type SubstrateConfig struct {
 	BaseSchema string           `yaml:"base_schema,omitempty"`
 	HeadSchema string           `yaml:"head_schema,omitempty"`
 	Consumers  []ConsumerConfig `yaml:"consumers,omitempty"`
-	Gateway    *Gateway         `yaml:"gateway,omitempty"`
 }
 
 func Parse(content []byte) (*SubstrateConfig, error) {

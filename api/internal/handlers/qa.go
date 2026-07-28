@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
+	"github.com/go-chi/chi/v5"
 )
 
 type ReplayRequest struct {
@@ -87,7 +87,7 @@ func QACoverageHandler(store ports.Store) http.HandlerFunc {
 		resp := map[string]interface{}{
 			"score": 85.5,
 			"details": map[string]bool{
-				"#/paths/~1users/post": true,
+				"#/paths/~1users/post":  true,
 				"#/paths/~1unknown/get": false,
 			},
 		}

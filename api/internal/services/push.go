@@ -252,7 +252,7 @@ func ProcessPush(ctx context.Context, store db.Store, ghClient github.Client, re
 						if len(parts) == 2 {
 							consumerName = parts[1]
 						}
-						
+
 						log.Printf("ProcessPush DEBUG: Checking overrides for consumer: %s (fullName: %s)", consumerName, consumer.ConsumerFullName)
 						for _, cfgConsumer := range parsedCfg.Consumers {
 							if cfgConsumer.Name == consumerName {

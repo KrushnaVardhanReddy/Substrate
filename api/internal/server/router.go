@@ -68,6 +68,7 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 	limitsMW := TierLimitsMiddleware(store)
 
 	r.Method("POST", "/api/v1/sync", serviceTokenMW(limitsMW(http.HandlerFunc(handlers.SyncHandler(store, riverClient)))))
+	r.Method("POST", "/api/v1/gateway/sync/{org}/{repo}", http.HandlerFunc(handlers.GatewaySyncHandler(store, github.NewRESTClient())))
 	r.Method("POST", "/api/v1/webhook", http.HandlerFunc(webhook.PushHandler(store, github.NewRESTClient(), riverClient)))
 	r.Method("POST", "/api/v1/webhook/reaction", serviceTokenMW(http.HandlerFunc(webhook.ReactionHandler(store, github.NewRESTClient()))))
 	r.Method("POST", "/api/v1/cross-repo-check", serviceTokenMW(limitsMW(http.HandlerFunc(handlers.CrossRepoCheckHandler(store, riverClient)))))
@@ -125,7 +126,6 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 	// Governance Rules Generate CEL endpoint
 	r.Method("POST", "/api/governance/generate-cel", jwtValidMW(handlers.GenerateCELHandler()))
 
-
 	// Route uses GitHub OAuth token directly, not the internal JWT, so we skip authMW.
 	// The endpoint validates the token by making a call to GitHub.
 	r.Method("POST", "/api/v1/org/{org}/enforce", authzMW(http.HandlerFunc(handlers.EnforceGlobalHandler())))
@@ -181,7 +181,7 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 	r.Method("GET", "/api/v1/qa/postman/{org}/{repo}", http.HandlerFunc(handlers.QAPostmanHandler(store)))
 	r.Method("POST", "/api/v1/qa/shadow/replay", http.HandlerFunc(handlers.QAShadowReplayHandler(store)))
 	r.Method("GET", "/api/v1/qa/coverage/{org}/{repo}", http.HandlerFunc(handlers.QACoverageHandler(store)))
-		fuzzerHandler := &handlers.FuzzerHandler{Store: store}
+	fuzzerHandler := &handlers.FuzzerHandler{Store: store}
 	r.Method("GET", "/api/v1/fuzzer/gaps", http.HandlerFunc(fuzzerHandler.GetSchemaValidationGaps))
 
 	// Phase 18 schema pruning

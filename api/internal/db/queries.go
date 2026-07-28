@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 import (
@@ -868,7 +868,6 @@ func (s *PGStore) ListPlugins(ctx context.Context) ([]MarketplacePlugin, error) 
 	return plugins, rows.Err()
 }
 
-
 func (s *PGStore) GetCRMSecrets(ctx context.Context, orgName string) (stripeKey, sfURL, sfToken, sfClientID, sfClientSecret, sfUsername, sfPassword string, err error) {
 	query := `
 		SELECT
@@ -889,4 +888,13 @@ func (s *PGStore) GetCRMSecrets(ctx context.Context, orgName string) (stripeKey,
 		err = nil // If org doesn't have secrets, just return empty strings
 	}
 	return
+}
+
+func (s *PGStore) SaveGatewayConfig(ctx context.Context, org, repo, gatewayType, crdYaml, prUrl string) error {
+	query := `
+		INSERT INTO gateway_configs (org, repo, gateway_type, crd_yaml, pr_url)
+		VALUES ($1, $2, $3, $4, $5)
+	`
+	_, err := s.pool.Exec(ctx, query, org, repo, gatewayType, crdYaml, prUrl)
+	return err
 }

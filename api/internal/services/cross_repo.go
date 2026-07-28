@@ -55,13 +55,13 @@ type SLABreach struct {
 }
 
 type CrossRepoCheckResponse struct {
-	TotalConsumers  int              `json:"total_consumers"`
-	BrokenConsumers int              `json:"broken_consumers"`
-	IsSafe          bool             `json:"is_safe"`
-	Results         []ConsumerResult `json:"results"`
-	SLABreaches     []SLABreach      `json:"sla_breaches,omitempty"`
-	AffectedCustomers int            `json:"affected_customers,omitempty"`
-	AffectedMRR       float64        `json:"affected_mrr,omitempty"`
+	TotalConsumers    int              `json:"total_consumers"`
+	BrokenConsumers   int              `json:"broken_consumers"`
+	IsSafe            bool             `json:"is_safe"`
+	Results           []ConsumerResult `json:"results"`
+	SLABreaches       []SLABreach      `json:"sla_breaches,omitempty"`
+	AffectedCustomers int              `json:"affected_customers,omitempty"`
+	AffectedMRR       float64          `json:"affected_mrr,omitempty"`
 }
 
 // PerformCrossRepoCheck extracts the core logic of CrossRepoCheckHandler.
@@ -76,7 +76,6 @@ func PerformCrossRepoCheck(ctx context.Context, store ports.CrossRepoStore, req 
 		Results:     []ConsumerResult{},
 		SLABreaches: []SLABreach{},
 	}
-
 
 	// P10-T19: CRM/Billing Blast Radius
 	var affectedCustomers int
@@ -268,19 +267,18 @@ func PerformCrossRepoCheck(ctx context.Context, store ports.CrossRepoStore, req 
 				response.BrokenConsumers++
 				response.IsSafe = false
 
-
 				// If CRM clients are configured and there's a breaking change, compute blast radius
 				if stripeClient != nil {
 					// We'd ideally have a way to map consumer to stripe customer ID.
 					// For demonstration in P10-T19, we will use a derived customer ID from consumer name
 					// e.g., consumer.ConsumerFullName -> "cus_" + hash
-					mrr, err := stripeClient.GetCustomerMRR(ctx, "cus_demo_" + consumer.ConsumerFullName)
+					mrr, err := stripeClient.GetCustomerMRR(ctx, "cus_demo_"+consumer.ConsumerFullName)
 					if err == nil {
 						affectedCustomers++
 						affectedMRR += mrr
 					}
 				} else if sfClient != nil {
-					rev, err := sfClient.GetCustomerRevenue(ctx, "acc_demo_" + consumer.ConsumerFullName)
+					rev, err := sfClient.GetCustomerRevenue(ctx, "acc_demo_"+consumer.ConsumerFullName)
 					if err == nil {
 						affectedCustomers++
 						affectedMRR += rev
@@ -314,7 +312,7 @@ func PerformCrossRepoCheck(ctx context.Context, store ports.CrossRepoStore, req 
 		}
 	}
 
-		if response.BrokenConsumers > 0 && affectedCustomers > 0 {
+	if response.BrokenConsumers > 0 && affectedCustomers > 0 {
 		response.AffectedCustomers = affectedCustomers
 		response.AffectedMRR = affectedMRR
 	}

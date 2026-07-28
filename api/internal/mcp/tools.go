@@ -2,9 +2,9 @@ package mcp
 
 import (
 	"context"
-	"time"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/services"
@@ -243,7 +243,7 @@ func RegisterTools(server *Server, store db.Store) {
 			var res []map[string]any
 			for _, c := range consumers {
 				res = append(res, map[string]any{
-					"repo": c.ConsumerFullName,
+					"repo":   c.ConsumerFullName,
 					"status": "breaking",
 				})
 			}
@@ -690,12 +690,12 @@ func RegisterTools(server *Server, store db.Store) {
 		},
 		Handler: func(params json.RawMessage) (any, error) {
 			var args struct {
-				Org string `json:"org"`
-				Repo string `json:"repo"`
-				Description string `json:"description"`
+				Org          string `json:"org"`
+				Repo         string `json:"repo"`
+				Description  string `json:"description"`
 				IncidentDate string `json:"incident_date"`
-				AmountCents int64 `json:"amount_cents"`
-				GithubPRURL string `json:"github_pr_url"`
+				AmountCents  int64  `json:"amount_cents"`
+				GithubPRURL  string `json:"github_pr_url"`
 			}
 			if err := json.Unmarshal(params, &args); err != nil {
 				return nil, err
@@ -707,12 +707,12 @@ func RegisterTools(server *Server, store db.Store) {
 			}
 
 			claim := db.InsuranceClaim{
-				OrgID: orgID,
+				OrgID:       orgID,
 				AmountCents: args.AmountCents,
 
 				IncidentDate: time.Now(),
-				GithubPRUrl: args.GithubPRURL,
-				Status: "pending",
+				GithubPRUrl:  args.GithubPRURL,
+				Status:       "pending",
 			}
 			id, err := store.CreateInsuranceClaim(ctx, claim)
 			if err != nil {
@@ -844,7 +844,6 @@ func RegisterTools(server *Server, store db.Store) {
 			return []map[string]any{}, nil
 		},
 	})
-
 
 	server.RegisterTool(Tool{
 		Name:        "bypass_breaking_change",
