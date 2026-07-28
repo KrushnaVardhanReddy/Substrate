@@ -46,3 +46,11 @@ demo-repos/slack-api-specs/
 # Wrangler
 .wrangler/
 github-app/.wrangler/
+
+# Scratch & Debug files
+.agents/
+out.txt
+err.txt
+test_*.py
+test_*.sh
+dashboard/*.png
