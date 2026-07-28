@@ -14,6 +14,9 @@ func CreateDraftPR(ctx context.Context, owner, repo, branch, patch, title, body 
 	apiURL := os.Getenv("GITHUB_API_URL")
 	if apiURL == "" {
 		apiURL = "http://localhost:3000/api/v1"
+		if p := os.Getenv("FORGEJO_PORT"); p != "" {
+			apiURL = "http://localhost:" + p + "/api/v1"
+		}
 	}
 	token := os.Getenv("GITHUB_TOKEN")
 	if token == "" {
@@ -56,6 +59,9 @@ func ListIssueComments(ctx context.Context, owner, repo string, issueNumber int)
 	apiURL := os.Getenv("GITHUB_API_URL")
 	if apiURL == "" {
 		apiURL = "http://localhost:3000/api/v1"
+		if p := os.Getenv("FORGEJO_PORT"); p != "" {
+			apiURL = "http://localhost:" + p + "/api/v1"
+		}
 	}
 	token := os.Getenv("GITHUB_TOKEN")
 	if token == "" {

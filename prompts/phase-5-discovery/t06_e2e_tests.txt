@@ -1,38 +1,39 @@
-MANDATORY RULES — VIOLATION = REJECTED PR:
-[safety rules prepended automatically by jules_submit.py]
-
----
-
-TASK: P5-T06 — Phase 5 Dependency Discovery E2E Tests
+TASK: P5-T06 — Phase 5 Discovery Scanners Full-Stack E2E Validation
 
 ═══════════════════════════════════════════════════════════════
 OBJECTIVE
 ═══════════════════════════════════════════════════════════════
-Implement the cross-repo E2E integration test suite for the Automated Dependency Discovery engine. This test must validate that the Phase 5 scanners (Env Var, Package, OpenAPI Generator, Terraform, Kafka, and OTel Runtime) can work together to build a complete cross-repo dependency graph.
+Using the new Full-Stack PGlite Test Harness (CC-T02), implement the complete E2E 
+test suite for the Phase 5 Discovery Scanners. 
 
-You will create a mock "polyglot" microservice repository under `api/testdata/cross-repo-discovery/` that contains fixture files for all the different scanners to parse. Then, you will write a comprehensive test in `api/internal/discovery/e2e_test.go` that runs the Aggregator and asserts that the resulting dependency graph contains the correct edges with their combined confidence scores.
+You must write BOTH the Go API tests (to assert the scanner engine and confidence scoring) 
+AND the Playwright UI tests (to ensure the discovery UI renders scans correctly).
 
-Refer to the test strategy and expected graph assertions detailed in `docs/specs/phase-5/p5-t06-e2e.md`.
+═══════════════════════════════════════════════════════════════
+CRITICAL READING — DO THIS BEFORE WRITING A SINGLE LINE OF CODE
+═══════════════════════════════════════════════════════════════
+1. docs/specs/e2e/phase5-discovery.md
+   → Read the exact API assertions and UI actions required.
+
+2. dashboard/src/routes/(app)/org/[org]/discovery/[repo]/+page.svelte
+   → Review the DOM structure of the Discovery Dashboard. Note the trigger mechanism 
+     for the "Run Full Scan" button.
+
+3. seed_mcp.sql
+   → Ensure the discovery test repo `mcp-org/discovery-test-repo` is seeded.
 
 ═══════════════════════════════════════════════════════════════
 DELIVERABLES
 ═══════════════════════════════════════════════════════════════
-1. Create mock fixture files in `api/testdata/cross-repo-discovery/` including a `docker-compose.yml`, `package.json`, `openapitools.json`, `terraform/plan.json`, `asyncapi.yaml`, and `otel_traces.json`.
-2. Write the E2E test `TestPhase5DependencyDiscoveryE2E` in `api/internal/discovery/e2e_test.go` to parse the fixture files through the full Aggregator and validate the output edges.
+1. FILE: scripts/e2e/phase5_api_test.go (NEW)
+   - Assert POST `/api/v1/discovery/scan/{org}/{repo}` triggers the async job.
+   - Assert GET `/api/v1/discovery/results/{org}/{repo}` returns the mocked dependencies.
 
-═══════════════════════════════════════════════════════════════
-FILES LIST
-═══════════════════════════════════════════════════════════════
-FILES TO ADD:
-- api/testdata/cross-repo-discovery/docker-compose.yml
-- api/testdata/cross-repo-discovery/package.json
-- api/testdata/cross-repo-discovery/openapitools.json
-- api/testdata/cross-repo-discovery/terraform/plan.json
-- api/testdata/cross-repo-discovery/asyncapi.yaml
-- api/testdata/cross-repo-discovery/otel_traces.json
-- api/internal/discovery/e2e_test.go
+2. FILE: dashboard/playwright/discovery.spec.ts (NEW)
+   - Navigate to `/org/mcp-org/discovery/mcp-org/discovery-test-repo`.
+   - Click "Run Full Scan".
+   - Assert the list populates with Env Vars and Terraform nodes.
+   - Click a node to open the Confidence Score panel.
 
-FILES TO MODIFY:
-- (None)
-
-Commit: "jules: implement phase 5 cross-repo discovery e2e tests"
+Commit message: "test: P5-T06 add Phase 5 full-stack E2E tests (Discovery Scanners)"
+Target branch: feature/dev

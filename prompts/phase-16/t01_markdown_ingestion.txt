@@ -1,0 +1,49 @@
+TASK: P16-T01 — Markdown Guide Ingestion (Diátaxis)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Pull `docs/**/*.md` files from provider repositories alongside their OpenAPI specs and render them as human-readable "Guides" in the Substrate Developer Portal catalog page.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-16/p16-t01-markdown-ingestion.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Markdown rendering MUST use `marked` + `DOMPurify` to prevent XSS.
+- Max file size per ingested document: 500KB. Skip silently if exceeded.
+- If a repo has no `docs/` directory, return an empty array — never a 500 error.
+- You MUST write a Vitest unit test (`+page.test.ts`) for the new Guides tab component.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The schema sync webhook is handled in `api/internal/handlers/webhook.go`. Add guide ingestion logic after the existing spec sync call.
+- API handlers live in `api/internal/handlers/`. Follow the pattern of `org.go` for DB interaction via the `ports.Store` interface.
+- The DB store interface is in `api/internal/ports/store.go`. Add new methods there and implement in `api/internal/db/pgstore.go`.
+- The catalog repo page is `dashboard/src/routes/(app)/org/[org]/catalog/[repo]/+page.svelte`. Add a "Guides" tab alongside the existing "Schema" tab.
+- Dashboard uses `@testing-library/svelte` + `vitest` for unit tests.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Create a new `repo_guides` table via a SQL migration file in `api/internal/db/migrations/`.
+- Add `UpsertRepoGuide(ctx, org, repo, filePath, title, content string) error` and `ListRepoGuides(ctx, org, repo string) ([]RepoGuide, error)` to the Store interface.
+- To extract the title from a Markdown file, read the first `# H1` heading. If none exists, use the filename.
+- In the sync webhook handler, after saving the schema, call `git clone --depth 1` on the repo, walk `docs/`, and upsert each `.md` file. Wrap in a goroutine so it doesn't block the webhook response.
+- Install `marked` and `dompurify` in the dashboard: `npm install marked dompurify @types/dompurify`.
+- The Guides tab in Svelte should have `id="guides-tab"` for Playwright testability.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: api/internal/db/migrations/YYYYMMDD_add_repo_guides.sql (CREATE)
+2. FILE: api/internal/handlers/guides.go (CREATE)
+   - Include `guides_test.go`
+3. FILE: dashboard/src/routes/(app)/org/[org]/catalog/[repo]/+page.svelte (MODIFY — add Guides tab)
+   - Include `+page.test.ts` update for the new tab
+4. Run `go test ./...` and `npm run test`.
+
+Commit: "jules: P16-T01 add markdown guide ingestion for developer portal"
+Target branch: feature/p16-t01-markdown-ingestion

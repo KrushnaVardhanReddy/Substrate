@@ -11,7 +11,7 @@ Developers currently must commit their changes or use the web dashboard to see t
 ### 1. VSCode Extension
 - **Syntax Highlighting & Validation:** Provide autocomplete, linting, and hover documentation for `substrate.yaml` using JSON Schema.
 - **Inline Blast Radius:** When a developer modifies a schema (e.g., an OpenAPI file), query the local or remote Substrate engine to calculate the blast radius and display warnings inline (using VSCode Diagnostics) if downstream consumers will be broken.
-- **Dependency Graph View:** Embed a webview panel within VSCode that renders a localized version of the SvelteFlow dependency graph for the current repository.
+- **Dependency Graph View:** Embed a webview panel within VSCode that renders a localized version of the Cytoscape dependency graph for the current repository.
 
 ### 2. MCP Integration
 - Extend the `substrate-mcp` server to expose tools for:

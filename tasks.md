@@ -1,6 +1,6 @@
 # Substrate — Task Tracker
 
-> Last updated: 2026-07-23 (Wave 15 submitted — P11-T18 & P3-T12 E2E gap tasks dispatched to Jules 🚀)
+> Last updated: 2026-07-28 (Phase 12 & 13 complete ✅. All automated tasks done. Manual QA remaining.)
 > Tracking all development phases, tasks, and their current status.
 
 ---
@@ -20,93 +20,56 @@
 
 > **Note:** Tasks for Phases 0 through 6 have been archived to [completed_tasks.md](./completed_tasks.md)
 
-## 🔐 Phase 9: Compliance, IDEs & Developer Experience
+> **Note:** Phases 3, 9, 10, 11, 12, and 13 are fully complete. See [completed_tasks.md](./completed_tasks.md) for their full task lists.
 
-**Goal:** Provide compliance auditing, IDE-level developer experience, and governance mapping.
-
-| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
-|---|---|---|---|---|---|
-| **P9-T02** | 🟡 P2 | **Continuous AI Sync (`watch`)** — Background daemon that monitors code changes in the IDE and updates the local OpenAPI spec in real-time. | Jules | ✅ PR Merged | `docs/specs/go-to-market-strategy.md` |
-| **P9-T03** | 🟢 P3 | **Compliance Mapping** — Auto-tag schemas with SOC2/GDPR/HIPAA warnings when fields like `ssn` or `medical_history` are detected. | Jules | ✅ PR Merged | `docs/specs/enterprise-vision.md` |
-| **P9-T04** | 🔵 P4 | **Quality Gates (SonarQube-style)** — Allow setting different failure thresholds based on service tier (e.g., Tier 1 allows 0 warnings, Beta allows breakages). | Jules | ✅ PR Merged | `docs/specs/enterprise-vision.md` |
-| **P9-T05** | ⚪ P5 | **Hexagonal Architecture & `sqlc` Refactor** — Formally isolate engines from HTTP transports, migrate raw `pgx` queries to `sqlc` for type-safe DB layer generation. *(Note: Must split `Store` interface to be per-table, not per-project, to avoid merge conflicts)*. | Jules + Antigravity | ✅ PR Merged (#196) | `docs/specs/phase-9/p9-t05-hexagonal-architecture.md` |
-| **P9-T06** | ⚪ P6 | **Configuration Management (Viper)** — Migrate `os.Getenv` calls to Viper for robust `.env`, CLI flag, and YAML configuration loading. | Jules | ✅ PR Merged | `(Pending)` |
-| **P9-T07** | 🔴 P1 | **AI Migration Planner** — Upgrade AI Autofix to generate safe, multi-step migration plans for complex schema/database changes with minimal downtime. | Jules | ✅ Complete | `docs/specs/phase-9/p9-t07-ai-migration-planner.md` |
-| **P9-T08** | 🟡 P2 | **Deployment Risk Scoring** — Synthesize breaking change data, infrastructure changes, and downstream blast radius into a holistic "Deployment Risk Score". | Jules | ✅ PR Merged | `(Pending)` |
-| **P9-T09** | 🟢 P3 | **AI Impact Analysis Summaries** — Pass cross-repo blast radius checks to the AI handler to generate a plain-English impact summary on PRs. | Jules | ✅ PR Merged | `(Pending)` |
-| **P9-T11** | 🚀 P1 | **Automated Deprecation Campaigns** — Track sunsetting endpoints, auto-open issues in downstream consumer repos, and nag them until 0% usage is reached. | Jules | ✅ PR Merged | `(Pending)` |
-| **P9-T13** | 🟡 P2 | **Embedded Mermaid Blast Radius** — Upgrade the GitHub PR comment bot to render a visual Mermaid.js flowchart of the exact blast radius directly inside the PR, eliminating the need to click away. | Jules | ✅ PR Merged | `(Pending)` |
-| **P9-T14** | 🟢 P3 | **Ephemeral API Preview URLs** — Generate temporary, shareable Substrate dashboard URLs for PRs so engineers can share proposed schema changes and interactive diffs with frontend teams before merging. | Jules | ✅ PR Merged | `(Pending)` |
-| **P9-T16** | 🚀 P1 | **WASM Git Pre-Commit Hooks** — Blazing fast local Git hooks that run `substrate diff` in 0.02s before code ever leaves the developer's laptop. | Jules | ✅ Complete | `docs/specs/phase-9/p9-t16-wasm-hooks.md` |
-| **P9-T17** | 🔴 P1 | **Phase 9 E2E Validation (No Mocks)** — Comprehensive end-to-end testing suite for all Phase 9 compliance, DX, and hook features. Must spin up real Postgres DBs, real Substrate CLI integrations, and real Git repositories—strictly no mocking. | Jules | ✅ PR Merged | `(Pending)` |
-
-## 🏛️ Phase 3: Cross-Repo Contract Registry
-
-**Goal:** Build the central PostgreSQL-backed registry and cross-repo dependency graph.
-
-| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
-|---|---|---|---|---|---|
-| **P3-T12** | 🔴 P1 | **Phase 3 E2E Validation** — Validate the Dependency Graph API (`GET /api/v1/graph/{org}`), Can-Deploy safety gate (blocking and passing scenarios), Can-Rollback gate, and Repo List endpoint. Currently only exercised indirectly by `TestV1SystemE2E`. | Jules | ✅ PR Merged | `docs/specs/phase-3/p3-t12-e2e-validation.md` |
-
-> 📋 **Prompt:** `prompts/phase-3-registry/t12_e2e_validation.txt`
-
----
-
-
-**Goal:** Expand Substrate's reach into API gateways and automated security testing.
-
-| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
-|---|---|---|---|---|---|
-| **P10-T01** | 🔴 P1 | **Automated Security Fuzzing (OWASP)** — Upgrade the Phase 6 fuzzer to inject malicious payloads (SQLi, IDOR) based on the schema, acting as an automated pentester. | Jules | 🔒 Blocked (AI Safety Refusal) | `docs/specs/phase-10/p10-t01-security-fuzzing.md` |
-| **P10-T03** | 🟢 P3 | **AI Mock Data Generator (QA)** — Scan QA repositories for JSON test fixtures and use the AI engine to auto-update mock data when the upstream API schema changes. | Jules | ✅ PR Merged | `(Pending)` |
-| **P10-T04** | 🔵 P4 | **AI Spectral Linter (API Governance)** — Enforce plain-English API design rules (e.g. "All endpoints must use camelCase") during the PR diff process to maintain org-wide consistency. | Jules | ✅ PR Merged | `(Pending)` |
-| **P10-T05** | ⚪ P5 | **Auto-SDK Generator PRs** — Automatically generate TypeScript/Swift/Go clients via OpenAPI Generator when a schema is merged, opening PRs directly in the downstream consumer repos. | Jules | ✅ PR Merged | `(Pending)` |
-| **P10-T06** | ⚪ P6 | **Traffic-Aware Pruning (Zombies)** — Correlate schema endpoints with live Datadog/OTel metrics to detect unused "zombie" APIs and auto-generate PRs to delete the dead code. | Jules | ✅ PR Merged | `(Pending)` |
-| **P10-T07** | 🟣 P1 | **MCP Runtime Diffing** — Spin up Model Context Protocol (MCP) servers in a sandbox during CI/CD to dynamically diff `tools/list` and block AI agent breaking changes. | Jules | ✅ Complete | `docs/specs/phase-10/p10-t07-mcp-diffing.md` |
-| **P10-T10** | 🚀 P1 | **Consumer-Driven Contract Manifests** — Allow frontend apps to upload `.substrate-consumer.yaml` declaring required fields, directly competing with PactFlow. | Jules | ✅ Complete | `docs/specs/phase-10/p10-t10-consumer-contracts.md` |
-| **P10-T13** | 🔴 P1 | **Integrated API Documentation Catalog** — Evolve the registry into an internal Developer Portal by embedding interactive API reference viewers (like Stoplight Elements or ReDoc) directly into the dashboard. | Jules | ✅ PR Merged | `(Pending)` |
-| **P10-T15** | 🚀 P1 | **Zero-Latency Drift Detection (eBPF)** — Extend runtime drift detection with a zero-latency `cilium/ebpf` kernel probe for high-throughput environments. *UX Goal: Provide a pre-packaged Helm chart (`helm install substrate-ebpf`) that auto-detects pods via Kubernetes labels (e.g., `substrate.io/monitor: "true"`).* | Jules | ✅ PR Merged | `docs/specs/phase-10/p10-t15-ebpf-drift.md` |
-| **P10-T18** | 🚀 P1 | **GraphQL Supergraph Federation** — Add native support for Apollo Federation to diff subgraphs and prevent routing breakages. | Jules | ✅ Complete | `docs/specs/phase-10/p10-t18-graphql-federation.md` |
-| **P10-T19** | 🚀 P1 | **CRM/Billing Blast Radius** — Integrate with Stripe and Salesforce to map external customer impact on internal API breakages. | Jules | ✅ PR Merged | `(Pending)` |
-| **P10-T20** | 🔴 P1 | **Phase 10 E2E Validation (No Mocks)** — End-to-end testing of GraphQL Supergraphs, CDC Manifests, eBPF probes, and MCP diffing. Must use real live gateway environments, live Git hooks, and zero mock APIs. | Jules | ✅ PR Merged | `(Pending)` |
-
-### Cross-Cutting Refactors
+### Cross-Cutting Refactors (All Complete ✅)
 | Task | Priority | Title | Assignee | Status | Spec |
 |---|---|---|---|---|---|
-| **CC-T01** | 🛡️ P1 | **PASETO Security Migration** — Replace all `golang-jwt` usage in `middleware.go` with PASETO `v4.local` for internal auth, and prepare for PASETO `v4.public` in P15-T15. | Jules | ✅ PR Merged | `docs/wiki/concepts/architecture.md` |
+| **CC-T01** | 🛡️ P1 | **PASETO Security Migration** | Jules | ✅ PR Merged | `docs/wiki/concepts/architecture.md` |
+| **CC-T02** | 🚀 P1 | **E2E Overhaul: Full-Stack PGlite Harness** | Jules | ✅ Complete | `prompts/e2e/pglite_infrastructure.txt` |
+| **CC-T03** | 🚀 P1 | **Live VCS E2E Integration (Forgejo)** | Jules | ✅ Complete | `docs/specs/cross-cutting/cc-t03-live-vcs.md` |
+| **CC-T04** | 🟢 P3 | **UI Org Context & API Keys Refactor** | Jules | ✅ PR Merged | `docs/specs/ui/org_context_and_apikeys.md` |
+| **CC-T05** | 🟢 P3 | **E2E Validation: UI Org Context** | Jules | ✅ Complete | `docs/specs/e2e/ui_org_context_e2e.md` |
+| **CC-T06** | 🟢 P2 | **API Keys Backend Integration** | Jules | ✅ PR Merged | `docs/specs/ui/api_keys_backend.md` |
+| **CC-T07** | 🟢 P3 | **E2E Validation: API Keys Backend** | Jules | ⚪ Redundant (in T06) | `docs/specs/e2e/api_keys_e2e.md` |
 
 ---
 
-## 🗺️ Phase 11: Advanced Graph Visualization (V2.0 UX)
+## 🗺️ Phase 12: V2.0 Public Launch & Quality Assurance ✅ COMPLETE
 
-**Goal:** Elevate the Substrate Dependency Graph into a world-class architectural explorer with cascading impact analysis and team-based layouts.
+> Full task list in [completed_tasks.md](./completed_tasks.md#phase-12)
 
-| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
-|---|---|---|---|---|---|
-| **P11-T01** | 🚀 P1 | **Blast Radius** — Highlight blast radius in the dependency graph. | Jules | ✅ PR Merged | `docs/specs/phase-11/p11-t01-blast-radius.md` |
-| **P11-T02** | 🟡 P2 | **Team Neighborhoods** — Group nodes by team ownership. | Jules | ✅ PR Merged | `docs/specs/phase-11/p11-t02-team-neighborhoods.md` |
-| **P11-T03** | 🟢 P3 | **Edge Tooltips** — Show connection details on hover. | Jules | ✅ PR Merged | `docs/specs/phase-11/p11-t03-edge-tooltips.md` |
-| **P11-T04** | 🟡 P2 | **Volatility Heatmap** — Heatmap showing frequently broken APIs. | Jules | ✅ PR Merged | `docs/specs/phase-11/p11-t04-volatility-heatmap.md` |
-
-### Phase 11: Backend API E2E Coverage
-| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
-|---|---|---|---|---|---|
-| **P11-T18** | 🔴 P1 | **Phase 11 Backend E2E Validation** — E2E tests for all Phase 11 backend APIs: Dependency Graph blast radius (`GET /api/v1/graph/{org}`), Impact Analysis (`GET /api/v1/impact/{org}/{repo}`), SSE real-time stream (`GET /api/v1/events`), and Diff Report persistence round-trip. Zero coverage today — any regression reaches prod silently. | Jules | ✅ PR Merged | `docs/specs/phase-11/p11-t18-e2e-validation.md` |
-
-> 📋 **Prompt:** `prompts/phase-11/t18_e2e_validation.txt`
-
-### Phase 12: V2.0 Public Launch & Quality Assurance
-| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
-|---|---|---|---|---|---|
+| Task ID | Tier | Summary | Status |
+|---|---|---|---|
+| **P12-T01** | 🔴 P1 | Zero-to-One Onboarding E2E | ✅ Complete |
+| **P12-T02** | 🔴 P1 | Svelte Flow Interaction E2E | ✅ Complete |
+| **P12-T03** | 🟡 P2 | AI Playground & Diff Viewer E2E | ✅ Complete |
+| **P12-T04** | 🔴 P1 | SSE Connection Resilience Test | ✅ Complete |
+| **P12-T05** | 🟡 P2 | WASM Engine Boundary Tests | ✅ Complete |
+| **P12-T06** | 🟢 P3 | 1,000-Node UI Stress Test | ✅ Complete |
+| **P12-T07** | 🔵 P4 | Telemetry & Crash Reporting (PostHog) | ✅ Complete |
+| **P12-T08** | 🔴 P1 | V2.0 Production Cutover | ✅ Done |
+| **P12-T09** | 🟢 P3 | AI Support Copilot | ✅ Done |
+| **P12-T10** | 🔴 P1 | VCS-Agnostic Webhook & API Adapter | ✅ Done |
+| **P12-T11** | 🟡 P2 | Multi-VCS Onboarding UI | ✅ Done |
+| **P12-T12** | 🚀 P1 | System Matrix E2E (Red/Green/Yellow) | ✅ Done |
+| **P12-T13** | ⭐ P1 | Zero-Config Developer Portal (Catalog UI) | ✅ Done |
+| **P12-T14** | 🔴 P1 | System Matrix Overrides (Yellow Path) | ✅ Done |
+| **P12-T15** | 🚀 P1 | Advanced Feature Suites E2E | ✅ Complete |
+| **P12-T16** | 🔴 P1 | Advanced E2E UI Implementation (TDD) | ✅ Complete |
 
 ---
 
-## 👑 Phase 13: God-Mode & Enterprise Intelligence
+## 👑 Phase 13: God-Mode & Enterprise Intelligence ✅ COMPLETE
 
-**Goal:** Evolve Substrate into a predictive, financial, and auto-healing infrastructure intelligence platform.
+> Full task list in [completed_tasks.md](./completed_tasks.md#phase-13)
 
-| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
-|---|---|---|---|---|---|
+| Task ID | Tier | Summary | Status |
+|---|---|---|---|
+| **P13-T01** | 🤯 P1 | FinOps Cost Prediction (Egress Calculator) | ✅ Done |
+| **P13-T02** | 🤯 P1 | DB Performance Breakages (CLI Analytics) | ✅ Done |
+| **P13-T03** | 🤯 P1 | AI Chaos Engineering Auto-Tests | ✅ Complete |
+| **P13-T04** | 🔴 P1 | Enterprise E2E Validation | ✅ Done |
 
 ---
 
@@ -147,6 +110,51 @@
 
 ---
 
+## 📚 Phase 16: The Absolute SSOT (API Documentation)
+
+**Goal:** Transform Substrate from a schema registry into a complete Developer Portal, eliminating the need for external tools like ReadMe or Backstage by merging technical schemas with human-written guides and interactive tools.
+
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|---|---|---|---|---|---|
+| **P16-T01** | 🚀 P1 | **Markdown Guide Ingestion (Diátaxis)** — Pull `docs/**/*.md` files from provider repos alongside OpenAPI specs. Stitch human-written tutorials, how-tos, and references together with the auto-generated API schema in the UI. | Jules | ⏳ Next Up | `(Pending)` |
+| **P16-T02** | 🟡 P2 | **Business Metadata Block** — Expand `substrate.yaml` to accept `metadata` (PM, Slack channel, PagerDuty link, SLA Tier) and display it prominently at the top of the API's documentation page. | Unassigned | 💡 Planned | `(Pending)` |
+| **P16-T03** | 🔴 P1 | **Interactive API Sandbox ("Try It Out")** — Build an API proxy into the Go backend that allows developers to generate ephemeral test tokens and issue live requests to the API directly from the Substrate documentation UI. | Jules | ⏳ In Progress | `(Pending)` |
+| **P16-T04** | 🟢 P3 | **Auto-Generated SDK Code Snippets** — Dynamically generate copy-pasteable request snippets (Curl, Python, Node, Go) for every endpoint in the documentation based on the OpenAPI schema. | Unassigned | 💡 Planned | `(Pending)` |
+| **P16-T05** | 🔵 P4 | **Configurable Graph Node Branding (YAML + MCP)** — Allow teams to define `metadata.node_color` in `substrate.yaml`. Plumb this custom hex color down to the Svelte Flow Dependency Graph UI *and* expose it via the MCP Server resources so AI agents know the visual branding of the nodes they are analyzing. | Unassigned | 💡 Planned | `(Pending)` |
+| **P16-T99** | 🔴 P1 | **Phase 16 E2E Validation (No Mocks)** — Validate the full documentation portal: Markdown ingestion from real repos, Interactive Sandbox proxy forwarding real requests via ephemeral tokens, SDK snippet generation, and Business Metadata rendering. Must include Go API tests and Playwright UI tests. | Jules | 💡 Planned | `docs/specs/phase-16/p16-t99-e2e.md` |
+
+---
+
+## 📈 Phase 17: DevOps & Management Intelligence
+
+**Goal:** Surface financial, operational, and structural data to Engineering Managers and DevOps teams, providing zero-touch automation for API Gateways and high-level incident context.
+
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|---|---|---|---|---|---|
+| **P17-T01** | 🚀 P1 | **API Maturity Scorecards (Manager Dashboard)** — Provide a high-level UI grading APIs (A-F) based on documentation completeness, SOC2/PII compliance, volatility, and shadow test coverage. | Jules | ⏳ Next Up | `(Pending)` |
+| **P17-T02** | 🟡 P2 | **Legacy API FinOps Translation** — Expand the zombie API detection to calculate and display the exact estimated dollar amount saved by sunsetting legacy endpoints. | Unassigned | 💡 Planned | `(Pending)` |
+| **P17-T03** | 🔴 P1 | **GitOps API Gateway Sync (CRD Generation)** — Automatically generate Kubernetes CRDs (or Terraform state) for Kong/AWS API Gateway based on Substrate schemas, pushing them when PRs are merged. | Jules | ⏳ In Progress | `(Pending)` |
+| **P17-T04** | 🔴 P1 | **PagerDuty Blast Radius Injection** — Integrate with Datadog/PagerDuty. On incident creation, Substrate injects the visual Mermaid Dependency Graph into the incident description to instantly show downstream blast radius. | Jules | ⏳ Next Up | `(Pending)` |
+| **P17-T05** | 🚀 P1 | **Auto-Rollback via ArgoCD/Flux** — Wire Substrate's `Can-Rollback` and eBPF Drift engine to ArgoCD/Flux webhooks, automatically reverting a deployment if it causes severe schema violations in production. | Jules | ⏳ Next Up | `(Pending)` |
+| **P17-T06** | 🚀 P1 | **Deployment & Incident Graph Overlay** — Ingest deployment/incident webhooks (GitHub Actions, Datadog) into an `events` timeline. Visualize these events directly on the Svelte Dependency Graph so developers can instantly correlate downstream failures with upstream changes. | Jules | ⏳ Next Up | `docs/specs/phase-17/p17-t06-deployment-overlay.md` |
+| **P17-T99** | 🔴 P1 | **Phase 17 E2E Validation (No Mocks)** — Validate all DevOps integrations: API Maturity Scorecard scoring logic, PagerDuty webhook injection, ArgoCD rollback trigger, and GitOps CRD generation. Use real ArgoCD/Forgejo test environments — no mocks. | Jules | 💡 Planned | `docs/specs/phase-17/p17-t99-e2e.md` |
+
+---
+
+## 🤖 Phase 18: AI Agent Governance & FDAIE Tooling
+
+**Goal:** Provide Forward Deployed AI Engineers (FDAIEs) with the necessary tooling to safely deploy, monitor, and optimize AI agents communicating with enterprise APIs via the Model Context Protocol (MCP).
+
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|---|---|---|---|---|---|
+| **P18-T01** | 🔴 P1 | **Granular MCP Tool Governance** — Allow FDAIEs to define "Agent Profiles" in Substrate (e.g., support vs. devops). Dynamically generate restricted MCP toolsets based on the profile, enforcing Human-in-the-Loop requirements for destructive `POST/DELETE` operations. | Jules | ⏳ Next Up | `(Pending)` |
+| **P18-T02** | 🚀 P1 | **Context-Aware Schema Pruning** — Implement a "Pruned Schema API" that takes natural language intent, determines the necessary subset of the OpenAPI spec, and returns only the relevant endpoints to minimize LLM token usage and latency. | Jules | ⏳ In Progress | `(Pending)` |
+| **P18-T03** | 🟡 P2 | **Agent Execution Audit Trails** — Build an AI Forensics Dashboard that logs every MCP tool request, the exact schema injected into the prompt context, and the final payload executed by the AI, providing a verifiable audit log for hallucinations. | Unassigned | 💡 Planned | `(Pending)` |
+| **P18-T04** | 🟢 P3 | **Dependency-Aware RAG Bundling** — Automatically bundle upstream and downstream service schemas into an agent's context window when modifying a target microservice, mathematically guaranteeing cross-repo contract safety. | Unassigned | 💡 Planned | `(Pending)` |
+| **P18-T99** | 🔴 P1 | **Phase 18 E2E Validation (No Mocks)** — Validate AI governance features end-to-end: Agent Profile restrictions, Schema Pruning accuracy against real NL prompts, Audit Trail completeness logging all MCP tool calls, and RAG Bundle context injection. Must use real LLM completions — no simulated responses. | Jules | 💡 Planned | `docs/specs/phase-18/p18-t99-e2e.md` |
+
+---
+
 ## 🧪 E2E Coverage Tracker
 
 > **Purpose:** Track which phases have E2E test coverage. As a solo developer, E2E is the primary safety net against production regressions.
@@ -181,8 +189,9 @@
 
 | Task ID | Name | Routes Covered | Spec | Status |
 |---------|------|----------------|------|--------|
+| **P1-T09** | Phase 1f/1g E2E Validation | AI/ML and Salesforce schema adapters | `docs/specs/e2e/phase1f-1g-adapters.md` | ✅ Complete |
 | **P11-T18** | Phase 11 Backend E2E | `GET /api/v1/graph/{org}`, `GET /api/v1/impact/{org}/{repo}`, `GET /api/v1/events`, `GET /api/v1/diff/{id}` | `docs/specs/phase-11/p11-t18-e2e-validation.md` | ✅ PR Merged |
-| **P3-T12** | Phase 3 Registry E2E | `GET /api/v1/graph/{org}`, `GET /api/v1/registry/can-deploy`, `GET /api/v1/repos/{org}` | `docs/specs/phase-3/p3-t12-e2e-validation.md` | ✅ PR Merged |
+| **P3-T12** | Phase 3 Registry E2E | `GET /api/v1/graph/{org}`, `GET /api/v1/registry/can-deploy`, `GET /api/v1/repos/{org}` | `docs/specs/phase-3/p3-t12-e2e-validation.md` | ✅ Complete |
 | **P-HIST-01** | History & Changes API | `POST /api/v1/history`, `GET /api/v1/history/{org}/{repo}`, `GET /api/v1/changes` | `docs/specs/cross-cutting/p-hist-01-e2e-history-api.md` | ✅ Complete |
 | **P-SYNC-01** | Contract Sync Pipeline | `POST /api/v1/sync`, `GET /api/v1/schema/{owner}/{repo}`, `GET /api/v1/spec/{org}/{repo}` | `docs/specs/cross-cutting/p-sync-01-e2e-sync-pipeline.md` | ✅ Complete |
 | **P-RBAC-01** | RBAC Breadth | All `authzMW` write routes — rules, insurance, zombies/pr, partners | `docs/specs/cross-cutting/p-rbac-01-e2e-rbac-breadth.md` | ✅ Complete |
@@ -219,6 +228,12 @@
 | **P-CLI-POST** | `substrate postmortem`, `substrate schema-smell`, `substrate plugin publish` | ✅ Complete |
 | **P-PART-01** | Partners CRUD (`/api/v1/org/{org}/partners` full lifecycle) | ✅ Complete |
 
+### 🟣 Priority 4 — Frontend Unit Testing Gaps (Vitest)
+
+| Task ID | Component/Page | Status |
+|---------|----------------|--------|
+| **P-UNIT-01** | Backfill Svelte unit tests for QA Dashboard and API Keys pages (19 missing files) | 💡 Planned |
+
 ---
 
 ### E2E Quick Commands
@@ -240,3 +255,24 @@ cd api && DATABASE_URL="postgresql://postgres:postgres@localhost:5432/substrate?
   GITHUB_CLIENT_SECRET="mock-client-secret" DASHBOARD_URL="http://localhost:5173" \
   ENVIRONMENT="development" go run ./cmd/server/main.go
 ```
+
+---
+
+## 🧪 Final Manual QA Checklist
+
+Once all automated E2E tests are complete, these four manual workflows must be verified to clear Substrate for production:
+
+- `[ ]` **1. GitHub App (Real-World Webhooks)**
+  - Install the Substrate GitHub App on a live test repository.
+  - Push a breaking OpenAPI change.
+  - Verify the Substrate Bot successfully posts a Markdown comment on the PR containing the correct blast radius formatting.
+- `[ ]` **2. VS Code Extension & UI Feel**
+  - Verify the Cytoscape dependency graph renders correctly *inside* the VS Code extension webview panel.
+  - Open the SvelteKit Dashboard in a browser and load the 1,000-node scale test to ensure the UI remains snappy and responsive.
+- `[x]` **3. MCP Server in Claude/Cursor**
+  - Add the `substrate-mcp` server to your `claude_desktop_config.json`.
+  - Ask Claude an impact analysis question (e.g., *"What happens if I delete the email field from the Payments API?"*).
+  - Verify Claude correctly invokes the `get_blast_radius` tool and hallucinates nothing.
+- `[x]` **4. Zero-Config Scaffold (`substrate init`)**
+  - Run `substrate init` in a fresh, empty directory.
+  - Verify the generated `substrate.yaml` and `.github/workflows/substrate.yml` are perfectly formatted and intuitive.

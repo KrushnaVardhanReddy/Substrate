@@ -11,6 +11,7 @@
 **Solution:**
 - Substrate parses changes to the OpenAPI spec.
 - Using the Postman API (or by managing a specific "Auto-Generated" folder in the repo to avoid human merge conflicts), Substrate automatically pushes updates to the Postman collections to reflect the new schema.
+- Substrate also allows downloading the generic OpenAPI Spec directly from the QA Dashboard so QA can use alternative tools like Hopscotch, Bruno, or Insomnia in a vendor-neutral way.
 - For Cypress, Substrate can auto-generate TypeScript fixture updates and open a PR in the QA repository.
 
 ## 2. "Shadow API" Test Coverage

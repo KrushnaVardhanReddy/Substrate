@@ -22,7 +22,7 @@ Based on the selection in Step 1, the credential form should adapt:
 - *The Base URL is hidden and defaults to `https://api.github.com` or `https://gitlab.com/api/v4` under the hood.*
 
 #### If Self-Hosted:
-- Input 1: **Server Base URL** (Placeholder: "http://localhost:3000/api/v1")
+- Input 1: **Server Base URL** (Placeholder: "http://localhost:3005/api/v1")
 - Input 2: **Personal Access Token** (Placeholder: "Your server token")
 
 ### Step 3: Connection & Scanning

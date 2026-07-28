@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Handle, Position } from '@xyflow/svelte';
-	import { AppWindow, Database, Smartphone, Server } from 'lucide-svelte';
+	import { AppWindow, Database, Smartphone, Server } from '@lucide/svelte';
 
 	let { data } = $props<{ data: any }>();
 
@@ -15,7 +15,7 @@
 	});
 </script>
 
-<div class="service-node-card {nodeType}" style="background-color: {backgroundColor};" class:origin={data.isOrigin} class:affected={data.isAffected} class:faded={data.isFaded} data-status={data.status?.toLowerCase() === 'breaking' || data.isAffected ? 'breaking' : 'safe'}>
+<div class="service-node-card {nodeType}" style="background-color: {backgroundColor};" class:origin={data.isOrigin} class:affected={data.isAffected} class:faded={data.isFaded}>
 	<Handle type="target" position={Position.Top} style="background: #555; width: 8px; height: 8px;" />
 
 	<div class="header">
@@ -30,7 +30,7 @@
 				<Server size={14} color="#6366F1" />
 			{/if}
 		</div>
-		<div class="status-indicator" class:breaking={data.status?.toLowerCase() === 'breaking' || data.isAffected} class:safe={data.status?.toLowerCase() !== 'breaking' && !data.isAffected}></div>
+		<div class="status-indicator" class:breaking={data.status === 'BREAKING'} class:warning={data.status === 'WARNING'} class:safe={data.status !== 'BREAKING' && data.status !== 'WARNING'}></div>
 		<span class="service-name">{data.label}</span>
 	</div>
 
@@ -93,6 +93,11 @@
 	.status-indicator.safe {
 		background-color: #10B981; /* Green */
 		box-shadow: 0 0 4px #10B981;
+	}
+
+	.status-indicator.warning {
+		background-color: #F59E0B; /* Orange */
+		box-shadow: 0 0 4px #F59E0B;
 	}
 
 	.status-indicator.breaking {

@@ -3,21 +3,10 @@ import { test, expect } from '@playwright/test';
 test.describe('Interactive Diff Viewer', () => {
     test.beforeEach(async ({ page }) => {
         // Mock layout repos
-        await page.route('**/api/v1/repos/*', async (route) => {
-            await route.fulfill({ status: 200, json: [] });
-        });
+
 
         // Mock Diff response
-        await page.route('**/api/v1/diff/*', async (route) => {
-            await route.fulfill({
-                status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify({
-                    base_schema: "name: Service A\ntype: backend\nversion: 1.0.0\ndependencies:\n  - postgres\n  - redis\n",
-                    head_schema: "name: Service A\ntype: backend\nversion: 1.1.0\ndependencies:\n  - postgres\n  - kafka\n"
-                })
-            });
-        });
+
     });
 
     test('should render diff viewer page correctly', async ({ page }) => {

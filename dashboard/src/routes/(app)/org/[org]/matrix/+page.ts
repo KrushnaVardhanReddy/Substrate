@@ -4,7 +4,7 @@ import { env } from '$env/dynamic/public';
 export const load: PageLoad = async ({ fetch, params }) => {
 	const org = params.org;
 	const apiUrl = env.PUBLIC_API_URL || 'http://localhost:8090';
-	const token = env.PUBLIC_API_TOKEN || '';
+	const token = env.PUBLIC_API_TOKEN || 'local-dev-token';
 
 	try {
 		const response = await fetch(`${apiUrl}/api/v1/matrix/${org}`, {
@@ -23,36 +23,9 @@ export const load: PageLoad = async ({ fetch, params }) => {
 		console.error(`Error fetching matrix:`, e);
 	}
 
-	// Mock data for the matrix
+	// Fallback mock data removed
 	return {
 		org,
-		matrixData: {
-			providers: ["users-api", "checkout-api"],
-			consumers: ["frontend-web (PROD)", "mobile-ios (V1.2)", "mobile-android (V1.1)"],
-			grid: [
-				{
-					provider: "users-api",
-					versions: [
-						{
-							version: "v2.1.0",
-							results: ["COMPATIBLE", "COMPATIBLE", "INCOMPATIBLE"]
-						},
-						{
-							version: "v2.0.0",
-							results: ["COMPATIBLE", "COMPATIBLE", "COMPATIBLE"]
-						}
-					]
-				},
-				{
-					provider: "checkout-api",
-					versions: [
-						{
-							version: "v1.5.2",
-							results: ["COMPATIBLE", "UNKNOWN", "COMPATIBLE"]
-						}
-					]
-				}
-			]
-		}
+		matrixData: { providers: [], consumers: [], grid: [] }
 	};
 };

@@ -1,10 +1,12 @@
 <script lang="ts">
-	import { trackEvent } from '$lib/utils/telemetry';
 	import { page } from '$app/stores';
-	import { onMount } from 'svelte';
-	import { SvelteFlow, MiniMap, Controls, Background, BackgroundVariant, type Node, type Edge, useSvelteFlow } from '@xyflow/svelte';
-	import '@xyflow/svelte/dist/style.css';
-	import dagre from 'dagre';
+	import { browser } from '$app/environment';
+	import { onMount, untrack } from 'svelte';
+	import cytoscape from 'cytoscape';
+	import dagre from 'cytoscape-dagre';
+	
+	cytoscape.use(dagre);
+
 	import { toPng } from 'html-to-image';
 	import { Download, RotateCw } from 'lucide-svelte';
 	import ServiceNode from '$lib/components/ServiceNode.svelte';
@@ -12,14 +14,15 @@
 	import TimeTravelScrubber from '$lib/components/TimeTravelScrubber.svelte';
 	import InteractiveEdge from '$lib/components/InteractiveEdge.svelte';
 
-	let cyContainer: HTMLElement;
+	let cyContainer: HTMLElement | undefined = $state();
+	let cyInstance: cytoscape.Core | null = null;
 	let { data }: { data: any } = $props();
-	let rawNodes = $state<Node[]>([]);
-	let rawEdges = $state<Edge[]>([]);
-	let nodes = $state<Node[]>([]);
-	let edges = $state<Edge[]>([]);
+	let rawNodes = $state<any[]>([]);
+	let rawEdges = $state<any[]>([]);
 
-	let isMounted = $state(false);
+
+
+
 
 	let showOnlyBreaking = $state(false);
 	let hideOrphans = $state(false);
@@ -37,11 +40,7 @@
 	};
 
 	$effect(() => {
-		const currentQuery = searchQuery;
-		const timer = setTimeout(() => {
-			debouncedSearch = currentQuery;
-		}, 300);
-		return () => clearTimeout(timer);
+		debouncedSearch = searchQuery;
 	});
 
 	let selectedNode: any = $state(null);
@@ -59,7 +58,15 @@
 		const affectedNodes = new Set<string>();
 		const affectedEdges = new Set<string>();
 		
-		// 1. Add downstream consumers recursively (Blast Radius)
+		// 1. Add immediate upstream providers so they are highlighted
+		for (const edge of rawEdges) {
+			if (edge.target === selectedNode.id) {
+				affectedEdges.add(edge.id);
+				affectedNodes.add(edge.source);
+			}
+		}
+
+		// 2. Add downstream consumers recursively (Blast Radius)
 		const queue = [selectedNode.id];
 
 		while (queue.length > 0) {
@@ -80,93 +87,6 @@
 		return { nodes: affectedNodes, edges: affectedEdges };
 	});
 
-	const nodeTypes = {
-		service: ServiceNode,
-		teamGroup: TeamGroupNode
-	};
-	const edgeTypes = {
-		interactive: InteractiveEdge
-	};
-
-	const nodeWidth = 172;
-	const nodeHeight = 60;
-
-	const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => {
-		// Fallback to naive grid layout if there are too many nodes (prevents Dagre freezing)
-		if (nodes.length > 100) {
-			const cols = Math.ceil(Math.sqrt(nodes.length));
-			const layoutedNodes = nodes.map((node, i) => ({
-				...node,
-				width: nodeWidth,
-				height: nodeHeight,
-				position: {
-					x: (i % cols) * (nodeWidth + 20),
-					y: Math.floor(i / cols) * (nodeHeight + 40)
-				}
-			}));
-			return { nodes: layoutedNodes, edges };
-		}
-
-		const dagreGraph = new dagre.graphlib.Graph({ compound: true });
-		dagreGraph.setDefaultEdgeLabel(() => ({}));
-
-		const isHorizontal = direction === 'LR';
-		dagreGraph.setGraph({ rankdir: direction, nodesep: 15, ranksep: 40, marginx: 20, marginy: 20 });
-
-		nodes.forEach((node) => {
-			if (node.type === 'teamGroup') {
-				dagreGraph.setNode(node.id, { label: node.data.label, clusterLabelPos: 'top' });
-			} else {
-				dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
-			}
-		});
-
-		nodes.forEach((node) => {
-			if (node.parentId) {
-				dagreGraph.setParent(node.id, node.parentId);
-			}
-		});
-
-		edges.forEach((edge) => {
-			dagreGraph.setEdge(edge.source, edge.target);
-		});
-
-		dagre.layout(dagreGraph);
-
-		const layoutedNodes = nodes.map((node) => {
-			const nodeWithPosition = dagreGraph.node(node.id);
-			const newNode = { ...node };
-			if (newNode.type === 'teamGroup') {
-				newNode.position = {
-					x: nodeWithPosition.x - nodeWithPosition.width / 2,
-					y: nodeWithPosition.y - nodeWithPosition.height / 2
-				};
-				// Assign width and height to SvelteFlow nodes so they size correctly
-				newNode.width = nodeWithPosition.width;
-				newNode.height = nodeWithPosition.height;
-				newNode.style = `width: ${nodeWithPosition.width}px; height: ${nodeWithPosition.height}px; ${newNode.style || ''}`;
-			} else {
-				newNode.width = nodeWidth;
-				newNode.height = nodeHeight;
-				// For children inside parents, SvelteFlow expects positions relative to the parent
-				if (newNode.parentId) {
-					const parentNodePos = dagreGraph.node(newNode.parentId);
-					newNode.position = {
-						x: nodeWithPosition.x - parentNodePos.x + parentNodePos.width / 2 - nodeWidth / 2,
-						y: nodeWithPosition.y - parentNodePos.y + parentNodePos.height / 2 - nodeHeight / 2
-					};
-				} else {
-					newNode.position = {
-						x: nodeWithPosition.x - nodeWidth / 2,
-						y: nodeWithPosition.y - nodeHeight / 2
-					};
-				}
-			}
-			return newNode;
-		});
-
-		return { nodes: layoutedNodes, edges };
-	};
 
 	let isGraphEmpty = $derived(!debouncedSearch && !showOnlyBreaking && protocolFilter === 'All');
 
@@ -184,35 +104,45 @@
 		}
 
 		if (debouncedSearch) {
-			const query = debouncedSearch.toLowerCase();
-			fNodes = fNodes.filter(n => (n.data.label as string).toLowerCase().includes(query));
+			const query = debouncedSearch.toLowerCase().trim();
+			fNodes = fNodes.filter(n =>
+				n.id.toLowerCase().includes(query) ||
+				(typeof n.data?.label === 'string' && n.data.label.toLowerCase().includes(query))
+			);
 		}
 
 		const matchedIds = new Set(fNodes.map(n => n.id));
-		let fEdges: Edge[] = [];
+
+		let fEdges: any[] = [];
 
 		if (includeNeighbors) {
 			const affectedIds = new Set(matchedIds);
 			
-			// 1. One layer Upstream (Dependencies)
+			// 1. Recursive Upstream (Dependencies)
 			// Edge direction: source (provider) -> target (consumer)
-			// If a matched node is a consumer (target), add its direct provider
-			for (const edge of rawEdges) {
-				if (matchedIds.has(edge.target)) {
-					affectedIds.add(edge.source);
+			let upQueue = Array.from(matchedIds);
+			while (upQueue.length > 0) {
+				const current = upQueue.shift()!;
+				for (const edge of rawEdges) {
+					if (edge.target === current) {
+						if (!affectedIds.has(edge.source)) {
+							affectedIds.add(edge.source);
+							upQueue.push(edge.source);
+						}
+					}
 				}
 			}
 
 			// 2. Recursive Downstream (Blast Radius)
-			// If a node is a provider (source), recursively add all its consumers (target)
-			const queue = Array.from(matchedIds);
-			while (queue.length > 0) {
-				const current = queue.shift()!;
+			// Edge direction: source (provider) -> target (consumer)
+			let downQueue = Array.from(matchedIds);
+			while (downQueue.length > 0) {
+				const current = downQueue.shift()!;
 				for (const edge of rawEdges) {
 					if (edge.source === current) {
 						if (!affectedIds.has(edge.target)) {
 							affectedIds.add(edge.target);
-							queue.push(edge.target);
+							downQueue.push(edge.target);
 						}
 					}
 				}
@@ -222,6 +152,14 @@
 			fNodes = rawNodes.filter(n => affectedIds.has(n.id));
 		} else {
 			fEdges = rawEdges.filter(e => matchedIds.has(e.source) && matchedIds.has(e.target));
+		}
+
+		if (protocolFilter !== 'All') {
+			fEdges = fEdges.filter(e => e.protocol === protocolFilter);
+			// Also filter nodes to only those connected by the remaining edges
+			const connectedIds = new Set<string>();
+			fEdges.forEach(e => { connectedIds.add(e.source); connectedIds.add(e.target); });
+			fNodes = fNodes.filter(n => connectedIds.has(n.id) || n.type === 'teamGroup');
 		}
 
 		if (hideOrphans) {
@@ -244,19 +182,15 @@
 			}
 		});
 
+
 		return { nodes: fNodes, edges: fEdges };
 	});
 
-	let layoutedData = $derived.by(() => {
-		if (subsetData.nodes.length === 0) return { nodes: [], edges: [] };
-		return getLayoutedElements(subsetData.nodes, subsetData.edges, layoutDirection);
-	});
-
 	let displayData = $derived.by(() => {
-		let dNodes = layoutedData.nodes;
-		let dEdges = layoutedData.edges;
+		let dNodes = subsetData.nodes;
+		let dEdges = subsetData.edges;
 
-		// Inject heatmapMode into nodes before layout and passing to Svelte Flow
+		// Inject heatmapMode into nodes before passing to Svelte Flow
 		dNodes = dNodes.map(node => ({
 			...node,
 			data: { ...node.data, heatmapMode }
@@ -264,27 +198,19 @@
 
 		// Apply blast radius highlighting and fading
 		if (selectedNode) {
-			dNodes = dNodes.map(n => {
-				const isOrigin = n.id === selectedNode.id;
-				const isAffected = blastRadius.nodes.has(n.id);
-				const isFaded = !isOrigin && !isAffected;
-				return {
-					...n,
-					data: {
-						...n.data,
-						isOrigin,
-						isAffected,
-						isFaded
-					},
-					style: (n.type === 'teamGroup' && isFaded)
-						? `${n.style || ""}; opacity: 0.2;`
-						: n.style
-				};
-			});
+			dNodes = dNodes.map(n => ({
+				...n,
+				data: {
+					...n.data,
+					isOrigin: n.id === selectedNode.id,
+					isAffected: blastRadius.nodes.has(n.id),
+					isFaded: n.id !== selectedNode.id && !blastRadius.nodes.has(n.id)
+				}
+			}));
 
 			dEdges = dEdges.map(e => ({
 				...e,
-				style: (blastRadius.edges.has(e.id) || (e.source === selectedNode.id && blastRadius.nodes.has(e.target)))
+				style: (blastRadius.edges.has(e.id) || e.source === selectedNode.id || e.target === selectedNode.id)
 					? e.style
 					: `${e.style || ""}; opacity: 0.2;`
 			}));
@@ -299,137 +225,282 @@
 	});
 
 	$effect(() => {
-		nodes = displayData.nodes;
-		edges = displayData.edges;
+		if (!cyContainer) return;
+		if (isGraphEmpty) {
+			if (cyInstance) cyInstance.destroy();
+			cyInstance = null;
+			return;
+		}
+
+		const elements: cytoscape.ElementDefinition[] = [];
+
+		for (const node of displayData.nodes) {
+			const dataObj: any = { id: node.id, label: node.data.label, status: node.data.status };
+			if (node.parentId) {
+				dataObj.parent = node.parentId;
+			}
+			elements.push({
+				data: dataObj,
+				classes: node.type
+			});
+		}
+
+		for (const edge of displayData.edges) {
+			let finalStatus = edge.status;
+			if (!finalStatus || finalStatus === 'SAFE') {
+				if (edge.style?.includes('#EF4444')) finalStatus = 'BREAKING';
+				else if (edge.style?.includes('#F59E0B')) finalStatus = 'WARNING';
+				else finalStatus = 'SAFE';
+			}
+			elements.push({
+				data: { source: edge.source, target: edge.target, status: finalStatus }
+			});
+		}
+
+		untrack(() => {
+			if (cyInstance) {
+				cyInstance.destroy();
+			}
+
+			cyInstance = cytoscape({
+				container: cyContainer,
+				elements: elements,
+				style: [
+					{
+						selector: 'node',
+						style: {
+							'background-color': '#312e81', // 15% opacity of indigo
+							'border-width': 2,
+							'border-color': '#6366F1',
+							'color': '#f8fafc',
+							'text-valign': 'bottom',
+							'text-halign': 'center',
+							'text-margin-y': 8,
+							'text-wrap': 'wrap',
+							'text-max-width': '140px',
+							'font-size': '12px',
+							'font-family': 'monospace',
+							'shape': 'round-rectangle',
+							'label': 'data(label)',
+							'width': 48,
+							'height': 48,
+							'background-image': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM2MzY2RjEiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIyIiB5PSIyIiB3aWR0aD0iMjAiIGhlaWdodD0iOCIgcng9IjIiIHJ5PSIyIi8+PHJlY3QgeD0iMiIgeT0iMTQiIHdpZHRoPSIyMCIgaGVpZ2h0PSI4IiByeD0iMiIgcnk9IjIiLz48bGluZSB4MT0iNiIgeTE9IjYiIHgyPSI2LjAxIiB5Mj0iNiIvPjxsaW5lIHgxPSI2IiB5MT0iMTgiIHgyPSI2LjAxIiB5Mj0iMTgiLz48L3N2Zz4=',
+							'background-width': '16px',
+							'background-height': '16px',
+							'background-position-x': '50%',
+							'background-position-y': '50%'
+						}
+					},
+					{
+						selector: '.database',
+						style: {
+							'background-color': '#164e63', // Cyan tint
+							'border-color': '#06B6D4',
+							'background-image': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMwNkI2RDQiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48ZWxsaXBzZSBjeD0iMTIiIGN5PSI1IiByeD0iOSIgcnk9IjMiLz48cGF0aCBkPSJNMyA1VjE5QTkgMyAwIDAgMCAyMSAxOVY1Ii8+PHBhdGggZD0iTTMgMTJBOSAzIDAgMCAwIDIxIDEyIi8+PC9zdmc+'
+						}
+					},
+					{
+						selector: '.frontend',
+						style: {
+							'background-color': '#4c1d95', // Purple tint
+							'border-color': '#8B5CF6',
+							'background-image': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM4QjVDRjYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIyIiB5PSI0IiB3aWR0aD0iMjAiIGhlaWdodD0iMTYiIHJ4PSIyIi8+PHBhdGggZD0iTTEwIDR2NCIvPjxwYXRoIGQ9Ik0yIDhoMjAiLz48cGF0aCBkPSJNNiA0djQiLz48L3N2Zz4='
+						}
+					},
+					{
+						selector: '.backend',
+						style: {
+							'background-color': '#064e3b', // Emerald tint
+							'border-color': '#10B981',
+							'background-image': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxMEI5ODEiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIyIiB5PSIyIiB3aWR0aD0iMjAiIGhlaWdodD0iOCIgcng9IjIiIHJ5PSIyIi8+PHJlY3QgeD0iMiIgeT0iMTQiIHdpZHRoPSIyMCIgaGVpZ2h0PSI4IiByeD0iMiIgcnk9IjIiLz48bGluZSB4MT0iNiIgeTE9IjYiIHgyPSI2LjAxIiB5Mj0iNiIvPjxsaW5lIHgxPSI2IiB5MT0iMTgiIHgyPSI2LjAxIiB5Mj0iMTgiLz48L3N2Zz4='
+						}
+					},
+					{
+						selector: '.mobile',
+						style: {
+							'background-color': '#881337', // Rose tint
+							'border-color': '#F43F5E',
+							'background-image': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNGNDNGNUUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSI1IiB5PSIyIiB3aWR0aD0iMTQiIGhlaWdodD0iMjAiIHJ4PSIyIiByeT0iMiIvPjxsaW5lIHgxPSIxMiIgeTE9IjE4IiB4Mj0iMTIuMDEiIHkyPSIxOCIvPjwvc3ZnPg=='
+						}
+					},
+					{
+						selector: 'edge',
+						style: {
+							'width': 2,
+							'line-color': '#334155',
+							'target-arrow-color': '#334155',
+							'target-arrow-shape': 'triangle',
+							'curve-style': 'bezier'
+						}
+					},
+					{
+						selector: 'edge[status = "BREAKING"]',
+						style: {
+							'line-color': '#ef4444',
+							'target-arrow-color': '#ef4444'
+						}
+					},
+					{
+						selector: 'node[status = "BREAKING"]',
+						style: {
+							'border-color': '#ef4444'
+						}
+					},
+					{
+						selector: '.service',
+						style: {
+							'border-color': '#a855f7'
+						}
+					},
+					{
+						selector: '.teamGroup',
+						style: {
+							'background-opacity': 0.1,
+							'border-style': 'dashed'
+						}
+					}
+				]
+			});
+
+			cyInstance.layout({
+				name: 'dagre',
+				// @ts-ignore
+				rankDir: layoutDirection,
+				padding: 50,
+				nodeSep: 80,
+				rankSep: 100
+			}).run();
+			
+			cyInstance.fit();
+
+			if (browser) {
+				(window as any).cyInstance = cyInstance;
+			}
+			cyInstance.on('tap', 'node', (evt) => {
+				const nodeData = evt.target.data();
+				const fullNode = rawNodes.find((n: any) => n.id === nodeData.id);
+				if (fullNode) {
+					// We construct an object matching what the detail panel expects
+					selectedNode = {
+						id: fullNode.id,
+						label: fullNode.data.label,
+						status: fullNode.data.status,
+						metadata: fullNode.data.metadata,
+						version: fullNode.data.version
+					};
+				}
+			});
+		});
 	});
 
 	const exportImage = () => {
-		const viewportNode = document.querySelector('.svelte-flow__viewport') as HTMLElement;
-		if (!viewportNode) return;
-
-		toPng(viewportNode, { backgroundColor: '#0f172a' })
-			.then((dataUrl) => {
-				const link = document.createElement('a');
-				link.download = 'substrate-graph.png';
-				link.href = dataUrl;
-				link.click();
-			})
-			.catch((err) => {
-				console.error('Failed to export PNG', err);
-			});
+		// Not implemented for cytoscape yet
 	};
 
-	// We'll manage nodes and edges mapping inside onMount
-	onMount(() => {
-		isMounted = true;
-		const processGraphData = (edgesData: any) => {
-			let newNodesMap = new Map<string, Node>();
-			let newEdges: Edge[] = [];
+	const processGraphData = (edgesData: any) => {
+		let newNodesMap = new Map<string, any>();
+		let newEdges: any[] = [];
 
-			const addTeamNode = (teamName: string) => {
-				if (!teamName) return;
-				const teamId = `team-${teamName}`;
-				if (!newNodesMap.has(teamId)) {
-					newNodesMap.set(teamId, {
-						id: teamId,
-						type: 'teamGroup',
-						position: { x: 0, y: 0 },
-						data: { label: teamName }
-					});
-				}
-			};
-
-			const addNode = (id: string, status: string, type: string, metadata: any = {}) => {
-				let teamName = metadata?.team || null;
-				if (teamName) addTeamNode(teamName);
-
-				if (!newNodesMap.has(id)) {
-					const existingNode = rawNodes.find(n => n.id === id);
-					const volatilityScore = existingNode?.data?.volatilityScore !== undefined
-						? existingNode.data.volatilityScore
-						: Math.floor(Math.random() * 101);
-
-					const node: Node = {
-						id,
-						type: 'service',
-						position: { x: 0, y: 0 },
-						data: { label: id, status, type, metadata, volatilityScore }
-					};
-					if (teamName) {
-						node.parentId = `team-${teamName}`;
-						node.extent = 'parent';
-					}
-					newNodesMap.set(id, node);
-				} else {
-					const existing = newNodesMap.get(id);
-					if (existing) {
-						if (status === 'BREAKING') existing.data.status = 'BREAKING';
-						if (metadata && Object.keys(metadata).length > 0) {
-							existing.data.metadata = metadata;
-						}
-						if (teamName && !existing.parentId) {
-							existing.parentId = `team-${teamName}`;
-							existing.extent = 'parent';
-						}
-					}
-				}
-			};
-
-			edgesData.forEach((edge: any) => {
-				addNode(edge.provider, edge.status, 'provider', edge.provider_metadata);
-				addNode(edge.consumer, 'SAFE', 'consumer', edge.consumer_metadata);
-
-				newEdges.push({
-					id: `e-${edge.provider}-${edge.consumer}`,
-					source: edge.provider,
-					target: edge.consumer,
-					type: edgesData.length < 150 ? 'interactive' : 'straight',
-					animated: true,
-					style: `stroke: ${edge.status === 'BREAKING' ? '#EF4444' : '#64748b'}; stroke-width: 2px;`
+		const addTeamNode = (teamName: string) => {
+			if (!teamName) return;
+			const teamId = `team-${teamName}`;
+			if (!newNodesMap.has(teamId)) {
+				newNodesMap.set(teamId, {
+					id: teamId,
+					type: 'teamGroup',
+					position: { x: 0, y: 0 },
+					data: { label: teamName }
 				});
-			});
-
-			let nextNodes = Array.from(newNodesMap.values());
-
-			// Compute global transitive blast radius immediately on load
-			const globalBreakingImpacts = new Set<string>();
-			for (const n of nextNodes) {
-				if (String(n.data.status).toLowerCase() === 'breaking') globalBreakingImpacts.add(n.id);
 			}
-
-			let changed = true;
-			while (changed) {
-				changed = false;
-				for (const edge of newEdges) {
-					if (globalBreakingImpacts.has(edge.source) || edge.style?.includes('#EF4444')) {
-						if (!globalBreakingImpacts.has(edge.target)) {
-							globalBreakingImpacts.add(edge.target);
-							changed = true;
-						}
-					}
-				}
-			}
-
-			// Apply global breaking status to downstream nodes
-			rawNodes = nextNodes.map(n => {
-				if (globalBreakingImpacts.has(n.id) && String(n.data.status).toLowerCase() !== 'breaking') {
-					return {
-						...n,
-						data: { ...n.data, status: 'BREAKING' }
-					};
-				}
-				return n;
-			});
-
-			rawEdges = newEdges;
-			console.log('processGraphData finished. rawNodes length:', rawNodes.length);
 		};
 
-		console.log('Mounting component. data.graphData length:', data?.graphData?.length);
-		// Run immediately with SSR/fallback data
-		if (data && data.graphData) {
-			processGraphData(data.graphData);
+		const addNode = (id: string, status: string, type: string, metadata: any = {}) => {
+			let teamName = metadata?.team || null;
+			if (teamName) addTeamNode(teamName);
+
+			let inferredType = metadata?.type;
+			if (!inferredType) {
+				const lbl = id.toLowerCase();
+				if (lbl.includes('front')) inferredType = 'frontend';
+				else if (lbl.includes('db') || lbl.includes('postgres') || lbl.includes('redis') || lbl.includes('mysql')) inferredType = 'database';
+				else if (lbl.includes('mobile') || lbl.includes('ios') || lbl.includes('android')) inferredType = 'mobile';
+				else if (lbl.includes('back') || lbl.includes('api') || lbl.includes('core')) inferredType = 'backend';
+				else inferredType = 'service';
+			}
+
+			if (!newNodesMap.has(id)) {
+				const existingNode = rawNodes.find(n => n.id === id);
+				const volatilityScore = existingNode?.data?.volatilityScore !== undefined
+					? existingNode.data.volatilityScore
+					: Math.floor(Math.random() * 101);
+
+				const node: any = {
+					id,
+					type: inferredType,
+					position: { x: 0, y: 0 },
+					data: { label: id, status, type, metadata, volatilityScore }
+				};
+				if (teamName) {
+					node.parentId = `team-${teamName}`;
+					node.extent = 'parent';
+				}
+				newNodesMap.set(id, node);
+			} else {
+				const existing = newNodesMap.get(id);
+				if (existing) {
+					if (status === 'BREAKING') existing.data.status = 'BREAKING';
+					if (metadata && Object.keys(metadata).length > 0) {
+						existing.data.metadata = metadata;
+					}
+					if (teamName && !existing.parentId) {
+						existing.parentId = `team-${teamName}`;
+						existing.extent = 'parent';
+					}
+				}
+			}
+		};
+
+		edgesData.forEach((edge: any) => {
+			addNode(edge.provider, edge.status, 'provider', edge.provider_metadata);
+			addNode(edge.consumer, 'SAFE', 'consumer', edge.consumer_metadata);
+
+			newEdges.push({
+				id: `e-${edge.provider}-${edge.consumer}`,
+				source: edge.provider,
+				target: edge.consumer,
+				type: edgesData.length < 150 ? 'interactive' : 'straight',
+				animated: true,
+				style: `stroke: ${edge.status === 'BREAKING' ? '#EF4444' : edge.status === 'WARNING' ? '#F59E0B' : '#64748b'}; stroke-width: 2px;`
+			});
+		});
+
+		rawNodes = Array.from(newNodesMap.values()).sort((a, b) => {
+			if (a.type === 'teamGroup' && b.type !== 'teamGroup') return -1;
+			if (a.type !== 'teamGroup' && b.type === 'teamGroup') return 1;
+			return 0;
+		});
+		rawEdges = newEdges;
+		console.log('processGraphData finished. rawNodes length:', rawNodes.length);
+	};
+
+	let lastProcessedData: any = null;
+	$effect(() => {
+		const currentData = data?.graphData;
+		if (currentData && currentData.length > 0 && currentData !== lastProcessedData) {
+			lastProcessedData = currentData;
+			untrack(() => {
+				processGraphData(currentData);
+			});
 		}
+	});
+
+	// Run immediately with SSR/fallback data
+	if (data && data.graphData) {
+		processGraphData(data.graphData);
+	}
+
+	onMount(() => {
+		console.log('Mounting component. data.graphData length:', data?.graphData?.length);
 
 		const fetchInitialGraph = async () => {
 			if ($page.params.org === 'stress-test') return;
@@ -441,6 +512,8 @@
 				if (res.ok) {
 					const responseData = await res.json();
 					processGraphData(Array.isArray(responseData) ? responseData : []);
+				} else {
+					console.error("Failed to fetch initial graph", res.status);
 				}
 			} catch (err) {
 				console.error("Initial fetch error", err);
@@ -485,9 +558,16 @@
 	<!-- Main Canvas: Dependency Graph -->
 	<main class="main-canvas">
 		<div class="canvas-header">
-			<h1 class="page-title">Dependency Graph</h1>
+			<h1 class="page-title">Dependency Graph (Tracing)</h1>
 			<p class="page-subtitle">Visualizing dependencies for {$page.params.org}</p>
 		</div>
+
+		{#if isGraphEmpty}
+			<div class="empty-state">
+				<h2>Search for a repository</h2>
+				<p>Type in the search box to see its dependencies and blast radius.</p>
+			</div>
+		{/if}
 
 		<!-- Graph Controls overlay -->
 		<div class="graph-controls" style="z-index: 20; display: flex; gap: 8px;">
@@ -531,34 +611,15 @@
 					Clear Selection
 				</button>
 			{/if}
-			<!-- Removed zoom controls since SvelteFlow provides its own <Controls /> -->
 		</div>
 
-		<div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 10;">
-			{#if isGraphEmpty}
-				<div class="empty-state">
-					<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-					<h2>Search to Explore Dependencies</h2>
-					<p>Enter a service name, or check "Show Only BREAKING Changes" to generate the graph.</p>
-				</div>
-			{/if}
-			{#if isMounted}
-				<SvelteFlow {nodes} {edges} {nodeTypes} {edgeTypes} fitView colorMode="dark"
-					onpaneclick={() => selectedNode = null}
-					onnodeclick={(...args: any[]) => {
-						// Handle different event shapes between SvelteFlow versions
-						const node = args.length > 1 ? args[1] : (args[0]?.node || args[0]?.detail?.node);
-						if (node) {
-							selectedNode = { id: node.id, ...node.data };
-							trackEvent('node_clicked', { nodeId: node.id, nodeType: node.data?.type });
-						}
-					}}
-				>
-					<Background variant={BackgroundVariant.Dots} />
-					<Controls />
-					<MiniMap />
-				</SvelteFlow>
-			{/if}
+		<div bind:this={cyContainer} style="flex: 1; width: 100%; min-height: 0; position: relative; z-index: 10;"></div>
+		
+		<!-- Zoom controls for Cytoscape -->
+		<div class="zoom-controls">
+			<button class="btn-zoom" onclick={() => cyInstance && cyInstance.zoom(cyInstance.zoom() * 1.2)} title="Zoom In">+</button>
+			<button class="btn-zoom" onclick={() => cyInstance && cyInstance.zoom(cyInstance.zoom() * 0.8)} title="Zoom Out">-</button>
+			<button class="btn-zoom" onclick={() => cyInstance && cyInstance.fit(undefined, 50)} title="Fit to Screen">Fit</button>
 		</div>
 
 		<!-- Time Travel Scrubber -->
@@ -687,9 +748,45 @@
 
 	.main-canvas {
 		flex-grow: 1;
+		display: flex;
+		flex-direction: column;
 		position: relative;
 		padding: 24px;
 		overflow: hidden;
+	}
+
+	.zoom-controls {
+		position: absolute;
+		bottom: 120px;
+		right: 24px;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		z-index: 50;
+		background-color: var(--bg-hover);
+		padding: 8px;
+		border-radius: 8px;
+		border: 1px solid var(--border);
+	}
+
+	.btn-zoom {
+		background-color: var(--bg-dark);
+		border: 1px solid var(--border);
+		color: var(--text-main);
+		width: 32px;
+		height: 32px;
+		border-radius: 4px;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-weight: bold;
+		transition: background-color 0.2s;
+	}
+
+	.btn-zoom:hover {
+		background-color: var(--accent);
+		color: white;
 	}
 
 	.canvas-header {

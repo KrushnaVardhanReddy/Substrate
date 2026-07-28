@@ -12,6 +12,7 @@ import (
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/github"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/handler"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/handlers"
+
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/marketplace"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/registry"
@@ -66,7 +67,7 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 	limitsMW := TierLimitsMiddleware(store)
 
 	r.Method("POST", "/api/v1/sync", serviceTokenMW(limitsMW(http.HandlerFunc(handlers.SyncHandler(store, riverClient)))))
-	r.Method("POST", "/api/v1/webhook", serviceTokenMW(http.HandlerFunc(webhook.PushHandler(store, github.NewRESTClient(), riverClient))))
+	r.Method("POST", "/api/v1/webhook", http.HandlerFunc(webhook.PushHandler(store, github.NewRESTClient(), riverClient)))
 	r.Method("POST", "/api/v1/webhook/reaction", serviceTokenMW(http.HandlerFunc(webhook.ReactionHandler(store, github.NewRESTClient()))))
 	r.Method("POST", "/api/v1/cross-repo-check", serviceTokenMW(limitsMW(http.HandlerFunc(handlers.CrossRepoCheckHandler(store, riverClient)))))
 	r.Method("POST", "/api/v1/history", serviceTokenMW(http.HandlerFunc(handlers.HistoryHandler(store))))
@@ -78,9 +79,18 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 	r.Method("POST", "/api/v1/schema/smell", serviceTokenMW(http.HandlerFunc(handlers.SchemaSmellHandler())))
 	r.Method("POST", "/api/v1/plugins/publish", serviceTokenMW(http.HandlerFunc(marketplace.PublishHandler(store))))
 
+	// Risk score endpoint
+	r.Method("GET", "/api/v1/risk/{org}/{repo}/{pr}", http.HandlerFunc(handlers.RiskScoreHandler()))
+
 	// Protected routes (Service Token OR JWT)
 	authMW := AuthMiddleware(registryApiToken, jwtSecret)
 	authzMW := AuthzMiddleware(registryApiToken, jwtSecret)
+
+	// API Keys
+	apiKeyHandler := &handlers.APIKeyHandler{Store: store}
+	r.Method("POST", "/api/v1/org/{org}/apikeys", authzMW(http.HandlerFunc(apiKeyHandler.CreateAPIKey)))
+	r.Method("GET", "/api/v1/org/{org}/apikeys", authzMW(http.HandlerFunc(apiKeyHandler.ListAPIKeys)))
+	r.Method("DELETE", "/api/v1/org/{org}/apikeys/{id}", authzMW(http.HandlerFunc(apiKeyHandler.DeleteAPIKey)))
 	jwtValidMW := JWTValidMiddleware(jwtSecret)
 
 	partnersHandler := handler.NewPartnersHandler(store)
@@ -98,6 +108,7 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 	r.Method("GET", "/api/v1/schema/{owner}/{repo}", authMW(http.HandlerFunc(handlers.SchemaHandler(store))))
 	r.Method("GET", "/api/v1/spec/{org}/{repo}", authMW(http.HandlerFunc(handlers.SpecHandler(store))))
 	r.Method("GET", "/api/v1/history/{org}/{repo}", authMW(http.HandlerFunc(handlers.HistoryGetHandler(store))))
+	r.Method("POST", "/api/v1/telemetry/track", http.HandlerFunc(handlers.TrackTelemetryHandler()))
 	r.Method("POST", "/api/v1/telemetry/traces", serviceTokenMW(http.HandlerFunc(handlers.TelemetryHandler(store))))
 	r.Method("POST", "/api/v1/telemetry/drift", serviceTokenMW(http.HandlerFunc(handlers.DriftTelemetryHandler(store))))
 	r.Method("GET", "/api/v1/telemetry/roi/{org}", authzMW(http.HandlerFunc(handlers.ROIHandler(store))))
@@ -113,11 +124,18 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 	// Governance Rules Generate CEL endpoint
 	r.Method("POST", "/api/governance/generate-cel", jwtValidMW(handlers.GenerateCELHandler()))
 
+
 	// Route uses GitHub OAuth token directly, not the internal JWT, so we skip authMW.
 	// The endpoint validates the token by making a call to GitHub.
 	r.Method("POST", "/api/v1/org/{org}/enforce", authzMW(http.HandlerFunc(handlers.EnforceGlobalHandler())))
 
 	// Governance Rules API
+	r.Method("POST", "/api/v1/enterprise/webhook", serviceTokenMW(http.HandlerFunc(webhook.EnterpriseWebhookPingHandler())))
+	r.Method("POST", "/api/v1/enterprise/rules/validate", serviceTokenMW(http.HandlerFunc(handlers.ValidateCELRuleHandler())))
+	r.Method("GET", "/api/v1/enterprise/drift/{org}/{repo}", serviceTokenMW(http.HandlerFunc(handlers.GetDriftReportHandler(store))))
+	r.Method("POST", "/api/v1/enterprise/webhook", serviceTokenMW(http.HandlerFunc(webhook.EnterpriseWebhookPingHandler())))
+	r.Method("POST", "/api/v1/enterprise/rules/validate", serviceTokenMW(http.HandlerFunc(handlers.ValidateCELRuleHandler())))
+	r.Method("GET", "/api/v1/enterprise/drift/{org}/{repo}", serviceTokenMW(http.HandlerFunc(handlers.GetDriftReportHandler(store))))
 	governanceHandler := handlers.NewGovernanceRulesHandler(store)
 	r.Method("GET", "/api/v1/org/{org}/rules", authzMW(http.HandlerFunc(governanceHandler.ListRules)))
 	r.Method("POST", "/api/v1/org/{org}/rules", authzMW(http.HandlerFunc(governanceHandler.CreateRule)))
@@ -137,6 +155,10 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 	r.Post("/api/v1/ai/autofix", services.AIAutofixHandler())
 	r.Post("/api/v1/ai/impact", services.AIImpactHandler())
 
+	// Phase 5 Discovery Routes
+	r.Method("POST", "/api/v1/discovery/scan/{org}/{repo}", serviceTokenMW(http.HandlerFunc(handlers.TriggerScanHandler(riverClient))))
+	r.Method("GET", "/api/v1/discovery/results/{org}/{repo}", serviceTokenMW(http.HandlerFunc(handlers.GetScanResultsHandler())))
+
 	// Public registry routes
 	r.Route("/api/v1/registry/public", func(r chi.Router) {
 		r.Post("/{namespace}/{name}/{version}", registry.HandlePublishSchema(store))
@@ -148,11 +170,17 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 	r.Method("GET", "/api/marketplace/plugins", http.HandlerFunc(marketplace.ListPluginsHandler(store)))
 
 	// Public routes
+	r.Get("/api/v1/preview/{token}", handlers.GetPreviewHandler(store))
 	r.Get("/api/v1/diff/{id}", handlers.GetDiffHandler(store))
 	r.Get("/api/v1/changelog/{org}/{repo}", handlers.ChangelogHandler(store))
 	r.Get("/api/badges/{org}/{repo}", handlers.BadgesHandler(store))
 
 	// Webhook for Postman integrations
 	ServeDashboard(r)
+	r.Method("GET", "/api/v1/qa/postman/{org}/{repo}", http.HandlerFunc(handlers.QAPostmanHandler(store)))
+	r.Method("POST", "/api/v1/qa/shadow/replay", http.HandlerFunc(handlers.QAShadowReplayHandler(store)))
+	r.Method("GET", "/api/v1/qa/coverage/{org}/{repo}", http.HandlerFunc(handlers.QACoverageHandler(store)))
+		fuzzerHandler := &handlers.FuzzerHandler{Store: store}
+	r.Method("GET", "/api/v1/fuzzer/gaps", http.HandlerFunc(fuzzerHandler.GetSchemaValidationGaps))
 	return otelhttp.NewHandler(r, "substrate-api")
 }

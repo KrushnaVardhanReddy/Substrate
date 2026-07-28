@@ -56,16 +56,16 @@ func main() {
 	os.MkdirAll(cacheDir, 0755)
 	c, err := cache.InitCache(filepath.Join(cacheDir, "cache.db"))
 	if err == nil && viper.GetString("SUBSTRATE_DISABLE_CACHE_SYNC") != "1" {
+		apiURL := viper.GetString("SUBSTRATE_API_URL")
+		if apiURL == "" {
+			apiURL = "http://localhost:8090"
+		}
+		apiToken := viper.GetString("REGISTRY_API_TOKEN")
+		org := viper.GetString("SUBSTRATE_ORG")
+		if org == "" {
+			org = "default"
+		}
 		go func() {
-			apiURL := viper.GetString("SUBSTRATE_API_URL")
-			if apiURL == "" {
-				apiURL = "http://localhost:8090"
-			}
-			apiToken := viper.GetString("REGISTRY_API_TOKEN")
-			org := viper.GetString("SUBSTRATE_ORG")
-			if org == "" {
-				org = "default"
-			}
 			for {
 				c.SyncFromRemote(context.Background(), apiURL, apiToken, org)
 				time.Sleep(1 * time.Minute)

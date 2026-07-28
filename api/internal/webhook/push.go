@@ -2,6 +2,7 @@ package webhook
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -15,13 +16,57 @@ import (
 // PushHandler handles the GitHub push webhook payload forwarded from the GitHub App
 func PushHandler(store db.Store, ghClient github.Client, riverClient workers.JobEnqueuer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req services.PushPayload
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		var rawPayload json.RawMessage
+		if err := json.NewDecoder(r.Body).Decode(&rawPayload); err != nil {
 			http.Error(w, `{"error": "invalid json"}`, http.StatusBadRequest)
 			return
 		}
+		log.Printf("Received Webhook: %s", string(rawPayload))
 
 		ctx := r.Context()
+		var req services.PushPayload
+
+		// Try to decode as Gitea Webhook first (check for "repository" and "commits")
+		var giteaWebhook GiteaPushWebhook
+		if err := json.Unmarshal(rawPayload, &giteaWebhook); err == nil && giteaWebhook.Repository.Name != "" && len(giteaWebhook.Commits) > 0 {
+			req = services.PushPayload{
+				InstallationID: 0,
+				Org:            giteaWebhook.Repository.Owner.Login,
+				Repo:           giteaWebhook.Repository.FullName,
+				GithubRepoID:   giteaWebhook.Repository.ID,
+				CommitSHA:      giteaWebhook.After,
+				Files:          []services.File{},
+			}
+			
+			// For each commit, collect added and modified files
+			filesToFetch := make(map[string]bool)
+			for _, commit := range giteaWebhook.Commits {
+				for _, f := range commit.Added {
+					filesToFetch[f] = true
+				}
+				for _, f := range commit.Modified {
+					filesToFetch[f] = true
+				}
+			}
+			
+			for filePath := range filesToFetch {
+				content, err := ghClient.GetFileContent(ctx, giteaWebhook.Repository.Owner.Login, giteaWebhook.Repository.Name, filePath)
+				if err == nil {
+					req.Files = append(req.Files, services.File{
+						Path:    filePath,
+						Content: content,
+					})
+				} else {
+					log.Printf("Failed to get file content for %s: %v", filePath, err)
+				}
+			}
+		} else {
+			// Fallback to standard PushPayload
+			if err := json.Unmarshal(rawPayload, &req); err != nil {
+				http.Error(w, `{"error": "invalid json"}`, http.StatusBadRequest)
+				return
+			}
+		}
 
 		trialEndsAt, stripeCustomerID, err := store.GetBillingStatus(ctx, req.Org)
 		if err == nil {

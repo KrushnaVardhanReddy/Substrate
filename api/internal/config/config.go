@@ -16,9 +16,26 @@ type Metadata struct {
 	Databases []string `yaml:"databases,omitempty"`
 }
 
+type OverrideConfig struct {
+	RuleID string `yaml:"rule_id"`
+}
+
+type ConsumerConfig struct {
+	Name             string           `yaml:"name"`
+	ProviderRepo     string           `yaml:"provider_repo"`
+	SchemaType       string           `yaml:"schema_type"`
+	ProviderSpecPath string           `yaml:"provider_spec_path"`
+	ProviderBranch   string           `yaml:"provider_branch"`
+	Overrides        []OverrideConfig `yaml:"overrides,omitempty"`
+}
+
 type SubstrateConfig struct {
-	Discovery *Discovery `yaml:"discovery,omitempty"`
-	Metadata  *Metadata  `yaml:"metadata,omitempty"`
+	Discovery  *Discovery       `yaml:"discovery,omitempty"`
+	Metadata   *Metadata        `yaml:"metadata,omitempty"`
+	SchemaType string           `yaml:"schema_type,omitempty"`
+	BaseSchema string           `yaml:"base_schema,omitempty"`
+	HeadSchema string           `yaml:"head_schema,omitempty"`
+	Consumers  []ConsumerConfig `yaml:"consumers,omitempty"`
 }
 
 func Parse(content []byte) (*SubstrateConfig, error) {

@@ -1,0 +1,46 @@
+TASK: P17-T06 — Deployment & Incident Graph Overlay
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Ingest deployment and incident events via API and overlay them visually onto the Svelte Flow Dependency Graph for root-cause analysis.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-17/p17-t06-deployment-overlay.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- The `POST /api/v1/events` endpoint MUST validate `event_type` to only allow `"deployment"` or `"incident"`.
+- Svelte UI changes MUST NOT break the existing drag-and-drop or node selection functionality in the graph.
+- You MUST write a Vitest unit test for the new Svelte timeline component.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- API handlers follow the pattern in `api/internal/handlers/org.go`. Add `api/internal/handlers/events.go`.
+- The graph UI is at `dashboard/src/routes/(app)/org/[org]/graph/+page.svelte`.
+- Svelte Flow node customisation is done in `dashboard/src/lib/components/graph/CustomNode.svelte`.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Add a new DB migration for the `ecosystem_events` table.
+- Create a `TimelinePanel.svelte` component that floats over the bottom of the graph. It should fetch `GET /api/v1/events/{org}` on mount.
+- When an event is hovered/clicked in the timeline, update a Svelte store or context value (e.g., `selectedEventRepo`).
+- In `CustomNode.svelte`, reactively apply a CSS class (e.g., `ring-4 ring-blue-500` for deployment, `ring-red-500` for incident) if the node's repo matches `selectedEventRepo`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: api/internal/db/migrations/YYYYMMDD_add_ecosystem_events.sql (CREATE)
+2. FILE: api/internal/handlers/events.go (CREATE)
+   - Include `events_test.go`
+3. FILE: dashboard/src/lib/components/graph/TimelinePanel.svelte (CREATE)
+   - Include `TimelinePanel.test.ts`
+4. MODIFY: dashboard/src/routes/(app)/org/[org]/graph/+page.svelte — embed TimelinePanel
+5. MODIFY: dashboard/src/lib/components/graph/CustomNode.svelte — add reactive highlight styling
+6. Run `go test ./...` and `npm run test`.
+
+Commit: "jules: P17-T06 add deployment and incident overlay for graph"
+Target branch: feature/p17-t06-deployment-overlay

@@ -440,6 +440,18 @@ This automatically populates the URL→Repo registry without any manual `deploye
 
 ---
 
+## Discovery Scanner UI
+
+While the discovery engine runs automatically on the backend via cron and webhook triggers, users must be able to manually trigger scans and view progress for specific repositories.
+
+- **Route:** `/org/[org]/discovery/[repo]`
+- **Key Components:**
+  - **Scan Status Indicator:** Shows whether a scan is currently active, failed, or completed.
+  - **"Run Full Scan" Button:** Manually triggers a comprehensive scan (Env Vars, Packages, Terraform, Kafka, OTel) against the target repository.
+  - **Results Panel:** Displays newly discovered edges and their confidence scores immediately after a scan completes.
+
+---
+
 ## Rollout Plan
 
 | Phase | What ships | Unblocked by |

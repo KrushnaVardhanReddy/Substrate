@@ -14,7 +14,8 @@ As the dependency graph scales to enterprise proportions (100+ nodes), a full un
   - **Include Neighbors Toggle:** A checkbox (e.g. "Highlight connected neighbors") placed near the filters. Default: Off.
 
 ### 2. Search & Filtering UX Flow (Two-Step Exploration)
-- **Step 1: Strict Isolation.** By default, when a user applies a Protocol Filter or a Search Query, the graph must **strictly highlight only the exact matching nodes**. All other nodes and edges MUST be dimmed (`opacity: 0.2`). This prevents visual clutter and allows the user to immediately locate the matching nodes in the haystack.
+- **Default State (Hidden Nodes):** Upon initial page load, the graph canvas should be empty (no nodes displayed). We do not need to display all nodes immediately as this creates a noisy user experience for large dependency graphs.
+- **Step 1: Strict Isolation.** Nodes will only appear when a user applies a Protocol Filter or a Search Query. The graph must **strictly display only the exact matching nodes**. All other nodes and edges MUST be hidden or dimmed (`opacity: 0.2`). This prevents visual clutter and allows the user to immediately locate the matching nodes in the haystack.
 - **Step 2: Click to Explore (Blast Radius).** When a user clicks/taps on any node, the graph must enter a "Focus Mode". It should fully highlight the clicked node AND its first-degree connected edges/neighbors (upstream providers and downstream consumers). All other graph elements remain dimmed.
 - **Neighbor Override.** If the "Highlight connected neighbors" toggle is checked, Step 1 is overridden: the initial search/filter will automatically highlight the matching nodes *plus* all of their connected neighbors and edges immediately.
 

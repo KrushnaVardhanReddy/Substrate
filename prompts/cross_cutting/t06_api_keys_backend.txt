@@ -1,0 +1,25 @@
+TASK: CC-T06 — API Keys Backend Integration
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement the full backend database schema, Go API endpoints, and SvelteKit integration for Organization-scoped API Keys to replace the current placeholder UI.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/ui/api_keys_backend.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- The raw API key must NEVER be stored in the database. You must generate a secure token (using PASETO v4.local or standard secure random strings), hash it via Bcrypt/Argon2, and store only the hash + prefix in the `api_keys` table.
+- The raw key must be returned EXACTLY ONCE to the frontend upon generation.
+- Ensure standard backend tests are added (e.g. `api_keys_test.go`) validating creation, listing, and revocation.
+- Ensure the SvelteKit frontend is hooked up to the real `/api/v1/org/{org}/apikeys` endpoints.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+API backend is in `api/`.
+DB migrations are in `api/internal/db/migrations/`.
+Frontend is in `dashboard/`.
+The API Keys placeholder page is at `dashboard/src/routes/(app)/org/[org]/apikeys/+page.svelte`.

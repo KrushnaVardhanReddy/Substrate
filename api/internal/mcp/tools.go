@@ -531,7 +531,7 @@ func RegisterTools(server *Server, store db.Store) {
 	})
 
 	server.RegisterTool(Tool{
-		Name:        "get_breaking_history",
+		Name:        "get_breaking_change_history",
 		Description: "Get breaking change history for a repo.",
 		InputSchema: map[string]any{
 			"type": "object",

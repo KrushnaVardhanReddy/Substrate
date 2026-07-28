@@ -1,47 +1,52 @@
 # Spec: P12-T03 — AI Playground & Diff Viewer E2E
 
 ## 1. Overview
-Add Playwright tests to validate the AI Playground flow: schema input → backend AI stream → result display → auto-fix application, ensuring malformed YAML does not crash Svelte state.
+Playwright tests to validate the AI Playground flow end-to-end against the live backend:
+schema input → real `POST /api/v1/ai/analyze` → SSE stream → result display → auto-fix application,
+ensuring malformed YAML does not crash Svelte state.
+
+**Philosophy: NO page.route() mocks, NO browser-level interception. All requests hit the live Go API.**
+
+When `SUBSTRATE_AI_BASE_URL` is not configured, the Go API returns a deterministic fallback SSE response.
+Tests must be written to pass against that real server behavior.
 
 ## 2. Owner
 **Stitch** (Frontend / Playwright)
 
 ## 3. Files Modified
-- `dashboard/tests/e2e/playground.spec.ts` ← expand with new test blocks
+- `dashboard/tests/e2e/playground.spec.ts`
 
 ## 4. Requirements
 
 ### Test A — Happy Path: AI Analysis Stream
-1. Mock `POST /api/v1/ai/analyze` (or equivalent) to return a successful SSE/JSON response:
-   ```json
-   { "findings": ["Field 'userId' was removed (BREAKING)"], "autofix": "openapi: 3.0.0\ninfo:\n  title: Fixed" }
-   ```
-2. Navigate to `/playground`.
-3. Assert the page title or heading contains "AI Playground" or "API Studio".
-4. Locate the schema editor textarea (or `[contenteditable]` div).
-5. Clear it and type a clearly malformed YAML schema (e.g., `invalid: yaml: : broken`).
-6. Click the "Analyze" button.
-7. Assert the analysis result panel becomes visible.
-8. Assert the findings panel contains text (e.g., `toContainText('BREAKING')` or `toContainText('userId')`).
+1. Navigate to `/playground`.
+2. Assert the page title contains "AI Schema Validator Playground".
+3. Locate the schema editor textarea.
+4. Fill it with a valid schema sample.
+5. Click "Analyze with Substrate AI".
+6. Assert the `.analysis-panel` becomes visible (timeout: 10s).
+7. Assert it contains "BREAKING" (from server's real or fallback SSE response).
 
 ### Test B — Auto-Fix Application
-1. After Test A completes (or re-run setup), click "Apply Auto-Fix".
-2. Assert the editor textarea content changes (is no longer the malformed input).
-3. Assert no browser console errors appear matching `/$state` or `Cannot read properties`.
+1. Navigate to `/playground`.
+2. Fill editor and click Analyze.
+3. Wait for `.auto-fix-section` to appear.
+4. Click "Apply Fix".
+5. Assert the proposed schema editor's value is updated (contains `deprecated: true`).
+6. Assert no console errors matching `$state` or `Cannot read properties`.
 
 ### Test C — Malformed YAML Resilience
 1. Navigate to `/playground`.
-2. Input `"{{ NULL_BYTE_\x00_GARBAGE" }}"` into the editor.
-3. Click "Analyze".
-4. Mock the API to return `400 Bad Request` with `{ "error": "Invalid schema" }`.
-5. Assert an error state message is displayed in the UI.
-6. Assert the page does NOT crash (assert `.main-content` or `.playground-container` is still visible).
+2. Fill editor with malformed content.
+3. Click Analyze.
+4. Assert the page does NOT crash (`.playground-container` or `main` still visible).
+5. No `page.route()` interception — let the real server parse and respond.
 
 ## 5. Technical Constraints
-- All API calls MUST be intercepted via `page.route()`. No real AI calls.
-- The mock `autofix` YAML must be valid minimal OpenAPI to verify the editor accepts it.
-- The malformed input test must not hang on a 30s timeout — mock endpoint must respond immediately.
+- **No `page.route()` interception.** All requests go to the live Go API at `localhost:8090`.
+- The server returns a deterministic SSE stream even when no LLM is configured (fallback behavior is part of the real API contract).
+- Tests must handle streaming — wait for `.analysis-panel` with sufficient timeout.
 
 ## 6. Success Criteria
-- `npx playwright test tests/e2e/playground.spec.ts` passes all 3 new tests.
-- No modifications to any other E2E spec file.
+- `npx playwright test tests/e2e/playground.spec.ts` passes all tests.
+- Zero `page.route()` calls in the test file.

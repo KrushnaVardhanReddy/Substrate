@@ -10,4 +10,4 @@ Add Playwright E2E coverage for the Impact Analysis page (`/org/{org}/repo/[repo
 
 ## Constraints
 - File: `dashboard/tests/e2e/impact_analysis.spec.ts`
-- Must use Playwright test fixtures with mocked API responses for stability, testing purely the frontend UI behavior.
+- Must use Playwright test fixtures with **real API responses** from the live Go backend (`:8090`). No `page.route()` mocking. Relies on seeded database state from `seed_via_api.sh`.

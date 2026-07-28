@@ -19,7 +19,7 @@ Automate the complete new-user journey from the landing page through GitHub toke
 5. Assert the "Scanning Repositories" progress indicator / spinner appears.
 6. Mock `GET /api/v1/repos/{org}` to return a JSON array of 3 repositories.
 7. Assert the page navigates to `/org/{org}/graph` (assert `page.url()` contains `/graph`).
-8. Assert `.svelte-flow` canvas is visible.
+8. Assert `.cytoscape` canvas is visible.
 9. Assert `.filter-panel` sidebar is visible.
 
 ### Error Path
@@ -28,9 +28,8 @@ Automate the complete new-user journey from the landing page through GitHub toke
 12. Assert an error message appears in the UI (e.g., text contains "Invalid token" or similar).
 
 ## 5. Technical Constraints
-- Must use `page.route()` to intercept API calls — no real GitHub requests.
-- The mock data should include at least 1 repo with `full_name: "testorg/core-service"`.
-- Tests must not depend on real network or real GitHub auth.
+- **No `page.route()` mocking.** All API calls must go to the live backend.
+- The test should use the `E2E_AUTH_TOKEN` or follow the real flow against a seeded database.
 
 ## 6. Success Criteria
 - `npx playwright test tests/e2e/onboarding.spec.ts` exits with code 0.

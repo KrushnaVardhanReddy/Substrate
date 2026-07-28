@@ -464,3 +464,27 @@ func (m *MockStore) DeletePartner(ctx context.Context, id uuid.UUID) error {
 	}
 	return nil
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// API Key Methods
+// ─────────────────────────────────────────────────────────────────────────────
+
+func (m *MockStore) CreateAPIKey(ctx context.Context, orgID uuid.UUID, name, prefix, hash string) (*APIKey, error) {
+	panic("not implemented")
+}
+
+func (m *MockStore) ListAPIKeys(ctx context.Context, orgID uuid.UUID) ([]*APIKey, error) {
+	panic("not implemented")
+}
+
+func (m *MockStore) DeleteAPIKey(ctx context.Context, id, orgID uuid.UUID) error {
+	panic("not implemented")
+}
+
+func (m *MockStore) InsertSchemaValidationGap(ctx context.Context, arg sqlcgen.InsertSchemaValidationGapParams) error {
+	return nil
+}
+
+func (m *MockStore) GetSchemaValidationGaps(ctx context.Context) ([]sqlcgen.SchemaValidationGap, error) {
+	return []sqlcgen.SchemaValidationGap{}, nil
+}

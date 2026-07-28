@@ -16,7 +16,7 @@ The predictive score is calculated using a weighted heuristic model based on his
    - Store this score in a new `repo_metrics` table with a timestamp, allowing us to track risk trends over time (e.g., "Payments API risk score increased by 15% this week").
 2. **Dashboard UI (`dashboard/src/routes/graph/`):**
    - Inject the `predictive_risk_score` into the Graph JSON payload.
-   - Visually encode the nodes in the `SvelteFlow` graph:
+   - Visually encode the nodes in the `Cytoscape` graph:
      - Score > 80: Node glows with a pulsating red aura (High Flight Risk).
      - Score 50-79: Node is yellow.
      - Score < 50: Node is green.

@@ -75,6 +75,16 @@ type AgentToolDependency struct {
 	CreatedAt       pgtype.Timestamptz
 }
 
+type ApiKey struct {
+	ID         pgtype.UUID
+	OrgID      pgtype.UUID
+	Name       string
+	Prefix     string
+	Hash       string
+	CreatedAt  pgtype.Timestamptz
+	LastUsedAt pgtype.Timestamptz
+}
+
 type BreakingChangeHistory struct {
 	ID              pgtype.UUID
 	RepoID          pgtype.UUID
@@ -249,6 +259,27 @@ type PublicSchema struct {
 	CreatedAt     pgtype.Timestamptz
 }
 
+type QaReplayJob struct {
+	ID              pgtype.UUID
+	RepoID          pgtype.UUID
+	TimestampTarget pgtype.Timestamptz
+	Status          string
+	CoverageScore   pgtype.Numeric
+	CreatedAt       pgtype.Timestamptz
+	CompletedAt     pgtype.Timestamptz
+}
+
+type QaShadowTraffic struct {
+	ID              pgtype.UUID
+	RepoID          pgtype.UUID
+	Method          string
+	Path            string
+	RequestPayload  []byte
+	ResponsePayload []byte
+	StatusCode      int32
+	CapturedAt      pgtype.Timestamptz
+}
+
 type RepoMetric struct {
 	ID                  pgtype.UUID
 	RepoID              pgtype.UUID
@@ -313,4 +344,14 @@ type RiverQueue struct {
 	Metadata  []byte
 	PausedAt  pgtype.Timestamptz
 	UpdatedAt time.Time
+}
+
+type SchemaValidationGap struct {
+	ID        pgtype.UUID
+	Method    string
+	Path      string
+	Payload   []byte
+	Issue     string
+	Severity  string
+	CreatedAt pgtype.Timestamptz
 }

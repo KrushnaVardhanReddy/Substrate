@@ -215,6 +215,8 @@ type PartnerStore interface {
 // ─────────────────────────────────────────────────────────────────────────────
 
 type PoolProvider interface {
+	InsertSchemaValidationGap(ctx context.Context, arg sqlcgen.InsertSchemaValidationGapParams) error
+	GetSchemaValidationGaps(ctx context.Context) ([]sqlcgen.SchemaValidationGap, error)
 	Pool() *pgxpool.Pool
 }
 
@@ -303,6 +305,7 @@ type Store interface {
 	TelemetryStore
 	WebhookStore
 	BillingStore
+	APIKeyStore
 	AgentStore
 	RegistryStore
 	GovernanceStore
@@ -311,4 +314,14 @@ type Store interface {
 	KMSStore
 	PartnerStore
 	PoolProvider
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// API Key port
+// ─────────────────────────────────────────────────────────────────────────────
+
+type APIKeyStore interface {
+	CreateAPIKey(ctx context.Context, orgID uuid.UUID, name, prefix, hash string) (*db.APIKey, error)
+	ListAPIKeys(ctx context.Context, orgID uuid.UUID) ([]*db.APIKey, error)
+	DeleteAPIKey(ctx context.Context, id, orgID uuid.UUID) error
 }

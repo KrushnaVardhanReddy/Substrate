@@ -19,7 +19,7 @@ import (
 const (
 	p14RegistryAPIToken = "local-dev-token"
 	p14ApiURL           = "http://localhost:8090"
-	p14DbURL            = "postgres://postgres:postgres@localhost:5432/substrate?sslmode=disable"
+	p14DbURL            = "postgres://postgres:postgres@localhost:54320/postgres?sslmode=disable&default_query_exec_mode=exec&statement_cache_capacity=0&pgbouncer=true"
 )
 
 func waitForP14Services(t *testing.T) {

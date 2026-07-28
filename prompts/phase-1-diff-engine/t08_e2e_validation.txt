@@ -1,0 +1,59 @@
+TASK: P1 — Phase 1 Core Diff Engine Full-Stack E2E Validation
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Using the new Full-Stack PGlite Test Harness (CC-T02), implement the complete E2E 
+test suite for Phase 1 (Core Diff Engine). 
+
+You must write BOTH the Go API tests AND the Playwright UI tests.
+
+═══════════════════════════════════════════════════════════════
+CRITICAL READING — DO THIS BEFORE WRITING A SINGLE LINE OF CODE
+═══════════════════════════════════════════════════════════════
+1. docs/specs/e2e/phase1-diff-engine.md
+   → Read the exact API assertions and UI actions required.
+
+2. seed_mcp.sql
+   → Ensure the data is seeded properly for this phase.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+5. FILE: scripts/e2e/phase1_api_test.go (NEW)
+   - API assertions.
+
+6. FILE: dashboard/tests/e2e/phase1.spec.ts (NEW)
+   - UI assertions.
+
+═══════════════════════════════════════════════════════════════
+🚨 CRITICAL RULES FOR THIS RUN 🚨
+═══════════════════════════════════════════════════════════════
+1. NO INTERNAL PACKAGE MOCKING:
+   - Your Go tests in `scripts/e2e/` are in a separate module. You CANNOT import `github.com/KrushnaVardhanReddy/Substrate/api/internal/...` to directly call handlers.
+   - You MUST make external HTTP requests (`http.NewRequest`) to the live API running at `http://localhost:8090`.
+
+2. DATABASE & PGLITE:
+   - PGlite runs on port `54320`.
+   - The connection string MUST be: `postgres://postgres:postgres@localhost:54320/postgres?sslmode=disable&default_query_exec_mode=exec&statement_cache_capacity=0&pgbouncer=true`
+   - You MUST clean up and seed your own data in your test file by instantiating `pgxpool.New` with the above URL.
+
+3. CYTOSCAPE PLAYWRIGHT TESTS:
+   - Cytoscape is an HTML canvas. You CANNOT use standard DOM locators for graph nodes.
+   - You MUST interact with the graph using `page.evaluate(() => window.cyInstance...)` and wait for it to load using `waitForFunction`.
+
+4. VENDOR PRESERVATION:
+   - Do NOT modify or delete anything inside `scripts/e2e/vendor/pglite/`.
+   - If you need to add Go dependencies to `scripts/e2e`, run `go mod vendor` inside `scripts/e2e/`.
+
+5. RIVER QUEUE CRASHES:
+   - PGlite is incompatible with River Queue. The server runs with `SKIP_RIVER="true"`. Do not attempt to start or test River background jobs natively on PGlite.
+
+6. NO HALLUCINATIONS:
+   - Do NOT invent or use hallucinated methods like `telemetry.PublishSSEEvent()`. Stick exactly to the methods that exist in the codebase.
+
+7. PLAYWRIGHT RACE CONDITIONS:
+   - Do NOT use hardcoded timeouts (like `page.waitForTimeout(3000)`) when waiting for the backend to process webhooks. You MUST use `page.waitForFunction` to dynamically poll the Cytoscape canvas or DOM until the expected state is reached.
+
+Commit message: "test: P1 add Phase 1 full-stack E2E tests"
+Target branch: feature/dev

@@ -1,0 +1,50 @@
+TASK: P16-T03 — Interactive API Sandbox ("Try It Out")
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Build a secure API Proxy in the Substrate Go backend so developers can issue live requests to registered APIs directly from the Substrate UI, using ephemeral PASETO tokens.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-16/p16-t03-interactive-sandbox.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- The sandbox proxy MUST block requests to RFC-1918 private IP ranges (SSRF prevention). Check against 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, and 127.0.0.0/8.
+- All proxied requests MUST timeout after 10 seconds via `context.WithTimeout`.
+- Every proxied request MUST be logged to the `sandbox_audit_log` table.
+- The ephemeral token endpoint `POST /api/v1/sandbox/token` requires a valid org-scoped PASETO token in the Authorization header.
+- Svelte "Try It" panel component MUST have a Vitest unit test.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- PASETO token creation uses `api/internal/auth/paseto.go`. Use `CreateToken(org, userID string, ttl time.Duration)` to generate the 15-minute ephemeral token.
+- The router is in `api/internal/server/router.go`. Register new routes there under `// Phase 16 sandbox`.
+- DB interaction follows the pattern in `api/internal/handlers/org.go` using the `ports.Store` interface.
+- The catalog repo page is `dashboard/src/routes/(app)/org/[org]/catalog/[repo]/+page.svelte`. Add a "Try It" button on each endpoint card.
+- Existing API endpoint cards can be referenced in `dashboard/src/lib/components/`.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- For SSRF prevention, parse the resolved IP of the target `base_url` with `net.LookupHost()` and reject if it falls in a private range.
+- Use Go's `net/http/httputil.ReverseProxy` as the base for the proxy implementation — it handles header forwarding cleanly.
+- Add `base_url TEXT` column to the `repos` table via a migration: `ALTER TABLE repos ADD COLUMN IF NOT EXISTS base_url TEXT;`
+- The "Try It" panel in Svelte should be a collapsible section below each endpoint. It needs a `<textarea>` for the request body and a `<div id="sandbox-response">` for the response display.
+- Store the ephemeral token in Svelte's component state (not localStorage) since it expires in 15 minutes.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: api/internal/db/migrations/YYYYMMDD_add_sandbox_tables.sql (CREATE)
+2. FILE: api/internal/handlers/sandbox.go (CREATE)
+   - Include `sandbox_test.go` with SSRF prevention test case
+3. FILE: dashboard/src/lib/components/SandboxPanel.svelte (CREATE)
+   - Include `SandboxPanel.test.ts`
+4. MODIFY: dashboard/src/routes/(app)/org/[org]/catalog/[repo]/+page.svelte — embed SandboxPanel per endpoint
+5. Run `go test ./...` and `npm run test`.
+
+Commit: "jules: P16-T03 add interactive API sandbox try-it-out panel"
+Target branch: feature/p16-t03-api-sandbox

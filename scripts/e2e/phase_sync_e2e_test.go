@@ -15,7 +15,7 @@ import (
 
 const (
 	pSyncApiURL           = "http://localhost:8090"
-	pSyncDbURL            = "postgres://postgres:postgres@localhost:5432/substrate?sslmode=disable"
+	pSyncDbURL            = "postgres://postgres:postgres@localhost:54320/postgres?sslmode=disable&default_query_exec_mode=exec&statement_cache_capacity=0&pgbouncer=true"
 	pSyncRegistryAPIToken = "local-dev-token"
 )
 
@@ -42,7 +42,8 @@ func pSyncSetupDatabase(t *testing.T) *pgxpool.Pool {
 
 	_, err = pool.Exec(ctx, "DELETE FROM breaking_change_history")
 	require.NoError(t, err)
-	_, err = pool.Exec(ctx, "DELETE FROM diff_reports")
+	_, err = pool.Exec(ctx, "DELETE FROM preview_sessions")
+	pool.Exec(ctx, "DELETE FROM diff_reports")
 	require.NoError(t, err)
 	_, err = pool.Exec(ctx, "DELETE FROM dependencies")
 	require.NoError(t, err)

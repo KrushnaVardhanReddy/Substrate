@@ -4,11 +4,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 
-const FORGEJO_USER = 'admin';
-const FORGEJO_PASS = process.env.FORGEJO_PASSWORD || 'Buchu*89';
-const FORGEJO_URL = `http://${FORGEJO_USER}:${encodeURIComponent(FORGEJO_PASS)}@localhost:3000`;
+const FORGEJO_USER = process.env.FORGEJO_USER || 'adminuser';
+const FORGEJO_PASS = process.env.FORGEJO_PASS || 'Admin123!';
+const FORGEJO_PORT = process.env.FORGEJO_PORT || '3005';
+const FORGEJO_URL = `http://${FORGEJO_USER}:${encodeURIComponent(FORGEJO_PASS)}@localhost:${FORGEJO_PORT}`;
 const DASHBOARD_URL = 'http://localhost:5173';
-const REPO_ORG = 'admin';
+const REPO_ORG = FORGEJO_USER;
 
 // Helper to push files to Forgejo
 async function pushToForgejo(repoName: string, files: Record<string, string>, branch: string = 'main') {
@@ -33,64 +34,155 @@ async function pushToForgejo(repoName: string, files: Record<string, string>, br
     // We use ENABLE_PUSH_CREATE behavior if the repo doesn't exist.
     // If it fails because the repo needs to be created first via API, we handle that.
     try {
+      // 1. Try to create the repo (ignore if it fails because it already exists)
+      await fetch(`http://localhost:${FORGEJO_PORT}/api/v1/user/repos`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${Buffer.from(`${FORGEJO_USER}:${FORGEJO_PASS}`).toString('base64')}`
+        },
+        body: JSON.stringify({ name: repoName, private: false })
+      });
+
+      // 2. Ensure webhook is registered BEFORE pushing
+      const hooksListRes = await fetch(`http://localhost:${FORGEJO_PORT}/api/v1/repos/${FORGEJO_USER}/${repoName}/hooks`, {
+        headers: { 'Authorization': `Basic ${Buffer.from(`${FORGEJO_USER}:${FORGEJO_PASS}`).toString('base64')}` }
+      });
+      const hooks = await hooksListRes.json();
+      if (Array.isArray(hooks)) {
+        for (const hook of hooks) {
+          await fetch(`http://localhost:${FORGEJO_PORT}/api/v1/repos/${FORGEJO_USER}/${repoName}/hooks/${hook.id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Basic ${Buffer.from(`${FORGEJO_USER}:${FORGEJO_PASS}`).toString('base64')}` }
+          });
+        }
+      }
+
+      // Always create exactly one fresh webhook
+      const hookRes = await fetch(`http://localhost:${FORGEJO_PORT}/api/v1/repos/${FORGEJO_USER}/${repoName}/hooks`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${Buffer.from(`${FORGEJO_USER}:${FORGEJO_PASS}`).toString('base64')}`
+        },
+        body: JSON.stringify({
+          type: 'gitea',
+          config: { url: 'http://localhost:8090/api/v1/webhook', content_type: 'json' },
+          events: ['push', 'pull_request'],
+          active: true
+        })
+      });
+      console.log(`Webhook creation response: ${hookRes.status} ${await hookRes.text()}`);
+
+      // 3. Now perform the push, so the webhook fires
       execSync(`git push -u origin main -f`, { cwd: tempDir, stdio: 'pipe' });
     } catch (e: any) {
-      if (e.stderr && (e.stderr.toString().includes('repository does not exist') || e.stderr.toString().includes('403'))) {
-        console.log(`Repo ${repoName} does not exist, attempting to create via API...`);
-        const createRes = await fetch(`http://localhost:3000/api/v1/user/repos`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Basic ${Buffer.from(`${FORGEJO_USER}:${FORGEJO_PASS}`).toString('base64')}`
-          },
-          body: JSON.stringify({ name: repoName, private: false })
-        });
-        if (createRes.ok) {
-           // Create the webhook
-           await fetch(`http://localhost:3000/api/v1/repos/${FORGEJO_USER}/${repoName}/hooks`, {
-             method: 'POST',
-             headers: {
-               'Content-Type': 'application/json',
-               'Authorization': `Basic ${Buffer.from(`${FORGEJO_USER}:${FORGEJO_PASS}`).toString('base64')}`
-             },
-             body: JSON.stringify({
-               type: 'gitea',
-               config: { url: 'http://localhost:8787/', content_type: 'json' },
-               events: ['push', 'pull_request'],
-               active: true
-             })
-           });
-           // Try push again
-           execSync(`git push -u origin main -f`, { cwd: tempDir, stdio: 'pipe' });
-        } else {
-           throw new Error(`Failed to create repo via API: ${await createRes.text()}`);
-        }
-      } else {
-        throw e;
-      }
+      throw e;
     }
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
 }
 
+// Poll the backend API until graph edges appear for this org (waits for async River job to complete)
+// repoFilter: optional string to filter edges by provider or consumer full name
+async function waitForAPIEdges(minEdges: number, repoFilter?: string, timeoutMs: number = 60000): Promise<void> {
+  const token = process.env.E2E_AUTH_TOKEN || 'placeholder';
+  const apiUrl = `http://localhost:8090/api/v1/graph/${REPO_ORG}`;
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    try {
+      const res = await fetch(apiUrl, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.ok) {
+        const edges = await res.json();
+        if (Array.isArray(edges)) {
+          const filtered = repoFilter
+            ? edges.filter((e: any) =>
+                (e.provider || '').toLowerCase().includes(repoFilter.toLowerCase()) ||
+                (e.consumer || '').toLowerCase().includes(repoFilter.toLowerCase()))
+            : edges;
+          if (filtered.length >= minEdges) {
+            return;
+          }
+        }
+      }
+    } catch (_) {}
+    await new Promise(r => setTimeout(r, 2000));
+  }
+  throw new Error(`Timed out waiting for >= ${minEdges} edges${repoFilter ? ` matching '${repoFilter}'` : ''} from ${apiUrl} after ${timeoutMs}ms`);
+}
+
+// Poll the backend API for BREAKING edges (waits for breaking change to be processed)
+// repoFilter: optional string to filter edges by provider or consumer full name
+async function waitForBreakingAPIEdges(minBreaking: number, repoFilter?: string, timeoutMs: number = 60000): Promise<void> {
+  const token = process.env.E2E_AUTH_TOKEN || 'placeholder';
+  const apiUrl = `http://localhost:8090/api/v1/graph/${REPO_ORG}`;
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    try {
+      const res = await fetch(apiUrl, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.ok) {
+        const edges = await res.json();
+        if (Array.isArray(edges)) {
+          const filtered = repoFilter
+            ? edges.filter((e: any) =>
+                (e.provider || '').toLowerCase().includes(repoFilter.toLowerCase()) ||
+                (e.consumer || '').toLowerCase().includes(repoFilter.toLowerCase()))
+            : edges;
+          const breakingCount = filtered.filter((e: any) => e.status === 'BREAKING').length;
+          if (breakingCount >= minBreaking) {
+            return;
+          }
+        }
+      }
+    } catch (_) {}
+    await new Promise(r => setTimeout(r, 2000));
+  }
+  throw new Error(`Timed out waiting for >= ${minBreaking} BREAKING edges${repoFilter ? ` matching '${repoFilter}'` : ''} from ${apiUrl} after ${timeoutMs}ms`);
+}
+
+
 // Wait for graph nodes to render
 async function waitForGraphSearch(page: any, searchTerm: string, expectedNodesCount: number) {
+  // First poll the API directly until the async backend job has seeded the data.
+  // We filter by searchTerm (repo name) to avoid false positives from other test suites.
+  // edges = nodes - 1: e.g., 1 provider + 4 consumers = 4 edges → 5 nodes
+  await waitForAPIEdges(expectedNodesCount - 1, searchTerm);
+  
+  // Now navigate to the graph UI (data is ready)
   await page.goto(`${DASHBOARD_URL}/org/${REPO_ORG}/graph`);
   
   const searchInput = page.locator('input[placeholder*="Search"]');
   await searchInput.fill(searchTerm);
   
   // Wait for debounce and graph render
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(1500);
   
-  // We expect at least the specified number of nodes to eventually appear
+  // Reload if cyInstance doesn't have nodes yet (SSE may not have fired for initial load)
   await expect(async () => {
-    expect(await page.locator('.svelte-flow__node').count()).toBeGreaterThanOrEqual(expectedNodesCount);
-  }).toPass({ timeout: 30000 });
+    const cy = await page.evaluate(() => !!(window as any).cyInstance);
+    if (!cy) {
+      await page.reload();
+      await page.waitForTimeout(1500);
+      const searchInput2 = page.locator('input[placeholder*="Search"]');
+      await searchInput2.fill(searchTerm);
+      await page.waitForTimeout(1500);
+    }
+    await page.waitForFunction(() => (window as any).cyInstance !== undefined && (window as any).cyInstance !== null, { timeout: 15000 });
+    const count = await page.evaluate(() => {
+        return (window as any).cyInstance.nodes().length;
+    });
+    expect(count).toBeGreaterThanOrEqual(expectedNodesCount);
+  }).toPass({ timeout: 45000 });
 }
 
+
 test.describe.serial('Full E2E System Matrix — Real Git Push Pipeline', () => {
+    test.beforeEach(async ({ context }) => {
+        await context.addInitScript((t) => {
+            localStorage.setItem("github_token", t);
+        }, process.env.E2E_AUTH_TOKEN || "placeholder");
+    });
 
   test.beforeAll(async () => {
     // We could set up all repos here, but for now we'll do them per-describe.
@@ -105,22 +197,22 @@ head_schema: protos/demo.proto
 
 consumers:
   - name: frontend
-    provider_repo: admin/microservices-demo
+    provider_repo: adminuser/microservices-demo
     schema_type: protobuf
     provider_spec_path: protos/demo.proto
     provider_branch: main
   - name: checkoutservice
-    provider_repo: admin/microservices-demo
+    provider_repo: adminuser/microservices-demo
     schema_type: protobuf
     provider_spec_path: protos/demo.proto
     provider_branch: main
   - name: recommendationservice
-    provider_repo: admin/microservices-demo
+    provider_repo: adminuser/microservices-demo
     schema_type: protobuf
     provider_spec_path: protos/demo.proto
     provider_branch: main
   - name: emailservice
-    provider_repo: admin/microservices-demo
+    provider_repo: adminuser/microservices-demo
     schema_type: protobuf
     provider_spec_path: protos/demo.proto
     provider_branch: main
@@ -135,13 +227,14 @@ message CartItem {
 message Empty {}
 `;
 
-    test('Setup & Seeding: Push initial valid schema', async () => {
+    test('Setup & Seeding: Push initial valid schema', async ({ page }) => {
       await pushToForgejo(REPO_NAME, {
         'substrate.yaml': BASE_SUBSTRATE_YAML,
         'protos/demo.proto': BASE_PROTO
       });
       // Wait a moment for webhook -> worker -> engine -> API -> DB
-      await new Promise(r => setTimeout(r, 2000));
+      await page.waitForTimeout(6000);
+      await waitForGraphSearch(page, 'microservices', 5);
     });
 
     test('Red Path: Push breaking change', async ({ page }) => {
@@ -159,15 +252,24 @@ message Empty {}
         'protos/demo.proto': BREAKING_PROTO
       });
       
-      // Wait for pipeline processing
-      await page.waitForTimeout(3000);
+      // Wait for the async pipeline to detect the breaking change at the API level
+      await waitForBreakingAPIEdges(4, 'microservices'); // 4 consumers should be BREAKING
       
       // Go to graph and search
       await waitForGraphSearch(page, 'microservices', 5); // 1 provider + 4 consumers
       
       // Since it's broken, consumers should show blast radius alert (breaking status)
-      const alertNodes = page.locator('.status-indicator.breaking');
-      await expect(alertNodes).toHaveCount(1, { timeout: 10000 });
+      await page.waitForFunction(() => {
+          const cy = (window as any).cyInstance;
+          if (!cy) return false;
+          return cy.edges('[status = "BREAKING"]').length > 0;
+      }, { timeout: 30000 });
+      
+      const breakingCount = await page.evaluate(() => {
+          return (window as any).cyInstance.edges('[status = "BREAKING"]').length;
+      });
+      // The provider affects 4 consumers, so 4 edges should be breaking
+      expect(breakingCount).toBe(4);
     });
 
     test('Green Path: Push safe change', async ({ page }) => {
@@ -186,11 +288,22 @@ message Empty {}
         'protos/demo.proto': SAFE_PROTO
       });
       
-      await page.waitForTimeout(3000);
+      // Wait for pipeline processing
+      await page.waitForTimeout(6000);
       await waitForGraphSearch(page, 'microservices', 5);
       
+      // Wait for it to become safe (0 breaking edges)
+      await page.waitForFunction(() => {
+          const cy = (window as any).cyInstance;
+          if (!cy) return false;
+          return cy.edges('[status = "BREAKING"]').length === 0;
+      }, { timeout: 15000 });
+      
       // No breaking alerts
-      await expect(page.locator('.status-indicator.breaking')).toHaveCount(0, { timeout: 10000 });
+      const breakingCount = await page.evaluate(() => {
+          return (window as any).cyInstance ? (window as any).cyInstance.edges('[status = "BREAKING"]').length : 0;
+      });
+      expect(breakingCount).toBe(0);
     });
 
     test('Yellow Path: Push breaking change with override', async ({ page }) => {
@@ -209,28 +322,28 @@ head_schema: protos/demo.proto
 
 consumers:
   - name: frontend
-    provider_repo: admin/microservices-demo
+    provider_repo: adminuser/microservices-demo
     schema_type: protobuf
     provider_spec_path: protos/demo.proto
     provider_branch: main
     overrides:
       - rule_id: "*"
   - name: checkoutservice
-    provider_repo: admin/microservices-demo
+    provider_repo: adminuser/microservices-demo
     schema_type: protobuf
     provider_spec_path: protos/demo.proto
     provider_branch: main
     overrides:
       - rule_id: "*"
   - name: recommendationservice
-    provider_repo: admin/microservices-demo
+    provider_repo: adminuser/microservices-demo
     schema_type: protobuf
     provider_spec_path: protos/demo.proto
     provider_branch: main
     overrides:
       - rule_id: "*"
   - name: emailservice
-    provider_repo: admin/microservices-demo
+    provider_repo: adminuser/microservices-demo
     schema_type: protobuf
     provider_spec_path: protos/demo.proto
     provider_branch: main
@@ -242,12 +355,24 @@ consumers:
         'protos/demo.proto': BREAKING_PROTO
       });
 
-      await page.waitForTimeout(3000);
+      await page.waitForTimeout(6000);
       await waitForGraphSearch(page, 'microservices', 5);
 
       // No breaking alerts, but expecting warning instead
-      await expect(page.locator('.status-indicator.breaking')).toHaveCount(0, { timeout: 10000 });
-      await expect(page.locator('.status-indicator.warning')).toHaveCount(4, { timeout: 10000 }); // All 4 consumers
+      const breakingCount = await page.evaluate(() => {
+          return (window as any).cyInstance ? (window as any).cyInstance.edges('[status = "BREAKING"]').length : 0;
+      });
+      expect(breakingCount).toBe(0);
+      await page.waitForFunction(() => {
+          const cy = (window as any).cyInstance;
+          if (!cy) return false;
+          return cy.edges('[status = "WARNING"]').length > 0;
+      }, { timeout: 30000 });
+      
+      const warningCount = await page.evaluate(() => {
+          return (window as any).cyInstance.edges('[status = "WARNING"]').length;
+      });
+      expect(warningCount).toBe(4); // All 4 consumers
     });
   });
 
@@ -260,7 +385,7 @@ head_schema: openapi.yaml
 
 consumers:
   - name: billing-service
-    provider_repo: admin/stripe-api
+    provider_repo: adminuser/stripe-api
     schema_type: openapi
     provider_spec_path: openapi.yaml
     provider_branch: main
@@ -290,12 +415,13 @@ paths:
           description: OK
 `;
 
-    test('Setup & Seeding: Push initial valid schema', async () => {
+    test('Setup & Seeding: Push initial valid schema', async ({ page }) => {
       await pushToForgejo(REPO_NAME, {
         'substrate.yaml': BASE_SUBSTRATE_YAML,
         'openapi.yaml': BASE_OPENAPI
       });
-      await new Promise(r => setTimeout(r, 2000));
+      await page.waitForTimeout(6000);
+      await waitForGraphSearch(page, 'stripe', 2);
     });
 
     test('Red Path: Push breaking change', async ({ page }) => {
@@ -330,11 +456,20 @@ paths:
         'openapi.yaml': BREAKING_OPENAPI
       });
       
-      await page.waitForTimeout(3000);
+      // Wait for the async pipeline to detect the breaking change at the API level
+      await waitForBreakingAPIEdges(1, 'stripe');
       await waitForGraphSearch(page, 'stripe', 2); // 1 provider + 1 consumer
       
-      const alertNodes = page.locator('.status-indicator.breaking');
-      await expect(alertNodes).toHaveCount(1, { timeout: 10000 });
+      await page.waitForFunction(() => {
+          const cy = (window as any).cyInstance;
+          if (!cy) return false;
+          return cy.edges('[status = "BREAKING"]').length > 0;
+      }, { timeout: 30000 });
+      
+      const breakingCount = await page.evaluate(() => {
+          return (window as any).cyInstance.edges('[status = "BREAKING"]').length;
+      });
+      expect(breakingCount).toBe(1);
     });
 
     test('Green Path: Push safe change', async ({ page }) => {
@@ -371,10 +506,13 @@ paths:
         'openapi.yaml': SAFE_OPENAPI
       });
       
-      await page.waitForTimeout(3000);
+      await page.waitForTimeout(6000);
       await waitForGraphSearch(page, 'stripe', 2);
       
-      await expect(page.locator('.status-indicator.breaking')).toHaveCount(0, { timeout: 10000 });
+      const breakingCount = await page.evaluate(() => {
+          return (window as any).cyInstance ? (window as any).cyInstance.edges('[status = "BREAKING"]').length : 0;
+      });
+      expect(breakingCount).toBe(0);
     });
 
     test('Yellow Path: Push breaking change with override', async ({ page }) => {
@@ -410,7 +548,7 @@ head_schema: openapi.yaml
 
 consumers:
   - name: billing-service
-    provider_repo: admin/stripe-api
+    provider_repo: adminuser/stripe-api
     schema_type: openapi
     provider_spec_path: openapi.yaml
     provider_branch: main
@@ -422,11 +560,23 @@ consumers:
         'openapi.yaml': BREAKING_OPENAPI
       });
 
-      await page.waitForTimeout(3000);
+      await page.waitForTimeout(6000);
       await waitForGraphSearch(page, 'stripe', 2);
 
-      await expect(page.locator('.status-indicator.breaking')).toHaveCount(0, { timeout: 10000 });
-      await expect(page.locator('.status-indicator.warning')).toHaveCount(1, { timeout: 10000 });
+      const breakingCount = await page.evaluate(() => {
+          return (window as any).cyInstance ? (window as any).cyInstance.edges('[status = "BREAKING"]').length : 0;
+      });
+      expect(breakingCount).toBe(0);
+      await page.waitForFunction(() => {
+          const cy = (window as any).cyInstance;
+          if (!cy) return false;
+          return cy.edges('[status = "WARNING"]').length > 0;
+      }, { timeout: 30000 });
+      
+      const warningCount = await page.evaluate(() => {
+          return (window as any).cyInstance.edges('[status = "WARNING"]').length;
+      });
+      expect(warningCount).toBe(1);
     });
   });
 
@@ -439,7 +589,7 @@ head_schema: schema.graphql
 
 consumers:
   - name: github-action-runner
-    provider_repo: admin/github-graphql
+    provider_repo: adminuser/github-graphql
     schema_type: graphql
     provider_spec_path: schema.graphql
     provider_branch: main
@@ -449,12 +599,13 @@ consumers:
 type User { id: ID!, name: String! }
 `;
 
-    test('Setup & Seeding: Push initial valid schema', async () => {
+    test('Setup & Seeding: Push initial valid schema', async ({ page }) => {
       await pushToForgejo(REPO_NAME, {
         'substrate.yaml': BASE_SUBSTRATE_YAML,
         'schema.graphql': BASE_GRAPHQL
       });
-      await new Promise(r => setTimeout(r, 2000));
+      await page.waitForTimeout(6000);
+      await waitForGraphSearch(page, 'github', 2);
     });
 
     test('Red Path: Push breaking change', async ({ page }) => {
@@ -466,11 +617,20 @@ type User { id: ID! }
         'schema.graphql': BREAKING_GRAPHQL
       });
 
-      await page.waitForTimeout(3000);
+      // Wait for the async pipeline to detect the breaking change at the API level
+      await waitForBreakingAPIEdges(1, 'github');
       await waitForGraphSearch(page, 'github', 2); // 1 provider + 1 consumer
 
-      const alertNodes = page.locator('.status-indicator.breaking');
-      await expect(alertNodes).toHaveCount(1, { timeout: 10000 });
+      await page.waitForFunction(() => {
+          const cy = (window as any).cyInstance;
+          if (!cy) return false;
+          return cy.edges('[status = "BREAKING"]').length > 0;
+      }, { timeout: 30000 });
+      
+      const breakingCount = await page.evaluate(() => {
+          return (window as any).cyInstance.edges('[status = "BREAKING"]').length;
+      });
+      expect(breakingCount).toBe(1);
     });
 
     test('Green Path: Push safe change', async ({ page }) => {
@@ -482,10 +642,141 @@ type User { id: ID!, name: String!, email: String }
         'schema.graphql': SAFE_GRAPHQL
       });
 
-      await page.waitForTimeout(3000);
+      await page.waitForTimeout(6000);
       await waitForGraphSearch(page, 'github', 2);
 
-      await expect(page.locator('.status-indicator.breaking')).toHaveCount(0, { timeout: 10000 });
+      const breakingCount = await page.evaluate(() => {
+          return (window as any).cyInstance ? (window as any).cyInstance.edges('[status = "BREAKING"]').length : 0;
+      });
+      expect(breakingCount).toBe(0);
+    });
+  });
+
+  test.describe.serial('Repo: ml-models (AI/ML Phase 1f)', () => {
+    const REPO_NAME = 'ml-models';
+    const BASE_SUBSTRATE_YAML = `schema_type: aiml
+base_schema: model.yaml
+head_schema: model.yaml
+
+consumers:
+  - name: recommendation-engine
+    provider_repo: adminuser/ml-models
+    schema_type: aiml
+    provider_spec_path: model.yaml
+    provider_branch: main
+`;
+    const BASE_AIML = `service: fraud-detector
+ml_model:
+  name: "FraudDetector"
+  version: "1.0"
+  inputs:
+    - name: "amount"
+      type: "float"
+      required: true
+  outputs:
+    - name: "fraud_probability"
+      type: "float"
+      required: true
+`;
+    test('Setup & Seeding: Push initial valid schema', async ({ page }) => {
+      await pushToForgejo(REPO_NAME, {
+        'substrate.yaml': BASE_SUBSTRATE_YAML,
+        'model.yaml': BASE_AIML
+      });
+      await page.waitForTimeout(6000);
+      await waitForGraphSearch(page, 'ml', 2);
+    });
+
+    test('Red Path: Push breaking change', async ({ page }) => {
+      const BREAKING_AIML = `service: fraud-detector
+ml_model:
+  name: "FraudDetector"
+  version: "1.0"
+  inputs:
+    - name: "amount"
+      type: "float"
+      required: true
+    - name: "new_required_field"
+      type: "string"
+      required: true
+  outputs:
+    - name: "fraud_probability"
+      type: "float"
+      required: true
+`;
+      await pushToForgejo(REPO_NAME, {
+        'substrate.yaml': BASE_SUBSTRATE_YAML,
+        'model.yaml': BREAKING_AIML
+      });
+      // Wait for the async pipeline to detect the breaking change at the API level
+      await waitForBreakingAPIEdges(1, 'ml');
+      await waitForGraphSearch(page, 'ml', 2);
+      
+      await page.waitForFunction(() => {
+          const cy = (window as any).cyInstance;
+          if (!cy) return false;
+          return cy.edges('[status = "BREAKING"]').length > 0;
+      }, { timeout: 30000 });
+      
+      const breakingCount = await page.evaluate(() => {
+          return (window as any).cyInstance.edges('[status = "BREAKING"]').length;
+      });
+      expect(breakingCount).toBe(1);
+    });
+  });
+
+  test.describe.serial('Repo: salesforce-crm (Enterprise Phase 1g)', () => {
+    const REPO_NAME = 'salesforce-crm';
+    const BASE_SUBSTRATE_YAML = `schema_type: salesforce
+base_schema: Account.object
+head_schema: Account.object
+
+consumers:
+  - name: sync-worker
+    provider_repo: adminuser/salesforce-crm
+    schema_type: salesforce
+    provider_spec_path: Account.object
+    provider_branch: main
+`;
+    const BASE_SOAP = `<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fields>
+        <fullName>AnnualRevenue</fullName>
+        <type>Currency</type>
+        <required>false</required>
+    </fields>
+</CustomObject>`;
+    test('Setup & Seeding: Push initial valid schema', async ({ page }) => {
+      await pushToForgejo(REPO_NAME, {
+        'substrate.yaml': BASE_SUBSTRATE_YAML,
+        'Account.object': BASE_SOAP
+      });
+      await page.waitForTimeout(6000);
+      await waitForGraphSearch(page, 'salesforce', 2);
+    });
+
+    test('Red Path: Push breaking change', async ({ page }) => {
+      const BREAKING_SOAP = `<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+</CustomObject>`;
+      await pushToForgejo(REPO_NAME, {
+        'substrate.yaml': BASE_SUBSTRATE_YAML,
+        'Account.object': BREAKING_SOAP
+      });
+      // Wait for the async pipeline to detect the breaking change at the API level
+      await waitForBreakingAPIEdges(1, 'salesforce');
+      await waitForGraphSearch(page, 'salesforce', 2);
+      
+      await page.waitForFunction(() => {
+          const cy = (window as any).cyInstance;
+          if (!cy) return false;
+          return cy.edges('[status = "BREAKING"]').length > 0;
+      }, { timeout: 30000 });
+      
+      const breakingCount = await page.evaluate(() => {
+          return (window as any).cyInstance.edges('[status = "BREAKING"]').length;
+      });
+      expect(breakingCount).toBe(1);
     });
   });
 

@@ -169,8 +169,7 @@ check-token:
 	fi
 
 e2e: check-token
-
-	cd dashboard && npm run test:e2e tests/e2e/system-matrix-full.spec.ts
+	bash scripts/e2e/run_full_e2e.sh
 
 
 
@@ -228,11 +227,11 @@ e2e-v1: check-token
 
 e2e-phase7: check-token
 	@echo "Running Phase 7 Enterprise E2E Tests..."
-	cd scripts/e2e && go test -v phase7_e2e_test.go
+	cd scripts/e2e && go test -v phase7_e2e_test.go phase7_api_test.go
 
 e2e-phase8: check-token
 	@echo "Running Phase 8 Enterprise Readiness Tests..."
-	cd scripts/e2e && go test -v phase8_e2e_test.go
+	cd scripts/e2e && go test -v phase8_e2e_test.go phase8_api_test.go
 
 e2e-phase14: check-token
 	@echo "Running Phase 14 E2E Validation Tests..."
@@ -240,7 +239,7 @@ e2e-phase14: check-token
 
 e2e-phase15: check-token
 	@echo "Running Phase 15 Enterprise Tests..."
-	cd scripts/e2e && go test -v phase15_e2e_test.go p15_t04_e2e_test.go || true
+	cd scripts/e2e && go test -v phase15_api_test.go p15_t04_e2e_test.go || true
 # ── Phase 12: Production Build ────────────────────────────────────────────────
 
 ## build-wasm: Compile the Go diff engine to WebAssembly

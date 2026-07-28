@@ -43,7 +43,7 @@ Three high-value UI pages have zero Playwright E2E coverage. A regression in any
 ## 3. Constraints
 - New files: `dashboard/tests/e2e/diff-viewer.spec.ts`, `dashboard/tests/e2e/impact-page.spec.ts`, `dashboard/tests/e2e/governance.spec.ts`
 - Use the existing `playwright.config.ts` setup (`baseURL: http://localhost:5173`).
-- Mock the backend API calls using `page.route()` where needed (this is Playwright — mocking API responses is acceptable for UI tests).
+- **No `page.route()` mocking.** All tests run against the live Go API (`:8090`) with seeded database state. This ensures tests catch real regressions, not just UI rendering issues.
 - Follow the pattern in `dashboard/tests/e2e/graph.spec.ts` and `enterprise-routes.spec.ts`.
 
 ## 4. Implementation Status

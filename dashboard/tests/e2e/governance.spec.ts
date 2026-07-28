@@ -1,18 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Governance Rules Page', () => {
-    test.beforeEach(async ({ page }) => {
-        await page.route('**/api/v1/repos/*', async (route) => {
-            await route.fulfill({ status: 200, json: [] });
-        });
 
-        await page.route('**/api/governance/generate-cel', async (route) => {
-            await route.fulfill({
-                status: 200,
-                json: { cel: 'request.auth != null' }
-            });
-        });
-    });
 
     test('should render and generate CEL rule', async ({ page }) => {
         page.on('pageerror', () => {});

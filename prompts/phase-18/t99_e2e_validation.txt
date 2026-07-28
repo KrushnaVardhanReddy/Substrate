@@ -1,0 +1,43 @@
+TASK: P18-T99 — Phase 18 E2E Validation (No Mocks)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Write comprehensive Go API tests for all Phase 18 AI Agent Governance features: Agent Profiles, HITL Queue, and Context-Aware Schema Pruning.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-18/p18-t99-e2e.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Schema pruning tests MUST use the real AI embedding handler — do NOT mock `EmbedText`.
+- HITL queue tests MUST assert the actual DB row state via a direct SQL query after the API call.
+- All tests must be table-driven using `testify/assert`.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- IMPORTANT: Before writing code, view an existing E2E test (e.g., `scripts/e2e/phase15_e2e_test.go`) and mimic its exact setup, teardown, and assertion patterns. This will give you a major clue on how the test harness is wired up.
+- Go E2E tests live in `scripts/e2e/`. Follow the pattern of `phase15_e2e_test.go`.
+- The MCP session is opened via HTTP `GET /mcp/sse?profile_id={id}` (SSE transport).
+- To test MCP tool filtering, use the existing `mcp_client_test.go` helper in `scripts/e2e/` to start an SSE session and call `tools/list`.
+- For HITL testing: after triggering a tool call, query `hitl_queue` directly via `db.QueryRow("SELECT status FROM hitl_queue WHERE id = $1", queueID)`.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Seed the agent profile via `POST /api/v1/mcp/profiles` at the start of the test, not via raw SQL, so you test the API itself.
+- For the schema pruning test: seed a repo with an OpenAPI spec containing at least 5 paths (e.g., `/billing`, `/users`, `/auth`, `/webhooks`, `/settings`). Send intent `"check billing"` and assert the response contains `/billing` but NOT `/auth`.
+- The pruning test needs the AI service running — make sure `AI_PROVIDER_URL` env var is set in the E2E test environment.
+- Add the new test file to `scripts/e2e/run_full_e2e.sh`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: scripts/e2e/phase18_e2e_test.go (CREATE)
+2. MODIFY: scripts/e2e/run_full_e2e.sh — add phase18 test to the run list
+3. Run `go test ./scripts/e2e/... -run TestPhase18`.
+
+Commit: "jules: P18-T99 add Phase 18 E2E validation suite"
+Target branch: feature/p18-t99-e2e

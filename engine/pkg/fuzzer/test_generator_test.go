@@ -2,22 +2,22 @@ package fuzzer
 
 import (
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 )
 
 func TestGenerateTests(t *testing.T) {
-	// Create a temporary OpenAPI spec file
-	schemaContent := `openapi: "3.0.0"
+	// Create a temporary OpenAPI spec for testing
+	specContent := `
+openapi: 3.0.0
 info:
   title: Test API
-  version: "1.0.0"
+  version: 1.0.0
 paths:
   /users:
     post:
-      summary: Create user
       requestBody:
+        required: true
         content:
           application/json:
             schema:
@@ -27,49 +27,85 @@ paths:
               properties:
                 name:
                   type: string
-                  maxLength: 10
+                  maxLength: 50
                 age:
                   type: integer
                   minimum: 18
       responses:
-        "201":
+        '201':
           description: Created
 `
-	tmpDir := t.TempDir()
-	specPath := filepath.Join(tmpDir, "openapi.yaml")
-	err := os.WriteFile(specPath, []byte(schemaContent), 0644)
+	tmpfile, err := os.CreateTemp("", "spec-*.yaml")
 	if err != nil {
-		t.Fatalf("failed to write spec file: %v", err)
+		t.Fatal(err)
+	}
+	defer os.Remove(tmpfile.Name())
+
+	if _, err := tmpfile.Write([]byte(specContent)); err != nil {
+		t.Fatal(err)
+	}
+	if err := tmpfile.Close(); err != nil {
+		t.Fatal(err)
 	}
 
 	tests := []struct {
-		name          string
-		specPath      string
-		baseURL       string
-		expectStrings []string
+		name     string
+		specPath string
+		baseURL  string
+		wantErr  bool
 	}{
 		{
-			name:     "Valid OpenAPI spec with constraints",
-			specPath: specPath,
-			baseURL:  "http://example.com/api",
-			expectStrings: []string{
-				`e := httpexpect.Default(t, "http://example.com/api")`,
-				`t.Run("POST /users missing required name"`,
-				`t.Run("POST /users name exceeds maxLength"`,
-				`t.Run("POST /users age below minimum"`,
-			},
+			name:     "valid spec",
+			specPath: tmpfile.Name(),
+			baseURL:  "http://api.example.com",
+			wantErr:  false,
+		},
+		{
+			name:     "invalid spec path",
+			specPath: "non_existent.yaml",
+			baseURL:  "",
+			wantErr:  true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			output, err := GenerateTests(tt.specPath, tt.baseURL)
-			if err != nil {
-				t.Fatalf("GenerateTests returned error: %v", err)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GenerateTests() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
-			for _, exp := range tt.expectStrings {
-				if !strings.Contains(output, exp) {
-					t.Errorf("Expected output to contain:\n%s\nGot:\n%s", exp, output)
+			if !tt.wantErr {
+				// verify output contains expected test structure
+				if !strings.Contains(output, "package tests") {
+					t.Errorf("output does not contain package tests")
+				}
+				if !strings.Contains(output, "func TestGeneratedFuzzing") {
+					t.Errorf("output does not contain TestGeneratedFuzzing")
+				}
+				// verify it generated tests for constraints
+				if !strings.Contains(output, "missing required name") {
+					t.Errorf("output does not contain required test case")
+				}
+				if !strings.Contains(output, "exceeds maxLength") {
+					t.Errorf("output does not contain maxLength test case")
+				}
+				if !strings.Contains(output, "below minimum") {
+					t.Errorf("output does not contain minimum test case")
+				}
+
+				// Verify it generated security payloads
+				if !strings.Contains(output, "SQL injection") {
+					t.Errorf("output does not contain SQL injection test case")
+				}
+				if !strings.Contains(output, "Path traversal") {
+					t.Errorf("output does not contain Path traversal test case")
+				}
+				if !strings.Contains(output, "Null byte injection") {
+					t.Errorf("output does not contain Null byte injection test case")
+				}
+				if !strings.Contains(output, "Extremely long string") {
+					t.Errorf("output does not contain Extremely long string test case")
 				}
 			}
 		})

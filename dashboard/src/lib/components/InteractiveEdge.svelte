@@ -32,7 +32,7 @@
 
 	let currentStyle = $derived(
 		isHovered
-			? `${style || ''} stroke-width: 4px; stroke: #3b82f6; filter: drop-shadow(0 0 4px rgba(59, 130, 246, 0.5)); transition: all 0.2s ease;`
+			? `${style || ''} stroke-width: 4px; stroke: #3b82f6; filter: drop-shadow(0 0 4px rgba(59, 130, 246, 0.5));`
 			: `${style || ''} transition: all 0.2s ease;`
 	);
 

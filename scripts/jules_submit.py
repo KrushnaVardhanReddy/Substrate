@@ -49,7 +49,14 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REPO_SOURCE = "sources/github/KrushnaVardhanReddy/Substrate"
 
 # Parse branch from args if provided
-BRANCH = "feature/dev"
+import subprocess
+def get_current_branch():
+    try:
+        return subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD'], text=True).strip()
+    except Exception:
+        return "feature/dev"
+
+BRANCH = get_current_branch()
 if "--branch" in sys.argv:
     idx = sys.argv.index("--branch")
     if idx + 1 < len(sys.argv):
@@ -68,6 +75,7 @@ MANDATORY RULES — VIOLATION = REJECTED PR:
 5. TESTING IS MANDATORY — every task MUST include both:
    a. Unit tests: table-driven `_test.go` files (Go) or `*.test.ts` (TypeScript). Min 80% coverage on new code.
    b. E2E tests: for any CLI command, invoke the compiled binary with real input files and assert stdout/exit code.
+   c. Frontend UI: Any changes to Svelte components MUST include accompanying unit tests (`*.test.ts`) using vitest and `@testing-library/svelte`.
    A PR with no tests will be rejected, no exceptions.
 6. Commit message must start with "jules: " prefix.
 7. 100% SPEC-FIRST RULE: If your implementation deviates from the spec in docs/specs/, STOP and flag it.
@@ -135,6 +143,11 @@ TASKS = {
         "phase": "phase-15",
         "prompt": _load_prompt("prompts/phase-15/t02_granular_check_suite.txt"),
     },
+    1001: {
+        "name": "P10-T01 — Automated Schema Robustness Validation (QA Fuzzing)",
+        "phase": "phase-10-ecosystem",
+        "prompt": _load_prompt("prompts/phase-10/t01_security_fuzzing.txt"),
+    },
     # ── Phase 0: Specs (handled by Antigravity, not Jules) ────────────────────
     # (no Jules tasks for Phase 0)
 
@@ -170,6 +183,11 @@ TASKS = {
         "name": "P1-T07 — substrate init command",
         "phase": "phase-1-diff-engine",
         "prompt": _load_prompt("prompts/phase-1-diff-engine/t07_init_command.txt"),
+    },
+    999: {
+        "name": "P1-T09 — Phase 1f (AI/ML) and 1g (Salesforce) E2E Validation",
+        "phase": "phase-1-diff-engine",
+        "prompt": _load_prompt("prompts/phase-1-diff-engine/t09_phase1f_1g_e2e_validation.txt"),
     },
 
     # ── Phase 1b: SQL Migrations ─────────────────────────────────────────────
@@ -891,6 +909,96 @@ TASKS = {
         "phase": "phase-11-ui",
         "prompt": _load_prompt("prompts/phase-11/t18_e2e_validation.txt"),
     },
+    0: {
+        "name": "CC-T02 — E2E Overhaul: Full-Stack PGlite Harness",
+        "phase": "cross-cutting",
+        "prompt": _load_prompt("prompts/e2e/pglite_infrastructure.txt"),
+    },
+    333: {
+        "name": "CC-T03 — Live VCS E2E Integration (Forgejo)",
+        "phase": "cross-cutting",
+        "prompt": _load_prompt("prompts/cross_cutting/t03_live_vcs_forgejo.txt"),
+    },
+    1: {
+        "name": "P3-T12 — Phase 3 Contract Registry E2E Validation (Pipeline Phase 1)",
+        "phase": "phase-3-registry",
+        "prompt": _load_prompt("prompts/phase-3-registry/t12_e2e_validation.txt"),
+    },
+    2: {
+        "name": "P4-T10 — Phase 4 AI Diff Engine E2E Validation (Pipeline Phase 2)",
+        "phase": "phase-4-ai",
+        "prompt": _load_prompt("prompts/phase-4/t10_e2e_validation.txt"),
+    },
+    3: {
+        "name": "P5-T06 — Phase 5 Discovery Scanners E2E Validation (Pipeline Phase 3)",
+        "phase": "phase-5-discovery",
+        "prompt": _load_prompt("prompts/phase-5-discovery/t06_e2e_tests.txt"),
+    },
+    10: {
+        "name": "P1-T08 — Phase 1 Core Diff Engine E2E Validation",
+        "phase": "phase-1-diff-engine",
+        "prompt": _load_prompt("prompts/phase-1-diff-engine/t08_e2e_validation.txt"),
+    },
+    20: {
+        "name": "P2-T05 — Phase 2 GitHub App E2E Validation",
+        "phase": "phase-2-github-app",
+        "prompt": _load_prompt("prompts/phase-2-github-app/t05_e2e_validation.txt"),
+    },
+    60: {
+        "name": "P6-T10 — Phase 6 QA & Shadow API E2E Validation",
+        "phase": "phase-6-qa",
+        "prompt": _load_prompt("prompts/phase-6-qa/t10_e2e_tests.txt"),
+    },
+    70: {
+        "name": "P7-T07 — Phase 7 Enterprise E2E Validation",
+        "phase": "phase-7-enterprise",
+        "prompt": _load_prompt("prompts/phase-7-enterprise/t07_e2e_tests.txt"),
+    },
+    80: {
+        "name": "P8-T10 — Phase 8 Readiness, Authz & Jobs E2E Validation",
+        "phase": "phase-8-readiness",
+        "prompt": _load_prompt("prompts/phase-8-readiness/t10_e2e_tests.txt"),
+    },
+    90: {
+        "name": "P9-T17 — Phase 9 Compliance E2E Validation",
+        "phase": "phase-9-compliance",
+        "prompt": _load_prompt("prompts/phase-9-compliance/t17_e2e_validation.txt"),
+    },
+    100: {
+        "name": "P10-T20 — Phase 10 Ecosystem E2E Validation",
+        "phase": "phase-10-ecosystem",
+        "prompt": _load_prompt("prompts/phase-10/t20_e2e_validation.txt"),
+    },
+    110: {
+        "name": "P11-T18 — Phase 11 Graph UI E2E Validation",
+        "phase": "phase-11-ui",
+        "prompt": _load_prompt("prompts/phase-11/t18_e2e_validation.txt"),
+    },
+    120: {
+        "name": "P12-T12 — Phase 12 SSE & Scaling E2E Validation",
+        "phase": "phase-12-qa",
+        "prompt": _load_prompt("prompts/phase-12/t12_system_e2e.txt"),
+    },
+    130: {
+        "name": "P13-T01 — Phase 13 God Mode E2E Validation",
+        "phase": "phase-13-god-mode",
+        "prompt": _load_prompt("prompts/phase-13/t01_finops_e2e.txt"),
+    },
+    140: {
+        "name": "P14-T07 — Phase 14 Predictive Intelligence E2E Validation",
+        "phase": "phase-14",
+        "prompt": _load_prompt("prompts/phase-14/t07_e2e_validation.txt"),
+    },
+    150: {
+        "name": "P15-T13 — Phase 15 Monetization & Insurance E2E Validation",
+        "phase": "phase-15",
+        "prompt": _load_prompt("prompts/phase-15/t13_e2e_validation.txt"),
+    },
+    990: {
+        "name": "P-MCP-01 — Cross-Cutting MCP Parity E2E Validation",
+        "phase": "cross-cutting",
+        "prompt": _load_prompt("prompts/cross_cutting/p_mcp_01_full_parity.txt"),
+    },
     312: {
         "name": "P3-T12 — Phase 3 Contract Registry E2E Validation",
         "phase": "phase-3-registry",
@@ -900,6 +1008,31 @@ TASKS = {
         "name": "P-MCP-01 — Full MCP Server Parity + SSE Transport",
         "phase": "cross-cutting",
         "prompt": _load_prompt("prompts/cross_cutting/p_mcp_01_full_parity.txt"),
+    },
+    2000: {
+        "name": "E2E-BACKFILL — Backfill Missing Full-Stack E2E Validation Tests",
+        "phase": "cross-cutting",
+        "prompt": _load_prompt("prompts/e2e_backfill_prompt.txt"),
+    },
+    2001: {
+        "name": "CC-T04 — UI Org Context & API Keys Refactor",
+        "phase": "cross-cutting",
+        "prompt": _load_prompt("prompts/cross_cutting/t04_ui_org_context.txt"),
+    },
+    2002: {
+        "name": "CC-T05 — E2E Validation: UI Org Context",
+        "phase": "cross-cutting",
+        "prompt": _load_prompt("prompts/cross_cutting/t05_ui_org_context_e2e.txt"),
+    },
+    2003: {
+        "name": "CC-T06 — API Keys Backend Integration",
+        "phase": "cross-cutting",
+        "prompt": _load_prompt("prompts/cross_cutting/t06_api_keys_backend.txt"),
+    },
+    2004: {
+        "name": "CC-T07 — E2E Validation: API Keys Backend",
+        "phase": "cross-cutting",
+        "prompt": _load_prompt("prompts/cross_cutting/t07_api_keys_e2e.txt"),
     },
 }
 

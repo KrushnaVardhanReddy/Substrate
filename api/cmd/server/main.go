@@ -117,8 +117,10 @@ func main() {
 		log.Fatalf("failed to create river client: %v", err)
 	}
 	pushWorker.RiverClient = riverClient
-	if err := riverClient.Start(context.Background()); err != nil {
-		log.Fatalf("failed to start river client: %v", err)
+	if os.Getenv("SKIP_RIVER") != "true" {
+		if err := riverClient.Start(context.Background()); err != nil {
+			log.Fatalf("failed to start river client: %v", err)
+		}
 	}
 
 	broker := public_handlers.NewSSEBroker()
@@ -169,8 +171,10 @@ func main() {
 	ctxShutdown, cancelShutdown := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancelShutdown()
 
-	if err := riverClient.Stop(ctxShutdown); err != nil {
-		log.Printf("failed to stop river client: %v", err)
+	if os.Getenv("SKIP_RIVER") != "true" {
+		if err := riverClient.Stop(ctxShutdown); err != nil {
+			log.Printf("failed to stop river client: %v", err)
+		}
 	}
 
 	if err := srv.Shutdown(ctxShutdown); err != nil {

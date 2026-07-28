@@ -1,13 +1,14 @@
 package handlers
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
+	"aidanwoods.dev/go-paseto"
 )
 
 type AuthConfig struct {
@@ -111,17 +112,23 @@ func HandleGitHubCallback(cfg AuthConfig) http.HandlerFunc {
 			}
 		}
 
-		// Generate JWT
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-			"orgs": orgs,
-			"exp":  time.Now().Add(24 * time.Hour).Unix(),
-		})
-
-		tokenString, err := token.SignedString([]byte(cfg.JWTSecret))
+		// Generate PASETO
+		hash := sha256.Sum256([]byte(cfg.JWTSecret))
+		key, err := paseto.V4SymmetricKeyFromBytes(hash[:])
 		if err != nil {
-			http.Error(w, "failed to generate token", http.StatusInternalServerError)
+			http.Error(w, "internal server error: invalid key", http.StatusInternalServerError)
 			return
 		}
+
+		token := paseto.NewToken()
+		token.SetExpiration(time.Now().Add(24 * time.Hour))
+		err = token.Set("orgs", orgs)
+		if err != nil {
+			http.Error(w, "failed to set orgs claim", http.StatusInternalServerError)
+			return
+		}
+
+		tokenString := token.V4Encrypt(key, nil)
 
 		// Redirect to Dashboard
 		dashboardURL, err := url.Parse(cfg.DashboardURL)

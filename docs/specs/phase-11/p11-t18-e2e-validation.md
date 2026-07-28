@@ -37,7 +37,7 @@ Phase 11 introduced three backend APIs that power the frontend graph/SSE feature
 2. `GET /api/v1/diff/{id}` using the returned ID → assert HTTP 200 and `report_data` is non-empty JSON.
 
 ## 4. Constraints
-- No mocks for DB or API — use real local Postgres (`postgres://postgres:postgres@localhost:5432/substrate`).
+- No mocks for DB or API — use real local PGlite (`postgres://postgres:postgres@localhost:54320/postgres?sslmode=disable&default_query_exec_mode=exec&statement_cache_capacity=0&pgbouncer=true`).
 - Use the same `waitForP11Services` + `setupP11Database` boilerplate pattern as `phase7_e2e_test.go`.
 - Test file: `scripts/e2e/phase11_e2e_test.go`.
 - All scenarios run inside a single `TestPhase11SystemE2E(t)` parent test with `t.Run` sub-tests.

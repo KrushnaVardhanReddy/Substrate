@@ -1,43 +1,53 @@
-TASK: P14-T07 — Phase 14 E2E Validation (No Mocks)
+TASK: P14 — Phase 14 Predictive Intelligence Full-Stack E2E Validation
 
 ═══════════════════════════════════════════════════════════════
 OBJECTIVE
 ═══════════════════════════════════════════════════════════════
-Validate all Phase 14 features (Contract Score Badge, Archaeology CLI, Contract Negotiation) end-to-end.
+Using the new Full-Stack PGlite Test Harness (CC-T02), implement the complete E2E 
+test suite for Phase 14 (Predictive Intelligence). 
 
-Spec (READ ONLY — implement from it, never edit):
-  docs/specs/phase-14/p14-t07-e2e-validation.md
-
-═══════════════════════════════════════════════════════════════
-CONSTRAINTS & RULES
-═══════════════════════════════════════════════════════════════
-- No mock interceptors. Use real HTTP, real DB, real CLI binaries.
-- Test repos and issues created during test runs must be deleted after.
-- Guard all tests with `if testing.Short() { t.Skip(...) }`.
+You must write BOTH the Go API tests AND the Playwright UI tests.
 
 ═══════════════════════════════════════════════════════════════
-CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+CRITICAL READING — DO THIS BEFORE WRITING A SINGLE LINE OF CODE
 ═══════════════════════════════════════════════════════════════
-Follow patterns in `scripts/e2e/phase8_e2e_test.go`:
-- Same package `main`, file in `scripts/e2e/`.
-- Uses `pgxpool.New(ctx, dbURL)` for real DB — assumes `make postgres` is running.
-- Uses `exec.Command(binPath, ...)` to run the real compiled `engine` binary.
+1. docs/specs/e2e/phase14-predictive.md
+   → Read the exact API assertions and UI actions required.
 
-For the badge test, make a direct HTTP call to `GET /api/badges/:org/:repo` and assert it returns `Content-Type: image/svg+xml`.
-For the archaeology test, run the compiled binary: `exec.Command(binPath, "archaeology", "--since", "30-days")` against a test repo.
-
-═══════════════════════════════════════════════════════════════
-IMPLEMENTATION TIPS
-═══════════════════════════════════════════════════════════════
-- Add `waitForP14Services(t)` and `setupP14Database(t)` following the Phase 8 pattern.
-- Scenario 1: Test badge SVG endpoint returns valid SVG with correct score.
-- Scenario 2: Test archaeology CLI against a seeded repo history in the test DB.
+2. seed_mcp.sql
+   → Ensure the data is seeded properly for this phase.
 
 ═══════════════════════════════════════════════════════════════
 DELIVERABLES
 ═══════════════════════════════════════════════════════════════
-1. FILE: scripts/e2e/phase14_e2e_test.go (CREATE)
-2. Run `go test ./scripts/e2e/... -run TestPhase14`.
+5. FILE: scripts/e2e/phase14_api_test.go (NEW)
+   - API assertions.
 
-Commit: "test: P14-T07 phase 14 E2E validation suite"
+6. FILE: dashboard/tests/e2e/phase14.spec.ts (NEW)
+   - UI assertions.
+
+═══════════════════════════════════════════════════════════════
+🚨 CRITICAL RULES FOR THIS RUN 🚨
+═══════════════════════════════════════════════════════════════
+1. NO INTERNAL PACKAGE MOCKING:
+   - Your Go tests in `scripts/e2e/` are in a separate module. You CANNOT import `github.com/KrushnaVardhanReddy/Substrate/api/internal/...` to directly call handlers.
+   - You MUST make external HTTP requests (`http.NewRequest`) to the live API running at `http://localhost:8090`.
+
+2. DATABASE & PGLITE:
+   - PGlite runs on port `54320`.
+   - The connection string MUST be: `postgres://postgres:postgres@localhost:54320/postgres?sslmode=disable&default_query_exec_mode=exec&statement_cache_capacity=0&pgbouncer=true`
+   - You MUST clean up and seed your own data in your test file by instantiating `pgxpool.New` with the above URL.
+
+3. CYTOSCAPE PLAYWRIGHT TESTS:
+   - Cytoscape is an HTML canvas. You CANNOT use standard DOM locators for graph nodes.
+   - You MUST interact with the graph using `page.evaluate(() => window.cyInstance...)` and wait for it to load using `waitForFunction`.
+
+4. VENDOR PRESERVATION:
+   - Do NOT modify or delete anything inside `scripts/e2e/vendor/pglite/`.
+   - If you need to add Go dependencies to `scripts/e2e`, run `go mod vendor` inside `scripts/e2e/`.
+
+5. RIVER QUEUE CRASHES:
+   - PGlite is incompatible with River Queue. The server runs with `SKIP_RIVER="true"`. Do not attempt to start or test River background jobs natively on PGlite.
+
+Commit message: "test: P14 add Phase 14 full-stack E2E tests"
 Target branch: feature/dev

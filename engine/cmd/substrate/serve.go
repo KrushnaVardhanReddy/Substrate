@@ -162,7 +162,7 @@ func setupMux() *http.ServeMux {
 			return
 		}
 
-		if req.SchemaType != "graphql" && req.SchemaType != "openapi" && req.SchemaType != "sql" && req.SchemaType != "protobuf" && req.SchemaType != "proto" && req.SchemaType != "asyncapi" && req.SchemaType != "avro" && req.SchemaType != "terraform-plan" && req.SchemaType != "ai-model" {
+		if req.SchemaType != "graphql" && req.SchemaType != "openapi" && req.SchemaType != "sql" && req.SchemaType != "protobuf" && req.SchemaType != "proto" && req.SchemaType != "asyncapi" && req.SchemaType != "avro" && req.SchemaType != "terraform-plan" && req.SchemaType != "ai-model" && req.SchemaType != "aiml" && req.SchemaType != "salesforce-object" && req.SchemaType != "salesforce" && req.SchemaType != "soap-wsdl" {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(fmt.Sprintf(`{"error": "unsupported schema_type: %s"}`, req.SchemaType)))
@@ -181,6 +181,8 @@ func setupMux() *http.ServeMux {
 			ext = ".proto"
 		case "avro":
 			ext = ".avsc"
+		case "aiml", "ai-model":
+			ext = ".yaml"
 		}
 
 		tempDir, err := os.MkdirTemp("", "substrate-diff-*")
@@ -260,7 +262,7 @@ func setupMux() *http.ServeMux {
 			if err == nil {
 				rep = applyConfig(rep, configPath, req.ProviderOrg, req.ProviderRepo)
 			}
-		case "ai-model":
+		case "ai-model", "aiml":
 			rep, err = diff.CompareAIML(baseTarget, headTarget)
 			if err == nil {
 				rep = applyConfig(rep, configPath, req.ProviderOrg, req.ProviderRepo)
@@ -281,6 +283,24 @@ func setupMux() *http.ServeMux {
 				cfg, _ = config.LoadConfig(configPath)
 			}
 			rep, err = diff.CompareAvro(baseTarget, headTarget, cfg)
+			if err == nil {
+				rep = applyConfig(rep, configPath, req.ProviderOrg, req.ProviderRepo)
+			}
+		case "salesforce-object", "salesforce", "soap-wsdl":
+			adapter := &diff.EnterpriseAdapter{}
+
+			baseBytes, readErr := os.ReadFile(baseTarget)
+			if readErr != nil {
+				err = readErr
+				break
+			}
+			headBytes, readErr := os.ReadFile(headTarget)
+			if readErr != nil {
+				err = readErr
+				break
+			}
+
+			rep, err = adapter.Diff(baseBytes, headBytes, nil)
 			if err == nil {
 				rep = applyConfig(rep, configPath, req.ProviderOrg, req.ProviderRepo)
 			}

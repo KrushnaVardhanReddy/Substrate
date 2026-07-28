@@ -1,0 +1,28 @@
+TASK: CC-T07 — E2E Validation: API Keys Backend
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Add full E2E testing coverage (both Go API tests and Playwright UI tests) for the new API Keys backend integration (CC-T06).
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/e2e/api_keys_e2e.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Implement the test cases outlined in the spec under `scripts/e2e/api_keys_e2e_test.go` and `dashboard/tests/e2e/api-keys.spec.ts`.
+- Ensure standard Playwright assertions (`expect(page).toHaveURL`, `expect(locator).toBeVisible`) are used.
+- Ensure the default organizational context defaults to `process.env.PUBLIC_ORG_NAME || 'mcp-org'` for the frontend UI.
+- Use `github-app` token logic or existing PASETO tokens in `scripts/e2e/helpers/` for the Go test setup.
+
+═══════════════════════════════════════════════════════════════
+CRITICAL AGENT/CI TESTING ENVIRONMENT NOTES (MUST READ)
+═══════════════════════════════════════════════════════════════
+- The Playwright tests you write will likely TIME OUT AND FAIL when you run them natively in your isolated agent container. This is expected!
+- Your local container environment does NOT spin up the Go API backend or PostgreSQL database.
+- Any UI interactions that fetch data from `/api/v1/...` will timeout locally.
+- DO NOT use `test.skip()` or wrap assertions in silent `try/catch` blocks just because they fail in your local workspace.
+- Allow the assertions to fail locally if the API is unreachable.
+- Once your PR is opened, the GitHub Actions CI pipeline will run `scripts/e2e/run_full_e2e.sh`, which automatically spins up PGlite, the real Go backend, and the SvelteKit frontend together, validating your Playwright assertions against live data.
+- Simply write the code according to the spec, verify it compiles/lints, and commit it!

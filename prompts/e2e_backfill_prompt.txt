@@ -1,0 +1,60 @@
+TASK: E2E — Backfill Missing Full-Stack E2E Validation Tests & Fix Makefile
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+We currently have several phases (Phases 2, 4, 5, 6, 7, 8, 9, 11) that only have isolated API tests (`*_api_test.go`) and lack full-stack E2E integration tests (`*_e2e_test.go`). Additionally, the `Makefile` references `*_e2e_test.go` files for phases 7, 8, and 15 that do not exist.
+
+Your objective is to:
+1. Fix the `Makefile` so `e2e-phase7`, `e2e-phase8`, and `e2e-phase15` point to valid test files.
+2. Implement the missing `*_e2e_test.go` files for the incomplete phases. Focus on testing the end-to-end flow involving the Diff Engine, API, and Database.
+
+═══════════════════════════════════════════════════════════════
+CRITICAL READING — DO THIS BEFORE WRITING A SINGLE LINE OF CODE
+═══════════════════════════════════════════════════════════════
+To understand how our full-stack Go E2E tests are structured, you MUST read the following existing examples first:
+
+1. `scripts/e2e/phase1f_1g_e2e_test.go`
+   → Observe how DB connection is set up and HTTP requests are made against the API.
+2. `scripts/e2e/phase10_13_e2e_test.go`
+   → Observe how complex phase integration is tested.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: `Makefile` (UPDATE)
+   - Ensure the `e2e-phase*` commands map correctly to the actual files you create or exist.
+
+2. FILE: `scripts/e2e/phase7_e2e_test.go` (NEW)
+   - Implement true E2E flow for Phase 7 Enterprise functionality.
+
+3. FILE: `scripts/e2e/phase8_e2e_test.go` (NEW)
+   - Implement true E2E flow for Phase 8 Enterprise Readiness.
+
+(Note: Depending on the scope of the PR, you may want to chunk this work. Start with Phase 7 and 8).
+
+═══════════════════════════════════════════════════════════════
+🚨 CRITICAL RULES FOR THIS RUN 🚨
+═══════════════════════════════════════════════════════════════
+1. NO INTERNAL PACKAGE MOCKING:
+   - Your Go tests in `scripts/e2e/` are in a separate module. You CANNOT import `github.com/KrushnaVardhanReddy/Substrate/api/internal/...` to directly call handlers.
+   - You MUST make external HTTP requests (`http.NewRequest`) to the live API running at `http://localhost:8090`.
+
+2. DATABASE & PGLITE:
+   - PGlite runs on port `54320`.
+   - The connection string MUST be: `postgres://postgres:postgres@localhost:54320/postgres?sslmode=disable&default_query_exec_mode=exec&statement_cache_capacity=0&pgbouncer=true`
+   - You MUST clean up and seed your own data in your test file by instantiating `pgxpool.New` with the above URL.
+
+3. CYTOSCAPE PLAYWRIGHT TESTS:
+   - Cytoscape is an HTML canvas. You CANNOT use standard DOM locators for graph nodes.
+   - You MUST interact with the graph using `page.evaluate(() => window.cyInstance...)` and wait for it to load using `waitForFunction`.
+
+4. VENDOR PRESERVATION:
+   - Do NOT modify or delete anything inside `scripts/e2e/vendor/pglite/`.
+   - If you need to add Go dependencies to `scripts/e2e`, run `go mod vendor` inside `scripts/e2e/`.
+
+5. RIVER QUEUE CRASHES:
+   - PGlite is incompatible with River Queue. The server runs with `SKIP_RIVER="true"`. Do not attempt to start or test River background jobs natively on PGlite.
+
+Commit message: "test: backfill missing E2E integration tests and fix Makefile"
+Target branch: feature/dev

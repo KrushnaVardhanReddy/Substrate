@@ -12,8 +12,9 @@ api/internal/mcp/testdata/test-server
 .env.local
 .dev.vars
 
-# Node
+# Node & Vendor
 node_modules/
+scripts/e2e/vendor/
 
 # Go Build artifacts
 engine/bin/
@@ -45,3 +46,13 @@ demo-repos/slack-api-specs/
 # Wrangler
 .wrangler/
 github-app/.wrangler/
+
+# Scratch & Debug files
+.agents/
+out.txt
+err.txt
+test_*.py
+test_*.sh
+dashboard/*.png
+scripts/e2e/*.logs
+demo-repos/microservices-demo/

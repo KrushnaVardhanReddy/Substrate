@@ -29,6 +29,6 @@ Substrate provides a rich visual Dependency Graph and a Visual Studio for modify
 
 ## Acceptance Criteria
 1. The AI widget is visible on all authenticated dashboard routes and can be toggled open and closed smoothly.
-2. A user can type a question (e.g., "How do I define a consumer in substrate.yaml?") and receive a Markdown-formatted response.
-3. The component handles network loading states and potential API errors gracefully, showing an error toast or inline error message if the Go backend is unreachable.
-4. E2E tests are added to verify the widget opens, accepts text input, and renders the mocked AI response.
+2. A user can type a question and receive a Markdown-formatted response from the real `/api/v1/ai/analyze` endpoint (or its deterministic fallback when no LLM is configured).
+3. The component handles network loading states and potential API errors gracefully.
+4. E2E tests verify the widget opens, accepts text input, and renders the real API response. **No `page.route()` mocking.**

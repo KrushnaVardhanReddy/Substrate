@@ -1,0 +1,34 @@
+TASK: CC-T05 — E2E Validation: UI Org Context
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Add Playwright E2E coverage for the newly refactored UI Organization Context and API Keys scaffolding (CC-T04). This ensures that navigation works smoothly and the organizational context (`mcp-org`) is preserved when moving between features.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/e2e/ui_org_context_e2e.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Implement the test cases outlined in the spec under `dashboard/tests/e2e/org-context.spec.ts`.
+- Ensure standard Playwright assertions (`expect(page).toHaveURL`, `expect(locator).toBeVisible`) are used.
+- Ensure the default organizational context defaults to `process.env.PUBLIC_ORG_NAME || 'mcp-org'` so it aligns with other seeded E2E tests.
+- Reference existing E2E tests (e.g. `dashboard/tests/dashboard.spec.ts`) for examples of how to set up Playwright tests in this repository.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+Playwright tests are located in `dashboard/tests/` and `dashboard/tests/e2e/`.
+Reference `dashboard/tests/dashboard.spec.ts` for how tests connect to the root URL and navigate through the app.
+
+═══════════════════════════════════════════════════════════════
+CRITICAL AGENT/CI TESTING ENVIRONMENT NOTES (MUST READ)
+═══════════════════════════════════════════════════════════════
+- The Playwright tests you write will likely TIME OUT AND FAIL when you run them natively in your isolated agent container. This is expected!
+- Your local container environment does NOT spin up the Go API backend or PostgreSQL database.
+- Any UI interactions that fetch data from `/api/v1/...` will timeout locally.
+- DO NOT use `test.skip()` or wrap assertions in silent `try/catch` blocks just because they fail in your local workspace.
+- Allow the assertions to fail locally if the API is unreachable.
+- Once your PR is opened, the GitHub Actions CI pipeline will run `scripts/e2e/run_full_e2e.sh`, which automatically spins up PGlite, the real Go backend, and the SvelteKit frontend together, validating your Playwright assertions against live data.
+- Simply write the code according to the spec, verify it compiles/lints, and commit it!

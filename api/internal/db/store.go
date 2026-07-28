@@ -181,6 +181,8 @@ type Store interface {
 	UpdatePartner(ctx context.Context, arg sqlcgen.UpdatePartnerParams) (sqlcgen.PartnerIntegration, error)
 	UpdatePartnerStatus(ctx context.Context, arg sqlcgen.UpdatePartnerStatusParams) (sqlcgen.PartnerIntegration, error)
 	DeletePartner(ctx context.Context, id uuid.UUID) error
+	InsertSchemaValidationGap(ctx context.Context, arg sqlcgen.InsertSchemaValidationGapParams) error
+	GetSchemaValidationGaps(ctx context.Context) ([]sqlcgen.SchemaValidationGap, error)
 	Pool() *pgxpool.Pool
 }
 
@@ -228,4 +230,18 @@ type InsuranceClaim struct {
 	AmountCents  int64     `json:"amount_cents"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// API Key Types
+// ─────────────────────────────────────────────────────────────────────────────
+
+type APIKey struct {
+	ID         uuid.UUID `json:"id"`
+	OrgID      uuid.UUID `json:"org_id"`
+	Name       string    `json:"name"`
+	Prefix     string    `json:"prefix"`
+	Hash       string    `json:"-"`
+	CreatedAt  time.Time `json:"created_at"`
+	LastUsedAt *time.Time `json:"last_used_at,omitempty"`
 }

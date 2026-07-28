@@ -12,31 +12,10 @@ test.describe('Zombies Dashboard', () => {
         });
 
         // Mock repos API
-        await page.route('**/api/v1/repos/*', async (route) => {
-            await route.fulfill({
-                status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify([
-                    { id: '1', name: 'core-auth', full_name: 'core/auth' }
-                ])
-            });
-        });
+
 
         // Mock zombies API
-        await page.route('**/api/v1/org/*/zombies', async (route) => {
-            await route.fulfill({
-                status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify([
-                    {
-                        endpoint: 'GET /api/v1/legacy-endpoint',
-                        last_seen: '2023-01-01T00:00:00Z',
-                        traffic_count: 0,
-                        provider: 'core/auth'
-                    }
-                ])
-            });
-        });
+
     });
 
     test('should render zombies page and display zombie APIs', async ({ page }) => {
@@ -48,13 +27,7 @@ test.describe('Zombies Dashboard', () => {
     });
 
     test('should trigger PR creation when prune button is clicked', async ({ page }) => {
-        await page.route('**/api/v1/org/*/zombies/pr', async (route) => {
-            await route.fulfill({
-                status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify({ pr_url: 'https://github.com/testorg/core/pull/1' })
-            });
-        });
+
 
         await page.goto('/org/testorg/zombies');
         await page.waitForTimeout(500);

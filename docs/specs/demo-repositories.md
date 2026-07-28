@@ -4,7 +4,7 @@ This document outlines the recommended open-source repositories to fork and use 
 
 ## 1. The "Enterprise Scale" Demo: Stripe API
 *   **Repository:** [stripe/openapi](https://github.com/stripe/openapi)
-*   **Purpose:** Extreme stress-testing and "shock factor" for the Svelte Flow UI.
+*   **Purpose:** Extreme stress-testing and "shock factor" for the Cytoscape UI.
 *   **Why it works:** Stripe maintains one of the largest and most complex OpenAPI specifications in existence. 
 *   **Demo Script:** 
     1. Import the Stripe repo into Substrate.

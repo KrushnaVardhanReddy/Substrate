@@ -9,7 +9,9 @@ import (
 	"os"
 	"strings"
 
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/config"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"gopkg.in/yaml.v3"
 )
 
 type DependencyPayload struct {
@@ -58,7 +60,18 @@ func ProcessSync(ctx context.Context, store db.Store, req SyncRequest) (int, err
 			providerName = providerParts[1]
 		}
 
-		providerRepoID, err := store.UpsertRepo(ctx, orgID, dep.ProviderGithubRepoID, providerName, dep.ProviderRepo, []byte("{}"))
+		// Try to extract metadata from the schema yaml block
+		var parsed struct {
+			Metadata *config.Metadata `yaml:"metadata"`
+		}
+		var providerMetadata json.RawMessage = []byte("{}")
+		if err := yaml.Unmarshal([]byte(dep.RawContent), &parsed); err == nil && parsed.Metadata != nil {
+			if metaBytes, err := json.Marshal(parsed.Metadata); err == nil {
+				providerMetadata = json.RawMessage(metaBytes)
+			}
+		}
+
+		providerRepoID, err := store.UpsertRepo(ctx, orgID, dep.ProviderGithubRepoID, providerName, dep.ProviderRepo, providerMetadata)
 		if err != nil {
 			return 0, err
 		}

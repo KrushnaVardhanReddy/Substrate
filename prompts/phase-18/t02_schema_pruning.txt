@@ -1,0 +1,49 @@
+TASK: P18-T02 — Context-Aware Schema Pruning
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement a "Pruned Schema API" that accepts natural language intent and returns only the semantically relevant subset of the OpenAPI spec, dramatically reducing LLM token usage.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-18/p18-t02-schema-pruning.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- MUST use the existing AI embedding handler in `api/internal/ai/` — do NOT call external APIs directly.
+- Cache results in `schema_prune_cache` keyed on `SHA256(org+repo+intent)` with a 30-minute TTL.
+- The returned object MUST be a valid, parseable OpenAPI 3.0 JSON object (not a partial fragment).
+- `max_endpoints` query param must be validated: min 1, max 20.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The AI embedding and similarity functions are in `api/internal/ai/embeddings.go`. Use `EmbedText(ctx, text string) ([]float64, error)` and `CosineSimilarity(a, b []float64) float64`.
+- The registered OpenAPI spec for a repo is fetched via `store.GetSchema(ctx, org, repo string) (string, error)` which returns the raw JSON string.
+- OpenAPI JSON parsing uses `github.com/getkin/kin-openapi/openapi3`. The package is already a dependency.
+- Register the new endpoint in `api/internal/server/router.go` under `// Phase 18 schema pruning`.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Create `api/internal/schema/pruner.go` with `PruneSchema(ctx, spec *openapi3.T, intent string, maxN int, ai AIClient) (*openapi3.T, error)`.
+- For each `path+method` pair, concatenate `path + " " + operation.Summary + " " + operation.Description` and embed it.
+- Embed the `intent` string once, then compute cosine similarity against all endpoint embeddings.
+- Sort by similarity descending, take top-N paths, rebuild a new `openapi3.T` struct with only those paths.
+- The cache key: `hex(sha256(org + "/" + repo + "/" + intent))`.
+- For the cache TTL check: `computed_at > NOW() - INTERVAL '30 minutes'` in the SQL query.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: api/internal/db/migrations/YYYYMMDD_add_schema_prune_cache.sql (CREATE)
+2. FILE: api/internal/schema/pruner.go (CREATE)
+   - Include `pruner_test.go` with at least 3 table-driven test cases
+3. FILE: api/internal/handlers/schema_prune.go (CREATE)
+   - Include `schema_prune_test.go`
+4. MODIFY: api/internal/server/router.go — register `POST /api/v1/schema/prune`
+5. Run `go test ./...`.
+
+Commit: "jules: P18-T02 add context-aware schema pruning for LLM token optimization"
+Target branch: feature/p18-t02-schema-pruning

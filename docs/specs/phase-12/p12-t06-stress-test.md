@@ -1,7 +1,7 @@
 # Spec: P12-T06 — 1,000-Node UI Stress Test
 
 ## 1. Overview
-Expand the scale generator to produce a 1,000-node / 3,000-edge deterministic acyclic graph and validate it passes through the Svelte Flow canvas without browser lockup.
+Expand the scale generator to produce a 1,000-node / 3,000-edge deterministic acyclic graph and validate it passes through the Cytoscape canvas without browser lockup.
 
 ## 2. Owner Split (No Conflict)
 - **Jules** → `scripts/e2e/scale_generator.go` (Go generator + unit test)
