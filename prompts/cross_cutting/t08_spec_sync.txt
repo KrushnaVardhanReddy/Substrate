@@ -1,0 +1,40 @@
+TASK: CC-T08 — Spec Sync Governance & IDE Reminders
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement governance rules that force developers (and AI agents) to update `openapi.yaml` when modifying `api/internal/handlers/`.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/cross_cutting/cc-t08-spec-sync-governance.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- The `.github/PULL_REQUEST_TEMPLATE.md` must be valid Markdown.
+- The `REQUIRE_SPEC_SYNC` rule must be added to all scaffolded/default `substrate.yaml` generators in the codebase.
+- The `overrides` block in the generated template MUST be commented out so it does not bypass the rule by default.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The MCP config generation tool is located at `api/internal/mcp/tools.go` (look for `generate_substrate_config`).
+- The CLI scaffold logic is located at `api/cmd/substrate/init.go`.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- For `.github/PULL_REQUEST_TEMPLATE.md`, create a simple checkbox list: `- [ ] I have updated openapi.yaml` and `- [ ] No schema changes required`.
+- In `api/internal/mcp/tools.go`, find the hardcoded yaml template and inject the `custom_rules` block with the `REQUIRE_SPEC_SYNC` rule.
+- Do the same for `api/cmd/substrate/init.go`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: .github/PULL_REQUEST_TEMPLATE.md (CREATE)
+2. MODIFY: api/internal/mcp/tools.go — inject the rule into `generate_substrate_config`
+3. MODIFY: api/cmd/substrate/init.go — inject the rule into the `init` command
+4. Run `go test ./...`.
+
+Commit: "jules: CC-T08 implement spec sync governance and PR template"
+Target branch: feature/cc-t08-spec-sync

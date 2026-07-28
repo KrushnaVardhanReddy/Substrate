@@ -32,6 +32,7 @@
 | **CC-T05** | 🟢 P3 | **E2E Validation: UI Org Context** | Jules | ✅ Complete | `docs/specs/e2e/ui_org_context_e2e.md` |
 | **CC-T06** | 🟢 P2 | **API Keys Backend Integration** | Jules | ✅ PR Merged | `docs/specs/ui/api_keys_backend.md` |
 | **CC-T07** | 🟢 P3 | **E2E Validation: API Keys Backend** | Jules | ⚪ Redundant (in T06) | `docs/specs/e2e/api_keys_e2e.md` |
+| **CC-T08** | 🚀 P1 | **Spec Sync Governance & IDE Reminders** | Jules | ⏳ Next Up | `docs/specs/cross_cutting/cc-t08-spec-sync-governance.md` |
 
 ---
 
