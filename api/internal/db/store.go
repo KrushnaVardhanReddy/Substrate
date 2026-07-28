@@ -229,3 +229,17 @@ type InsuranceClaim struct {
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// API Key Types
+// ─────────────────────────────────────────────────────────────────────────────
+
+type APIKey struct {
+	ID         uuid.UUID `json:"id"`
+	OrgID      uuid.UUID `json:"org_id"`
+	Name       string    `json:"name"`
+	Prefix     string    `json:"prefix"`
+	Hash       string    `json:"-"`
+	CreatedAt  time.Time `json:"created_at"`
+	LastUsedAt *time.Time `json:"last_used_at,omitempty"`
+}

@@ -85,6 +85,12 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 	// Protected routes (Service Token OR JWT)
 	authMW := AuthMiddleware(registryApiToken, jwtSecret)
 	authzMW := AuthzMiddleware(registryApiToken, jwtSecret)
+
+	// API Keys
+	apiKeyHandler := &handlers.APIKeyHandler{Store: store}
+	r.Method("POST", "/api/v1/org/{org}/apikeys", authzMW(http.HandlerFunc(apiKeyHandler.CreateAPIKey)))
+	r.Method("GET", "/api/v1/org/{org}/apikeys", authzMW(http.HandlerFunc(apiKeyHandler.ListAPIKeys)))
+	r.Method("DELETE", "/api/v1/org/{org}/apikeys/{id}", authzMW(http.HandlerFunc(apiKeyHandler.DeleteAPIKey)))
 	jwtValidMW := JWTValidMiddleware(jwtSecret)
 
 	partnersHandler := handler.NewPartnersHandler(store)
