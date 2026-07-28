@@ -69,6 +69,13 @@ func TestMCPServerHandlers(t *testing.T) {
 	if len(r.Result.Content) == 0 || !strings.Contains(r.Result.Content[0].Text, "Postmortem") {
 		t.Errorf("Expected postmortem response content, got: %s", string(respBytes))
 	}
+
+	// Test generate_substrate_config
+	configReq := `{"jsonrpc":"2.0", "id": 6, "method": "tools/call", "params": {"name": "generate_substrate_config", "arguments": {}}}`
+	respBytes = server.HandleMessage([]byte(configReq))
+	if !strings.Contains(string(respBytes), "REQUIRE_SPEC_SYNC") {
+		t.Errorf("Expected generate_substrate_config to include REQUIRE_SPEC_SYNC, got: %s", string(respBytes))
+	}
 }
 
 // This satisfies the CLI command execution E2E test requirement using the actual entrypoint

@@ -1,0 +1,2 @@
+- [ ] I have updated openapi.yaml
+- [ ] No schema changes required
