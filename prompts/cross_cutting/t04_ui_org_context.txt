@@ -1,0 +1,25 @@
+TASK: CC-T04 — UI Org Context & API Keys Refactor
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Fix navigation context loss by moving global routes (Marketplace/AI Playground) into the `/org/[org]/...` namespace and build the scaffolding for Organization-scoped API keys to replace the dead sidebar item.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/ui/org_context_and_apikeys.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- The `marketplace` and `playground` routes must be moved under `dashboard/src/routes/(app)/org/[org]/`.
+- The `Sidebar.svelte` component must be updated so the links to Marketplace and Playground properly pass the `{org}` variable.
+- The `API Keys` sidebar item must be transformed into a functional anchor tag pointing to `/org/{org}/apikeys`.
+- A basic placeholder/scaffolding page must be created at `/org/[org]/apikeys/+page.svelte` (no backend integration is needed for this specific task, just UI layout).
+- Ensure existing Playwright UI tests are not broken by these changes. If they reference the old global paths (e.g. `/marketplace`), update them to use `/org/mcp-org/marketplace`.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+Frontend application is located in `dashboard/`.
+Sidebar navigation logic is inside `dashboard/src/lib/components/Sidebar.svelte`.
+Playwright tests are in `dashboard/tests/`.

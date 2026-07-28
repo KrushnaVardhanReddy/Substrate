@@ -1008,6 +1008,11 @@ TASKS = {
         "phase": "cross-cutting",
         "prompt": _load_prompt("prompts/e2e_backfill_prompt.txt"),
     },
+    2001: {
+        "name": "CC-T04 — UI Org Context & API Keys Refactor",
+        "phase": "cross-cutting",
+        "prompt": _load_prompt("prompts/cross_cutting/t04_ui_org_context.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
