@@ -464,3 +464,11 @@ func (m *MockStore) DeletePartner(ctx context.Context, id uuid.UUID) error {
 	}
 	return nil
 }
+
+func (m *MockStore) InsertSchemaValidationGap(ctx context.Context, arg sqlcgen.InsertSchemaValidationGapParams) error {
+	return nil
+}
+
+func (m *MockStore) GetSchemaValidationGaps(ctx context.Context) ([]sqlcgen.SchemaValidationGap, error) {
+	return []sqlcgen.SchemaValidationGap{}, nil
+}

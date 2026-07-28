@@ -181,6 +181,8 @@ type Store interface {
 	UpdatePartner(ctx context.Context, arg sqlcgen.UpdatePartnerParams) (sqlcgen.PartnerIntegration, error)
 	UpdatePartnerStatus(ctx context.Context, arg sqlcgen.UpdatePartnerStatusParams) (sqlcgen.PartnerIntegration, error)
 	DeletePartner(ctx context.Context, id uuid.UUID) error
+	InsertSchemaValidationGap(ctx context.Context, arg sqlcgen.InsertSchemaValidationGapParams) error
+	GetSchemaValidationGaps(ctx context.Context) ([]sqlcgen.SchemaValidationGap, error)
 	Pool() *pgxpool.Pool
 }
 

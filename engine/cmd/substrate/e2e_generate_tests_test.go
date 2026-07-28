@@ -71,6 +71,10 @@ paths:
 		`t.Run("POST /users missing required name"`,
 		`t.Run("POST /users name exceeds maxLength"`,
 		`t.Run("POST /users age below minimum"`,
+		`t.Run("POST /users SQL injection"`,
+		`t.Run("POST /users Path traversal"`,
+		`t.Run("POST /users Null byte injection"`,
+		`t.Run("POST /users Extremely long string"`,
 	}
 
 	for _, exp := range expectedStrings {

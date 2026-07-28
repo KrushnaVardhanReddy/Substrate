@@ -240,3 +240,11 @@ func (s *PGStore) DeletePartner(ctx context.Context, id uuid.UUID) error {
 	_, err := q.DeletePartner(ctx, pgUUID)
 	return err
 }
+
+func (s *PGStore) InsertSchemaValidationGap(ctx context.Context, arg sqlcgen.InsertSchemaValidationGapParams) error {
+	return sqlcgen.New(s.pool).InsertSchemaValidationGap(ctx, arg)
+}
+
+func (s *PGStore) GetSchemaValidationGaps(ctx context.Context) ([]sqlcgen.SchemaValidationGap, error) {
+	return sqlcgen.New(s.pool).GetSchemaValidationGaps(ctx)
+}

@@ -131,6 +131,59 @@ func GenerateTests(specPath string, baseURL string) (string, error) {
 							})
 						}
 					}
+
+					// Phase 10 - Task 01: Automated Security Fuzzing (OWASP)
+					// Generate standard OWASP malicious payloads for robustness testing
+
+					// SQLi payload
+					sqliPayload := generateBasePayload(schema)
+					for propName := range schema.Properties {
+						sqliPayload[propName] = `"' OR 1=1 --"` // Quote it for the template
+					}
+					tests = append(tests, TestCase{
+						Name:    fmt.Sprintf("%s %s SQL injection", method, path),
+						Method:  method,
+						Path:    path,
+						Payload: sqliPayload,
+					})
+
+					// Path Traversal payload
+					ptPayload := generateBasePayload(schema)
+					for propName := range schema.Properties {
+						ptPayload[propName] = `"../../../etc/passwd"`
+					}
+					tests = append(tests, TestCase{
+						Name:    fmt.Sprintf("%s %s Path traversal", method, path),
+						Method:  method,
+						Path:    path,
+						Payload: ptPayload,
+					})
+
+					// Null byte payload
+					nullPayload := generateBasePayload(schema)
+					for propName := range schema.Properties {
+						nullPayload[propName] = `"test\x00"`
+					}
+					tests = append(tests, TestCase{
+						Name:    fmt.Sprintf("%s %s Null byte injection", method, path),
+						Method:  method,
+						Path:    path,
+						Payload: nullPayload,
+					})
+
+					// Extremely long string
+					longStrPayload := generateBasePayload(schema)
+					for propName, propRef := range schema.Properties {
+						if propRef.Value != nil && propRef.Value.Type != nil && len(propRef.Value.Type.Slice()) > 0 && propRef.Value.Type.Slice()[0] == "string" {
+							longStrPayload[propName] = fmt.Sprintf("%q", strings.Repeat("A", 10000))
+						}
+					}
+					tests = append(tests, TestCase{
+						Name:    fmt.Sprintf("%s %s Extremely long string", method, path),
+						Method:  method,
+						Path:    path,
+						Payload: longStrPayload,
+					})
 				}
 			}
 		}
