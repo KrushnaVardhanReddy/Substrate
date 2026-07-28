@@ -215,6 +215,8 @@ type PartnerStore interface {
 // ─────────────────────────────────────────────────────────────────────────────
 
 type PoolProvider interface {
+	InsertSchemaValidationGap(ctx context.Context, arg sqlcgen.InsertSchemaValidationGapParams) error
+	GetSchemaValidationGaps(ctx context.Context) ([]sqlcgen.SchemaValidationGap, error)
 	Pool() *pgxpool.Pool
 }
 

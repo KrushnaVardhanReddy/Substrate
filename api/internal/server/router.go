@@ -180,5 +180,7 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 	r.Method("GET", "/api/v1/qa/postman/{org}/{repo}", http.HandlerFunc(handlers.QAPostmanHandler(store)))
 	r.Method("POST", "/api/v1/qa/shadow/replay", http.HandlerFunc(handlers.QAShadowReplayHandler(store)))
 	r.Method("GET", "/api/v1/qa/coverage/{org}/{repo}", http.HandlerFunc(handlers.QACoverageHandler(store)))
+		fuzzerHandler := &handlers.FuzzerHandler{Store: store}
+	r.Method("GET", "/api/v1/fuzzer/gaps", http.HandlerFunc(fuzzerHandler.GetSchemaValidationGaps))
 	return otelhttp.NewHandler(r, "substrate-api")
 }

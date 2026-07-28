@@ -345,3 +345,13 @@ type RiverQueue struct {
 	PausedAt  pgtype.Timestamptz
 	UpdatedAt time.Time
 }
+
+type SchemaValidationGap struct {
+	ID        pgtype.UUID
+	Method    string
+	Path      string
+	Payload   []byte
+	Issue     string
+	Severity  string
+	CreatedAt pgtype.Timestamptz
+}

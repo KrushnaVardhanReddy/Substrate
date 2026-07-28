@@ -241,6 +241,7 @@ func (s *PGStore) DeletePartner(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+<<<<<<< HEAD
 // ─────────────────────────────────────────────────────────────────────────────
 // API Key Methods
 // ─────────────────────────────────────────────────────────────────────────────
@@ -305,4 +306,12 @@ func (s *PGStore) DeleteAPIKey(ctx context.Context, id, orgID uuid.UUID) error {
 		ID:    pgtype.UUID{Bytes: id, Valid: true},
 		OrgID: pgtype.UUID{Bytes: orgID, Valid: true},
 	})
+}
+
+func (s *PGStore) InsertSchemaValidationGap(ctx context.Context, arg sqlcgen.InsertSchemaValidationGapParams) error {
+	return sqlcgen.New(s.pool).InsertSchemaValidationGap(ctx, arg)
+}
+
+func (s *PGStore) GetSchemaValidationGaps(ctx context.Context) ([]sqlcgen.SchemaValidationGap, error) {
+	return sqlcgen.New(s.pool).GetSchemaValidationGaps(ctx)
 }

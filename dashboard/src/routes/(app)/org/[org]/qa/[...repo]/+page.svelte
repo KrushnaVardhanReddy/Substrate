@@ -3,10 +3,18 @@
 
   let replaying = $state(false);
   let coverageResults: any = $state(null);
+  let fuzzingGaps: any = $state([]);
   let selectedTimestamp = $state('2026-07-01'); // Default
 
   const org = $page.params.org;
   const repo = $page.params.repo;
+
+  $effect(() => {
+    fetch(`/api/v1/fuzzer/gaps`)
+      .then(r => r.json())
+      .then(data => fuzzingGaps = data)
+      .catch(() => {});
+  });
 
   async function exportPostman() {
     const res = await fetch(`/api/v1/qa/postman/${org}/${repo}`);
@@ -58,7 +66,7 @@
     Export Postman Collection
   </button>
 
-  <div class="border rounded p-4">
+  <div class="border rounded p-4 mb-6">
     <h2 class="text-xl font-bold mb-2">Time Machine (Shadow API Replay)</h2>
     <div class="mb-4">
       <label class="block mb-1">Select Timestamp:</label>
@@ -71,6 +79,23 @@
     >
       {replaying ? 'Replaying...' : 'Replay Traffic'}
     </button>
+  </div>
+
+  <div class="border rounded p-4 border-red-500">
+    <h2 class="text-xl font-bold mb-2 text-red-600">Schema Validation Gaps</h2>
+    {#if fuzzingGaps && fuzzingGaps.length > 0}
+      <ul>
+        {#each fuzzingGaps as gap}
+          <li class="mb-2 p-2 bg-red-50 rounded">
+            <strong>{gap.Severity}</strong> - {gap.Method} {gap.Path}<br />
+            {gap.Issue}<br />
+            <pre class="text-xs bg-gray-100 p-1 mt-1">{JSON.stringify(gap.Payload, null, 2)}</pre>
+          </li>
+        {/each}
+      </ul>
+    {:else}
+      <p>No gaps found.</p>
+    {/if}
   </div>
 
   {#if coverageResults}
