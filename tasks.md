@@ -120,6 +120,7 @@
 | **P16-T02** | 🟡 P2 | **Business Metadata Block** — Expand `substrate.yaml` to accept `metadata` (PM, Slack channel, PagerDuty link, SLA Tier) and display it prominently at the top of the API's documentation page. | Unassigned | 💡 Planned | `(Pending)` |
 | **P16-T03** | 🔴 P1 | **Interactive API Sandbox ("Try It Out")** — Build an API proxy into the Go backend that allows developers to generate ephemeral test tokens and issue live requests to the API directly from the Substrate documentation UI. | Unassigned | 💡 Planned | `(Pending)` |
 | **P16-T04** | 🟢 P3 | **Auto-Generated SDK Code Snippets** — Dynamically generate copy-pasteable request snippets (Curl, Python, Node, Go) for every endpoint in the documentation based on the OpenAPI schema. | Unassigned | 💡 Planned | `(Pending)` |
+| **P16-T05** | 🔵 P4 | **Configurable Graph Node Branding (YAML + MCP)** — Allow teams to define `metadata.node_color` in `substrate.yaml`. Plumb this custom hex color down to the Svelte Flow Dependency Graph UI *and* expose it via the MCP Server resources so AI agents know the visual branding of the nodes they are analyzing. | Unassigned | 💡 Planned | `(Pending)` |
 
 ---
 
