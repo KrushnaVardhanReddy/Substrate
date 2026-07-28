@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('WASM Engine E2E (Suite 8)', () => {
 
     test('should navigate to playground', async ({ page }) => {
-        await page.goto('/playground');
+        await page.goto('/org/mcp-org/playground');
         await expect(page.locator('h1.page-title, h1')).toContainText(/Playground|AI|Studio/i);
     });
 
@@ -16,7 +16,7 @@ test.describe('WASM Engine E2E (Suite 8)', () => {
 		});
 
 
-        await page.goto('/playground');
+        await page.goto('/org/mcp-org/playground');
 
         const editor = page.locator('textarea.code-editor, [contenteditable="true"]').first();
         if (await editor.count() > 0) {
@@ -29,7 +29,7 @@ test.describe('WASM Engine E2E (Suite 8)', () => {
     });
 
     test('should handle large payload (60k lines) stability', async ({ page }) => {
-        await page.goto('/playground');
+        await page.goto('/org/mcp-org/playground');
         const largeSchema = 'openapi: 3.0.0\ninfo:\n  title: Test API\n' + '  version: 1.0.0\n'.repeat(60000);
 
         const editor = page.locator('textarea.code-editor, [contenteditable="true"]').first();
@@ -48,7 +48,7 @@ test.describe('WASM Engine E2E (Suite 8)', () => {
             if (msg.type() === 'error') consoleErrors.push(msg.text());
         });
 
-        await page.goto('/playground');
+        await page.goto('/org/mcp-org/playground');
         const editor = page.locator('textarea.code-editor, [contenteditable="true"]').first();
         if (await editor.count() > 0) {
             await editor.fill('{{ INVALID_YAML_\x00 }}');

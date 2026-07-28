@@ -22,7 +22,7 @@ test.describe('Telemetry ROI E2E (Suite 14)', () => {
 
     test('should track telemetry events via POST /api/v1/telemetry/track', async ({ page }) => {
         // Trigger an action that should emit telemetry (e.g. playground analyze)
-        await page.goto('/playground');
+        await page.goto('/org/mcp-org/playground');
 
         const analyzeBtn = page.getByRole('button', { name: /Analyze with Substrate AI/i });
         await expect(analyzeBtn).toBeVisible({ timeout: 5000 });
