@@ -3,7 +3,7 @@ TASK: P17-T06 — Deployment & Incident Graph Overlay
 ═══════════════════════════════════════════════════════════════
 OBJECTIVE
 ═══════════════════════════════════════════════════════════════
-Ingest deployment and incident events via API and overlay them visually onto the Svelte Flow Dependency Graph for root-cause analysis.
+Ingest deployment and incident events via API and overlay them visually onto the Cytoscape Dependency Graph for root-cause analysis.
 
 Spec (READ ONLY — implement from it, never edit):
   docs/specs/phase-17/p17-t06-deployment-overlay.md
@@ -20,7 +20,7 @@ CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
 ═══════════════════════════════════════════════════════════════
 - API handlers follow the pattern in `api/internal/handlers/org.go`. Add `api/internal/handlers/events.go`.
 - The graph UI is at `dashboard/src/routes/(app)/org/[org]/graph/+page.svelte`.
-- Svelte Flow node customisation is done in `dashboard/src/lib/components/graph/CustomNode.svelte`.
+- The graph uses Cytoscape.js, not Svelte Flow.
 
 ═══════════════════════════════════════════════════════════════
 IMPLEMENTATION TIPS
@@ -28,7 +28,7 @@ IMPLEMENTATION TIPS
 - Add a new DB migration for the `ecosystem_events` table.
 - Create a `TimelinePanel.svelte` component that floats over the bottom of the graph. It should fetch `GET /api/v1/events/{org}` on mount.
 - When an event is hovered/clicked in the timeline, update a Svelte store or context value (e.g., `selectedEventRepo`).
-- In `CustomNode.svelte`, reactively apply a CSS class (e.g., `ring-4 ring-blue-500` for deployment, `ring-red-500` for incident) if the node's repo matches `selectedEventRepo`.
+- In the Cytoscape initialization in `+page.svelte`, add reactive logic to highlight the node using `cy.elements(\`node[id="\${repo}"]\`).style({...})` when the selected event changes.
 
 ═══════════════════════════════════════════════════════════════
 DELIVERABLES
@@ -38,9 +38,8 @@ DELIVERABLES
    - Include `events_test.go`
 3. FILE: dashboard/src/lib/components/graph/TimelinePanel.svelte (CREATE)
    - Include `TimelinePanel.test.ts`
-4. MODIFY: dashboard/src/routes/(app)/org/[org]/graph/+page.svelte — embed TimelinePanel
-5. MODIFY: dashboard/src/lib/components/graph/CustomNode.svelte — add reactive highlight styling
-6. Run `go test ./...` and `npm run test`.
+4. MODIFY: dashboard/src/routes/(app)/org/[org]/graph/+page.svelte — embed TimelinePanel and add reactive Cytoscape styling
+5. Run `go test ./...` and `npm run test`.
 
 Commit: "jules: P17-T06 add deployment and incident overlay for graph"
 Target branch: feature/p17-t06-deployment-overlay
