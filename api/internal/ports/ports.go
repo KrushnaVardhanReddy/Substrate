@@ -13,6 +13,22 @@ import (
 )
 
 // ─────────────────────────────────────────────────────────────────────────────
+// MCP Profiles & HITL port
+// ─────────────────────────────────────────────────────────────────────────────
+
+// MCPProfileStore is the port for MCP Agent Profiles and HITL Queue DB operations.
+type MCPProfileStore interface {
+	CreateAgentProfile(ctx context.Context, profile db.AgentProfile) (db.AgentProfile, error)
+	GetAgentProfile(ctx context.Context, id int) (db.AgentProfile, error)
+	ListAgentProfiles(ctx context.Context, org string) ([]db.AgentProfile, error)
+	DeleteAgentProfile(ctx context.Context, id int) error
+	CreateHITLQueueItem(ctx context.Context, item db.HITLQueueItem) (db.HITLQueueItem, error)
+	ListHITLQueue(ctx context.Context, org string) ([]db.HITLQueueItem, error)
+	GetHITLQueueItem(ctx context.Context, id int) (db.HITLQueueItem, error)
+	ResolveHITLQueueItem(ctx context.Context, id int, status string) error
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Org port
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -305,6 +321,7 @@ type Store interface {
 	DependencyStore
 	DiffStore
 	ChangeStore
+	MCPProfileStore
 	PreviewStore
 	TelemetryStore
 	WebhookStore

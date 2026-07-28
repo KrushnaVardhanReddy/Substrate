@@ -515,3 +515,35 @@ func (m *MockStore) GetSchemaValidationGaps(ctx context.Context) ([]sqlcgen.Sche
 func (m *MockStore) SaveGatewayConfig(ctx context.Context, org, repo, gatewayType, crdYaml, prUrl string) error {
 	return nil
 }
+
+func (m *MockStore) CreateAgentProfile(ctx context.Context, profile AgentProfile) (AgentProfile, error) {
+	return profile, nil
+}
+
+func (m *MockStore) GetAgentProfile(ctx context.Context, id int) (AgentProfile, error) {
+	return AgentProfile{}, nil
+}
+
+func (m *MockStore) ListAgentProfiles(ctx context.Context, org string) ([]AgentProfile, error) {
+	return []AgentProfile{}, nil
+}
+
+func (m *MockStore) DeleteAgentProfile(ctx context.Context, id int) error {
+	return nil
+}
+
+func (m *MockStore) CreateHITLQueueItem(ctx context.Context, item HITLQueueItem) (HITLQueueItem, error) {
+	return item, nil
+}
+
+func (m *MockStore) ListHITLQueue(ctx context.Context, org string) ([]HITLQueueItem, error) {
+	return []HITLQueueItem{}, nil
+}
+
+func (m *MockStore) GetHITLQueueItem(ctx context.Context, id int) (HITLQueueItem, error) {
+	return HITLQueueItem{}, nil
+}
+
+func (m *MockStore) ResolveHITLQueueItem(ctx context.Context, id int, status string) error {
+	return nil
+}

@@ -93,7 +93,7 @@ func main() {
 
 	store := db.NewPGStore(pool)
 
-	mcpServer := mcp.NewServer()
+	mcpServer := mcp.NewServer(store)
 	mcp.RegisterTools(mcpServer, store)
 	mcp.RegisterResources(mcpServer, store)
 	mcp.RegisterPrompts(mcpServer)

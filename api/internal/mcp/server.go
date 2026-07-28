@@ -2,10 +2,13 @@ package mcp
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
+
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 )
 
 type JSONRPCRequest struct {
@@ -28,10 +31,11 @@ type JSONRPCError struct {
 }
 
 type Tool struct {
-	Name        string
-	Description string
-	InputSchema map[string]any
-	Handler     func(params json.RawMessage) (any, error)
+	Name          string
+	Description   string
+	InputSchema   map[string]any
+	Handler       func(params json.RawMessage) (any, error)
+	IsDestructive bool
 }
 
 type Resource struct {
@@ -52,13 +56,15 @@ type Server struct {
 	tools     map[string]Tool
 	resources map[string]Resource
 	prompts   map[string]Prompt
+	store     db.Store
 }
 
-func NewServer() *Server {
+func NewServer(store db.Store) *Server {
 	return &Server{
 		tools:     make(map[string]Tool),
 		resources: make(map[string]Resource),
 		prompts:   make(map[string]Prompt),
+		store:     store,
 	}
 }
 
@@ -74,6 +80,11 @@ func (s *Server) RegisterPrompt(prompt Prompt) {
 	s.prompts[prompt.Name] = prompt
 }
 
+type contextKey string
+
+const ProfileIDKey contextKey = "profileID"
+const OrgKey contextKey = "org"
+
 func (s *Server) ServeStdio() {
 	reader := bufio.NewReader(os.Stdin)
 	for {
@@ -86,7 +97,7 @@ func (s *Server) ServeStdio() {
 			continue
 		}
 
-		responseBytes := s.HandleMessage(line)
+		responseBytes := s.HandleMessage(context.Background(), line)
 		if responseBytes != nil {
 			os.Stdout.Write(responseBytes)
 			os.Stdout.Write([]byte("\n"))
@@ -94,7 +105,7 @@ func (s *Server) ServeStdio() {
 	}
 }
 
-func (s *Server) HandleMessage(line []byte) []byte {
+func (s *Server) HandleMessage(ctx context.Context, line []byte) []byte {
 	var req JSONRPCRequest
 	if err := json.Unmarshal(line, &req); err != nil {
 		return s.errorResponse(nil, -32700, "Parse error")
@@ -121,8 +132,22 @@ func (s *Server) HandleMessage(line []byte) []byte {
 			},
 		}
 	case "tools/list":
+		var allowed map[string]bool
+		if profileID, ok := ctx.Value(ProfileIDKey).(int); ok && s.store != nil {
+			profile, err := s.store.GetAgentProfile(context.Background(), profileID)
+			if err == nil {
+				allowed = make(map[string]bool)
+				for _, t := range profile.AllowedTools {
+					allowed[t] = true
+				}
+			}
+		}
+
 		toolsList := []map[string]any{}
 		for _, t := range s.tools {
+			if allowed != nil && !allowed[t.Name] {
+				continue
+			}
 			toolsList = append(toolsList, map[string]any{
 				"name":        t.Name,
 				"description": t.Description,
@@ -144,6 +169,50 @@ func (s *Server) HandleMessage(line []byte) []byte {
 		tool, exists := s.tools[params.Name]
 		if !exists {
 			return s.errorResponse(req.ID, -32601, "Method not found: "+params.Name)
+		}
+
+		if profileID, ok := ctx.Value(ProfileIDKey).(int); ok && s.store != nil && tool.IsDestructive {
+			profile, err := s.store.GetAgentProfile(context.Background(), profileID)
+			if err == nil && profile.HITLEnabled {
+				org, _ := ctx.Value(OrgKey).(string)
+				if org == "" {
+					org = profile.Org
+				}
+
+				item, err := s.store.CreateHITLQueueItem(context.Background(), db.HITLQueueItem{
+					Org:       org,
+					ProfileID: profile.ID,
+					ToolName:  params.Name,
+					Arguments: params.Arguments,
+					Status:    "pending",
+				})
+
+				if err != nil {
+					return s.errorResponse(req.ID, -32603, "Internal error queuing HITL task")
+				}
+
+				pendingRes := fmt.Sprintf(`{"status":"pending_approval","queue_id":%d}`, item.ID)
+				result = map[string]any{
+					"content": []map[string]any{
+						{
+							"type": "text",
+							"text": pendingRes,
+						},
+					},
+				}
+
+				resultBytes, marshalErr := json.Marshal(result)
+				if marshalErr != nil {
+					return s.errorResponse(req.ID, -32603, "Internal error")
+				}
+				resp := JSONRPCResponse{
+					JSONRPC: "2.0",
+					ID:      req.ID,
+					Result:  resultBytes,
+				}
+				respBytes, _ := json.Marshal(resp)
+				return respBytes
+			}
 		}
 
 		callRes, callErr := tool.Handler(params.Arguments)

@@ -124,6 +124,14 @@ type AgentToolDependency struct {
 }
 
 type Store interface {
+	CreateAgentProfile(ctx context.Context, profile AgentProfile) (AgentProfile, error)
+	GetAgentProfile(ctx context.Context, id int) (AgentProfile, error)
+	ListAgentProfiles(ctx context.Context, org string) ([]AgentProfile, error)
+	DeleteAgentProfile(ctx context.Context, id int) error
+	CreateHITLQueueItem(ctx context.Context, item HITLQueueItem) (HITLQueueItem, error)
+	ListHITLQueue(ctx context.Context, org string) ([]HITLQueueItem, error)
+	GetHITLQueueItem(ctx context.Context, id int) (HITLQueueItem, error)
+	ResolveHITLQueueItem(ctx context.Context, id int, status string) error
 	GetOrgIDByName(ctx context.Context, orgName string) (uuid.UUID, error)
 	UpsertGovernanceRule(ctx context.Context, orgID uuid.UUID, ruleText string) (uuid.UUID, error)
 	GetGovernanceRulesByOrg(ctx context.Context, orgID uuid.UUID) ([]GovernanceRule, error)
