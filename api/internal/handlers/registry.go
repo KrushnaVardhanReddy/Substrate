@@ -72,7 +72,7 @@ func CanDeployHandler(store ports.CanDeployStore) http.HandlerFunc {
 
 		edges, err := store.GetDependencyGraph(ctx, orgName)
 		if err != nil {
-			sendJSONError(w, "failed to get dependency graph: " + err.Error(), http.StatusInternalServerError)
+			sendJSONError(w, "failed to get dependency graph: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 

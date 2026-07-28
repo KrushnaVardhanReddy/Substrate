@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/db/sqlcgen"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/db/sqlcgen"
 )
 
 type Contract struct {
@@ -183,7 +183,6 @@ type Store interface {
 	DeletePartner(ctx context.Context, id uuid.UUID) error
 	InsertSchemaValidationGap(ctx context.Context, arg sqlcgen.InsertSchemaValidationGapParams) error
 	GetSchemaValidationGaps(ctx context.Context) ([]sqlcgen.SchemaValidationGap, error)
-	SaveGatewayConfig(ctx context.Context, org, repo, gatewayType, crdYaml, prUrl string) error
 	Pool() *pgxpool.Pool
 }
 
@@ -238,11 +237,11 @@ type InsuranceClaim struct {
 // ─────────────────────────────────────────────────────────────────────────────
 
 type APIKey struct {
-	ID         uuid.UUID  `json:"id"`
-	OrgID      uuid.UUID  `json:"org_id"`
-	Name       string     `json:"name"`
-	Prefix     string     `json:"prefix"`
-	Hash       string     `json:"-"`
-	CreatedAt  time.Time  `json:"created_at"`
+	ID         uuid.UUID `json:"id"`
+	OrgID      uuid.UUID `json:"org_id"`
+	Name       string    `json:"name"`
+	Prefix     string    `json:"prefix"`
+	Hash       string    `json:"-"`
+	CreatedAt  time.Time `json:"created_at"`
 	LastUsedAt *time.Time `json:"last_used_at,omitempty"`
 }

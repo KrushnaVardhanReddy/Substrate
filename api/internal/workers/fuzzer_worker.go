@@ -6,9 +6,9 @@ import (
 	"os"
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/db/sqlcgen"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/fuzzer"
 	"github.com/riverqueue/river"
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/db/sqlcgen"
 )
 
 type FuzzerJob struct {

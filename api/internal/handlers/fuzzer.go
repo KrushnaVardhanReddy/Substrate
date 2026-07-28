@@ -19,12 +19,12 @@ func (h *FuzzerHandler) GetSchemaValidationGaps(w http.ResponseWriter, r *http.R
 	}
 
 	type GapResponse struct {
-		ID       string `json:"ID"`
-		Method   string `json:"Method"`
-		Path     string `json:"Path"`
+		ID       string          `json:"ID"`
+		Method   string          `json:"Method"`
+		Path     string          `json:"Path"`
 		Payload  json.RawMessage `json:"Payload"`
-		Issue    string `json:"Issue"`
-		Severity string `json:"Severity"`
+		Issue    string          `json:"Issue"`
+		Severity string          `json:"Severity"`
 	}
 
 	var response []GapResponse

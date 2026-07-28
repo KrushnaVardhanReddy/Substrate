@@ -9,11 +9,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/db/sqlcgen"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/db/sqlcgen"
 )
 
 type PartnersHandler struct {
@@ -120,7 +120,7 @@ func (h *PartnersHandler) UpdatePartner(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-    pgUUID := pgtype.UUID{Bytes: id, Valid: true}
+	pgUUID := pgtype.UUID{Bytes: id, Valid: true}
 
 	p, err := h.store.UpdatePartner(r.Context(), sqlcgen.UpdatePartnerParams{
 		VendorName:    req.VendorName,
@@ -215,7 +215,7 @@ func (h *PartnersHandler) VerifyPartner(w http.ResponseWriter, r *http.Request) 
 	}
 	defer resp.Body.Close()
 
-    pgUUID := pgtype.UUID{Bytes: id, Valid: true}
+	pgUUID := pgtype.UUID{Bytes: id, Valid: true}
 
 	// Verification succeeded, update status
 	updatedP, err := h.store.UpdatePartnerStatus(r.Context(), sqlcgen.UpdatePartnerStatusParams{

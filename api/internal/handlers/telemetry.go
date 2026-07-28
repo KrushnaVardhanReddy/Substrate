@@ -7,8 +7,8 @@ import (
 	"net/http"
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/discovery"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 )
 
 func TelemetryHandler(store ports.DiscoveryStore) http.HandlerFunc {

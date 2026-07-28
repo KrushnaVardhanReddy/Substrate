@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/github"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )

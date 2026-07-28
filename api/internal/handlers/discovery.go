@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/discovery"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/github"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/workers"
+	"github.com/go-chi/chi/v5"
 )
 
 // In a real application, ScanAndAggregate might run in the background (River job).

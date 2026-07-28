@@ -1,0 +1,197 @@
+--- api/internal/github/client.go
++++ api/internal/github/client.go
+@@ -21,6 +21,8 @@
+ type Client interface {
+	RequestReviewers(ctx context.Context, owner, repo string, pullNumber int, reviewers []string) error
+	CreateDraftPR(ctx context.Context, owner, repo, branch, patch, title, body string) (url string, err error)
++	CreatePR(ctx context.Context, owner, repo, title, branch, body string) (url string, err error)
++	CommitAndPushFile(ctx context.Context, owner, repo, branch, filePath, fileContent, commitMessage string) error
+	SearchCode(ctx context.Context, owner, repo, query string) (path string, err error)
+	GetFileContent(ctx context.Context, owner, repo, path string) (string, error)
+	CreateCheckRun(ctx context.Context, owner, repo, commitSHA, name, title, summary, conclusion string) error
+@@ -628,6 +630,154 @@
+	return result.HTMLURL, nil
+ }
+
++func (c *RESTClient) CreatePR(ctx context.Context, owner, repo, title, branch, body string) (string, error) {
++	url := fmt.Sprintf("%s/repos/%s/%s/pulls", c.apiURL, owner, repo)
++
++	payload := map[string]interface{}{
++		"title": title,
++		"head":  branch,
++		"base":  "main",
++		"body":  body,
++	}
++
++	payloadBytes, _ := json.Marshal(payload)
++	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(payloadBytes))
++	if err != nil {
++		return "", err
++	}
++	c.addHeaders(req)
++
++	resp, err := c.client.Do(req)
++	if err != nil {
++		return "", err
++	}
++	defer resp.Body.Close()
++
++	if resp.StatusCode != http.StatusCreated {
++		bodyBytes, _ := io.ReadAll(resp.Body)
++		return "", fmt.Errorf("create pr failed with status: %d, body: %s", resp.StatusCode, string(bodyBytes))
++	}
++
++	var result struct {
++		HTMLURL string `json:"html_url"`
++	}
++	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
++		return "", err
++	}
++	return result.HTMLURL, nil
++}
++
++func (c *RESTClient) CommitAndPushFile(ctx context.Context, owner, repo, branch, filePath, fileContent, commitMessage string) error {
++	mainSHA, err := c.getBranchSHA(ctx, owner, repo, "main")
++	if err != nil {
++		return err
++	}
++
++	if err := c.createBranch(ctx, owner, repo, branch, mainSHA); err != nil {
++		return err
++	}
++
++	blobURL := fmt.Sprintf("%s/repos/%s/%s/git/blobs", c.apiURL, owner, repo)
++	blobPayload := map[string]string{
++		"content":  fileContent,
++		"encoding": "utf-8",
++	}
++	blobBytes, _ := json.Marshal(blobPayload)
++	reqBlob, err := http.NewRequestWithContext(ctx, http.MethodPost, blobURL, bytes.NewBuffer(blobBytes))
++	if err != nil {
++		return err
++	}
++	c.addHeaders(reqBlob)
++
++	respBlob, err := c.client.Do(reqBlob)
++	if err != nil {
++		return err
++	}
++	defer respBlob.Body.Close()
++
++	if respBlob.StatusCode != http.StatusCreated {
++		bodyBytes, _ := io.ReadAll(respBlob.Body)
++		return fmt.Errorf("create blob failed with status: %d, body: %s", respBlob.StatusCode, string(bodyBytes))
++	}
++
++	var blobResult struct {
++		SHA string `json:"sha"`
++	}
++	if err := json.NewDecoder(respBlob.Body).Decode(&blobResult); err != nil {
++		return err
++	}
++
++	treeURL := fmt.Sprintf("%s/repos/%s/%s/git/trees", c.apiURL, owner, repo)
++	treePayload := map[string]interface{}{
++		"base_tree": mainSHA,
++		"tree": []map[string]interface{}{
++			{
++				"path":  filePath,
++				"mode":  "100644",
++				"type":  "blob",
++				"sha":   blobResult.SHA,
++			},
++		},
++	}
++	treeBytes, _ := json.Marshal(treePayload)
++	reqTree, err := http.NewRequestWithContext(ctx, http.MethodPost, treeURL, bytes.NewBuffer(treeBytes))
++	if err != nil {
++		return err
++	}
++	c.addHeaders(reqTree)
++
++	respTree, err := c.client.Do(reqTree)
++	if err != nil {
++		return err
++	}
++	defer respTree.Body.Close()
++
++	if respTree.StatusCode != http.StatusCreated {
++		bodyBytes, _ := io.ReadAll(respTree.Body)
++		return fmt.Errorf("create tree failed with status: %d, body: %s", respTree.StatusCode, string(bodyBytes))
++	}
++
++	var treeResult struct {
++		SHA string `json:"sha"`
++	}
++	if err := json.NewDecoder(respTree.Body).Decode(&treeResult); err != nil {
++		return err
++	}
++
++	commitURL := fmt.Sprintf("%s/repos/%s/%s/git/commits", c.apiURL, owner, repo)
++	commitPayload := map[string]interface{}{
++		"message": commitMessage,
++		"tree":    treeResult.SHA,
++		"parents": []string{mainSHA},
++	}
++	commitBytes, _ := json.Marshal(commitPayload)
++	reqCommit, err := http.NewRequestWithContext(ctx, http.MethodPost, commitURL, bytes.NewBuffer(commitBytes))
++	if err != nil {
++		return err
++	}
++	c.addHeaders(reqCommit)
++
++	respCommit, err := c.client.Do(reqCommit)
++	if err != nil {
++		return err
++	}
++	defer respCommit.Body.Close()
++
++	if respCommit.StatusCode != http.StatusCreated {
++		bodyBytes, _ := io.ReadAll(respCommit.Body)
++		return fmt.Errorf("create commit failed with status: %d, body: %s", respCommit.StatusCode, string(bodyBytes))
++	}
++
++	var commitResult struct {
++		SHA string `json:"sha"`
++	}
++	if err := json.NewDecoder(respCommit.Body).Decode(&commitResult); err != nil {
++		return err
++	}
++
++	refURL := fmt.Sprintf("%s/repos/%s/%s/git/refs/heads/%s", c.apiURL, owner, repo, branch)
++	refPayload := map[string]interface{}{
++		"sha":   commitResult.SHA,
++		"force": true,
++	}
++	refBytes, _ := json.Marshal(refPayload)
++	reqRef, err := http.NewRequestWithContext(ctx, http.MethodPatch, refURL, bytes.NewBuffer(refBytes))
++	if err != nil {
++		return err
++	}
++	c.addHeaders(reqRef)
++
++	respRef, err := c.client.Do(reqRef)
++	if err != nil {
++		return err
++	}
++	defer respRef.Body.Close()
++
++	if respRef.StatusCode != http.StatusOK {
++		bodyBytes, _ := io.ReadAll(respRef.Body)
++		return fmt.Errorf("update ref failed with status: %d, body: %s", respRef.StatusCode, string(bodyBytes))
++	}
++
++	return nil
++}
++
++func (m *MockClient) CreatePR(ctx context.Context, owner, repo, title, branch, body string) (string, error) {
++	return "https://github.com/mock/mock/pull/2", nil
++}
++
++func (m *MockClient) CommitAndPushFile(ctx context.Context, owner, repo, branch, filePath, fileContent, commitMessage string) error {
++	return nil
++}
++
+ func (c *RESTClient) SearchCode(ctx context.Context, owner, repo, query string) (string, error) {
+	url := fmt.Sprintf("%s/search/code?q=%s+repo:%s/%s", c.apiURL, query, owner, repo)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)

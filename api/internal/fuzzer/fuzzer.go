@@ -6,8 +6,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db/sqlcgen"
+	"github.com/getkin/kin-openapi/openapi3"
 )
 
 // VulnerabilityReport represents a single vulnerability found by the fuzzer.

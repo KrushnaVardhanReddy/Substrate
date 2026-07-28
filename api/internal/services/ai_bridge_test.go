@@ -1,10 +1,10 @@
 package services
 
 import (
+	"github.com/spf13/viper"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"github.com/spf13/viper"
 )
 
 func TestExecuteTool_GetBreakingChangeHistory(t *testing.T) {

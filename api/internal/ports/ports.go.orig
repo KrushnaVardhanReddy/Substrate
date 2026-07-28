@@ -217,7 +217,6 @@ type PartnerStore interface {
 type PoolProvider interface {
 	InsertSchemaValidationGap(ctx context.Context, arg sqlcgen.InsertSchemaValidationGapParams) error
 	GetSchemaValidationGaps(ctx context.Context) ([]sqlcgen.SchemaValidationGap, error)
-	SaveGatewayConfig(ctx context.Context, org, repo, gatewayType, crdYaml, prUrl string) error
 	Pool() *pgxpool.Pool
 }
 

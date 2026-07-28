@@ -3,11 +3,11 @@ package middleware
 import (
 	"context"
 	"crypto/rsa"
+	"log"
 	"net/http"
 	"os"
 	"strings"
 	"time"
-	"log"
 
 	"github.com/KrushnaVardhanReddy/substrate/engine/licensing"
 	"github.com/spf13/viper"
