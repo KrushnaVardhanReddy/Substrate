@@ -1013,6 +1013,11 @@ TASKS = {
         "phase": "cross-cutting",
         "prompt": _load_prompt("prompts/cross_cutting/t04_ui_org_context.txt"),
     },
+    2002: {
+        "name": "CC-T05 — E2E Validation: UI Org Context",
+        "phase": "cross-cutting",
+        "prompt": _load_prompt("prompts/cross_cutting/t05_ui_org_context_e2e.txt"),
+    },
 }
 
 # ──────────────────────────────────────────────────────────────────────────────

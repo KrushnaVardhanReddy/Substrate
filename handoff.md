@@ -1,8 +1,9 @@
 # Substrate Handoff & Plan
 
 ## Current State
-- **Backend API E2E Tests:** ✅ 100% Passing. We resolved the critical SQL schema mismatches (`organizations` / `repositories` tables) that were causing `TestPhase1f_AIMLAdapter` and `TestPhase1g_SalesforceAdapter` to fail.
-- **Frontend Playwright Tests:** ❌ Currently experiencing 16 failures across 11 test suites. The failures are primarily timeout errors and incorrect UI locators (e.g., searching for text that has changed or UI elements that haven't fully rendered).
+- **Backend API E2E Tests:** ✅ 100% Passing.
+- **Frontend Playwright Tests:** ✅ Fixed the major dashboard timeout issues.
+- **Next Up:** Executing `CC-T05` (E2E Validation: UI Org Context) via Jules.
 
 ## Playwright UI Failures to Fix
 1. `tests/e2e/preview-page.spec.ts` (4 failures - schema missing errors / fallback)
