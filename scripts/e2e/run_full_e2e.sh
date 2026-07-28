@@ -6,6 +6,7 @@ echo "🚀 Starting Full-Stack E2E Test Harness (PGlite)..."
 
 # Kill any zombie processes on ports before starting
 echo "🧹 Clearing any zombie processes..."
+fuser -k 3005/tcp 2>/dev/null || true
 fuser -k 8090/tcp 2>/dev/null || true
 fuser -k 8080/tcp 2>/dev/null || true
 fuser -k 54320/tcp 2>/dev/null || true
@@ -13,31 +14,7 @@ fuser -k 5173/tcp 2>/dev/null || true
 sleep 1
 
 # Trap cleanup to run on exit or error
-trap 'echo "🧹 Cleaning up background processes..."; kill $FRONTEND_PID $API_PID $ENGINE_PID $PGLITE_PID 2>/dev/null || true; fuser -k 8090/tcp 2>/dev/null || true; fuser -k 8080/tcp 2>/dev/null || true; fuser -k 54320/tcp 2>/dev/null || true; fuser -k 5173/tcp 2>/dev/null || true; echo "🧹 Tearing down Forgejo..."; podman stop forgejo >/dev/null 2>&1 || true; podman rm forgejo >/dev/null 2>&1 || true' EXIT
-
-echo "🐙 Starting Forgejo Container..."
-podman unshare rm -rf "$PWD/forgejo-data" 2>/dev/null || true
-mkdir -p "$PWD/forgejo-data"
-podman run --replace -d --name forgejo --network host -e USER_UID=1000 -e USER_GID=1000 -e GITEA__security__INSTALL_LOCK=true -e GITEA__database__DB_TYPE=sqlite3 -e GITEA__security__ALLOWED_HOST_LIST="*" -e GITEA__server__HTTP_PORT=3005 -e GITEA__server__SSH_PORT=2225 -e GITEA__security__ENABLE_BASIC_AUTHENTICATION=true -e GITEA__service__ENABLE_BASIC_AUTHENTICATION=true -v "$PWD/forgejo-data:/data" -v /etc/timezone:/etc/timezone:ro -v /etc/localtime:/etc/localtime:ro gitea/gitea:latest
-
-echo "⏳ Waiting for Forgejo to initialize..."
-for i in $(seq 1 30); do
-  if curl -s http://127.0.0.1:3005/api/v1/version > /dev/null 2>&1; then
-    echo "✅ Forgejo is ready!"
-    break
-  fi
-  sleep 2
-done
-
-echo "👤 Creating Forgejo admin user via CLI..."
-for i in $(seq 1 15); do
-  if podman exec forgejo su git -c "gitea admin user create --admin --username adminuser --password 'Admin123!' --email admin@example.com --must-change-password=false"; then
-    echo "✅ Admin user created!"
-    break
-  fi
-  echo "Waiting for Gitea DB migrations to finish..."
-  sleep 2
-done
+trap 'echo "🧹 Cleaning up background processes..."; kill $FRONTEND_PID $API_PID $ENGINE_PID $PGLITE_PID 2>/dev/null || true; fuser -k 3005/tcp 2>/dev/null || true; fuser -k 8090/tcp 2>/dev/null || true; fuser -k 8080/tcp 2>/dev/null || true; fuser -k 54320/tcp 2>/dev/null || true; fuser -k 5173/tcp 2>/dev/null || true; echo "🧹 Tearing down Forgejo..."; podman stop forgejo >/dev/null 2>&1 || true; podman rm forgejo >/dev/null 2>&1 || true; podman unshare rm -rf "$PWD/forgejo-data" 2>/dev/null || true' EXIT
 
 # 1. Start PGlite Database
 echo "📦 Starting PGlite Server..."
@@ -50,12 +27,37 @@ cd ../..
 # Wait for PGlite to be ready (health check)
 echo "⏳ Waiting for PGlite to initialize..."
 for i in $(seq 1 15); do
-  if psql "postgres://postgres:postgres@localhost:54320/postgres" -c "SELECT 1" > /dev/null 2>&1; then
+  if psql "postgres://postgres:postgres@127.0.0.1:54320/postgres" -c "SELECT 1" > /dev/null 2>&1; then
     echo "✅ PGlite is ready!"
     break
   fi
   sleep 1
 done
+
+echo "🐙 Starting Forgejo Container..."
+podman unshare rm -rf "$PWD/forgejo-data" 2>/dev/null || true
+mkdir -p "$PWD/forgejo-data"
+podman run --replace -d --name forgejo --network host --userns=keep-id -e GITEA__security__INSTALL_LOCK=true -e GITEA__database__DB_TYPE=sqlite3 -e GITEA__security__ALLOWED_HOST_LIST="*" -e GITEA__server__HTTP_PORT=3005 -e GITEA__server__SSH_PORT=2225 -e GITEA__security__ENABLE_BASIC_AUTHENTICATION=true -e GITEA__service__ENABLE_BASIC_AUTHENTICATION=true -v "$PWD/forgejo-data:/data:Z" docker.io/gitea/gitea:latest-rootless
+
+echo "⏳ Waiting for Forgejo to initialize..."
+for i in $(seq 1 30); do
+  if curl -s http://127.0.0.1:3005/api/v1/version > /dev/null 2>&1; then
+    echo "✅ Forgejo is ready!"
+    break
+  fi
+  sleep 2
+done
+
+echo "👤 Creating Forgejo admin user via CLI..."
+for i in $(seq 1 15); do
+  if podman exec forgejo gitea admin user create --admin --username adminuser --password 'Admin123!' --email admin@example.com --must-change-password=false; then
+    echo "✅ Admin user created!"
+    break
+  fi
+  echo "Waiting for Gitea DB migrations to finish..."
+  sleep 2
+done
+
 
 # 2. Start Go API Server
 echo "⚙️ Starting Go API Server..."
@@ -71,8 +73,8 @@ export PGLITE_PORT=54320
 export GITHUB_API_URL="http://127.0.0.1:3005/api/v1"
 echo "🔑 Generating Forgejo token for API..."
 # Delete any existing token with the same name first to avoid errors on rerun
-podman exec forgejo su git -c "gitea admin user delete-access-token --username adminuser --token-name e2etoken" > /dev/null 2>&1 || true
-export GITHUB_TOKEN=$(podman exec forgejo su git -c "gitea admin user generate-access-token --username adminuser --token-name e2etoken --raw")
+podman exec forgejo gitea admin user delete-access-token --username adminuser --token-name e2etoken > /dev/null 2>&1 || true
+export GITHUB_TOKEN=$(podman exec forgejo gitea admin user generate-access-token --username adminuser --token-name e2etoken --raw)
 echo "✅ Forgejo token generated!"
 export FORGEJO_PORT="3005"
 export FORGEJO_USER="adminuser"

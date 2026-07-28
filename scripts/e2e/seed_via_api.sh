@@ -240,7 +240,7 @@ const { Client } = require('pg');
 
 async function run() {
   const client = new Client({
-    connectionString: "postgres://postgres:postgres@127.0.0.1:5432/substrate?sslmode=disable"
+    connectionString: "postgres://postgres:postgres@127.0.0.1:54320/postgres?sslmode=disable"
   });
   await client.connect();
 
