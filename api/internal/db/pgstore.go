@@ -392,7 +392,6 @@ func (s *PGStore) GetEcosystemEventsByOrg(ctx context.Context, arg sqlcgen.GetEc
 	q := sqlcgen.New(s.pool)
 	return q.GetEcosystemEventsByOrg(ctx, arg)
 }
-
 func (s *PGStore) GetScorecardCache(ctx context.Context, arg sqlcgen.GetScorecardCacheParams) (sqlcgen.ScorecardCache, error) {
 	q := sqlcgen.New(s.pool)
 	return q.GetScorecardCache(ctx, arg)
@@ -416,4 +415,45 @@ func (s *PGStore) GetLatestQACoverageScore(ctx context.Context, arg sqlcgen.GetL
 func (s *PGStore) HasRepoGuides(ctx context.Context, arg sqlcgen.HasRepoGuidesParams) (bool, error) {
 	q := sqlcgen.New(s.pool)
 	return q.HasRepoGuides(ctx, arg)
+}
+
+func (s *PGStore) UpsertOrgIntegration(ctx context.Context, orgID uuid.UUID, provider, apiKeyEncrypted string) (OrgIntegration, error) {
+	q := sqlcgen.New(s.pool)
+	row, err := q.UpsertOrgIntegration(ctx, sqlcgen.UpsertOrgIntegrationParams{
+		OrgID:           pgtype.UUID{Bytes: orgID, Valid: true},
+		Provider:        provider,
+		ApiKeyEncrypted: apiKeyEncrypted,
+	})
+	if err != nil {
+		return OrgIntegration{}, err
+	}
+
+	return OrgIntegration{
+		ID:              row.ID.Bytes,
+		OrgID:           row.OrgID.Bytes,
+		Provider:        row.Provider,
+		APIKeyEncrypted: row.ApiKeyEncrypted,
+		CreatedAt:       row.CreatedAt.Time,
+		UpdatedAt:       row.UpdatedAt.Time,
+	}, nil
+}
+
+func (s *PGStore) GetOrgIntegration(ctx context.Context, orgID uuid.UUID, provider string) (OrgIntegration, error) {
+	q := sqlcgen.New(s.pool)
+	row, err := q.GetOrgIntegration(ctx, sqlcgen.GetOrgIntegrationParams{
+		OrgID:    pgtype.UUID{Bytes: orgID, Valid: true},
+		Provider: provider,
+	})
+	if err != nil {
+		return OrgIntegration{}, err
+	}
+
+	return OrgIntegration{
+		ID:              row.ID.Bytes,
+		OrgID:           row.OrgID.Bytes,
+		Provider:        row.Provider,
+		APIKeyEncrypted: row.ApiKeyEncrypted,
+		CreatedAt:       row.CreatedAt.Time,
+		UpdatedAt:       row.UpdatedAt.Time,
+	}, nil
 }

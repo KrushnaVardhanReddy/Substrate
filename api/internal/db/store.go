@@ -260,6 +260,15 @@ type InsuranceClaim struct {
 	UpdatedAt    time.Time `json:"updated_at"`
 }
 
+type OrgIntegration struct {
+	ID              uuid.UUID `json:"id"`
+	OrgID           uuid.UUID `json:"org_id"`
+	Provider        string    `json:"provider"`
+	APIKeyEncrypted string    `json:"api_key_encrypted"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // API Key Types
 // ─────────────────────────────────────────────────────────────────────────────

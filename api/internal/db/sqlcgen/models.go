@@ -232,6 +232,15 @@ type MarketplacePlugin struct {
 	UpdatedAt     pgtype.Timestamptz
 }
 
+type OrgIntegration struct {
+	ID              pgtype.UUID
+	OrgID           pgtype.UUID
+	Provider        string
+	ApiKeyEncrypted string
+	CreatedAt       pgtype.Timestamptz
+	UpdatedAt       pgtype.Timestamptz
+}
+
 type OrgKmsConfig struct {
 	OrgName   string
 	Provider  string
