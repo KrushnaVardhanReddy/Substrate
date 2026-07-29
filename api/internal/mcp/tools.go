@@ -72,6 +72,7 @@ func RegisterTools(server *Server, store db.Store) {
 			},
 			"required": []string{"org", "repo", "raw_content"},
 		},
+		IsDestructive: true,
 		Handler: func(params json.RawMessage) (any, error) {
 			var args struct {
 				Org          string `json:"org"`
@@ -335,6 +336,7 @@ func RegisterTools(server *Server, store db.Store) {
 			},
 			"required": []string{"org", "repo", "commit_sha", "branch"},
 		},
+		IsDestructive: true,
 		Handler: func(params json.RawMessage) (any, error) {
 			return map[string]any{"status": "queued"}, nil
 		},
@@ -395,6 +397,7 @@ custom_rules:
 			},
 			"required": []string{"org", "rule_text"},
 		},
+		IsDestructive: true,
 		Handler: func(params json.RawMessage) (any, error) {
 			var args struct {
 				Org      string `json:"org"`
@@ -457,6 +460,7 @@ custom_rules:
 			},
 			"required": []string{"org", "rule_id"},
 		},
+		IsDestructive: true,
 		Handler: func(params json.RawMessage) (any, error) {
 			var args struct {
 				Org    string `json:"org"`
@@ -513,6 +517,7 @@ custom_rules:
 			},
 			"required": []string{"org", "url", "secret"},
 		},
+		IsDestructive: true,
 		Handler: func(params json.RawMessage) (any, error) {
 			return map[string]any{"status": "registered", "id": uuid.New().String()}, nil
 		},
@@ -653,6 +658,7 @@ custom_rules:
 			},
 			"required": []string{"org", "repo", "endpoint", "request_count"},
 		},
+		IsDestructive: true,
 		Handler: func(params json.RawMessage) (any, error) {
 			return map[string]any{"status": "success"}, nil
 		},
@@ -728,6 +734,7 @@ custom_rules:
 			},
 			"required": []string{"org", "amount_cents"},
 		},
+		IsDestructive: true,
 		Handler: func(params json.RawMessage) (any, error) {
 			var args struct {
 				Org          string `json:"org"`
@@ -811,6 +818,7 @@ custom_rules:
 			},
 			"required": []string{"name", "description", "author"},
 		},
+		IsDestructive: true,
 		Handler: func(params json.RawMessage) (any, error) {
 			return map[string]any{"id": uuid.New().String(), "status": "published"}, nil
 		},
@@ -903,6 +911,7 @@ custom_rules:
 			},
 			"required": []string{"org", "repo"},
 		},
+		IsDestructive: true,
 		Handler: func(params json.RawMessage) (any, error) {
 			var args struct {
 				Org       string `json:"org"`
@@ -941,6 +950,7 @@ custom_rules:
 			},
 			"required": []string{"org", "provider", "key_arn"},
 		},
+		IsDestructive: true,
 		Handler: func(params json.RawMessage) (any, error) {
 			var args struct {
 				Org      string `json:"org"`
@@ -986,6 +996,7 @@ custom_rules:
 			},
 			"required": []string{"repo_id", "schema_type", "spec_path", "branch", "commit_sha", "raw_content"},
 		},
+		IsDestructive: true,
 		Handler: func(params json.RawMessage) (any, error) {
 			var args struct {
 				RepoID     string `json:"repo_id"`
@@ -1073,6 +1084,7 @@ custom_rules:
 			},
 			"required": []string{"org", "schema_type", "current_schema", "proposed_schema"},
 		},
+		IsDestructive: true,
 		Handler: func(params json.RawMessage) (any, error) {
 			var args services.AIAnalyzeRequest
 			if err := json.Unmarshal(params, &args); err != nil {

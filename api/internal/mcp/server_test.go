@@ -1,6 +1,7 @@
 package mcp_test
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"os"
@@ -14,7 +15,7 @@ import (
 )
 
 func TestMCPServerHandlers(t *testing.T) {
-	server := mcp.NewServer()
+	server := mcp.NewServer(nil)
 
 	// Register empty store tools
 	mockStore := &db.MockStore{}
@@ -24,35 +25,35 @@ func TestMCPServerHandlers(t *testing.T) {
 
 	// Test Initialize
 	initReq := `{"jsonrpc":"2.0", "id": 1, "method": "initialize"}`
-	respBytes := server.HandleMessage([]byte(initReq))
+	respBytes := server.HandleMessage(context.Background(), []byte(initReq))
 	if !strings.Contains(string(respBytes), `"substrate-headless-mcp"`) {
 		t.Errorf("Expected initialization response to contain server name, got: %s", string(respBytes))
 	}
 
 	// Test Tools List
 	toolsReq := `{"jsonrpc":"2.0", "id": 2, "method": "tools/list"}`
-	respBytes = server.HandleMessage([]byte(toolsReq))
+	respBytes = server.HandleMessage(context.Background(), []byte(toolsReq))
 	if !strings.Contains(string(respBytes), `"bypass_breaking_change"`) {
 		t.Errorf("Expected tools list to contain bypass_breaking_change, got: %s", string(respBytes))
 	}
 
 	// Test Resources List
 	resReq := `{"jsonrpc":"2.0", "id": 3, "method": "resources/list"}`
-	respBytes = server.HandleMessage([]byte(resReq))
+	respBytes = server.HandleMessage(context.Background(), []byte(resReq))
 	if !strings.Contains(string(respBytes), `"substrate://schemas/{org}/{repo}"`) {
 		t.Errorf("Expected resources list to contain schemas template, got: %s", string(respBytes))
 	}
 
 	// Test Prompts List
 	promptsReq := `{"jsonrpc":"2.0", "id": 4, "method": "prompts/list"}`
-	respBytes = server.HandleMessage([]byte(promptsReq))
+	respBytes = server.HandleMessage(context.Background(), []byte(promptsReq))
 	if !strings.Contains(string(respBytes), `"substrate_onboarding"`) {
 		t.Errorf("Expected prompts list to contain substrate_onboarding, got: %s", string(respBytes))
 	}
 
 	// Test Tool Call (simulate generate_postmortem)
 	callReq := `{"jsonrpc":"2.0", "id": 5, "method": "tools/call", "params": {"name": "generate_postmortem", "arguments": {"org": "testorg", "repo": "testrepo"}}}`
-	respBytes = server.HandleMessage([]byte(callReq))
+	respBytes = server.HandleMessage(context.Background(), []byte(callReq))
 
 	var r struct {
 		Result struct {

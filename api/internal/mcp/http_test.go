@@ -15,7 +15,7 @@ import (
 )
 
 func TestHTTPTransport_ServeSSE(t *testing.T) {
-	server := NewServer()
+	server := NewServer(nil)
 	transport := NewHTTPTransport(server)
 
 	req := httptest.NewRequest("GET", "/mcp/sse", nil)
@@ -37,7 +37,7 @@ func TestHTTPTransport_ServeSSE(t *testing.T) {
 }
 
 func TestHTTPTransport_ServeMessages(t *testing.T) {
-	server := NewServer()
+	server := NewServer(nil)
 	// Register a dummy tool to test JSON-RPC message handling
 	server.RegisterTool(Tool{
 		Name:        "dummy",
@@ -73,7 +73,7 @@ func TestHTTPTransport_ServeMessages(t *testing.T) {
 }
 
 func TestHTTPTransport_ServeMessages_WithSessionID(t *testing.T) {
-	server := NewServer()
+	server := NewServer(nil)
 	transport := NewHTTPTransport(server)
 
 	// Simulate an active SSE session
@@ -116,7 +116,7 @@ func (f *flushRecorder) Flush() {
 }
 
 func TestHTTPTransport_ServeSSE_Write(t *testing.T) {
-	server := NewServer()
+	server := NewServer(nil)
 	transport := NewHTTPTransport(server)
 
 	req, _ := http.NewRequest("GET", "/mcp/sse", nil)

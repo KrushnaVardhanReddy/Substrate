@@ -1,6 +1,7 @@
 package mcp
 
 import (
+	"strconv"
 	"context"
 	"fmt"
 	"io"
@@ -83,7 +84,19 @@ func (h *HTTPTransport) ServeMessages(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	responseBytes := h.server.HandleMessage(body)
+	ctx := r.Context()
+	profileIDStr := r.URL.Query().Get("profile_id")
+	if profileIDStr != "" {
+		if id, err := strconv.Atoi(profileIDStr); err == nil {
+			ctx = context.WithValue(ctx, ProfileIDKey, id)
+		}
+	}
+	org := r.URL.Query().Get("org")
+	if org != "" {
+		ctx = context.WithValue(ctx, OrgKey, org)
+	}
+
+	responseBytes := h.server.HandleMessage(ctx, body)
 
 	// Broadcast over SSE if sessionId is present
 	sessionID := r.URL.Query().Get("sessionId")

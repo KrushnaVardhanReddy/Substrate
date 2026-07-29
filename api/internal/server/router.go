@@ -98,6 +98,15 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 	r.Method("POST", "/api/v1/org/{org}/apikeys", authzMW(http.HandlerFunc(apiKeyHandler.CreateAPIKey)))
 	r.Method("GET", "/api/v1/org/{org}/apikeys", authzMW(http.HandlerFunc(apiKeyHandler.ListAPIKeys)))
 	r.Method("DELETE", "/api/v1/org/{org}/apikeys/{id}", authzMW(http.HandlerFunc(apiKeyHandler.DeleteAPIKey)))
+
+	// MCP Profiles and HITL Queue
+	mcpProfileHandler := &handlers.MCPProfileHandler{Store: store}
+	r.Method("POST", "/api/v1/mcp/profiles", authMW(http.HandlerFunc(mcpProfileHandler.CreateProfile)))
+	r.Method("GET", "/api/v1/mcp/profiles/{org}", authzMW(http.HandlerFunc(mcpProfileHandler.ListProfiles)))
+	r.Method("DELETE", "/api/v1/mcp/profiles/{id}", authMW(http.HandlerFunc(mcpProfileHandler.DeleteProfile)))
+	r.Method("GET", "/api/v1/mcp/hitl-queue/{org}", authzMW(http.HandlerFunc(mcpProfileHandler.ListHITLQueue)))
+	r.Method("POST", "/api/v1/mcp/hitl-queue/{id}/resolve", authMW(http.HandlerFunc(mcpProfileHandler.ResolveHITLItem)))
+
 	jwtValidMW := JWTValidMiddleware(jwtSecret)
 
 	partnersHandler := handler.NewPartnersHandler(store)
