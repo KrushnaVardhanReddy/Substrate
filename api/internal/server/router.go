@@ -99,6 +99,9 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 	r.Method("GET", "/api/v1/org/{org}/apikeys", authzMW(http.HandlerFunc(apiKeyHandler.ListAPIKeys)))
 	r.Method("DELETE", "/api/v1/org/{org}/apikeys/{id}", authzMW(http.HandlerFunc(apiKeyHandler.DeleteAPIKey)))
 
+	// ArgoCD/Flux webhook
+	r.Method("POST", "/api/v1/argo/drift-webhook", serviceTokenMW(http.HandlerFunc(handlers.ArgoDriftWebhookHandler(store))))
+
 	// MCP Profiles and HITL Queue
 	mcpProfileHandler := &handlers.MCPProfileHandler{Store: store}
 	r.Method("POST", "/api/v1/mcp/profiles", authMW(http.HandlerFunc(mcpProfileHandler.CreateProfile)))
