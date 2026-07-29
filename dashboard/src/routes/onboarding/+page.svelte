@@ -2,7 +2,13 @@
     import { fade, slide } from 'svelte/transition';
     import { goto } from '$app/navigation';
     import { env } from '$env/dynamic/public';
-    import { Server, CheckCircle, ChevronRight, Lock, Loader2, ArrowRight, Download } from 'lucide-svelte';
+    import Server from '@lucide/svelte/icons/server';
+import CheckCircle from '@lucide/svelte/icons/check-circle';
+import ChevronRight from '@lucide/svelte/icons/chevron-right';
+import Lock from '@lucide/svelte/icons/lock';
+import Loader2 from '@lucide/svelte/icons/loader-2';
+import ArrowRight from '@lucide/svelte/icons/arrow-right';
+import Download from '@lucide/svelte/icons/download';
     import Github from '$lib/components/icons/Github.svelte';
     import Gitlab from '$lib/components/icons/Gitlab.svelte';
 

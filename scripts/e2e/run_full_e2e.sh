@@ -158,6 +158,10 @@ E2E_AUTH_TOKEN=$(go run ../scripts/e2e/gen_paseto/main.go)
 cd ..
 export E2E_AUTH_TOKEN
 
+# Seed Phase 17 data for UI tests
+echo "🌱 Seeding Phase 17 data for Playwright..."
+cd api && go run ../scripts/e2e/seed_p17.go ../scripts/e2e/helpers.go && cd ..
+
 # 5. Run Playwright UI Tests
 echo "🧪 Running Playwright UI Tests..."
 cd dashboard
