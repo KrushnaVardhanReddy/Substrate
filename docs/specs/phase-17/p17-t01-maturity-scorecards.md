@@ -7,10 +7,10 @@ Provide Engineering Managers with a high-level "API Health Grade" (A–F) for ea
 Each metric contributes up to 25 points (total 100):
 | Metric | Source | Max Points |
 |---|---|---|
-| Documentation completeness | % of endpoints with non-empty `description` in OpenAPI spec | 25 |
-| Compliance risk | Deduct 5pts per active PII/SOC2 warning in `compliance_flags` | 25 |
-| Volatility | Deduct 3pts per breaking change in the last 30 days | 25 |
-| QA shadow coverage | % of endpoints covered in `shadow_coverage` table | 25 |
+| Documentation completeness | Existence of guides in `repo_guides` table (or non-empty description) | 25 |
+| Compliance risk | Deduct 5pts per active PII/SOC2 warning in `repo_compliance` (create this table!) | 25 |
+| Volatility | Deduct 3pts per breaking change in the last 30 days (from `diff_reports`) | 25 |
+| QA shadow coverage | Use `coverage_score` from `qa_replay_jobs` table | 25 |
 
 Grade thresholds: A=90+, B=75+, C=60+, D=40+, F=<40.
 
@@ -28,6 +28,14 @@ CREATE TABLE scorecard_cache (
   total       INT NOT NULL,
   breakdown   JSONB NOT NULL,
   computed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (org, repo)
+);
+
+CREATE TABLE repo_compliance (
+  org            TEXT NOT NULL,
+  repo           TEXT NOT NULL,
+  soc2_compliant BOOLEAN NOT NULL DEFAULT false,
+  has_pii        BOOLEAN NOT NULL DEFAULT false,
   PRIMARY KEY (org, repo)
 );
 ```
