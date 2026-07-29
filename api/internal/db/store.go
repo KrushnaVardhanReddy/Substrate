@@ -150,6 +150,9 @@ type Store interface {
 	UpdateDependencyConfidence(ctx context.Context, consumerFullName, providerURL string, boostAmount float64) error
 	UpdateDependencyStatus(ctx context.Context, consumerRepoID, providerContractID uuid.UUID, status string) error
 	SaveDiffReport(ctx context.Context, diffReport json.RawMessage, isAuditMode bool, orgName, repoName string) (uuid.UUID, error)
+	UpsertRepoGuide(ctx context.Context, org, repo, filePath, title, content string) error
+	ListRepoGuides(ctx context.Context, org, repo string) ([]RepoGuide, error)
+	GetRepoGuide(ctx context.Context, org, repo, slug string) (*RepoGuide, error)
 	GetDiffReport(ctx context.Context, id uuid.UUID) (json.RawMessage, error)
 	GetDiffReportsByRepo(ctx context.Context, orgName, repoName string, limit int) ([]DiffReportRecord, error)
 	CreatePreviewSession(ctx context.Context, prNumber int, diffID uuid.UUID, expiresAt time.Time) (uuid.UUID, error)
@@ -251,4 +254,13 @@ type APIKey struct {
 	Hash       string     `json:"-"`
 	CreatedAt  time.Time  `json:"created_at"`
 	LastUsedAt *time.Time `json:"last_used_at,omitempty"`
+}
+type RepoGuide struct {
+	ID        int       `json:"id"`
+	Org       string    `json:"org"`
+	Repo      string    `json:"repo"`
+	FilePath  string    `json:"file_path"`
+	Title     string    `json:"title"`
+	Content   string    `json:"content"`
+	UpdatedAt time.Time `json:"updated_at"`
 }

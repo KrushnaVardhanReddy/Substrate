@@ -1,12 +1,16 @@
 package services
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/config"
@@ -138,8 +142,98 @@ func ProcessSync(ctx context.Context, store db.Store, req SyncRequest) (int, err
 		// Set the dependency status in the database based on the diff result
 		_ = store.UpdateDependencyStatus(ctx, consumerRepoID, contractID, statusToSet)
 
+		// Start a goroutine to ingest markdown guides
+		// Pass a new context so it doesn't cancel when the request ends
+		go IngestMarkdownGuides(context.Background(), store, req.Org, providerName)
+
 		syncedCount++
 	}
 
 	return syncedCount, nil
+}
+
+// IngestMarkdownGuides clones the repo and upserts markdown guides
+func IngestMarkdownGuides(ctx context.Context, store db.Store, org, repo string) {
+	// Create a temporary directory for cloning
+	tmpDir, err := os.MkdirTemp("", "substrate-guides-*")
+	if err != nil {
+		log.Printf("IngestMarkdownGuides: failed to create tmp dir: %v", err)
+		return
+	}
+	defer os.RemoveAll(tmpDir)
+
+	repoURL := "https://github.com/" + org + "/" + repo + ".git"
+
+	// Use git clone --depth 1
+	cmd := exec.CommandContext(ctx, "git", "clone", "--depth", "1", repoURL, tmpDir)
+	if err := cmd.Run(); err != nil {
+		log.Printf("IngestMarkdownGuides: git clone failed for %s/%s: %v", org, repo, err)
+		return
+	}
+
+	docsPath := filepath.Join(tmpDir, "docs")
+	if _, err := os.Stat(docsPath); os.IsNotExist(err) {
+		log.Printf("IngestMarkdownGuides: no docs/ directory found in %s/%s", org, repo)
+		return
+	}
+
+	// Walk docs directory
+	err = filepath.WalkDir(docsPath, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			return nil
+		}
+		if !strings.HasSuffix(strings.ToLower(d.Name()), ".md") {
+			return nil
+		}
+
+		info, err := d.Info()
+		if err != nil {
+			return err
+		}
+
+		// Max size 500KB
+		if info.Size() > 500*1024 {
+			log.Printf("IngestMarkdownGuides: skipping %s: exceeds 500KB limit", path)
+			return nil
+		}
+
+		content, err := os.ReadFile(path)
+		if err != nil {
+			log.Printf("IngestMarkdownGuides: failed to read file %s: %v", path, err)
+			return nil
+		}
+
+		// Extract title
+		title := extractTitle(string(content), d.Name())
+
+		relPath, err := filepath.Rel(docsPath, path)
+		if err != nil {
+			relPath = d.Name()
+		}
+
+		// Upsert guide
+		if err := store.UpsertRepoGuide(context.Background(), org, repo, relPath, title, string(content)); err != nil {
+			log.Printf("IngestMarkdownGuides: failed to upsert guide %s: %v", relPath, err)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		log.Printf("IngestMarkdownGuides: walk docs failed for %s/%s: %v", org, repo, err)
+	}
+}
+
+func extractTitle(content, defaultTitle string) string {
+	scanner := bufio.NewScanner(strings.NewReader(content))
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if strings.HasPrefix(line, "# ") {
+			return strings.TrimSpace(strings.TrimPrefix(line, "# "))
+		}
+	}
+	return defaultTitle
 }

@@ -515,3 +515,15 @@ func (m *MockStore) GetSchemaValidationGaps(ctx context.Context) ([]sqlcgen.Sche
 func (m *MockStore) SaveGatewayConfig(ctx context.Context, org, repo, gatewayType, crdYaml, prUrl string) error {
 	return nil
 }
+
+func (m *MockStore) UpsertRepoGuide(ctx context.Context, org, repo, filePath, title, content string) error {
+	return nil
+}
+
+func (m *MockStore) ListRepoGuides(ctx context.Context, org, repo string) ([]RepoGuide, error) {
+	return nil, nil
+}
+
+func (m *MockStore) GetRepoGuide(ctx context.Context, org, repo, slug string) (*RepoGuide, error) {
+	return nil, nil
+}
