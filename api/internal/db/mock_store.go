@@ -576,3 +576,10 @@ func (m *MockStore) GetEcosystemEventsByOrg(ctx context.Context, arg sqlcgen.Get
 	}
 	return nil, nil
 }
+func (m *MockStore) UpsertOrgIntegration(ctx context.Context, orgID uuid.UUID, provider, apiKeyEncrypted string) (OrgIntegration, error) {
+	return OrgIntegration{}, nil
+}
+
+func (m *MockStore) GetOrgIntegration(ctx context.Context, orgID uuid.UUID, provider string) (OrgIntegration, error) {
+	return OrgIntegration{}, nil
+}

@@ -67,6 +67,15 @@ type AgentConsumer struct {
 	CreatedAt pgtype.Timestamptz
 }
 
+type AgentProfile struct {
+	ID           int32
+	Org          string
+	Name         string
+	AllowedTools []string
+	HitlEnabled  bool
+	CreatedAt    time.Time
+}
+
 type AgentToolDependency struct {
 	ID              pgtype.UUID
 	AgentID         pgtype.UUID
@@ -183,6 +192,17 @@ type GovernanceRule struct {
 	CreatedAt pgtype.Timestamptz
 }
 
+type HitlQueue struct {
+	ID         int32
+	Org        string
+	ProfileID  pgtype.Int4
+	ToolName   string
+	Arguments  []byte
+	Status     string
+	CreatedAt  time.Time
+	ResolvedAt pgtype.Timestamptz
+}
+
 type InsuranceClaim struct {
 	ID           pgtype.UUID
 	OrgID        pgtype.UUID
@@ -210,6 +230,15 @@ type MarketplacePlugin struct {
 	SchemaContent []byte
 	CreatedAt     pgtype.Timestamptz
 	UpdatedAt     pgtype.Timestamptz
+}
+
+type OrgIntegration struct {
+	ID              pgtype.UUID
+	OrgID           pgtype.UUID
+	Provider        string
+	ApiKeyEncrypted string
+	CreatedAt       pgtype.Timestamptz
+	UpdatedAt       pgtype.Timestamptz
 }
 
 type OrgKmsConfig struct {
@@ -298,6 +327,16 @@ type QaShadowTraffic struct {
 	ResponsePayload []byte
 	StatusCode      int32
 	CapturedAt      pgtype.Timestamptz
+}
+
+type RepoGuide struct {
+	ID        int32
+	Org       string
+	Repo      string
+	FilePath  string
+	Title     string
+	Content   string
+	UpdatedAt time.Time
 }
 
 type RepoMetric struct {

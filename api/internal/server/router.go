@@ -192,6 +192,9 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 	r.Get("/api/v1/changelog/{org}/{repo}", handlers.ChangelogHandler(store))
 	r.Get("/api/badges/{org}/{repo}", handlers.BadgesHandler(store))
 
+	// Integrations
+	r.Method("POST", "/api/v1/integrations/pagerduty/webhook", http.HandlerFunc(handlers.PagerDutyWebhookHandler(store)))
+
 	// Webhook for Postman integrations
 	ServeDashboard(r)
 	r.Method("GET", "/api/v1/qa/postman/{org}/{repo}", http.HandlerFunc(handlers.QAPostmanHandler(store)))

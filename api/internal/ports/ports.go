@@ -37,6 +37,8 @@ type OrgStore interface {
 	GetOrgIDByName(ctx context.Context, orgName string) (uuid.UUID, error)
 	UpsertOrg(ctx context.Context, installationID int64, orgName string) (uuid.UUID, error)
 	CountReposByOrg(ctx context.Context, orgName string) (int, error)
+	UpsertOrgIntegration(ctx context.Context, orgID uuid.UUID, provider, apiKeyEncrypted string) (db.OrgIntegration, error)
+	GetOrgIntegration(ctx context.Context, orgID uuid.UUID, provider string) (db.OrgIntegration, error)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
