@@ -345,6 +345,46 @@ func RegisterTools(server *Server, store db.Store) {
 	// ─────────────────────────────────────────────────────────────────────────────
 
 	server.RegisterTool(Tool{
+		Name:        "generate_substrate_config",
+		Description: "Generate a default substrate.yaml configuration file, including required governance rules.",
+		InputSchema: map[string]any{
+			"type":       "object",
+			"properties": map[string]any{},
+		},
+		Handler: func(params json.RawMessage) (any, error) {
+			configTemplate := `# substrate.yaml — Substrate configuration
+# Docs: https://github.com/KrushnaVardhanReddy/Substrate
+
+service: <service-name>
+schema_type: <schema-type>
+spec_path: <spec-path>
+
+owners:
+  - team: your-team-name
+    contact: your-team@company.com
+
+# Custom Rules
+custom_rules:
+  - id: REQUIRE_SPEC_SYNC
+    description: "API handler changes must be accompanied by an openapi.yaml update."
+    severity: error
+    match: "commit.files.contains('api/internal/handlers/') && !commit.files.contains('openapi.yaml')"
+
+# overrides:
+#   - rule_id: REQUIRE_SPEC_SYNC
+#     path: "api/internal/handlers/auth.go"
+#     reason: "Refactored internal DB logic; API request/response contracts remain unchanged."
+#     approved_by: "team-lead-handle"
+#     expires: "2026-12-31"
+`
+			return map[string]any{
+				"config": configTemplate,
+			}, nil
+		},
+	})
+
+
+	server.RegisterTool(Tool{
 		Name:        "create_governance_rule",
 		Description: "Create a governance rule.",
 		InputSchema: map[string]any{

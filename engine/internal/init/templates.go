@@ -11,13 +11,19 @@ owners:
   - team: your-team-name
     contact: your-team@company.com
 
-# Overrides — acknowledge intentional breaking changes
+# Custom Rules
+custom_rules:
+  - id: REQUIRE_SPEC_SYNC
+    description: "API handler changes must be accompanied by an openapi.yaml update."
+    severity: error
+    match: "commit.files.contains('api/internal/handlers/') && !commit.files.contains('openapi.yaml')"
+
 # overrides:
-#   - rule_id: ENDPOINT_REMOVED
-#     path: paths./your-endpoint
-#     reason: "Reason this is safe (min 20 chars)"
-#     approved_by: you@company.com
-#     expires: YYYY-MM-DD
+#   - rule_id: REQUIRE_SPEC_SYNC
+#     path: "api/internal/handlers/auth.go"
+#     reason: "Refactored internal DB logic; API request/response contracts remain unchanged."
+#     approved_by: "team-lead-handle"
+#     expires: "2026-12-31"
 `
 
 const WorkflowTemplate = `# Substrate API Contract Guard
