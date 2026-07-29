@@ -32,7 +32,7 @@
 | **CC-T05** | 🟢 P3 | **E2E Validation: UI Org Context** | Jules | ✅ Complete | `docs/specs/e2e/ui_org_context_e2e.md` |
 | **CC-T06** | 🟢 P2 | **API Keys Backend Integration** | Jules | ✅ PR Merged | `docs/specs/ui/api_keys_backend.md` |
 | **CC-T07** | 🟢 P3 | **E2E Validation: API Keys Backend** | Jules | ⚪ Redundant (in T06) | `docs/specs/e2e/api_keys_e2e.md` |
-| **CC-T08** | 🚀 P1 | **Spec Sync Governance & IDE Reminders** | Jules | ⏳ Next Up | `docs/specs/cross_cutting/cc-t08-spec-sync-governance.md` |
+| **CC-T08** | 🚀 P1 | **Spec Sync Governance & IDE Reminders** | Jules | ✅ PR Merged | `docs/specs/cross_cutting/cc-t08-spec-sync-governance.md` |
 
 ---
 
@@ -117,7 +117,7 @@
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **P16-T01** | 🚀 P1 | **Markdown Guide Ingestion (Diátaxis)** — Pull `docs/**/*.md` files from provider repos alongside OpenAPI specs. Stitch human-written tutorials, how-tos, and references together with the auto-generated API schema in the UI. | Jules | ⏳ In Progress | `(Pending)` |
+| **P16-T01** | 🚀 P1 | **Markdown Guide Ingestion (Diátaxis)** — Pull `docs/**/*.md` files from provider repos alongside OpenAPI specs. Stitch human-written tutorials, how-tos, and references together with the auto-generated API schema in the UI. | Jules | ✅ PR Merged | `(Pending)` |
 | **P16-T02** | 🟡 P2 | **Business Metadata Block** — Expand `substrate.yaml` to accept `metadata` (PM, Slack channel, PagerDuty link, SLA Tier) and display it prominently at the top of the API's documentation page. | Unassigned | 💡 Planned | `(Pending)` |
 | **P16-T03** | 🔴 P1 | **Interactive API Sandbox ("Try It Out")** — Build an API proxy into the Go backend that allows developers to generate ephemeral test tokens and issue live requests to the API directly from the Substrate documentation UI. | Jules | ✅ PR Merged | `(Pending)` |
 | **P16-T04** | 🟢 P3 | **Auto-Generated SDK Code Snippets** — Dynamically generate copy-pasteable request snippets (Curl, Python, Node, Go) for every endpoint in the documentation based on the OpenAPI schema. | Unassigned | 💡 Planned | `(Pending)` |
@@ -137,7 +137,7 @@
 | **P17-T03** | 🔴 P1 | **GitOps API Gateway Sync (CRD Generation)** — Automatically generate Kubernetes CRDs (or Terraform state) for Kong/AWS API Gateway based on Substrate schemas, pushing them when PRs are merged. | Jules | ✅ PR Merged | `(Pending)` |
 | **P17-T04** | 🔴 P1 | **PagerDuty Blast Radius Injection** — Integrate with Datadog/PagerDuty. On incident creation, Substrate injects the visual Mermaid Dependency Graph into the incident description to instantly show downstream blast radius. | Jules | ⏳ Next Up | `(Pending)` |
 | **P17-T05** | 🚀 P1 | **Auto-Rollback via ArgoCD/Flux** — Wire Substrate's `Can-Rollback` and eBPF Drift engine to ArgoCD/Flux webhooks, automatically reverting a deployment if it causes severe schema violations in production. | Jules | ⏳ Next Up | `(Pending)` |
-| **P17-T06** | 🚀 P1 | **Deployment & Incident Graph Overlay** — Ingest deployment/incident webhooks (GitHub Actions, Datadog) into an `events` timeline. Visualize these events directly on the Cytoscape Dependency Graph so developers can instantly correlate downstream failures with upstream changes. | Jules | ⏳ In Progress | `docs/specs/phase-17/p17-t06-deployment-overlay.md` |
+| **P17-T06** | 🚀 P1 | **Deployment & Incident Graph Overlay** — Ingest deployment/incident webhooks (GitHub Actions, Datadog) into an `events` timeline. Visualize these events directly on the Cytoscape Dependency Graph so developers can instantly correlate downstream failures with upstream changes. | Jules | ✅ PR Merged | `docs/specs/phase-17/p17-t06-deployment-overlay.md` |
 | **P17-T99** | 🔴 P1 | **Phase 17 E2E Validation (No Mocks)** — Validate all DevOps integrations: API Maturity Scorecard scoring logic, PagerDuty webhook injection, ArgoCD rollback trigger, and GitOps CRD generation. Use real ArgoCD/Forgejo test environments — no mocks. | Jules | 💡 Planned | `docs/specs/phase-17/p17-t99-e2e.md` |
 
 ---
@@ -148,7 +148,7 @@
 
 | Task ID | Tier | Name & Description | Owner | Status | Spec Link |
 |---|---|---|---|---|---|
-| **P18-T01** | 🔴 P1 | **Granular MCP Tool Governance** — Allow FDAIEs to define "Agent Profiles" in Substrate (e.g., support vs. devops). Dynamically generate restricted MCP toolsets based on the profile, enforcing Human-in-the-Loop requirements for destructive `POST/DELETE` operations. | Jules | ⏳ In Progress | `(Pending)` |
+| **P18-T01** | 🔴 P1 | **Granular MCP Tool Governance** — Allow FDAIEs to define "Agent Profiles" in Substrate (e.g., support vs. devops). Dynamically generate restricted MCP toolsets based on the profile, enforcing Human-in-the-Loop requirements for destructive `POST/DELETE` operations. | Jules | ✅ PR Merged | `(Pending)` |
 | **P18-T02** | 🚀 P1 | **Context-Aware Schema Pruning** — Implement a "Pruned Schema API" that takes natural language intent, determines the necessary subset of the OpenAPI spec, and returns only the relevant endpoints to minimize LLM token usage and latency. | Jules | ✅ PR Merged | `(Pending)` |
 | **P18-T03** | 🟡 P2 | **Agent Execution Audit Trails** — Build an AI Forensics Dashboard that logs every MCP tool request, the exact schema injected into the prompt context, and the final payload executed by the AI, providing a verifiable audit log for hallucinations. | Unassigned | 💡 Planned | `(Pending)` |
 | **P18-T04** | 🟢 P3 | **Dependency-Aware RAG Bundling** — Automatically bundle upstream and downstream service schemas into an agent's context window when modifying a target microservice, mathematically guaranteeing cross-repo contract safety. | Unassigned | 💡 Planned | `(Pending)` |
