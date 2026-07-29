@@ -909,6 +909,21 @@ TASKS = {
         "phase": "phase-11-ui",
         "prompt": _load_prompt("prompts/phase-11/t18_e2e_validation.txt"),
     },
+    1701: {
+        "name": "P17-T01 — API Maturity Scorecards (Manager Dashboard)",
+        "phase": "phase-17-management",
+        "prompt": _load_prompt("prompts/phase-17/t01_maturity_scorecards.txt"),
+    },
+    1704: {
+        "name": "P17-T04 — PagerDuty Blast Radius Injection",
+        "phase": "phase-17-management",
+        "prompt": _load_prompt("prompts/phase-17/t04_pagerduty_injection.txt"),
+    },
+    1705: {
+        "name": "P17-T05 — Auto-Rollback via ArgoCD/Flux",
+        "phase": "phase-17-management",
+        "prompt": _load_prompt("prompts/phase-17/t05_argo_rollback.txt"),
+    },
     0: {
         "name": "CC-T02 — E2E Overhaul: Full-Stack PGlite Harness",
         "phase": "cross-cutting",
