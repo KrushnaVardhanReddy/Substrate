@@ -8,6 +8,8 @@ Substrate is a CI/CD-integrated data contract and dependency intelligence platfo
 
 It acts as a proactive firewall for engineering teams by analyzing schema changes, understanding repository dependencies, identifying impacted systems, and blocking unsafe changes before they break applications, analytics, dashboards, and data pipelines.
 
+> 🤖 **Built by AI, For AI**: Substrate is actively developed using a Three-Tier AI Delegation Pipeline (OpenCode + Jules + Antigravity). Please see `docs/wiki/concepts/delegation_strategy.md` for our workflow.
+
 ---
 
 # Quick Start — 3 Minutes to Protect Your API

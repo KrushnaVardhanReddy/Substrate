@@ -13,5 +13,6 @@ We use a persistent, compounding knowledge base located in `docs/wiki/`.
 - **Hexagonal Architecture**: Handlers (ports) are strictly separated from DB implementations (adapters) using `sqlc`.
 - **E2E Testing (No Mocks)**: Substrate relies heavily on live integration testing in `scripts/e2e/`. Tests expect a real Postgres DB.
 - **Enterprise Features**: Features like KMS BYOK, LLM routing, CRM Blast Radius, and Schema Insurance are core to the enterprise offering.
+- **AI Delegation Pipeline**: Substrate is built using a 3-tier AI factory: Local LLMs (Gemma via OpenCode) for specification architecture, Cloud Agents (Jules) for implementation, and IDE Agents (Antigravity) for code review/debugging.
 
 Always read `docs/wiki/index.md` before answering complex architectural questions to ground your knowledge.
