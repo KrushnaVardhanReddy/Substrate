@@ -16,12 +16,14 @@ CONSTRAINTS & RULES
 - Grade badge in the UI must be colour-coded: A=green, B=teal, C=yellow, D=orange, F=red.
 - Svelte grade badge component MUST have a Vitest unit test.
 
+- **Svelte 5 UI Constraints**: Substrate uses Svelte 5 runes mode. Due to prop restrictions, NEVER use barrel imports for `lucide-svelte` icons (e.g., `import { Activity } from 'lucide-svelte'`). You MUST use direct imports (e.g., `import Activity from 'lucide-svelte/icons/activity'`) to avoid `Cannot use $$props in runes mode` errors.
+
 ═══════════════════════════════════════════════════════════════
 CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
 ═══════════════════════════════════════════════════════════════
-- Compliance flags are stored in the `compliance_flags` table (added in Phase 9).
-- Breaking changes are stored in `diff_reports` table — query by `org`, `repo`, `has_breaking_change=true`, `created_at > NOW() - INTERVAL '30 days'`.
-- Shadow coverage data is in the `shadow_coverage` table — query by `org`, `repo`.
+- Compliance flags will be stored in a new `repo_compliance` table.
+- Breaking changes are stored in `diff_reports` table.
+- Shadow coverage data is stored in the `qa_replay_jobs` table (use the `coverage_score` column).
 - The Org Overview page is `dashboard/src/routes/(app)/org/[org]/+page.svelte`. It currently lists repos. Add a "Health" column to that table.
 - API handlers follow the pattern in `api/internal/handlers/org.go`.
 
