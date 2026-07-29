@@ -1,0 +1,6 @@
+1. Create `api/internal/handlers/argocd.go` with the webhook handler `ArgoDriftWebhookHandler(store db.Store)`. It will parse the incoming ArgoCD/Flux webhook payload (we will assume a simple struct containing `org_name` and `repo_name` for now, or investigate if there's an ArgoCD payload struct available in the codebase, but the requirement is just to receive ArgoCD webhooks - actually, looking at the specs for similar tasks, often they just send `org_name` and `repo_name` in the payload for internal integration) to determine the target service, call `store.GetDriftAnomalies(ctx, org_name, repo_name)`, and return HTTP 406 if there are anomalies, else HTTP 200. Use `read_file` to verify file creation.
+2. Edit `api/internal/server/router.go` to add `r.Method("POST", "/api/v1/argo/drift-webhook", http.HandlerFunc(handlers.ArgoDriftWebhookHandler(store)))` or equivalent. Use `read_file` to verify modifications.
+3. Create `api/internal/handlers/argocd_test.go` with table-driven tests for the handler, simulating requests and using a mock store. Use `read_file` to verify file creation.
+4. Run `cd api && go test ./...` and `cd api && go test -v ./internal/handlers -run TestArgoDriftWebhook` to test the new code.
+5. Complete pre commit steps to make sure proper testing, verifications, reviews and reflections are done.
+6. Submit the branch.
