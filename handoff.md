@@ -2,11 +2,11 @@
 
 ## Current State
 - **System E2E Status:** 🟩 100% Passing (94 Playwright tests, Go API suites, MCP tools).
-- **Recent Work:** Merged the third batch of Jules sessions (API Maturity Scorecards, PagerDuty Injection, ArgoCD Rollback) and resolved DB store append conflicts. Dispatched the final Phase 17 batch.
+- **Recent Work:** Merged the third batch of Jules sessions (API Maturity Scorecards, PagerDuty Injection, ArgoCD Rollback).
 - **Active Jules Sessions:**
   1. `feat/p17-t02-finops-translation` - Legacy API FinOps Translation
   2. `feat/p17-t99-e2e-validation` - Phase 17 E2E Validation
-- **Next Up:** Monitor the final Phase 17 Jules sessions. Review the generated PRs and merge them to formally close out Phase 17!
+- **Next Up:** Review the generated PRs for the final Phase 17 batch. Once merged, run `make e2e` to officially close out Phase 17.
 
 ## 🚀 2-Day Execution & Merge Strategy
 
