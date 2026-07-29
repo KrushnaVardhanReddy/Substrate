@@ -1,4 +1,4 @@
-# BusTracking Three-Tier Delegation Strategy
+# Substrate Three-Tier Delegation Strategy
 
 The Substrate project utilizes a strict three-tier AI delegation strategy to maximize development velocity while minimizing API token burn.
 
