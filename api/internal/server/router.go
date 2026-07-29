@@ -84,6 +84,8 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 	// Risk score endpoint
 	r.Method("GET", "/api/v1/risk/{org}/{repo}/{pr}", http.HandlerFunc(handlers.RiskScoreHandler()))
 
+	r.Method("GET", "/api/v1/scorecard/{org}/{repo}", http.HandlerFunc(handlers.GetScorecardHandler(store)))
+
 	// Guides docs API
 	r.Method("GET", "/api/v1/docs/{org}/{repo}", http.HandlerFunc(handlers.ListGuidesHandler(store)))
 	r.Method("GET", "/api/v1/docs/{org}/{repo}/{slug}", http.HandlerFunc(handlers.GetGuideHandler(store)))

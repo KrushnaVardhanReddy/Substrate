@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
@@ -341,6 +342,12 @@ type Store interface {
 
 	InsertEcosystemEvent(ctx context.Context, arg sqlcgen.InsertEcosystemEventParams) (sqlcgen.EcosystemEvent, error)
 	GetEcosystemEventsByOrg(ctx context.Context, arg sqlcgen.GetEcosystemEventsByOrgParams) ([]sqlcgen.EcosystemEvent, error)
+
+	GetScorecardCache(ctx context.Context, arg sqlcgen.GetScorecardCacheParams) (sqlcgen.ScorecardCache, error)
+	UpsertScorecardCache(ctx context.Context, arg sqlcgen.UpsertScorecardCacheParams) error
+	GetRepoCompliance(ctx context.Context, arg sqlcgen.GetRepoComplianceParams) (sqlcgen.RepoCompliance, error)
+	GetLatestQACoverageScore(ctx context.Context, arg sqlcgen.GetLatestQACoverageScoreParams) (pgtype.Numeric, error)
+	HasRepoGuides(ctx context.Context, arg sqlcgen.HasRepoGuidesParams) (bool, error)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
