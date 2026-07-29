@@ -924,6 +924,11 @@ TASKS = {
         "phase": "phase-17-management",
         "prompt": _load_prompt("prompts/phase-17/t05_argo_rollback.txt"),
     },
+    1799: {
+        "name": "P17-T99 — Phase 17 E2E Validation",
+        "phase": "phase-17-management",
+        "prompt": _load_prompt("prompts/phase-17/t99_e2e_validation.txt"),
+    },
     0: {
         "name": "CC-T02 — E2E Overhaul: Full-Stack PGlite Harness",
         "phase": "cross-cutting",
