@@ -1,12 +1,17 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/db/sqlcgen"
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -133,4 +138,74 @@ func TestEventsHandler_NotFlusher(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestCreateEventHandler(t *testing.T) {
+	mockStore := &db.MockStore{
+		InsertEcosystemEventFunc: func(ctx context.Context, arg sqlcgen.InsertEcosystemEventParams) (sqlcgen.EcosystemEvent, error) {
+			return sqlcgen.EcosystemEvent{
+				Org:         arg.Org,
+				Repo:        arg.Repo,
+				EventType:   arg.EventType,
+				Description: arg.Description,
+				EventTime:   arg.EventTime,
+			}, nil
+		},
+	}
+	handler := CreateEventHandler(mockStore)
+
+	t.Run("Valid deployment event", func(t *testing.T) {
+		reqBody := EventRequest{
+			Org:         "test-org",
+			Repo:        "test-repo",
+			EventType:   "deployment",
+			Description: "v1.0.0",
+		}
+		bodyBytes, _ := json.Marshal(reqBody)
+		req := httptest.NewRequest("POST", "/api/v1/events", bytes.NewReader(bodyBytes))
+		rec := httptest.NewRecorder()
+
+		handler.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusCreated, rec.Code)
+	})
+
+	t.Run("Invalid event type", func(t *testing.T) {
+		reqBody := EventRequest{
+			Org:       "test-org",
+			Repo:      "test-repo",
+			EventType: "invalid-type",
+		}
+		bodyBytes, _ := json.Marshal(reqBody)
+		req := httptest.NewRequest("POST", "/api/v1/events", bytes.NewReader(bodyBytes))
+		rec := httptest.NewRecorder()
+
+		handler.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Contains(t, rec.Body.String(), "event_type must be deployment or incident")
+	})
+}
+
+func TestGetEventsHandler(t *testing.T) {
+	mockStore := &db.MockStore{
+		GetEcosystemEventsByOrgFunc: func(ctx context.Context, arg sqlcgen.GetEcosystemEventsByOrgParams) ([]sqlcgen.EcosystemEvent, error) {
+			return []sqlcgen.EcosystemEvent{
+				{Org: "test-org", Repo: "repo1", EventType: "deployment"},
+			}, nil
+		},
+	}
+	handler := GetEventsHandler(mockStore)
+
+	t.Run("Get events for org", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/api/v1/events/test-org", nil)
+		r := chi.NewRouter()
+		r.Get("/api/v1/events/{org}", handler)
+		rec := httptest.NewRecorder()
+
+		r.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Contains(t, rec.Body.String(), "test-org")
+	})
 }

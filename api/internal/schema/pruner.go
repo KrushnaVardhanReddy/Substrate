@@ -11,10 +11,10 @@ import (
 )
 
 type ScoredPath struct {
-	Path        string
-	Method      string
-	Operation   *openapi3.Operation
-	Score       float64
+	Path      string
+	Method    string
+	Operation *openapi3.Operation
+	Score     float64
 }
 
 // PruneSchema takes an OpenAPI spec and returns a new one containing only the top N endpoints

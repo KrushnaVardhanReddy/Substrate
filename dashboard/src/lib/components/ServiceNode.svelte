@@ -15,7 +15,7 @@
 	});
 </script>
 
-<div class="service-node-card {nodeType}" style="background-color: {backgroundColor};" class:origin={data.isOrigin} class:affected={data.isAffected} class:faded={data.isFaded}>
+<div class="service-node-card {nodeType}" style="background-color: {backgroundColor};" class:origin={data.isOrigin} class:affected={data.isAffected} class:faded={data.isFaded} class:highlighted={data.selectedEventRepo === data.label} class:deployment={data.selectedEventRepo === data.label && data.selectedEventType === 'deployment'} class:incident={data.selectedEventRepo === data.label && data.selectedEventType === 'incident'}>
 	<Handle type="target" position={Position.Top} style="background: #555; width: 8px; height: 8px;" />
 
 	<div class="header">
@@ -138,5 +138,20 @@
 
 	.service-node-card.faded {
 		opacity: 0.2;
+	}
+
+
+	.service-node-card.highlighted.deployment {
+		border-color: #3B82F6;
+		box-shadow: 0 0 15px rgba(59, 130, 246, 0.8);
+		transform: scale(1.05);
+		z-index: 10;
+	}
+
+	.service-node-card.highlighted.incident {
+		border-color: #EF4444;
+		box-shadow: 0 0 15px rgba(239, 68, 68, 0.8);
+		transform: scale(1.05);
+		z-index: 10;
 	}
 </style>

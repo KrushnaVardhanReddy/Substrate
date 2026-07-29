@@ -9,7 +9,8 @@
 
 	import { toPng } from 'html-to-image';
 	import { Download, RotateCw } from 'lucide-svelte';
-	import ServiceNode from '$lib/components/ServiceNode.svelte';
+	import TimelinePanel from '$lib/components/graph/TimelinePanel.svelte';
+import ServiceNode from '$lib/components/ServiceNode.svelte';
 	import TeamGroupNode from '$lib/components/TeamGroupNode.svelte';
 	import TimeTravelScrubber from '$lib/components/TimeTravelScrubber.svelte';
 	import InteractiveEdge from '$lib/components/InteractiveEdge.svelte';
@@ -44,6 +45,8 @@
 	});
 
 	let selectedNode: any = $state(null);
+	let selectedEventRepo = $state<string | null>(null);
+	let selectedEventType = $state<string | null>(null);
 
 	let selectedDownstream = $derived(
 		selectedNode ? rawEdges.filter(e => e.source === selectedNode.id).map(e => e.target) : []
@@ -202,6 +205,7 @@
 				...n,
 				data: {
 					...n.data,
+					selectedEventRepo: selectedEventRepo, selectedEventType: selectedEventType,
 					isOrigin: n.id === selectedNode.id,
 					isAffected: blastRadius.nodes.has(n.id),
 					isFaded: n.id !== selectedNode.id && !blastRadius.nodes.has(n.id)
@@ -217,7 +221,7 @@
 		} else {
 			dNodes = dNodes.map(n => ({
 				...n,
-				data: { ...n.data, isOrigin: false, isAffected: false, isFaded: false }
+				data: { ...n.data, selectedEventRepo: selectedEventRepo, selectedEventType: selectedEventType, isOrigin: false, isAffected: false, isFaded: false }
 			}));
 		}
 
@@ -396,6 +400,16 @@
 	const exportImage = () => {
 		// Not implemented for cytoscape yet
 	};
+
+
+	$effect(() => {
+		if (cyInstance && rawNodes.length > 0) {
+			cyInstance.nodes().forEach(node => {
+				const isSelected = selectedEventRepo && node.id() === selectedEventRepo;
+				node.data('selectedEventRepo', selectedEventRepo);
+			});
+		}
+	});
 
 	const processGraphData = (edgesData: any) => {
 		let newNodesMap = new Map<string, any>();
@@ -625,6 +639,11 @@
 		<!-- Time Travel Scrubber -->
 		<div class="scrubber-wrapper">
 			<TimeTravelScrubber />
+		</div>
+
+		<!-- Event Timeline Scrubber -->
+		<div class="scrubber-wrapper">
+			<TimelinePanel bind:selectedEventRepo bind:selectedEventType />
 		</div>
 	</main>
 

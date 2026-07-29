@@ -48,7 +48,7 @@ func TestPruneSchema(t *testing.T) {
 			Version: "1.0.0",
 		},
 		Components: components,
-		Paths: openapi3.NewPaths(),
+		Paths:      openapi3.NewPaths(),
 	}
 
 	spec.Paths.Set("/users", &openapi3.PathItem{

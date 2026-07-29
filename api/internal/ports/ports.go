@@ -318,6 +318,9 @@ type Store interface {
 	KMSStore
 	PartnerStore
 	PoolProvider
+
+	InsertEcosystemEvent(ctx context.Context, arg sqlcgen.InsertEcosystemEventParams) (sqlcgen.EcosystemEvent, error)
+	GetEcosystemEventsByOrg(ctx context.Context, arg sqlcgen.GetEcosystemEventsByOrgParams) ([]sqlcgen.EcosystemEvent, error)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

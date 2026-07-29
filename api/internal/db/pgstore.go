@@ -333,3 +333,13 @@ func (s *PGStore) GetPrunedSchemaCache(ctx context.Context, arg sqlcgen.GetPrune
 func (s *PGStore) UpsertPrunedSchemaCache(ctx context.Context, arg sqlcgen.UpsertPrunedSchemaCacheParams) error {
 	return sqlcgen.New(s.pool).UpsertPrunedSchemaCache(ctx, arg)
 }
+
+func (s *PGStore) InsertEcosystemEvent(ctx context.Context, arg sqlcgen.InsertEcosystemEventParams) (sqlcgen.EcosystemEvent, error) {
+	q := sqlcgen.New(s.pool)
+	return q.InsertEcosystemEvent(ctx, arg)
+}
+
+func (s *PGStore) GetEcosystemEventsByOrg(ctx context.Context, arg sqlcgen.GetEcosystemEventsByOrgParams) ([]sqlcgen.EcosystemEvent, error) {
+	q := sqlcgen.New(s.pool)
+	return q.GetEcosystemEventsByOrg(ctx, arg)
+}

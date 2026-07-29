@@ -709,10 +709,10 @@ func (c *RESTClient) CommitAndPushFile(ctx context.Context, owner, repo, branch,
 		"base_tree": mainSHA,
 		"tree": []map[string]interface{}{
 			{
-				"path":  filePath,
-				"mode":  "100644",
-				"type":  "blob",
-				"sha":   blobResult.SHA,
+				"path": filePath,
+				"mode": "100644",
+				"type": "blob",
+				"sha":  blobResult.SHA,
 			},
 		},
 	}

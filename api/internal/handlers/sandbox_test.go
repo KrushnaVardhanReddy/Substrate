@@ -3,12 +3,12 @@ package handlers_test
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
-	"crypto/sha256"
 
 	"aidanwoods.dev/go-paseto"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
