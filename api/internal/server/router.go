@@ -13,13 +13,13 @@ import (
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/handler"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/handlers"
 
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/ai"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/marketplace"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/registry"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/services"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/webhook"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/workers"
-	"github.com/KrushnaVardhanReddy/substrate/api/internal/ai"
 )
 
 func ServiceTokenMiddleware(registryApiToken string) func(http.Handler) http.Handler {
@@ -131,6 +131,8 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 
 	// SSE endpoint for live graph updates
 	r.Method("GET", "/api/v1/events", authMW(http.HandlerFunc(handlers.EventsHandler)))
+	r.Method("POST", "/api/v1/events", authMW(http.HandlerFunc(handlers.CreateEventHandler(store))))
+	r.Method("GET", "/api/v1/events/{org}", authMW(http.HandlerFunc(handlers.GetEventsHandler(store))))
 
 	// OTel Metrics and Zombies (Phase 10)
 	r.Method("POST", "/api/v1/otel/webhook", serviceTokenMW(http.HandlerFunc(handlers.OTelMetricsHandler(store))))

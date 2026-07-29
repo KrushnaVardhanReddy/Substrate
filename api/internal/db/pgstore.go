@@ -382,3 +382,13 @@ func (s *PGStore) GetRepoGuide(ctx context.Context, org, repo, slug string) (*Re
 	}
 	return &g, nil
 }
+
+func (s *PGStore) InsertEcosystemEvent(ctx context.Context, arg sqlcgen.InsertEcosystemEventParams) (sqlcgen.EcosystemEvent, error) {
+	q := sqlcgen.New(s.pool)
+	return q.InsertEcosystemEvent(ctx, arg)
+}
+
+func (s *PGStore) GetEcosystemEventsByOrg(ctx context.Context, arg sqlcgen.GetEcosystemEventsByOrgParams) ([]sqlcgen.EcosystemEvent, error) {
+	q := sqlcgen.New(s.pool)
+	return q.GetEcosystemEventsByOrg(ctx, arg)
+}

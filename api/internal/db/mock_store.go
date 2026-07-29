@@ -67,6 +67,9 @@ type MockStore struct {
 	GetInsuranceClaimsFunc             func(ctx context.Context, orgID uuid.UUID) ([]InsuranceClaim, error)
 	GetPrunedSchemaCacheFunc           func(ctx context.Context, arg sqlcgen.GetPrunedSchemaCacheParams) (sqlcgen.SchemaPruneCache, error)
 	UpsertPrunedSchemaCacheFunc        func(ctx context.Context, arg sqlcgen.UpsertPrunedSchemaCacheParams) error
+
+	InsertEcosystemEventFunc    func(ctx context.Context, arg sqlcgen.InsertEcosystemEventParams) (sqlcgen.EcosystemEvent, error)
+	GetEcosystemEventsByOrgFunc func(ctx context.Context, arg sqlcgen.GetEcosystemEventsByOrgParams) ([]sqlcgen.EcosystemEvent, error)
 }
 
 func (m *MockStore) Pool() *pgxpool.Pool {
@@ -558,4 +561,18 @@ func (m *MockStore) GetHITLQueueItem(ctx context.Context, id int) (HITLQueueItem
 
 func (m *MockStore) ResolveHITLQueueItem(ctx context.Context, id int, status string) error {
 	return nil
+}
+
+func (m *MockStore) InsertEcosystemEvent(ctx context.Context, arg sqlcgen.InsertEcosystemEventParams) (sqlcgen.EcosystemEvent, error) {
+	if m.InsertEcosystemEventFunc != nil {
+		return m.InsertEcosystemEventFunc(ctx, arg)
+	}
+	return sqlcgen.EcosystemEvent{}, nil
+}
+
+func (m *MockStore) GetEcosystemEventsByOrg(ctx context.Context, arg sqlcgen.GetEcosystemEventsByOrgParams) ([]sqlcgen.EcosystemEvent, error) {
+	if m.GetEcosystemEventsByOrgFunc != nil {
+		return m.GetEcosystemEventsByOrgFunc(ctx, arg)
+	}
+	return nil, nil
 }

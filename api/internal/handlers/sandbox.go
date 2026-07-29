@@ -13,9 +13,9 @@ import (
 	"time"
 
 	"aidanwoods.dev/go-paseto"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db/sqlcgen"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/ports"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type SandboxHandler struct {
@@ -204,7 +204,7 @@ func (h *SandboxHandler) ProxyRequestHandler(w http.ResponseWriter, r *http.Requ
 	client := &http.Client{}
 	resp, err := client.Do(outReq)
 	if err != nil {
-		http.Error(w, "failed to execute proxy request: " + err.Error(), http.StatusBadGateway)
+		http.Error(w, "failed to execute proxy request: "+err.Error(), http.StatusBadGateway)
 		return
 	}
 	defer resp.Body.Close()

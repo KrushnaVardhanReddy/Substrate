@@ -202,6 +202,9 @@ type Store interface {
 	UpsertPrunedSchemaCache(ctx context.Context, arg sqlcgen.UpsertPrunedSchemaCacheParams) error
 	SaveGatewayConfig(ctx context.Context, org, repo, gatewayType, crdYaml, prUrl string) error
 	Pool() *pgxpool.Pool
+
+	InsertEcosystemEvent(ctx context.Context, arg sqlcgen.InsertEcosystemEventParams) (sqlcgen.EcosystemEvent, error)
+	GetEcosystemEventsByOrg(ctx context.Context, arg sqlcgen.GetEcosystemEventsByOrgParams) ([]sqlcgen.EcosystemEvent, error)
 }
 
 type PublicNamespace struct {
