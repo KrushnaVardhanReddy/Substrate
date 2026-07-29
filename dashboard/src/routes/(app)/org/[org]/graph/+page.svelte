@@ -8,7 +8,8 @@
 	cytoscape.use(dagre);
 
 	import { toPng } from 'html-to-image';
-	import { Download, RotateCw } from 'lucide-svelte';
+	import Download from '@lucide/svelte/icons/download';
+import RotateCw from '@lucide/svelte/icons/rotate-cw';
 	import TimelinePanel from '$lib/components/graph/TimelinePanel.svelte';
 import ServiceNode from '$lib/components/ServiceNode.svelte';
 	import TeamGroupNode from '$lib/components/TeamGroupNode.svelte';

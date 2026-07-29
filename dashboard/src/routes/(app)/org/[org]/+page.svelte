@@ -19,7 +19,7 @@
 					<th class="p-4 border-b border-[var(--border)] font-medium text-[var(--text-muted)] text-sm">Schema Type</th>
 					<th class="p-4 border-b border-[var(--border)] font-medium text-[var(--text-muted)] text-sm">Last Synced</th>
 					<th class="p-4 border-b border-[var(--border)] font-medium text-[var(--text-muted)] text-sm">Status</th>
-					<th class="p-4 border-b border-[var(--border)] font-medium text-[var(--text-muted)] text-sm">Health</th>
+					<th class="p-4 border-b border-[var(--border)] font-medium text-[var(--text-muted)] text-sm">Health Grade</th>
 				</tr>
 			</thead>
 			<tbody>

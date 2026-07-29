@@ -13,6 +13,6 @@
 	}
 </script>
 
-<a href="/org/{org}/scorecard/{repo}" class="grade-badge inline-flex items-center justify-center w-8 h-8 rounded font-bold text-sm {getGradeClass(grade)} hover:opacity-80 transition-opacity">
+<a href="/org/{org}/scorecard/{repo}" data-testid="health-grade-badge" class="grade-badge inline-flex items-center justify-center w-8 h-8 rounded font-bold text-sm {getGradeClass(grade)} hover:opacity-80 transition-opacity">
 	{grade}
 </a>
