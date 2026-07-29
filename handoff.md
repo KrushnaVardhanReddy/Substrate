@@ -2,12 +2,12 @@
 
 ## Current State
 - **System E2E Status:** 🟩 100% Passing (94 Playwright tests, Go API suites, MCP tools).
-- **Recent Work:** Merged the first batch of parallel Jules sessions (Sandbox, GitOps Sync, Schema Pruning) and resolved database migration conflicts sequentially. Dispatched the second batch of Jules sessions (Markdown Ingestion, Deployment Overlay, MCP Governance).
+- **Recent Work:** Merged the second batch of Jules sessions (Markdown Ingestion, Deployment Overlay, MCP Governance, Spec Sync) and resolved DB migration collisions. Dispatched the third batch (Scorecards, PagerDuty Injection, ArgoCD Rollback).
 - **Active Jules Sessions:**
-  1. `feat/p16-t01-markdown-ingestion` - Markdown Guide Ingestion (Diátaxis)
-  2. `feat/p17-t06-deployment-overlay` - Deployment & Incident Graph Overlay
-  3. `feat/p18-t01-mcp-governance` - Granular MCP Tool Governance
-- **Next Up:** Monitor the second batch of Jules sessions. Review the generated PRs and merge them carefully following the 2-Day Strategy.
+  1. `feat/p17-t01-maturity-scorecards` - API Maturity Scorecards
+  2. `feat/p17-t04-pagerduty-injection` - PagerDuty Blast Radius Injection
+  3. `feat/p17-t05-argo-rollback` - Auto-Rollback via ArgoCD/Flux
+- **Next Up:** Monitor the third batch of Jules sessions. Review the generated PRs and merge them carefully following the 2-Day Strategy.
 
 ## 🚀 2-Day Execution & Merge Strategy
 

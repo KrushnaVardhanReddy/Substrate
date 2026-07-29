@@ -1,0 +1,35 @@
+TASK: P17-T05 — Auto-Rollback via ArgoCD/Flux
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Wire Substrate's `Can-Rollback` and eBPF Drift engine to ArgoCD/Flux webhooks, automatically reverting a deployment if it causes severe schema violations in production.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-17/p17-t05-argo-rollback.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- The `POST /api/v1/argo/drift-webhook` endpoint MUST evaluate drift anomalies.
+- You MUST write a Go unit test for the new webhook handler.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- API handlers follow the pattern in `api/internal/handlers/org.go`. Add `api/internal/handlers/argocd.go`.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Query the `drift_anomalies` table for the target service to determine if severe anomalies exist.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: api/internal/handlers/argocd.go (CREATE)
+   - Include `argocd_test.go`
+2. Run `go test ./...`.
+
+Commit: "jules: P17-T05 add ArgoCD auto-rollback webhook"
+Target branch: feature/p17-t05-argo-rollback

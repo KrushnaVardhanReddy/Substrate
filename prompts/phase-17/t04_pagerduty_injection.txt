@@ -1,0 +1,37 @@
+TASK: P17-T04 — PagerDuty Blast Radius Injection
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Integrate with Datadog/PagerDuty. On incident creation, Substrate injects the visual Cytoscape Dependency Graph into the incident description to instantly show downstream blast radius.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-17/p17-t04-pagerduty-injection.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- The `POST /api/v1/integrations/pagerduty/webhook` endpoint MUST validate the incoming payload.
+- You MUST write a Go unit test for the new webhook handler.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- API handlers follow the pattern in `api/internal/handlers/org.go`. Add `api/internal/handlers/pagerduty.go`.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Add a new DB migration for the `org_integrations` table if it doesn't exist, to store the PagerDuty API key.
+- Create the webhook handler to process incoming incidents.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: api/internal/db/migrations/YYYYMMDD_add_org_integrations.sql (CREATE)
+2. FILE: api/internal/handlers/pagerduty.go (CREATE)
+   - Include `pagerduty_test.go`
+3. Run `go test ./...`.
+
+Commit: "jules: P17-T04 add PagerDuty blast radius injection"
+Target branch: feature/p17-t04-pagerduty-injection
