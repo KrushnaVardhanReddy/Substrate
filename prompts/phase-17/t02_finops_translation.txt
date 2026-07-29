@@ -1,0 +1,43 @@
+TASK: P17-T02 — Legacy API FinOps Translation
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Expand the existing "Zombie API" detection system to calculate and display the estimated dollar amount saved by sunsetting legacy endpoints. By assigning a financial value to unused API endpoints, Engineering Managers can justify prioritization of API deprecations.
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+1. Do not use mocks in backend tests.
+2. The UI must use Svelte 5 Runes ($state, $effect, etc).
+3. Svelte 5 UI Constraints: Substrate uses Svelte 5 runes mode. Due to prop restrictions, NEVER use barrel imports for `lucide-svelte` icons (e.g., `import { Activity } from 'lucide-svelte'`). You MUST use direct imports (e.g., `import DollarSign from 'lucide-svelte/icons/dollar-sign'`) to avoid `Cannot use $$props in runes mode` errors.
+4. Calculate savings using $500/month per zombie endpoint.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The zombie endpoints API is `GET /api/v1/org/{org}/zombies` implemented in `api/internal/handlers/otel_webhook.go`.
+- It currently returns a JSON array of `sqlcgen.ZeroTrafficEndpoint`.
+- The dashboard zombie UI is at `dashboard/src/routes/(app)/org/[org]/zombies/+page.svelte`.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION STEPS
+═══════════════════════════════════════════════════════════════
+
+1. FILE: api/internal/handlers/otel_webhook.go (MODIFY)
+   - Create a `ZombieFinOpsResponse` struct containing `Zombies`, `TotalMonthlySavings`, and `SavingsPerEndpoint`.
+   - Update `GetZombiesHandler` to return the new `ZombieFinOpsResponse` JSON object instead of a raw array. Calculate `TotalMonthlySavings` as `len(zombies) * 500`.
+
+2. FILE: api/internal/handlers/otel_webhook_test.go (MODIFY)
+   - Update the expected JSON parsing in `TestGetZombiesHandler` to match the new object structure.
+
+3. FILE: dashboard/src/routes/(app)/org/[org]/zombies/+page.svelte (MODIFY)
+   - Refactor the page state and `onMount` fetch to handle the new JSON structure.
+   - Add a FinOps banner/widget at the top (e.g., a green stats card) displaying the `total_monthly_savings`.
+   - Use direct icon imports from `lucide-svelte` for any icons added.
+   - Add a column to the table indicating the $500 potential savings per row.
+
+4. FILE: dashboard/tests/e2e/zombies.spec.ts (MODIFY)
+   - If this file mocks the API response via `page.route`, update the mock payload to match the new `ZombieFinOpsResponse` shape.
+
+Commit message: "feat: P17-T02 implement legacy API FinOps translation"

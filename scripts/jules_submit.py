@@ -914,6 +914,11 @@ TASKS = {
         "phase": "phase-17-management",
         "prompt": _load_prompt("prompts/phase-17/t01_maturity_scorecards.txt"),
     },
+    1702: {
+        "name": "P17-T02 — Legacy API FinOps Translation",
+        "phase": "phase-17-management",
+        "prompt": _load_prompt("prompts/phase-17/t02_finops_translation.txt"),
+    },
     1704: {
         "name": "P17-T04 — PagerDuty Blast Radius Injection",
         "phase": "phase-17-management",
