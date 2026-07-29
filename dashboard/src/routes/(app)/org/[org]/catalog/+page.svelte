@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { goto } from '$app/navigation';
-	import { Search } from 'lucide-svelte';
+	import Search from '@lucide/svelte/icons/search';
 
 	let { data }: { data: PageData } = $props();
 

@@ -392,3 +392,28 @@ func (s *PGStore) GetEcosystemEventsByOrg(ctx context.Context, arg sqlcgen.GetEc
 	q := sqlcgen.New(s.pool)
 	return q.GetEcosystemEventsByOrg(ctx, arg)
 }
+
+func (s *PGStore) GetScorecardCache(ctx context.Context, arg sqlcgen.GetScorecardCacheParams) (sqlcgen.ScorecardCache, error) {
+	q := sqlcgen.New(s.pool)
+	return q.GetScorecardCache(ctx, arg)
+}
+
+func (s *PGStore) UpsertScorecardCache(ctx context.Context, arg sqlcgen.UpsertScorecardCacheParams) error {
+	q := sqlcgen.New(s.pool)
+	return q.UpsertScorecardCache(ctx, arg)
+}
+
+func (s *PGStore) GetRepoCompliance(ctx context.Context, arg sqlcgen.GetRepoComplianceParams) (sqlcgen.RepoCompliance, error) {
+	q := sqlcgen.New(s.pool)
+	return q.GetRepoCompliance(ctx, arg)
+}
+
+func (s *PGStore) GetLatestQACoverageScore(ctx context.Context, arg sqlcgen.GetLatestQACoverageScoreParams) (pgtype.Numeric, error) {
+	q := sqlcgen.New(s.pool)
+	return q.GetLatestQACoverageScore(ctx, arg)
+}
+
+func (s *PGStore) HasRepoGuides(ctx context.Context, arg sqlcgen.HasRepoGuidesParams) (bool, error) {
+	q := sqlcgen.New(s.pool)
+	return q.HasRepoGuides(ctx, arg)
+}

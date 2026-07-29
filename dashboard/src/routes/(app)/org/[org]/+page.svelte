@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
+	import RepoHealthCell from '$lib/components/RepoHealthCell.svelte';
 	let { data } = $props();
 </script>
 
@@ -18,6 +19,7 @@
 					<th class="p-4 border-b border-[var(--border)] font-medium text-[var(--text-muted)] text-sm">Schema Type</th>
 					<th class="p-4 border-b border-[var(--border)] font-medium text-[var(--text-muted)] text-sm">Last Synced</th>
 					<th class="p-4 border-b border-[var(--border)] font-medium text-[var(--text-muted)] text-sm">Status</th>
+					<th class="p-4 border-b border-[var(--border)] font-medium text-[var(--text-muted)] text-sm">Health</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -44,6 +46,9 @@
 								<span class="w-2 h-2 rounded-full {repo.status === 'active' ? 'bg-[var(--safe)]' : 'bg-[var(--text-muted)]'}"></span>
 								{repo.status || 'Unknown'}
 							</span>
+						</td>
+						<td class="p-4 border-b border-[var(--border)]" onclick={(e) => e.stopPropagation()}>
+							<RepoHealthCell org={$page.params.org!} repo={repo.name} />
 						</td>
 					</tr>
 				{/each}

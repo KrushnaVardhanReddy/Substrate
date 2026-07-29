@@ -8,6 +8,7 @@ import (
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db/sqlcgen"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -70,6 +71,12 @@ type MockStore struct {
 
 	InsertEcosystemEventFunc    func(ctx context.Context, arg sqlcgen.InsertEcosystemEventParams) (sqlcgen.EcosystemEvent, error)
 	GetEcosystemEventsByOrgFunc func(ctx context.Context, arg sqlcgen.GetEcosystemEventsByOrgParams) ([]sqlcgen.EcosystemEvent, error)
+
+	GetScorecardCacheFunc        func(ctx context.Context, arg sqlcgen.GetScorecardCacheParams) (sqlcgen.ScorecardCache, error)
+	UpsertScorecardCacheFunc     func(ctx context.Context, arg sqlcgen.UpsertScorecardCacheParams) error
+	GetRepoComplianceFunc        func(ctx context.Context, arg sqlcgen.GetRepoComplianceParams) (sqlcgen.RepoCompliance, error)
+	GetLatestQACoverageScoreFunc func(ctx context.Context, arg sqlcgen.GetLatestQACoverageScoreParams) (pgtype.Numeric, error)
+	HasRepoGuidesFunc            func(ctx context.Context, arg sqlcgen.HasRepoGuidesParams) (bool, error)
 }
 
 func (m *MockStore) Pool() *pgxpool.Pool {
@@ -84,6 +91,41 @@ func (m *MockStore) GetPublicSchema(ctx context.Context, namespace, name, versio
 		return m.GetPublicSchemaFunc(ctx, namespace, name, version)
 	}
 	return nil, nil
+}
+
+func (m *MockStore) GetScorecardCache(ctx context.Context, arg sqlcgen.GetScorecardCacheParams) (sqlcgen.ScorecardCache, error) {
+	if m.GetScorecardCacheFunc != nil {
+		return m.GetScorecardCacheFunc(ctx, arg)
+	}
+	return sqlcgen.ScorecardCache{}, nil
+}
+
+func (m *MockStore) UpsertScorecardCache(ctx context.Context, arg sqlcgen.UpsertScorecardCacheParams) error {
+	if m.UpsertScorecardCacheFunc != nil {
+		return m.UpsertScorecardCacheFunc(ctx, arg)
+	}
+	return nil
+}
+
+func (m *MockStore) GetRepoCompliance(ctx context.Context, arg sqlcgen.GetRepoComplianceParams) (sqlcgen.RepoCompliance, error) {
+	if m.GetRepoComplianceFunc != nil {
+		return m.GetRepoComplianceFunc(ctx, arg)
+	}
+	return sqlcgen.RepoCompliance{}, nil
+}
+
+func (m *MockStore) GetLatestQACoverageScore(ctx context.Context, arg sqlcgen.GetLatestQACoverageScoreParams) (pgtype.Numeric, error) {
+	if m.GetLatestQACoverageScoreFunc != nil {
+		return m.GetLatestQACoverageScoreFunc(ctx, arg)
+	}
+	return pgtype.Numeric{}, nil
+}
+
+func (m *MockStore) HasRepoGuides(ctx context.Context, arg sqlcgen.HasRepoGuidesParams) (bool, error) {
+	if m.HasRepoGuidesFunc != nil {
+		return m.HasRepoGuidesFunc(ctx, arg)
+	}
+	return true, nil
 }
 
 func (m *MockStore) GetSchema(ctx context.Context, org, repo string) (string, error) {

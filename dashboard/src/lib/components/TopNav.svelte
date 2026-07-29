@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { env } from '$env/dynamic/public';
-	import { LogOut } from 'lucide-svelte';
+	import LogOut from '@lucide/svelte/icons/log-out';
 	import { goto } from '$app/navigation';
 
 	function handleSignOut() {

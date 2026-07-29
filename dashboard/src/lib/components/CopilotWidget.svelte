@@ -1,5 +1,7 @@
 <script lang="ts">
-	import { MessageSquare, X, Send } from 'lucide-svelte';
+	import MessageSquare from '@lucide/svelte/icons/message-square';
+	import X from '@lucide/svelte/icons/x';
+	import Send from '@lucide/svelte/icons/send';
 	import { onMount } from 'svelte';
 
 	interface Message {
