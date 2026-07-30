@@ -117,6 +117,10 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 	r.Method("GET", "/api/v1/mcp/hitl-queue/{org}", authzMW(http.HandlerFunc(mcpProfileHandler.ListHITLQueue)))
 	r.Method("POST", "/api/v1/mcp/hitl-queue/{id}/resolve", authMW(http.HandlerFunc(mcpProfileHandler.ResolveHITLItem)))
 
+	sandboxHandler := &handlers.SandboxHandler{Store: store, JWTSecret: jwtSecret}
+	r.Method("POST", "/api/v1/sandbox/token", authzMW(http.HandlerFunc(sandboxHandler.GenerateTokenHandler)))
+	r.Method("POST", "/api/v1/sandbox/request", http.HandlerFunc(sandboxHandler.ProxyRequestHandler))
+
 	jwtValidMW := JWTValidMiddleware(jwtSecret)
 
 	partnersHandler := handler.NewPartnersHandler(store)

@@ -160,6 +160,9 @@ export E2E_AUTH_TOKEN
 echo "🌱 Seeding Phase 17 data for Playwright..."
 (cd api && go run ../scripts/e2e/seed_p17.go ../scripts/e2e/helpers.go)
 
+echo "🌱 Seeding Phase 16 data for Playwright..."
+(cd api && go run ../scripts/e2e/seed_p16.go)
+
 # 5. Run Playwright UI Tests
 echo "🧪 Running Playwright UI Tests..."
 cd dashboard
