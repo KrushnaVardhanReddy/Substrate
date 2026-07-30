@@ -33,6 +33,7 @@
 | **CC-T06** | 🟢 P2 | **API Keys Backend Integration** | Jules | ✅ PR Merged | `docs/specs/ui/api_keys_backend.md` |
 | **CC-T07** | 🟢 P3 | **E2E Validation: API Keys Backend** | Jules | ⚪ Redundant (in T06) | `docs/specs/e2e/api_keys_e2e.md` |
 | **CC-T08** | 🚀 P1 | **Spec Sync Governance & IDE Reminders** | Jules | ✅ PR Merged | `docs/specs/cross_cutting/cc-t08-spec-sync-governance.md` |
+| **CC-T09** | 🟡 P2 | **LLM Aggregator Integration (OpenRouter)** — Configure the Substrate AI services and CI/CD pipelines to route traffic through OpenRouter. This enables the use of permanently free, open-weights models (like Gemma 3 and Llama 3) for local development and E2E testing, reducing API costs to zero. | Unassigned | 💡 Planned | `docs/specs/cross-cutting/cc-t09-openrouter-integration.md` |
 
 ---
 
