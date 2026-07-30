@@ -597,3 +597,29 @@ See the full spec: `docs/specs/enterprise-vision.md`
 | **P10-T14** | 🚀 P1 | **Embedded JS Governance Rules (Goja)** — Support writing custom enterprise governance rules directly in `substrate.yaml` using JavaScript. Uses the `goja` pure-Go JS engine for secure, Turing-complete execution without compilation overhead. | Jules | ✅ Done | `docs/specs/phase-10/p10-t14-custom-governance.md` |
 | **P14-T01** | 🚀 P1 | **AI Contract Negotiation** — Upgrade P7-T04 Auto-Fix PRs with an async team negotiation workflow. When a breaking change is detected, Substrate posts a structured GitHub comment tagging all affected consumer leads, tracks their approval/rejection reactions, and only turns the provider PR green when all consumers have acknowledged. | Jules | ✅ Done | `docs/specs/phase-14/p14-t01-contract-negotiation.md` |
 | **P12-T08** | 🔴 P1 | **V2.0 Production Cutover** — Final pipeline updates to bundle Svelte static assets and WASM binary into the Go single-binary deployment. | Jules | ✅ Done | `docs/specs/phase-12/p12-t08-production-cutover.md` |
+
+
+## 🔮 Phase 14: Predictive Intelligence & Viral Growth
+
+**Goal:** Extend existing AI features into proactive predictions and add viral, self-marketing growth loops to Substrate.
+
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|
+
+---
+
+## 🌐 Phase 15: Ecosystem Domination & Monetization
+
+**Goal:** Own the API governance ecosystem through community network effects, deep enterprise workflow integrations, AI-native governance, and a partner certification program.
+
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|
+
+---
+
+## 📈 Phase 17: DevOps & Management Intelligence
+
+**Goal:** Surface financial, operational, and structural data to Engineering Managers and DevOps teams, providing zero-touch automation for API Gateways and high-level incident context.
+
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|

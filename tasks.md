@@ -74,12 +74,11 @@
 
 ---
 
-## 🔮 Phase 14: Predictive Intelligence & Viral Growth
+## Phase 14
 
-**Goal:** Extend existing AI features into proactive predictions and add viral, self-marketing growth loops to Substrate.
+> Full task list moved to [completed_tasks.md](./completed_tasks.md#phase-14)
 
-| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
-|---|---|---|---|---|---|
+---|---|---|---|---|---|
 | **P14-T04** | 🟡 P2 | **Contract Score Badge (Viral Growth Mechanism)** — A `shields.io`-style embeddable README badge showing a repo's API contract reliability score (`CONTRACT: A+ \| 98% \| 0 breaks in 90 days`). Score calculated from breaking change frequency, blast radius, and spec-first adoption rate. | Jules | ✅ PR Merged | `docs/specs/phase-14/p14-t04-contract-score-badge.md` |
 | **P14-T05** | 🟡 P2 | **Retroactive Dependency Archaeology (Paid Onboarding Service)** — `substrate archaeology --since 2-years` scans full git history of all connected repos and generates a paid audit report showing every historical breaking change and its estimated incident cost. Priced as a one-time add-on ($500–$2,000/org). | Jules | ✅ PR Merged | `docs/specs/phase-14/p14-t05-archaeology.md` |
 | **P14-T06** | 🟢 P3 | **Substrate Cloud Public Schema Registry (The npm for APIs)** — A hosted public registry where OSS projects and SaaS companies publish versioned API schemas. Teams monitor public APIs (Stripe, GitHub, Twilio) and get alerts on breaking changes. Free: 5 public APIs. Paid: unlimited + private. | Jules | ✅ PR Merged | `docs/specs/phase-14/p14-t06-public-schema-registry.md` |
@@ -87,12 +86,11 @@
 
 ---
 
-## 🌐 Phase 15: Ecosystem Domination & Monetization
+## Phase 15
 
-**Goal:** Own the API governance ecosystem through community network effects, deep enterprise workflow integrations, AI-native governance, and a partner certification program.
+> Full task list moved to [completed_tasks.md](./completed_tasks.md#phase-15)
 
-| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
-|---|---|---|---|---|---|
+---|---|---|---|---|---|
 | **P15-T01** | 🔴 P1 | **Schema Review Assignments ("CODEOWNERS for APIs")** — Auto-request reviews from API owners (not code owners) via a `SCHEMAOWNERS` file when a PR touches a schema. Fills a workflow gap that no existing tool addresses — enterprise API governance teams are distinct from dev teams. | Jules | ✅ Complete | `docs/specs/phase-15/p15-t01-schema-owners.md` |
 | **P15-T02** | 🔴 P1 | **Granular GitHub Check Suite** — Replace the single "Substrate" CI check with individually passable/overridable checks: `substrate/security`, `substrate/performance`, `substrate/breaking-changes`, `substrate/pii-detection`. Matches how enterprise CI pipelines actually work. | Jules | ✅ Complete | `docs/specs/phase-15/p15-t02-granular-checks.md` |
 | **P15-T03** | 🟡 P2 | **"Dependency SLA" Tracking** — Let consumer teams declare `required_notice_days` in `substrate.yaml`. Substrate warns provider teams when a proposed breaking change will breach a declared SLA before the PR is merged. Enterprise compliance paper trail for inter-team contracts. | Jules | ✅ PR Merged | `docs/specs/phase-15/p15-t03-dependency-sla.md` |
@@ -126,12 +124,11 @@
 
 ---
 
-## 📈 Phase 17: DevOps & Management Intelligence
+## Phase 17
 
-**Goal:** Surface financial, operational, and structural data to Engineering Managers and DevOps teams, providing zero-touch automation for API Gateways and high-level incident context.
+> Full task list moved to [completed_tasks.md](./completed_tasks.md#phase-17)
 
-| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
-|---|---|---|---|---|---|
+---|---|---|---|---|---|
 | **P17-T01** | 🚀 P1 | **API Maturity Scorecards (Manager Dashboard)** — Provide a high-level UI grading APIs (A-F) based on documentation completeness, SOC2/PII compliance, volatility, and shadow test coverage. | Jules | ✅ PR Merged | `docs/specs/phase-17/p17-t01-maturity-scorecards.md` |
 | **P17-T02** | 🟡 P2 | **Legacy API FinOps Translation** — Expand the zombie API detection to calculate and display the exact estimated dollar amount saved by sunsetting legacy endpoints. | Jules | ✅ PR Merged | `docs/specs/phase-17/p17-t02-finops-translation.md` |
 | **P17-T03** | 🔴 P1 | **GitOps API Gateway Sync (CRD Generation)** — Automatically generate Kubernetes CRDs (or Terraform state) for Kong/AWS API Gateway based on Substrate schemas, pushing them when PRs are merged. | Jules | ✅ PR Merged | `(Pending)` |
