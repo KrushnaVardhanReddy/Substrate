@@ -153,14 +153,12 @@ curl -s http://localhost:8080/health > /dev/null 2>&1 && echo "  ✅ Engine :808
 
 # Generate a real JWT signed with the test JWT_SECRET for use in Playwright tests
 # Payload: {"orgs":{"admin":"admin","mcp-org":"admin","testorg":"admin","p3-org":"admin","stress-test":"admin"}}
-cd api
-E2E_AUTH_TOKEN=$(go run ../scripts/e2e/gen_paseto/main.go)
-cd ..
+E2E_AUTH_TOKEN=$(cd api && go run ../scripts/e2e/gen_paseto/main.go)
 export E2E_AUTH_TOKEN
 
 # Seed Phase 17 data for UI tests
 echo "🌱 Seeding Phase 17 data for Playwright..."
-cd api && go run ../scripts/e2e/seed_p17.go ../scripts/e2e/helpers.go && cd ..
+(cd api && go run ../scripts/e2e/seed_p17.go ../scripts/e2e/helpers.go)
 
 # 5. Run Playwright UI Tests
 echo "🧪 Running Playwright UI Tests..."
