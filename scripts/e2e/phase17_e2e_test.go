@@ -34,6 +34,38 @@ func createP17JWT(org, role string) string {
 	return token.V4Encrypt(key, nil)
 }
 
+func seedForgejoForP17() {
+	forgejoURL := "http://localhost:3005/api/v1"
+	token := os.Getenv("GITHUB_TOKEN")
+	client := &http.Client{Timeout: 5 * time.Second}
+
+	// Create org
+	req, _ := http.NewRequest("POST", forgejoURL+"/orgs", bytes.NewBuffer([]byte(`{"username": "mgr-org"}`)))
+	req.Header.Set("Authorization", "token "+token)
+	req.Header.Set("Content-Type", "application/json")
+	client.Do(req)
+
+	// Create repo
+	req, _ = http.NewRequest("POST", forgejoURL+"/orgs/mgr-org/repos", bytes.NewBuffer([]byte(`{"name": "payments-api", "auto_init": true}`)))
+	req.Header.Set("Authorization", "token "+token)
+	req.Header.Set("Content-Type", "application/json")
+	client.Do(req)
+
+	// Create substrate.yaml
+	b64Sub := "Z2F0ZXdheToKICB0eXBlOiBrb25nCiAgaW5mcmFfcmVwbzogaW5mcmEtb3JnL2dhdGV3YXktY29uZmlncwogIG91dHB1dF9wYXRoOiAva29uZwoKaGVhZF9zY2hlbWE6IG9wZW5hcGkueWFtbA=="
+	req, _ = http.NewRequest("POST", forgejoURL+"/repos/mgr-org/payments-api/contents/substrate.yaml", bytes.NewBuffer([]byte(`{"message":"add","content":"`+b64Sub+`"}`)))
+	req.Header.Set("Authorization", "token "+token)
+	req.Header.Set("Content-Type", "application/json")
+	client.Do(req)
+
+	// Create openapi.yaml
+	b64OA := "b3BlbmFwaTogMy4wLjAKaW5mbzoKICB0aXRsZTogUGF5bWVudHMgQVBJCiAgdmVyc2lvbjogMS4wLjAKcGF0aHM6CiAgL3BheToKICAgIHBvc3Q6CiAgICAgIHJlc3BvbnNlczoKICAgICAgICAiMjAwIjoKICAgICAgICAgIGRlc2NyaXB0aW9uOiBPSw=="
+	req, _ = http.NewRequest("POST", forgejoURL+"/repos/mgr-org/payments-api/contents/openapi.yaml", bytes.NewBuffer([]byte(`{"message":"add","content":"`+b64OA+`"}`)))
+	req.Header.Set("Authorization", "token "+token)
+	req.Header.Set("Content-Type", "application/json")
+	client.Do(req)
+}
+
 func waitForP17Services(t *testing.T) {
 	client := http.Client{Timeout: 2 * time.Second}
 	for i := 0; i < 15; i++ {
@@ -56,6 +88,7 @@ func TestPhase17_E2E(t *testing.T) {
 	}
 
 	waitForP17Services(t)
+	seedForgejoForP17()
 
 	ctx := context.Background()
 	pool, err := pgxpool.New(ctx, p17DbURL)

@@ -144,11 +144,22 @@ func ComputeScore(ctx context.Context, store ports.Store, org, repo string) (*Sc
 		Breakdown: breakdownJSON,
 	})
 
+	// Fetch to get the exact Postgres timestamp for consistent returns
+	newCached, err := store.GetScorecardCache(ctx, sqlcgen.GetScorecardCacheParams{
+		Org:  org,
+		Repo: repo,
+	})
+	
+	computedAt := time.Now()
+	if err == nil {
+		computedAt = newCached.ComputedAt
+	}
+
 	return &Scorecard{
 		Grade:      grade,
 		Total:      total,
 		Breakdown:  breakdown,
-		ComputedAt: time.Now(),
+		ComputedAt: computedAt,
 	}, nil
 }
 
