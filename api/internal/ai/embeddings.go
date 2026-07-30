@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/config"
 	"github.com/sashabaranov/go-openai"
 	"github.com/spf13/viper"
 )
@@ -25,23 +26,34 @@ func (c *DefaultAIClient) EmbedText(ctx context.Context, text string) ([]float64
 
 // EmbedText gets an embedding for the given text using the go-openai client.
 func EmbedText(ctx context.Context, text string) ([]float64, error) {
-	apiKey := viper.GetString("SUBSTRATE_AI_API_KEY")
+	llmCfg := config.LoadLLMConfig()
+
+	// Optionally check viper if needed, but LoadLLMConfig uses os.Getenv which is standard.
+	// Since original code used viper, let's just use LoadLLMConfig here for consistency with other parts.
+	apiKey := llmCfg.APIKey
 	if apiKey == "" {
-		apiKey = viper.GetString("OPENAI_API_KEY")
+		// Fallback to viper just in case
+		apiKey = viper.GetString("SUBSTRATE_AI_API_KEY")
+		if apiKey == "" {
+			apiKey = viper.GetString("OPENAI_API_KEY")
+		}
 	}
 
 	if apiKey == "" {
 		return nil, fmt.Errorf("openai API key is required")
 	}
 
-	config := openai.DefaultConfig(apiKey)
+	clientConfig := openai.DefaultConfig(apiKey)
 
-	baseURL := viper.GetString("SUBSTRATE_AI_BASE_URL")
+	baseURL := llmCfg.BaseURL
+	if baseURL == "" {
+		baseURL = viper.GetString("SUBSTRATE_AI_BASE_URL")
+	}
 	if baseURL != "" {
-		config.BaseURL = baseURL
+		clientConfig.BaseURL = baseURL
 	}
 
-	client := openai.NewClientWithConfig(config)
+	client := openai.NewClientWithConfig(clientConfig)
 
 	req := openai.EmbeddingRequest{
 		Input: []string{text},

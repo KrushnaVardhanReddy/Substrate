@@ -2,9 +2,55 @@ package config
 
 import (
 	"fmt"
+	"os"
 
 	"gopkg.in/yaml.v3"
 )
+
+type LLMConfig struct {
+	Provider string
+	APIKey   string
+	BaseURL  string
+	Model    string
+}
+
+func LoadLLMConfig() LLMConfig {
+	provider := os.Getenv("LLM_PROVIDER")
+	if provider == "" {
+		provider = os.Getenv("SUBSTRATE_AI_PROVIDER")
+	}
+	if provider == "" {
+		provider = "openai"
+	}
+
+	apiKey := os.Getenv("LLM_API_KEY")
+	if apiKey == "" {
+		apiKey = os.Getenv("SUBSTRATE_AI_API_KEY")
+	}
+	if apiKey == "" {
+		apiKey = os.Getenv("OPENAI_API_KEY")
+	}
+
+	baseURL := os.Getenv("LLM_BASE_URL")
+	if baseURL == "" {
+		baseURL = os.Getenv("SUBSTRATE_AI_BASE_URL")
+	}
+
+	model := os.Getenv("LLM_MODEL")
+	if model == "" {
+		model = os.Getenv("SUBSTRATE_AI_MODEL")
+	}
+	if model == "" {
+		model = "gpt-4o"
+	}
+
+	return LLMConfig{
+		Provider: provider,
+		APIKey:   apiKey,
+		BaseURL:  baseURL,
+		Model:    model,
+	}
+}
 
 type Discovery struct {
 	MatchPatterns []string `yaml:"match_patterns"`

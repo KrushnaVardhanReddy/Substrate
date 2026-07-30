@@ -16,6 +16,11 @@ jobs:
 
       - name: Run Substrate Action (Expect Success)
         uses: ./
+        env:
+          LLM_PROVIDER: openrouter
+          LLM_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          LLM_BASE_URL: https://openrouter.ai/api/v1
+          LLM_MODEL: google/gemma-3-27b-it:free
         with:
           base_schema: engine/cmd/substrate/testdata/base.yaml
           head_schema: engine/cmd/substrate/testdata/base.yaml
@@ -29,6 +34,11 @@ jobs:
 
       - name: Run Substrate Action (Expect Success due to config)
         uses: ./
+        env:
+          LLM_PROVIDER: openrouter
+          LLM_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          LLM_BASE_URL: https://openrouter.ai/api/v1
+          LLM_MODEL: google/gemma-3-27b-it:free
         with:
           base_schema: engine/cmd/substrate/testdata/base.yaml
           head_schema: engine/cmd/substrate/testdata/rev_breaking.yaml

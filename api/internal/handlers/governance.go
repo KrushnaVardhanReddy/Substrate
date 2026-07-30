@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/config"
 	"github.com/google/cel-go/cel"
 	"github.com/sashabaranov/go-openai"
 )
@@ -40,23 +40,19 @@ func GenerateCELHandler() http.HandlerFunc {
 			return
 		}
 
-		apiKey := os.Getenv("OPENAI_API_KEY")
-		if apiKey == "" {
-			apiKey = os.Getenv("SUBSTRATE_AI_API_KEY")
-		}
+		llmCfg := config.LoadLLMConfig()
 
 		var celStr string
-		if apiKey == "" {
+		if llmCfg.APIKey == "" {
 			// Deterministic fallback mock response when AI keys are unset
 			celStr = `request.path.matches('^/api/payment/') && !request.headers.contains('authorization')`
 		} else {
-			baseURL := os.Getenv("SUBSTRATE_AI_BASE_URL")
-			config := openai.DefaultConfig(apiKey)
-			if baseURL != "" {
-				config.BaseURL = baseURL
+			clientConfig := openai.DefaultConfig(llmCfg.APIKey)
+			if llmCfg.BaseURL != "" {
+				clientConfig.BaseURL = llmCfg.BaseURL
 			}
 
-			client := openai.NewClientWithConfig(config)
+			client := openai.NewClientWithConfig(clientConfig)
 
 			ctx, cancel := context.WithTimeout(r.Context(), 1*time.Minute)
 			defer cancel()
@@ -67,7 +63,7 @@ Return ONLY the raw CEL expression. Do not include markdown formatting, backtick
 			resp, err := client.CreateChatCompletion(
 				ctx,
 				openai.ChatCompletionRequest{
-					Model: openai.GPT4o, // or "gpt-4o"
+					Model: llmCfg.Model,
 					Messages: []openai.ChatCompletionMessage{
 						{
 							Role:    openai.ChatMessageRoleSystem,

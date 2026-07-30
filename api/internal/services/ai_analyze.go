@@ -7,9 +7,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/config"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 )
 
@@ -35,10 +35,11 @@ type AIConfig struct {
 }
 
 func loadAIConfig() AIConfig {
+	llmCfg := config.LoadLLMConfig()
 	return AIConfig{
-		BaseURL: os.Getenv("SUBSTRATE_AI_BASE_URL"),
-		APIKey:  os.Getenv("SUBSTRATE_AI_API_KEY"),
-		Model:   os.Getenv("SUBSTRATE_AI_MODEL"),
+		BaseURL: llmCfg.BaseURL,
+		APIKey:  llmCfg.APIKey,
+		Model:   llmCfg.Model,
 	}
 }
 

@@ -22,6 +22,11 @@ jobs:
         run: make -C engine deps
         
       - name: Run Tests
+        env:
+          LLM_PROVIDER: openrouter
+          LLM_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          LLM_BASE_URL: https://openrouter.ai/api/v1
+          LLM_MODEL: google/gemma-3-27b-it:free
         run: make -C engine test
         
       - name: Run Linter
