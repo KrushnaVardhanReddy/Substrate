@@ -1,8 +1,26 @@
 import type { PageLoad } from './$types';
 
-export const load: PageLoad = async ({ params }) => {
+import { env } from '$env/dynamic/public';
+
+export const load: PageLoad = async ({ fetch, params }) => {
 	const org = params.org;
 	const repo = params.repo;
+	const isBrowser = typeof window !== 'undefined';
+	const baseUrl = isBrowser ? '' : (env.PUBLIC_API_URL || 'http://localhost:8090');
+	const token = env.PUBLIC_API_TOKEN || '';
+
+	let repoData = null;
+	try {
+		const response = await fetch(`${baseUrl}/api/v1/repos/${org}`, {
+			headers: { Authorization: `Bearer ${token}` }
+		});
+		if (response.ok) {
+			const repos = await response.json();
+			repoData = repos.find((r: any) => r.name === repo || r.full_name === `${org}/${repo}`) || null;
+		}
+	} catch (e) {
+		console.error('Error fetching repos:', e);
+	}
 
 	// According to spec, Substrate stores raw schema strings in DB.
 	// For OpenAPI specs, we render with @stoplight/elements using raw YAML.
@@ -35,5 +53,5 @@ paths:
 	const apiBaseUrl = import.meta.env.VITE_API_URL || 'https://api.substrate.com';
 	const dashboardUrl = import.meta.env.VITE_DASHBOARD_URL || 'https://app.substrate.com';
 
-	return { org, repo, yamlString: dummyYaml, apiBaseUrl, dashboardUrl };
+	return { org, repo, yamlString: dummyYaml, apiBaseUrl, dashboardUrl, repoData };
 };

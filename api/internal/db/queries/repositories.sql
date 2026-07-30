@@ -1,4 +1,5 @@
 -- name: UpsertRepo :one
+-- Include metadata in upsert
 INSERT INTO repositories (org_id, github_repo_id, name, full_name, metadata)
 VALUES ($1, $2, $3, $4, $5)
 ON CONFLICT (github_repo_id) DO UPDATE

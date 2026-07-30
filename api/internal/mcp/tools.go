@@ -208,7 +208,19 @@ func RegisterTools(server *Server, store db.Store) {
 			if err != nil {
 				return nil, err
 			}
-			return edges, nil
+
+			var result []map[string]any
+			for _, edge := range edges {
+				result = append(result, map[string]any{
+					"consumer":              edge.ConsumerFullName,
+					"provider":              edge.ProviderFullName,
+					"status":                edge.Status,
+					"consumer_metadata":     edge.ConsumerMetadata,
+					"provider_metadata":     edge.ProviderMetadata,
+					"predictive_risk_score": edge.PredictiveRiskScore,
+				})
+			}
+			return result, nil
 		},
 	})
 

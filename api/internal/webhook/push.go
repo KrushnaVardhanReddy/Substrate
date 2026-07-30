@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/KrushnaVardhanReddy/substrate/api/internal/config"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/gateway"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/github"
@@ -100,6 +101,18 @@ func PushHandler(store db.Store, ghClient github.Client, riverClient workers.Job
 		if err != nil {
 			http.Error(w, `{"error": "internal error enqueuing push job"}`, http.StatusInternalServerError)
 			return
+		}
+
+		// (Pass metadata to db query)
+		for _, f := range req.Files {
+			if f.Path == "substrate.yaml" {
+				cfg, _ := config.Parse([]byte(f.Content))
+				if cfg != nil && cfg.Metadata != nil {
+					b, _ := json.Marshal(cfg.Metadata)
+					req.Metadata = b
+				}
+				break
+			}
 		}
 
 		w.Header().Set("Content-Type", "application/json")

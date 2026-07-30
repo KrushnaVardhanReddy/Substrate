@@ -29,12 +29,13 @@ type File struct {
 }
 
 type PushPayload struct {
-	InstallationID int64  `json:"installation_id"`
-	Org            string `json:"org"`
-	Repo           string `json:"repo"`
-	GithubRepoID   int64  `json:"github_repo_id"`
-	CommitSHA      string `json:"commit_sha"`
-	Files          []File `json:"files"`
+	InstallationID int64           `json:"installation_id"`
+	Org            string          `json:"org"`
+	Repo           string          `json:"repo"`
+	GithubRepoID   int64           `json:"github_repo_id"`
+	CommitSHA      string          `json:"commit_sha"`
+	Files          []File          `json:"files"`
+	Metadata       json.RawMessage `json:"metadata,omitempty"`
 }
 
 func ProcessPush(ctx context.Context, store db.Store, ghClient github.Client, req PushPayload) (int, error) {
@@ -77,6 +78,10 @@ func ProcessPush(ctx context.Context, store db.Store, ghClient github.Client, re
 			}
 			break
 		}
+	}
+
+	if req.Metadata != nil && len(req.Metadata) > 0 && string(req.Metadata) != "{}" {
+		repoMetadata = req.Metadata
 	}
 
 	repoID, err := store.UpsertRepo(ctx, orgID, req.GithubRepoID, consumerName, req.Repo, repoMetadata)

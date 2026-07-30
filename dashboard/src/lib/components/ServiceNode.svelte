@@ -1,12 +1,16 @@
 <script lang="ts">
 	import { Handle, Position } from '@xyflow/svelte';
-	import { AppWindow, Database, Smartphone, Server } from '@lucide/svelte';
+	import AppWindow from 'lucide-svelte/icons/app-window';
+	import Database from 'lucide-svelte/icons/database';
+	import Smartphone from 'lucide-svelte/icons/smartphone';
+	import Server from 'lucide-svelte/icons/server';
 
 	let { data } = $props<{ data: any }>();
 
 	let nodeType = $derived(data.metadata?.type || data.type || 'service');
 
 	let backgroundColor = $derived.by(() => {
+		if (data.metadata?.node_color) return data.metadata.node_color;
 		if (!data.heatmapMode) return '#1E222C';
 		const score = data.volatilityScore as number;
 		if (score <= 30) return 'var(--accent)';

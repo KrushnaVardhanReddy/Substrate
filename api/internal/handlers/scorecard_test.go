@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -46,6 +47,19 @@ func TestGetScorecardHandler(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	expected := `{"grade":"A","total":100,"breakdown":{"docs":25,"compliance":25,"volatility":25,"coverage":25}}`
-	assert.JSONEq(t, expected, w.Body.String())
+	var resp map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &resp)
+	delete(resp, "computed_at")
+
+	expectedResp := map[string]interface{}{
+		"grade": "A",
+		"total": float64(100),
+		"breakdown": map[string]interface{}{
+			"docs": float64(25),
+			"compliance": float64(25),
+			"volatility": float64(25),
+			"coverage": float64(25),
+		},
+	}
+	assert.Equal(t, expectedResp, resp)
 }
