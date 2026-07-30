@@ -3,12 +3,43 @@
 	import { onMount } from 'svelte';
 	import { marked } from 'marked';
 	import DOMPurify from 'dompurify';
+	import * as yaml from 'js-yaml';
+	import CodeSnippetViewer from '$lib/components/CodeSnippetViewer.svelte';
 
 	let { data }: { data: PageData } = $props();
 
 	let activeTab = $state('schema');
 	let guides = $state<any[]>([]);
 	let selectedGuideContent = $state<string | null>(null);
+
+	let endpoints = $state<Array<{ path: string; method: string; summary: string }>>([]);
+
+	// Parse endpoints from OpenAPI yaml
+	$effect(() => {
+		if (activeTab === 'snippets' && endpoints.length === 0 && data.yamlString) {
+			try {
+				const doc = yaml.load(data.yamlString) as any;
+				if (doc && doc.paths) {
+					const parsedEndpoints = [];
+					for (const [path, methods] of Object.entries(doc.paths)) {
+						for (const [method, details] of Object.entries(methods as any)) {
+							// Filter out common OpenAPI keys that aren't HTTP methods
+							if (!['parameters', 'servers', 'summary', 'description'].includes(method)) {
+								parsedEndpoints.push({
+									path,
+									method: method.toUpperCase(),
+									summary: (details as any).summary || ''
+								});
+							}
+						}
+					}
+					endpoints = parsedEndpoints;
+				}
+			} catch (e) {
+				console.error("Failed to parse OpenAPI YAML for snippets", e);
+			}
+		}
+	});
 
 	// In Svelte 5, we use an effect to react to data changes if needed,
 	// but for initial fetch we can use an effect.
@@ -66,12 +97,39 @@
 	<div class="tabs">
 		<button class="tab-btn" class:active={activeTab === 'schema'} onclick={() => activeTab = 'schema'}>Schema</button>
 		<button id="guides-tab" class="tab-btn" class:active={activeTab === 'guides'} onclick={() => activeTab = 'guides'}>Guides</button>
+		<button id="snippets-tab" class="tab-btn" class:active={activeTab === 'snippets'} onclick={() => activeTab = 'snippets'}>Snippets</button>
 		<button id="business-context-tab" class="tab-btn" class:active={activeTab === 'business'} onclick={() => activeTab = 'business'}>Business Context</button>
 	</div>
 
 	{#if activeTab === 'schema'}
 		<div class="elements-wrapper">
 			<elements-api apiDescriptionDocument={data.yamlString} router="hash" hideTryIt="true"></elements-api>
+		</div>
+	{:else if activeTab === 'snippets'}
+		<div class="snippets-wrapper">
+			<div class="snippets-container">
+				{#if endpoints.length > 0}
+					{#each endpoints as endpoint}
+						<div class="endpoint-card">
+							<div class="endpoint-header">
+								<span class={`method-badge method-${endpoint.method.toLowerCase()}`}>{endpoint.method}</span>
+								<span class="endpoint-path">{endpoint.path}</span>
+							</div>
+							{#if endpoint.summary}
+								<p class="endpoint-summary">{endpoint.summary}</p>
+							{/if}
+							<div class="snippet-viewer-container">
+								<CodeSnippetViewer
+									method={endpoint.method}
+									path={`${data.apiBaseUrl || 'https://api.example.com'}${endpoint.path}`}
+								/>
+							</div>
+						</div>
+					{/each}
+				{:else}
+					<p class="no-endpoints">No endpoints found to generate snippets.</p>
+				{/if}
+			</div>
 		</div>
 	{:else if activeTab === 'guides'}
 		<div class="guides-wrapper">
@@ -382,5 +440,73 @@
 	.no-metadata {
 		color: var(--text-muted);
 		font-style: italic;
+	}
+
+	.snippets-wrapper {
+		flex-grow: 1;
+		background-color: var(--bg-card);
+		border: 1px solid var(--border);
+		border-radius: 8px;
+		padding: 24px;
+		overflow-y: auto;
+	}
+
+	.snippets-container {
+		display: flex;
+		flex-direction: column;
+		gap: 32px;
+	}
+
+	.endpoint-card {
+		border: 1px solid var(--border);
+		border-radius: 8px;
+		padding: 20px;
+		background: var(--bg-card);
+	}
+
+	.endpoint-header {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		margin-bottom: 12px;
+	}
+
+	.method-badge {
+		font-size: 13px;
+		font-weight: 700;
+		padding: 4px 8px;
+		border-radius: 4px;
+		color: #fff;
+	}
+
+	.method-get { background-color: #10b981; }
+	.method-post { background-color: #3b82f6; }
+	.method-put { background-color: #f59e0b; }
+	.method-delete { background-color: #ef4444; }
+	.method-patch { background-color: #14b8a6; }
+	.method-options { background-color: #8b5cf6; }
+
+	.endpoint-path {
+		font-family: monospace;
+		font-size: 1.1rem;
+		color: var(--text-main);
+	}
+
+	.endpoint-summary {
+		margin-top: 0;
+		margin-bottom: 16px;
+		color: var(--text-muted);
+		font-size: 0.95rem;
+	}
+
+	.snippet-viewer-container {
+		margin-top: 16px;
+	}
+
+	.no-endpoints {
+		color: var(--text-muted);
+		text-align: center;
+		padding: 48px;
+		font-size: 1.1rem;
 	}
 </style>
