@@ -1,0 +1,41 @@
+TASK: CC-T09 — LLM Aggregator Integration (OpenRouter)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Configure the Substrate AI services and CI/CD pipelines to optionally route traffic through OpenRouter. This enables the use of permanently free, open-weights models (like Gemma 3 and Llama 3) for local development and E2E testing, reducing API costs to zero.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/cross-cutting/cc-t09-openrouter-integration.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- The system MUST fall back gracefully to `gpt-4o` and OpenAI's default API URL if not overridden.
+- Existing tests that mock the AI client or expect certain payload shapes MUST remain passing.
+- Do NOT rewrite any actual AI Prompts (e.g., Postmortem or Smell detector logic), only the client network initialization.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- AI endpoints in the backend (like `api/internal/ai` or handler layers) currently rely on `go-openai`.
+- The configuration layer is primarily managed via `api/internal/config/config.go`.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- In `api/internal/config/config.go`, parse `LLM_BASE_URL` and `LLM_MODEL`.
+- When constructing `go-openai.DefaultConfig`, inject `config.BaseURL = cfg.LLM_BASE_URL`.
+- Instead of passing hardcoded `"gpt-4o"` to `openai.ChatCompletionRequest{Model: ...}`, pass `cfg.LLM_MODEL`.
+- Add example OpenRouter configuration values to `api/.env.example`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. MODIFY: api/internal/config/config.go
+2. MODIFY: api/.env.example
+3. MODIFY: AI client instantiation in the Go backend (`api/internal/ai/...` or equivalent)
+4. Run `go test ./...` in the `api` directory to verify no broken tests.
+
+Commit: "feat: CC-T09 integrate OpenRouter for free local LLM testing"
+Target branch: feature/cc-t09-openrouter

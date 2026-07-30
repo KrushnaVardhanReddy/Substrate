@@ -1,0 +1,43 @@
+TASK: P16-T04 — Auto-Generated SDK Code Snippets
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Dynamically generate copy-pasteable request snippets (Curl, Python, Node, Go) for every endpoint in the documentation based on the OpenAPI schema.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-16/p16-t04-sdk-snippets.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- The snippet generation MUST be done entirely client-side; do not add backend endpoints for this.
+- Supported languages MUST include: cURL, Python (requests), Node.js (fetch), and Go (net/http).
+- Code snippets MUST be idiomatic.
+- The UI MUST have a working "Copy" button leveraging the browser Clipboard API.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The main API catalog page is `dashboard/src/routes/(app)/org/[org]/catalog/[repo]/page.svelte`.
+- You can reference standard utility components in `dashboard/src/lib/components/`.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- In `dashboard/src/lib/utils/snippetGenerator.ts`, write a pure function that converts a route, method, headers, and body into 4 strings: Curl, Python, Node, and Go.
+- Create `dashboard/src/lib/components/CodeSnippetViewer.svelte` with a clean tab bar for switching languages.
+- Mount this new component in the API catalog page renderer so every documented endpoint shows its SDK snippet.
+- Write Vitest tests (`snippetGenerator.test.ts`) to verify string output for edge cases (e.g. GET vs POST, JSON bodies).
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: dashboard/src/lib/utils/snippetGenerator.ts (CREATE)
+2. FILE: dashboard/src/lib/utils/snippetGenerator.test.ts (CREATE)
+3. FILE: dashboard/src/lib/components/CodeSnippetViewer.svelte (CREATE)
+4. MODIFY: dashboard/src/routes/(app)/org/[org]/catalog/[repo]/page.svelte
+5. Run `npm run test` in the dashboard folder.
+
+Commit: "feat: P16-T04 add auto-generated SDK code snippets viewer"
+Target branch: feature/p16-t04-sdk-snippets
