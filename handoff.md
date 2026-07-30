@@ -8,6 +8,9 @@
 - **Next Up:** 
   - **Phase 16** (The Absolute SSOT API Documentation)
   - **Phase 18** (AI Agent Governance)
+- **Active Jules Sessions:**
+  1. `14946492414073028106` - P16-T02 & P16-T05 (Business Metadata & Node Branding)
+  2. `7760915754317666251` - P18-T03 (Agent Execution Audit Trails)
 
 ## How to Execute E2E Tests
 

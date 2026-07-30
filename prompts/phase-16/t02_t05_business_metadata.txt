@@ -1,0 +1,48 @@
+TASK: P16-T02 & P16-T05 — Business Metadata & Node Branding
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Update `substrate.yaml` config parser to ingest a new optional `metadata` block containing business context (owners, PagerDuty, node colors), save it into the database, and display it in both the SvelteKit API documentation UI and the Cytoscape/Svelte Flow Graph nodes.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-16/p16-t02-t05-business-metadata.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Do NOT rewrite massive files. Surgically add the `metadata` blocks where needed.
+- No mocks! Wire everything straight through from `substrate.yaml` to the PostgreSQL database and to the frontend.
+- Do NOT break existing tests. Ensure any modified handlers preserve exact HTTP status codes.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The config parser is located in `api/internal/config/config.go`.
+- The webhook processing that stores repos is in `api/internal/webhook/push.go`.
+- The DB queries are generated using SQLC. You will need to update `api/internal/db/queries/repositories.sql` to map the JSONB column.
+- The Svelte UI dashboard runs in `dashboard/`.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- In `config.go`, define `BusinessMetadata` struct with JSON/YAML tags for `owner`, `slack_channel`, `pagerduty`, `pm`, `sla_tier`, and `node_color`.
+- In `repositories.sql`, include the `metadata` JSONB column in `Upsert` and `Select` queries.
+- Run `make sqlc` from the `api` folder after modifying the SQL files to regenerate the Go interfaces.
+- In the Svelte frontend, build a small "Business Context" card to cleanly present these fields if they exist on a repository.
+- For `node_color`, pass this property via the API response to the Svelte Flow node data and use it for CSS `border-color` or `background-color`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. MODIFY: api/internal/config/config.go (Add `metadata` struct)
+2. FILE: api/migrations/YYYYMMDD_add_repo_metadata.up.sql (CREATE)
+3. MODIFY: api/internal/db/queries/repositories.sql (Include metadata in upsert)
+4. MODIFY: api/internal/webhook/push.go (Pass metadata to db query)
+5. MODIFY: dashboard/src/routes/(app)/org/[org]/catalog/[repo]/+page.svelte (Show Business Context UI)
+6. MODIFY: dashboard/src/lib/components/graph/CustomNode.svelte (Use node_color)
+7. MODIFY: api/internal/mcp/server.go (Ensure tools like `analyze_repository` or `get_dependency_graph` expose the new `metadata` block to AI agents)
+8. Run `go test ./...` in the `api` folder.
+
+Commit: "feat: P16-T02 business metadata and P16-T05 node branding"
+Target branch: feature/p16-business-metadata
