@@ -129,6 +129,8 @@ type Store interface {
 	GetAgentProfile(ctx context.Context, id int) (AgentProfile, error)
 	ListAgentProfiles(ctx context.Context, org string) ([]AgentProfile, error)
 	DeleteAgentProfile(ctx context.Context, id int) error
+	InsertMCPAuditLog(ctx context.Context, agentID *int, toolName string, req, res []byte) (int32, error)
+	ListMCPAuditLogs(ctx context.Context) ([]sqlcgen.McpAuditLog, error)
 	CreateHITLQueueItem(ctx context.Context, item HITLQueueItem) (HITLQueueItem, error)
 	ListHITLQueue(ctx context.Context, org string) ([]HITLQueueItem, error)
 	GetHITLQueueItem(ctx context.Context, id int) (HITLQueueItem, error)

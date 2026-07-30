@@ -232,6 +232,15 @@ type MarketplacePlugin struct {
 	UpdatedAt     pgtype.Timestamptz
 }
 
+type McpAuditLog struct {
+	ID              int32
+	AgentID         pgtype.Int4
+	ToolName        string
+	RequestPayload  []byte
+	ResponsePayload []byte
+	ExecutedAt      time.Time
+}
+
 type OrgIntegration struct {
 	ID              pgtype.UUID
 	OrgID           pgtype.UUID

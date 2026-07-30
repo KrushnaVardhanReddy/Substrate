@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db"
 )
@@ -214,6 +215,33 @@ func (s *Server) HandleMessage(ctx context.Context, line []byte) []byte {
 				return respBytes
 			}
 		}
+
+		// Audit logging defer
+		var reqPayload []byte
+		if p, err := json.Marshal(params); err == nil {
+			reqPayload = p
+		}
+
+		defer func() {
+			// Use a non-blocking goroutine to avoid impacting MCP latency
+			go func() {
+				if s.store != nil {
+					var aID *int
+					if profileID, ok := ctx.Value(ProfileIDKey).(int); ok {
+						aID = &profileID
+					}
+
+					var resPayload []byte
+					if r, err := json.Marshal(result); err == nil {
+						resPayload = r
+					}
+
+					bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+					defer cancel()
+					s.store.InsertMCPAuditLog(bgCtx, aID, params.Name, reqPayload, resPayload)
+				}
+			}()
+		}()
 
 		callRes, callErr := tool.Handler(params.Arguments)
 		if callErr != nil {

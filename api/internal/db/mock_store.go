@@ -625,3 +625,11 @@ func (m *MockStore) UpsertOrgIntegration(ctx context.Context, orgID uuid.UUID, p
 func (m *MockStore) GetOrgIntegration(ctx context.Context, orgID uuid.UUID, provider string) (OrgIntegration, error) {
 	return OrgIntegration{}, nil
 }
+
+func (m *MockStore) InsertMCPAuditLog(ctx context.Context, agentID *int, toolName string, req, res []byte) (int32, error) {
+	return 1, nil
+}
+
+func (m *MockStore) ListMCPAuditLogs(ctx context.Context) ([]sqlcgen.McpAuditLog, error) {
+	return []sqlcgen.McpAuditLog{}, nil
+}

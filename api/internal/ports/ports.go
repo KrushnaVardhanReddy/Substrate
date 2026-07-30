@@ -321,6 +321,8 @@ type SaveDiffStore interface {
 // Use the narrow sub-interfaces in handler constructors; use Store only in
 // wiring code (router, main) where the full surface is needed.
 type Store interface {
+	InsertMCPAuditLog(ctx context.Context, agentID *int, toolName string, req, res []byte) (int32, error)
+	ListMCPAuditLogs(ctx context.Context) ([]sqlcgen.McpAuditLog, error)
 	OrgStore
 	RepoStore
 	ContractStore
