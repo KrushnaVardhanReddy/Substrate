@@ -105,6 +105,11 @@ func NewRouter(store ports.Store, riverClient workers.JobEnqueuer, authConfig ha
 	r.Method("POST", "/api/v1/argo/drift-webhook", serviceTokenMW(http.HandlerFunc(handlers.ArgoDriftWebhookHandler(store))))
 
 	// MCP Profiles and HITL Queue
+
+	// MCP Audit Logs
+	mcpAuditHandler := &handlers.MCPAuditHandler{Store: store}
+	r.Method("GET", "/api/v1/ai/audit", authMW(http.HandlerFunc(mcpAuditHandler.ListMCPAuditLogs)))
+
 	mcpProfileHandler := &handlers.MCPProfileHandler{Store: store}
 	r.Method("POST", "/api/v1/mcp/profiles", authMW(http.HandlerFunc(mcpProfileHandler.CreateProfile)))
 	r.Method("GET", "/api/v1/mcp/profiles/{org}", authzMW(http.HandlerFunc(mcpProfileHandler.ListProfiles)))
