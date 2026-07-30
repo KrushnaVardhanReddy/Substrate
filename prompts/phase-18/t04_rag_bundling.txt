@@ -1,0 +1,42 @@
+TASK: P18-T04 — Dependency-Aware RAG Bundling
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Automatically bundle upstream and downstream service schemas into an agent's context window when modifying a target microservice, mathematically guaranteeing cross-repo contract safety.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-18/p18-t04-rag-bundling.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- The bundled JSON schemas MUST be minified (no indentation/whitespace) to reduce LLM token usage.
+- If a repo has no dependencies, it should still return the target repo's schema safely without crashing.
+- Do NOT rewrite the existing `dependency_graph` package; just consume its output.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- `api/internal/graph/graph.go` contains the logic for building the dependency graph. Use it to find parents and children.
+- `api/internal/mcp/server.go` registers all MCP tools.
+- `api/internal/db/queries/` handles pulling schema JSON from the `repositories` table.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Create `api/internal/services/rag_bundler.go`.
+- Define `GetContextBundle(ctx context.Context, org, repo string) (string, error)`.
+- Use a `strings.Builder` to format the Markdown string efficiently.
+- In `mcp.Server`, register `get_rag_bundle` to call this service.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: api/internal/services/rag_bundler.go (CREATE)
+2. FILE: api/internal/services/rag_bundler_test.go (CREATE)
+3. MODIFY: api/internal/mcp/server.go (Add `get_rag_bundle` tool)
+4. Run `go test ./...` in the `api` folder.
+
+Commit: "feat: P18-T04 add dependency-aware RAG bundling for MCP"
+Target branch: feature/p18-t04-rag-bundling

@@ -1,0 +1,38 @@
+TASK: P-UNIT-01 — Backfill Svelte Unit Tests
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Backfill Vitest unit test coverage for the SvelteKit frontend, specifically targeting the QA Dashboard and API Keys pages, ensuring they are robust against regressions.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/cross-cutting/p-unit-01-svelte-tests.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Do NOT use barrel imports from `lucide-svelte` (e.g., `import { Key } from 'lucide-svelte'`). You MUST use direct imports (e.g., `import Key from 'lucide-svelte/icons/key'`) to avoid Vitest memory leaks.
+- All tests must use mock data. Do not make real network requests in these unit tests.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- The test suite is executed via `npm run test` in the `dashboard` directory, utilizing Vitest and `@testing-library/svelte`.
+- Other `page.test.ts` files throughout the project serve as good reference points for how to mock the `$page` store and standard SvelteKit routing.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Create `dashboard/src/routes/(app)/org/[org]/settings/apikeys/page.test.ts`. Test that the "Create Key" button exists and the keys table renders correctly.
+- Create `dashboard/src/routes/(app)/org/[org]/qa/page.test.ts`. Test that the matrix items render correctly given a set of mock data props.
+- Ensure any `lucide-svelte` icons used inside these components or tests are direct imports.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: dashboard/src/routes/(app)/org/[org]/settings/apikeys/page.test.ts (CREATE)
+2. FILE: dashboard/src/routes/(app)/org/[org]/qa/page.test.ts (CREATE)
+3. Run `npm run test` in the `dashboard` folder to verify.
+
+Commit: "test: P-UNIT-01 backfill Svelte unit tests for QA and API Keys"
+Target branch: feature/p-unit-01-svelte-tests
