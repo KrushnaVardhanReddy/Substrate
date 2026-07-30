@@ -11,9 +11,15 @@ type Discovery struct {
 }
 
 type Metadata struct {
-	Type      string   `yaml:"type,omitempty"`
-	Team      string   `yaml:"team,omitempty"`
-	Databases []string `yaml:"databases,omitempty"`
+	Type         string   `yaml:"type,omitempty" json:"type,omitempty"`
+	Team         string   `yaml:"team,omitempty" json:"team,omitempty"`
+	Databases    []string `yaml:"databases,omitempty" json:"databases,omitempty"`
+	Owner        string   `yaml:"owner,omitempty" json:"owner,omitempty"`
+	SlackChannel string   `yaml:"slack_channel,omitempty" json:"slack_channel,omitempty"`
+	PagerDuty    string   `yaml:"pagerduty,omitempty" json:"pagerduty,omitempty"`
+	PM           string   `yaml:"pm,omitempty" json:"pm,omitempty"`
+	SLATier      string   `yaml:"sla_tier,omitempty" json:"sla_tier,omitempty"`
+	NodeColor    string   `yaml:"node_color,omitempty" json:"node_color,omitempty"`
 }
 
 type OverrideConfig struct {

@@ -66,6 +66,7 @@
 	<div class="tabs">
 		<button class="tab-btn" class:active={activeTab === 'schema'} onclick={() => activeTab = 'schema'}>Schema</button>
 		<button id="guides-tab" class="tab-btn" class:active={activeTab === 'guides'} onclick={() => activeTab = 'guides'}>Guides</button>
+		<button id="business-context-tab" class="tab-btn" class:active={activeTab === 'business'} onclick={() => activeTab = 'business'}>Business Context</button>
 	</div>
 
 	{#if activeTab === 'schema'}
@@ -92,6 +93,51 @@
 					{@html selectedGuideContent}
 				{:else}
 					<p>Select a guide to view.</p>
+				{/if}
+			</div>
+		</div>
+	{:else if activeTab === 'business'}
+		<div class="business-context-wrapper">
+			<div class="business-card">
+				<h3>Business Context</h3>
+				{#if data.repoData?.metadata}
+					<div class="metadata-grid">
+						{#if data.repoData.metadata.owner}
+							<div class="metadata-item">
+								<span class="metadata-label">Owner</span>
+								<span class="metadata-value">{data.repoData.metadata.owner}</span>
+							</div>
+						{/if}
+						{#if data.repoData.metadata.slack_channel}
+							<div class="metadata-item">
+								<span class="metadata-label">Slack Channel</span>
+								<span class="metadata-value">{data.repoData.metadata.slack_channel}</span>
+							</div>
+						{/if}
+						{#if data.repoData.metadata.pagerduty}
+							<div class="metadata-item">
+								<span class="metadata-label">PagerDuty</span>
+								<span class="metadata-value">{data.repoData.metadata.pagerduty}</span>
+							</div>
+						{/if}
+						{#if data.repoData.metadata.pm}
+							<div class="metadata-item">
+								<span class="metadata-label">Product Manager</span>
+								<span class="metadata-value">{data.repoData.metadata.pm}</span>
+							</div>
+						{/if}
+						{#if data.repoData.metadata.sla_tier}
+							<div class="metadata-item">
+								<span class="metadata-label">SLA Tier</span>
+								<span class="metadata-value">{data.repoData.metadata.sla_tier}</span>
+							</div>
+						{/if}
+					</div>
+					{#if !data.repoData.metadata.owner && !data.repoData.metadata.slack_channel && !data.repoData.metadata.pagerduty && !data.repoData.metadata.pm && !data.repoData.metadata.sla_tier}
+						<p class="no-metadata">No business metadata provided.</p>
+					{/if}
+				{:else}
+					<p class="no-metadata">No business metadata found for this repository.</p>
 				{/if}
 			</div>
 		</div>
@@ -281,5 +327,60 @@
 	.guide-content {
 		flex-grow: 1;
 		overflow-y: auto;
+	}
+
+	.business-context-wrapper {
+		flex-grow: 1;
+		background-color: #fff;
+		border: 1px solid var(--border);
+		border-radius: 8px;
+		padding: 24px;
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+	}
+
+	.business-card {
+		background: var(--bg-card);
+		border: 1px solid var(--border);
+		padding: 24px;
+		border-radius: 8px;
+	}
+
+	.business-card h3 {
+		margin-top: 0;
+		margin-bottom: 24px;
+		font-size: 1.25rem;
+		color: var(--text-main);
+	}
+
+	.metadata-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+		gap: 24px;
+	}
+
+	.metadata-item {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+
+	.metadata-label {
+		font-size: 0.875rem;
+		color: var(--text-muted);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.metadata-value {
+		font-size: 1rem;
+		color: var(--text-main);
+		font-weight: 500;
+	}
+
+	.no-metadata {
+		color: var(--text-muted);
+		font-style: italic;
 	}
 </style>

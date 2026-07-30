@@ -3,6 +3,8 @@ import { render, screen, waitFor, cleanup } from '@testing-library/svelte';
 import { tick } from 'svelte';
 import ZombiesPage from './+page.svelte';
 
+vi.mock('lucide-svelte/icons/dollar-sign', () => ({ default: function() { return { render: () => '' } } }));
+
 vi.mock('$app/stores', () => ({
 	page: {
 		subscribe: (fn: any) => {

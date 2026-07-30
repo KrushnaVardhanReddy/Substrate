@@ -23,8 +23,6 @@ describe('Detail Page Component', () => {
 	let mockFetch: any;
 
 	beforeEach(() => {
-		// Elements web component is registered globally by script tag,
-		// Since we just render the tag, we mock out custom element registration warnings in testing
 		vi.spyOn(console, 'error').mockImplementation(() => {});
 
 		mockFetch = vi.fn().mockResolvedValue({
@@ -35,14 +33,12 @@ describe('Detail Page Component', () => {
 
 	it('renders elements-api component with dummy data by default (Schema tab)', () => {
 		const { container, getByText } = render(Page, {
-			props: { data: { repos: [], org: 'myorg', repo: 'myrepo', yamlString: 'dummy-yaml', apiBaseUrl: 'https://api.substrate.com', dashboardUrl: 'https://app.substrate.com' } }
+			props: { data: { repos: [], org: 'myorg', repo: 'myrepo', yamlString: 'dummy-yaml', apiBaseUrl: 'https://api.substrate.com', dashboardUrl: 'https://app.substrate.com', repoData: null } }
 		});
 
-		// Check basic title presence
 		expect(getByText('myrepo')).toBeInTheDocument();
 		expect(getByText('API Documentation and Service Details')).toBeInTheDocument();
 
-		// Check that the custom element is rendered with the right props
 		const elementsApi = container.querySelector('elements-api');
 		expect(elementsApi).toBeTruthy();
 		expect(elementsApi?.getAttribute('apiDescriptionDocument')).toBe('dummy-yaml');
@@ -51,7 +47,7 @@ describe('Detail Page Component', () => {
 
 	it('renders the badge snippet correctly', () => {
 		const { getAllByTestId } = render(Page, {
-			props: { data: { repos: [], org: 'myorg', repo: 'myrepo', yamlString: 'dummy-yaml', apiBaseUrl: 'https://api.substrate.com', dashboardUrl: 'https://app.substrate.com' } }
+			props: { data: { repos: [], org: 'myorg', repo: 'myrepo', yamlString: 'dummy-yaml', apiBaseUrl: 'https://api.substrate.com', dashboardUrl: 'https://app.substrate.com', repoData: null } }
 		});
 
 		const badgeCodes = getAllByTestId('badge-snippet');
@@ -64,10 +60,9 @@ describe('Detail Page Component', () => {
 		});
 
 		const { getAllByText, getByText, getByRole, container } = render(Page, {
-			props: { data: { repos: [], org: 'myorg', repo: 'myrepo', yamlString: 'dummy-yaml', apiBaseUrl: 'https://api.substrate.com', dashboardUrl: 'https://app.substrate.com' } }
+			props: { data: { repos: [], org: 'myorg', repo: 'myrepo', yamlString: 'dummy-yaml', apiBaseUrl: 'https://api.substrate.com', dashboardUrl: 'https://app.substrate.com', repoData: null } }
 		});
 
-		// Important: we wait for the macro task queue or svelte effects to tick
 		await new Promise(r => setTimeout(r, 0));
 
 		const guidesTab = getAllByText('Guides')[0];
@@ -89,7 +84,47 @@ describe('Detail Page Component', () => {
 
 		await waitFor(() => {
 			expect(mockFetch).toHaveBeenCalledWith('/api/v1/docs/myorg/myrepo/my-guide.md');
-			expect(getByText('Hello Markdown')).toBeInTheDocument(); // Rendered by marked -> h1
+			expect(getByText('Hello Markdown')).toBeInTheDocument();
 		});
+	});
+
+	it('renders business context correctly when metadata is present', async () => {
+		const repoDataWithMetadata = {
+			metadata: {
+				owner: 'platform-team',
+				slack_channel: '#platform-alerts',
+				pagerduty: 'PD-1234',
+				pm: 'Jane Doe',
+				sla_tier: 'Tier 1'
+			}
+		};
+
+		const { getByText, queryByText, container } = render(Page, {
+			props: { data: { repos: [], org: 'myorg', repo: 'myrepo', yamlString: 'dummy-yaml', apiBaseUrl: 'https://api.substrate.com', dashboardUrl: 'https://app.substrate.com', repoData: repoDataWithMetadata } }
+		});
+
+		const businessTab = Array.from(container.querySelectorAll('button')).find(el => el.textContent?.includes('Business Context')) as HTMLElement;
+		await fireEvent.click(businessTab);
+
+		await new Promise(r => setTimeout(r, 0));
+
+		expect(getByText('platform-team')).toBeInTheDocument();
+		expect(getByText('#platform-alerts')).toBeInTheDocument();
+		expect(getByText('PD-1234')).toBeInTheDocument();
+		expect(getByText('Jane Doe')).toBeInTheDocument();
+		expect(getByText('Tier 1')).toBeInTheDocument();
+	});
+
+	it('handles missing metadata without crashing', async () => {
+		const { getByText, container } = render(Page, {
+			props: { data: { repos: [], org: 'myorg', repo: 'myrepo', yamlString: 'dummy-yaml', apiBaseUrl: 'https://api.substrate.com', dashboardUrl: 'https://app.substrate.com', repoData: null } }
+		});
+
+		const businessTab = Array.from(container.querySelectorAll('button')).find(el => el.textContent?.includes('Business Context')) as HTMLElement;
+		await fireEvent.click(businessTab);
+
+		await new Promise(r => setTimeout(r, 0));
+
+		expect(getByText('No business metadata found for this repository.')).toBeInTheDocument();
 	});
 });
