@@ -17,19 +17,19 @@ func generatePRBranchName(repo string) string {
 	return fmt.Sprintf("substrate/gateway-sync-%s-%d", repo, time.Now().Unix())
 }
 
-func RunGatewaySync(ctx context.Context, store db.Store, ghClient github.Client, org, repo string) error {
+func RunGatewaySync(ctx context.Context, store db.Store, ghClient github.Client, org, repo string) (string, error) {
 	content, err := ghClient.GetFileContent(ctx, org, repo, "substrate.yaml")
 	if err != nil {
-		return fmt.Errorf("failed to get substrate.yaml: %w", err)
+		return "", fmt.Errorf("failed to get substrate.yaml: %w", err)
 	}
 
 	cfg, err := config.Parse([]byte(content))
 	if err != nil {
-		return fmt.Errorf("failed to parse substrate.yaml: %w", err)
+		return "", fmt.Errorf("failed to parse substrate.yaml: %w", err)
 	}
 
 	if cfg.Gateway == nil || cfg.Gateway.Type == "" {
-		return nil
+		return "", nil
 	}
 
 	schemaPath := cfg.HeadSchema
@@ -39,23 +39,23 @@ func RunGatewaySync(ctx context.Context, store db.Store, ghClient github.Client,
 
 	schemaContent, err := ghClient.GetFileContent(ctx, org, repo, schemaPath)
 	if err != nil {
-		return fmt.Errorf("failed to get schema %s: %w", schemaPath, err)
+		return "", fmt.Errorf("failed to get schema %s: %w", schemaPath, err)
 	}
 
 	loader := openapi3.NewLoader()
 	doc, err := loader.LoadFromData([]byte(schemaContent))
 	if err != nil {
-		return fmt.Errorf("failed to parse openapi spec: %w", err)
+		return "", fmt.Errorf("failed to parse openapi spec: %w", err)
 	}
 
 	gen, err := NewGenerator(cfg.Gateway.Type)
 	if err != nil {
-		return fmt.Errorf("failed to create generator: %w", err)
+		return "", fmt.Errorf("failed to create generator: %w", err)
 	}
 
 	crdYaml, err := gen.GenerateCRD(doc, repo)
 	if err != nil {
-		return fmt.Errorf("failed to generate crd: %w", err)
+		return "", fmt.Errorf("failed to generate crd: %w", err)
 	}
 
 	var prUrl string
@@ -93,8 +93,8 @@ func RunGatewaySync(ctx context.Context, store db.Store, ghClient github.Client,
 
 	err = store.SaveGatewayConfig(ctx, org, repo, cfg.Gateway.Type, crdYaml, prUrl)
 	if err != nil {
-		return fmt.Errorf("failed to save gateway config: %w", err)
+		return "", fmt.Errorf("failed to save gateway config: %w", err)
 	}
 
-	return nil
+	return crdYaml, nil
 }

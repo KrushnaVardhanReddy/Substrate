@@ -18,9 +18,10 @@ type ScorecardBreakdown struct {
 }
 
 type Scorecard struct {
-	Grade     string             `json:"grade"`
-	Total     int                `json:"total"`
-	Breakdown ScorecardBreakdown `json:"breakdown"`
+	Grade      string             `json:"grade"`
+	Total      int                `json:"total"`
+	Breakdown  ScorecardBreakdown `json:"breakdown"`
+	ComputedAt time.Time          `json:"computed_at"`
 }
 
 // ComputeScore evaluates documentation quality, compliance risk, volatility, and QA test coverage
@@ -36,9 +37,10 @@ func ComputeScore(ctx context.Context, store ports.Store, org, repo string) (*Sc
 			var breakdown ScorecardBreakdown
 			if err := json.Unmarshal(cached.Breakdown, &breakdown); err == nil {
 				return &Scorecard{
-					Grade:     cached.Grade,
-					Total:     int(cached.Total),
-					Breakdown: breakdown,
+					Grade:      cached.Grade,
+					Total:      int(cached.Total),
+					Breakdown:  breakdown,
+					ComputedAt: cached.ComputedAt,
 				}, nil
 			}
 		}
@@ -143,9 +145,10 @@ func ComputeScore(ctx context.Context, store ports.Store, org, repo string) (*Sc
 	})
 
 	return &Scorecard{
-		Grade:     grade,
-		Total:     total,
-		Breakdown: breakdown,
+		Grade:      grade,
+		Total:      total,
+		Breakdown:  breakdown,
+		ComputedAt: time.Now(),
 	}, nil
 }
 

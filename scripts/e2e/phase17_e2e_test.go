@@ -172,7 +172,7 @@ func TestPhase17_E2E(t *testing.T) {
 
 		req, _ := http.NewRequest("POST", p17ApiURL+"/api/v1/events", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", "Bearer "+jwt)
+		req.Header.Set("Authorization", "Bearer local-dev-token")
 
 		resp, err := http.DefaultClient.Do(req)
 		require.NoError(t, err)

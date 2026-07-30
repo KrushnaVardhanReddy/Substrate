@@ -16,13 +16,15 @@ func GatewaySyncHandler(store db.Store, ghClient github.Client) http.HandlerFunc
 		org := chi.URLParam(r, "org")
 		repo := chi.URLParam(r, "repo")
 
-		w.WriteHeader(http.StatusAccepted)
+		crdYaml, err := gateway.RunGatewaySync(r.Context(), store, ghClient, org, repo)
+		if err != nil {
+			log.Printf("Gateway sync failed for %s/%s: %v", org, repo, err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-		go func() {
-			err := gateway.RunGatewaySync(context.Background(), store, ghClient, org, repo)
-			if err != nil {
-				log.Printf("Gateway sync failed for %s/%s: %v", org, repo, err)
-			}
-		}()
+		w.Header().Set("Content-Type", "application/x-yaml")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(crdYaml))
 	}
 }
