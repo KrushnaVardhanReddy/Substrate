@@ -51,7 +51,14 @@ func (h *HTTPTransport) ServeSSE(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	// Send initial endpoint event
-	fmt.Fprintf(w, "event: endpoint\ndata: /mcp/messages?sessionId=%s\n\n", sessionID)
+	endpoint := fmt.Sprintf("/mcp/messages?sessionId=%s", sessionID)
+	if profileID := r.URL.Query().Get("profile_id"); profileID != "" {
+		endpoint += "&profile_id=" + profileID
+	}
+	if org := r.URL.Query().Get("org"); org != "" {
+		endpoint += "&org=" + org
+	}
+	fmt.Fprintf(w, "event: endpoint\ndata: %s\n\n", endpoint)
 	flusher.Flush()
 
 	ctx, cancel := context.WithCancel(r.Context())

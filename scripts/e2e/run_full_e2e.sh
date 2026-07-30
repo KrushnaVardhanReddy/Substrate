@@ -70,6 +70,9 @@ export PORT="8090"
 export REGISTRY_API_TOKEN="local-dev-token"
 export INTERNAL_SERVICE_TOKEN="local-dev-token"
 export PGLITE_PORT=54320
+export AI_PROVIDER_URL="http://localhost:11434/v1"
+export LLM_BASE_URL="${AI_PROVIDER_URL}"
+export LLM_API_KEY="dummy"
 export GITHUB_API_URL="http://127.0.0.1:3005/api/v1"
 echo "🔑 Generating Forgejo token for API..."
 # Delete any existing token with the same name first to avoid errors on rerun
@@ -140,6 +143,7 @@ echo "🧪 Running Go API Tests (All Phases)..."
 cd scripts/e2e
 rm -f e2e_test.logs
 go test -v -p 1 ./... 2>&1 | tee e2e_test.logs
+# Phase 18 relies on specific LLM environments configured above
 cd ../..
 
 # Re-seed via API for Playwright UI tests (Go tests clean up the DB)
