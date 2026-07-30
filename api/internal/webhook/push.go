@@ -107,7 +107,7 @@ func PushHandler(store db.Store, ghClient github.Client, riverClient workers.Job
 		json.NewEncoder(w).Encode(map[string]string{"status": "queued"})
 
 		go func() {
-			err := gateway.RunGatewaySync(context.Background(), store, ghClient, req.Org, req.Repo)
+			_, err := gateway.RunGatewaySync(context.Background(), store, ghClient, req.Org, req.Repo)
 			if err != nil {
 				log.Printf("Gateway sync failed for %s/%s: %v", req.Org, req.Repo, err)
 			}

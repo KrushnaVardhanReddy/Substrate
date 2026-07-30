@@ -62,7 +62,7 @@ done
 # 2. Start Go API Server
 echo "⚙️ Starting Go API Server..."
 cd api
-export DATABASE_URL="postgres://postgres:postgres@localhost:54320/postgres?sslmode=disable&default_query_exec_mode=exec&statement_cache_capacity=0&pgbouncer=true"
+export DATABASE_URL="postgres://postgres:postgres@127.0.0.1:54320/postgres?sslmode=disable&default_query_exec_mode=exec&statement_cache_capacity=0&pgbouncer=true"
 export JWT_SECRET="local-jwt-secret"
 export GITHUB_CLIENT_ID="test-client"
 export GITHUB_CLIENT_SECRET="test-secret"
@@ -89,8 +89,8 @@ cd ..
 # 3. Start Go Engine
 echo "⚙️ Starting Go Engine (Port 8080)..."
 cd engine
-export DATABASE_URL="postgres://postgres:postgres@localhost:54320/postgres?sslmode=disable&default_query_exec_mode=exec&statement_cache_capacity=0&pgbouncer=true"
-export API_URL="http://localhost:8090"
+export DATABASE_URL="postgres://postgres:postgres@127.0.0.1:54320/postgres?sslmode=disable&default_query_exec_mode=exec&statement_cache_capacity=0&pgbouncer=true"
+export API_URL="http://127.0.0.1:8090"
 go run ./cmd/substrate serve > ../engine.log 2>&1 &
 ENGINE_PID=$!
 cd ..
