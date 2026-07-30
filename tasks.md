@@ -33,7 +33,7 @@
 | **CC-T06** | 🟢 P2 | **API Keys Backend Integration** | Jules | ✅ PR Merged | `docs/specs/ui/api_keys_backend.md` |
 | **CC-T07** | 🟢 P3 | **E2E Validation: API Keys Backend** | Jules | ⚪ Redundant (in T06) | `docs/specs/e2e/api_keys_e2e.md` |
 | **CC-T08** | 🚀 P1 | **Spec Sync Governance & IDE Reminders** | Jules | ✅ PR Merged | `docs/specs/cross_cutting/cc-t08-spec-sync-governance.md` |
-| **CC-T09** | 🟡 P2 | **LLM Aggregator Integration (OpenRouter)** — Configure the Substrate AI services and CI/CD pipelines to route traffic through OpenRouter. This enables the use of permanently free, open-weights models (like Gemma 3 and Llama 3) for local development and E2E testing, reducing API costs to zero. | Unassigned | 💡 Planned | `docs/specs/cross-cutting/cc-t09-openrouter-integration.md` |
+| **CC-T09** | 🟡 P2 | **LLM Aggregator Integration (OpenRouter)** — Configure the Substrate AI services and CI/CD pipelines to route traffic through OpenRouter. This enables the use of permanently free, open-weights models (like Gemma 3 and Llama 3) for local development and E2E testing, reducing API costs to zero. | Jules | 🤖 Submitted (Session `8653696255068425469`) | `docs/specs/cross-cutting/cc-t09-openrouter-integration.md` |
 
 ---
 
@@ -119,7 +119,7 @@
 | **P16-T01** | 🚀 P1 | **Markdown Guide Ingestion (Diátaxis)** — Pull `docs/**/*.md` files from provider repos alongside OpenAPI specs. Stitch human-written tutorials, how-tos, and references together with the auto-generated API schema in the UI. | Jules | ✅ PR Merged | `(Pending)` |
 | **P16-T02** | 🟡 P2 | **Business Metadata Block** — Expand `substrate.yaml` to accept `metadata` (PM, Slack channel, PagerDuty link, SLA Tier) and display it prominently at the top of the API's documentation page. | Jules | ✅ PR Merged | `docs/specs/phase-16/p16-t02-t05-business-metadata.md` |
 | **P16-T03** | 🔴 P1 | **Interactive API Sandbox ("Try It Out")** — Build an API proxy into the Go backend that allows developers to generate ephemeral test tokens and issue live requests to the API directly from the Substrate documentation UI. | Jules | ✅ PR Merged | `(Pending)` |
-| **P16-T04** | 🟢 P3 | **Auto-Generated SDK Code Snippets** — Dynamically generate copy-pasteable request snippets (Curl, Python, Node, Go) for every endpoint in the documentation based on the OpenAPI schema. | Unassigned | 💡 Planned | `(Pending)` |
+| **P16-T04** | 🟢 P3 | **Auto-Generated SDK Code Snippets** — Dynamically generate copy-pasteable request snippets (Curl, Python, Node, Go) for every endpoint in the documentation based on the OpenAPI schema. | Jules | 🤖 Submitted (Session `11520327290636911017`) | `docs/specs/phase-16/p16-t04-sdk-snippets.md` |
 | **P16-T05** | 🔵 P4 | **Configurable Graph Node Branding (YAML + MCP)** — Allow teams to define `metadata.node_color` in `substrate.yaml`. Plumb this custom hex color down to the Svelte Flow Dependency Graph UI *and* expose it via the MCP Server resources so AI agents know the visual branding of the nodes they are analyzing. | Jules | ✅ PR Merged | `docs/specs/phase-16/p16-t02-t05-business-metadata.md` |
 | **P16-T99** | 🔴 P1 | **Phase 16 E2E Validation (No Mocks)** — Validate the full documentation portal: Markdown ingestion from real repos, Interactive Sandbox proxy forwarding real requests via ephemeral tokens, SDK snippet generation, and Business Metadata rendering. Must include Go API tests and Playwright UI tests. | Jules | 💡 Planned | `docs/specs/phase-16/p16-t99-e2e.md` |
 

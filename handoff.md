@@ -8,6 +8,9 @@
 - **Next Up:** 
   - **Phase 16** (The Absolute SSOT API Documentation)
   - **Phase 18** (AI Agent Governance)
+- **Active Jules Sessions:**
+  1. `11520327290636911017` - P16-T04 (SDK Snippets)
+  2. `8653696255068425469` - CC-T09 (OpenRouter Integration)
 
 ## How to Execute E2E Tests
 
