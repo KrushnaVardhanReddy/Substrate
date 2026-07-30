@@ -8,9 +8,6 @@
 - **Next Up:** 
   - **Phase 16** (The Absolute SSOT API Documentation)
   - **Phase 18** (AI Agent Governance)
-- **Active Jules Sessions:**
-  1. `3076304170686923526` - P18-T04 (RAG Bundling)
-  2. `13941703518631163477` - P-UNIT-01 (Svelte Unit Tests)
 
 ## How to Execute E2E Tests
 

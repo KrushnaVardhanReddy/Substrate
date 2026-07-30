@@ -149,7 +149,7 @@
 | **P18-T01** | 🔴 P1 | **Granular MCP Tool Governance** — Allow FDAIEs to define "Agent Profiles" in Substrate (e.g., support vs. devops). Dynamically generate restricted MCP toolsets based on the profile, enforcing Human-in-the-Loop requirements for destructive `POST/DELETE` operations. | Jules | ✅ PR Merged | `(Pending)` |
 | **P18-T02** | 🚀 P1 | **Context-Aware Schema Pruning** — Implement a "Pruned Schema API" that takes natural language intent, determines the necessary subset of the OpenAPI spec, and returns only the relevant endpoints to minimize LLM token usage and latency. | Jules | ✅ PR Merged | `(Pending)` |
 | **P18-T03** | 🟡 P2 | **Agent Execution Audit Trails** — Build an AI Forensics Dashboard that logs every MCP tool request, the exact schema injected into the prompt context, and the final payload executed by the AI, providing a verifiable audit log for hallucinations. | Jules | ✅ PR Merged | `docs/specs/phase-18/p18-t03-agent-audit-trails.md` |
-| **P18-T04** | 🟢 P3 | **Dependency-Aware RAG Bundling** — Automatically bundle upstream and downstream service schemas into an agent's context window when modifying a target microservice, mathematically guaranteeing cross-repo contract safety. | Jules | 🤖 Submitted (Session `3076304170686923526`) | `docs/specs/phase-18/p18-t04-rag-bundling.md` |
+| **P18-T04** | 🟢 P3 | **Dependency-Aware RAG Bundling** — Automatically bundle upstream and downstream service schemas into an agent's context window when modifying a target microservice, mathematically guaranteeing cross-repo contract safety. | Jules | ✅ PR Merged | `docs/specs/phase-18/p18-t04-rag-bundling.md` |
 | **P18-T99** | 🔴 P1 | **Phase 18 E2E Validation (No Mocks)** — Validate AI governance features end-to-end: Agent Profile restrictions, Schema Pruning accuracy against real NL prompts, Audit Trail completeness logging all MCP tool calls, and RAG Bundle context injection. Must use real LLM completions — no simulated responses. | Jules | 💡 Planned | `docs/specs/phase-18/p18-t99-e2e.md` |
 
 ---
@@ -231,7 +231,7 @@
 
 | Task ID | Component/Page | Status |
 |---------|----------------|--------|
-| **P-UNIT-01** | Backfill Svelte unit tests for QA Dashboard and API Keys pages (19 missing files) | 🤖 Submitted (Session `13941703518631163477`) |
+| **P-UNIT-01** | Backfill Svelte unit tests for QA Dashboard and API Keys pages (19 missing files) | ✅ PR Merged |
 
 ---
 
