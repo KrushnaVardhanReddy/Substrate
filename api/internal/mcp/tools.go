@@ -397,7 +397,6 @@ custom_rules:
 		},
 	})
 
-
 	server.RegisterTool(Tool{
 		Name:        "create_governance_rule",
 		Description: "Create a governance rule.",
@@ -1112,4 +1111,34 @@ custom_rules:
 			return string(b), nil
 		},
 	})
+
+	server.RegisterTool(Tool{
+		Name:        "get_rag_bundle",
+		Description: "Returns a bundled context string containing the target service and all its upstream/downstream API schemas to ensure contract safety when making modifications.",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"org":  map[string]any{"type": "string"},
+				"repo": map[string]any{"type": "string"},
+			},
+			"required": []string{"org", "repo"},
+		},
+		Handler: func(params json.RawMessage) (any, error) {
+			var args struct {
+				Org  string `json:"org"`
+				Repo string `json:"repo"`
+			}
+			if err := json.Unmarshal(params, &args); err != nil {
+				return nil, err
+			}
+
+			bundler := services.NewRAGBundler(store)
+			bundle, err := bundler.GetContextBundle(context.Background(), args.Org, args.Repo)
+			if err != nil {
+				return nil, err
+			}
+			return bundle, nil
+		},
+	})
+
 }
