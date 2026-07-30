@@ -8,6 +8,9 @@
 - **Next Up:** 
   - **Phase 16** (The Absolute SSOT API Documentation)
   - **Phase 18** (AI Agent Governance)
+- **Active Jules Sessions:**
+  1. `9861844080202076801` - P16-T99 (Phase 16 E2E)
+  2. `8736202255225176414` - P18-T99 (Phase 18 E2E)
 
 ## How to Execute E2E Tests
 
