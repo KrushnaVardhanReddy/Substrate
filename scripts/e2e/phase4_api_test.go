@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -60,6 +61,10 @@ func setupP4Database(t *testing.T) *pgxpool.Pool {
 
 // P4-T10 — Phase 4 AI Diff Engine Full-Stack E2E Validation
 func TestPhase4AIDiff(t *testing.T) {
+	if (os.Getenv("LLM_API_KEY") == "" || os.Getenv("LLM_API_KEY") == "dummy") && os.Getenv("OPENROUTER_API_KEY") == "" {
+		t.Skip("Skipping real LLM test because LLM_API_KEY is missing or dummy")
+	}
+
 	waitForP4Services(t)
 	pool := setupP4Database(t)
 	defer pool.Close()

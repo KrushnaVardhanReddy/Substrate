@@ -33,6 +33,17 @@ func setupP7_2Database(t *testing.T) *pgxpool.Pool {
 		t.Log("Failed to ping PostgreSQL")
 		return nil
 	}
+
+	// Ensure mcp-org exists so governance handlers can resolve it
+	_, err = pool.Exec(ctx, `
+		INSERT INTO organizations (github_installation_id, github_org_name)
+		VALUES (707, 'mcp-org')
+		ON CONFLICT (github_installation_id) DO UPDATE SET github_org_name = EXCLUDED.github_org_name
+	`)
+	if err != nil {
+		t.Logf("Warning: could not seed mcp-org: %v", err)
+	}
+
 	return pool
 }
 

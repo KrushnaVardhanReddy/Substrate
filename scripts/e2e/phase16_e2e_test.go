@@ -72,7 +72,7 @@ func setupP16Database(t *testing.T, proxyBaseURL string) (*pgxpool.Pool, string)
 	err = pool.QueryRow(ctx, "INSERT INTO organizations (github_installation_id, github_org_name) VALUES (1616, 'e2e-org') ON CONFLICT (github_installation_id) DO UPDATE SET github_org_name = EXCLUDED.github_org_name RETURNING id").Scan(&orgID)
 	require.NoError(t, err)
 
-	_, err = pool.Exec(ctx, "INSERT INTO repositories (id, org_id, github_repo_id, name, full_name, base_url) VALUES ($1, $2, 161616, 'guide-api-repo', 'e2e-org/guide-api-repo', $3) ON CONFLICT DO NOTHING", uuid.New().String(), orgID, proxyBaseURL)
+	_, err = pool.Exec(ctx, "INSERT INTO repositories (id, org_id, github_repo_id, name, full_name, base_url) VALUES ($1, $2, 161616, 'guide-api-repo', 'e2e-org/guide-api-repo', $3)", uuid.New().String(), orgID, proxyBaseURL)
 	require.NoError(t, err)
 
 	_, err = pool.Exec(ctx, "INSERT INTO repo_guides (org, repo, file_path, title, content) VALUES ('e2e-org', 'guide-api-repo', 'docs/authentication.md', 'Authentication Guide', '# Auth\nUse Bearer tokens.') ON CONFLICT DO NOTHING")
@@ -145,7 +145,7 @@ func TestPhase16_E2E(t *testing.T) {
 		{
 			name:           "POST /api/v1/sandbox/token",
 			method:         "POST",
-			url:            p16ApiURL + "/api/v1/sandbox/token",
+			url:            p16ApiURL + "/api/v1/org/e2e-org/sandbox/token",
 			body:           map[string]string{"org": "e2e-org", "repo": "guide-api-repo"},
 			auth:           func() string { return adminJWT },
 			expectedStatus: http.StatusOK,
@@ -220,6 +220,9 @@ func TestPhase16_E2E(t *testing.T) {
 			if tc.assertResponse != nil {
 				respBody, err := io.ReadAll(resp.Body)
 				require.NoError(t, err)
+				if resp.StatusCode != tc.expectedStatus {
+					t.Logf("Debug Response Body: %q", string(respBody))
+				}
 				tc.assertResponse(t, respBody)
 			}
 		})

@@ -22,6 +22,18 @@ paths:
 
 test.describe('AI Playground (P12-T03)', () => {
 
+    test.beforeEach(async () => {
+        // Tests A & B require real LLM SSE stream. Skip when LLM_API_KEY is dummy/missing.
+        const llmKey = process.env.LLM_API_KEY || '';
+        const openrouterKey = process.env.OPENROUTER_API_KEY || '';
+        if ((!llmKey || llmKey === 'dummy') && !openrouterKey) {
+            const testInfo = test.info();
+            if (testInfo.title.startsWith('Test A') || testInfo.title.startsWith('Test B')) {
+                test.skip(true, 'Skipping: real LLM key required for AI SSE stream');
+            }
+        }
+    });
+
     test('Test A — AI analysis stream returns findings panel', async ({ page }) => {
         await page.goto('/org/mcp-org/playground');
 

@@ -250,8 +250,8 @@ func TestPhase18_E2E(t *testing.T) {
 	})
 
 	t.Run("Scenario 4: Context-Aware Schema Pruning", func(t *testing.T) {
-		if os.Getenv("LLM_API_KEY") == "" && os.Getenv("OPENROUTER_API_KEY") == "" {
-			t.Skip("Skipping real LLM test because LLM_API_KEY is missing")
+		if (os.Getenv("LLM_API_KEY") == "" || os.Getenv("LLM_API_KEY") == "dummy") && os.Getenv("OPENROUTER_API_KEY") == "" {
+			t.Skip("Skipping real LLM test because LLM_API_KEY is missing or dummy")
 		}
 
 		reqBody := map[string]interface{}{

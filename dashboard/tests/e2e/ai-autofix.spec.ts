@@ -8,6 +8,17 @@ import { test, expect } from '@playwright/test';
 
 test.describe('AI Autofix API E2E (Suite 10)', () => {
 
+    test.beforeEach(async () => {
+        // These tests require real LLM responses. Skip when running with dummy/missing key.
+        const llmKey = process.env.LLM_API_KEY || '';
+        const openrouterKey = process.env.OPENROUTER_API_KEY || '';
+        if (!llmKey || llmKey === 'dummy') {
+            if (!openrouterKey) {
+                test.skip(true, 'Skipping: LLM_API_KEY is missing or dummy — real AI SSE stream required');
+            }
+        }
+    });
+
     test('should return finding via POST /api/v1/ai/analyze in playground UI', async ({ page }) => {
         await page.goto('/org/mcp-org/playground');
 

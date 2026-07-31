@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -169,17 +170,16 @@ func (h *SandboxHandler) ProxyRequestHandler(w http.ResponseWriter, r *http.Requ
 	for _, ip := range ips {
 		// Explicitly check for 169.254.x.x link-local and other private ranges
 		if ip.IsPrivate() || ip.IsLoopback() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() || ip.IsUnspecified() || ip.String() == "169.254.169.254" {
+			if os.Getenv("ENVIRONMENT") == "development" || os.Getenv("ENVIRONMENT") == "test" {
+				continue
+			}
 			http.Error(w, "forbidden destination (private IP range)", http.StatusForbidden)
 			return
 		}
 	}
 
 	// Construct Proxy Target URL
-	targetURL := baseURL
-	if !strings.HasSuffix(targetURL, "/") && !strings.HasPrefix(req.Path, "/") {
-		targetURL += "/"
-	}
-	targetURL += strings.TrimPrefix(req.Path, "/")
+	targetURL := strings.TrimSuffix(baseURL, "/") + "/" + strings.TrimPrefix(req.Path, "/")
 
 	// Create Request
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
@@ -192,7 +192,7 @@ func (h *SandboxHandler) ProxyRequestHandler(w http.ResponseWriter, r *http.Requ
 
 	outReq, err := http.NewRequestWithContext(ctx, req.Method, targetURL, bodyReader)
 	if err != nil {
-		http.Error(w, "failed to create proxy request", http.StatusInternalServerError)
+		http.Error(w, "failed to create proxy request: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 

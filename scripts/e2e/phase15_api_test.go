@@ -111,6 +111,10 @@ func TestPhase15API_E2E(t *testing.T) {
 	defer pool.Close()
 
 	t.Run("Scenario 1: NL Governance Rule generation", func(t *testing.T) {
+		if (os.Getenv("LLM_API_KEY") == "" || os.Getenv("LLM_API_KEY") == "dummy") && os.Getenv("OPENROUTER_API_KEY") == "" {
+			t.Skip("Skipping real LLM test because LLM_API_KEY is missing or dummy")
+		}
+
 		adminJWT := createP15JWT("mcp-org", "admin")
 
 		reqBody := map[string]interface{}{
