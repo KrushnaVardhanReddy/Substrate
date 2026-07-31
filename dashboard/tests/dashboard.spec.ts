@@ -12,8 +12,8 @@ test('dashboard loads and displays the seeded data', async ({ page }) => {
 	await expect(page.locator('h1.page-title')).toHaveText('Dependency Graph');
 	
 	// Since the default org is 'myorg' which has no graph data seeded, it should show empty state
-	await expect(page.locator('.empty-state').first()).toContainText('No dependencies mapped');
-	await expect(page.locator('.empty-state').nth(1)).toContainText('No recent schema changes');
+	await expect(page.locator('.empty-state').first()).toContainText('No dependencies mapped yet');
+	await expect(page.locator('.empty-state').nth(1)).toContainText('No recent schema changes detected');
 
 	// Navigate to the seeded org's repository page to verify the dynamic repo from seeded data
 	await page.goto('/org/mcp-org');

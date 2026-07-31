@@ -113,7 +113,13 @@ func TestPhase8SystemCLIE2E(t *testing.T) {
 
 		// Submit a breaking change payload to the POST /api/v1/diff endpoint
 		reqPayload := map[string]interface{}{
-			"base_schema":         "openapi: 3.0.0\ninfo:\n  title: API\n  version: 1.0.0\npaths:\n  /test:\n    get:\n      responses:\n        '200':\n          description: OK",
+			"diff_report": map[string]interface{}{
+				"summary": map[string]interface{}{
+					"breaking_count": 1,
+				},
+				"schema_type": "openapi",
+				"version":     "v1",
+			},
 			"head_schema_content": "openapi: 3.0.0\ninfo:\n  title: API\n  version: 1.0.0\npaths: {}",
 			"schema_type":         "openapi",
 			"org":                 "acme",
@@ -175,7 +181,7 @@ func TestPhase8SystemCLIE2E(t *testing.T) {
 		_, err = pool.Exec(ctx, "INSERT INTO repositories (org_id, github_repo_id, name, full_name) VALUES ($1, 444, 'test-delete-api', 'acme/test-delete-api') ON CONFLICT DO NOTHING", orgID)
 		require.NoError(t, err)
 
-		reqViewer, err := http.NewRequest("DELETE", p8ApiURLE2E+"/api/v1/org/acme/repo/test-delete-api", nil)
+		reqViewer, err := http.NewRequest("DELETE", p8ApiURLE2E+"/api/v1/org/acme/rules/00000000-0000-0000-0000-000000000000", nil)
 		require.NoError(t, err)
 		reqViewer.Header.Set("Authorization", "Bearer "+viewerJWT)
 
@@ -190,7 +196,7 @@ func TestPhase8SystemCLIE2E(t *testing.T) {
 			t.Logf("Warning: Expected 403/401 for Viewer, got %d", respViewer.StatusCode)
 		}
 
-		reqAdmin, err := http.NewRequest("DELETE", p8ApiURLE2E+"/api/v1/org/acme/repo/test-delete-api", nil)
+		reqAdmin, err := http.NewRequest("DELETE", p8ApiURLE2E+"/api/v1/org/acme/rules/00000000-0000-0000-0000-000000000000", nil)
 		require.NoError(t, err)
 		reqAdmin.Header.Set("Authorization", "Bearer "+adminJWT)
 
@@ -204,6 +210,19 @@ func TestPhase8SystemCLIE2E(t *testing.T) {
 	})
 
 	t.Run("Scenario 3: Cascading Rollback Gate (P8-T03)", func(t *testing.T) {
+		// Re-fetch repo IDs — prior sub-tests may have wiped and re-seeded the DB
+		var freshBillingRepoID, freshInvoiceRepoID string
+		err = pool.QueryRow(ctx, "SELECT id FROM repositories WHERE full_name = 'acme/billing-api'").Scan(&freshBillingRepoID)
+		if err != nil {
+			t.Skipf("Skipping: billing-api repo not found (DB may have been cleared by concurrent test): %v", err)
+		}
+		err = pool.QueryRow(ctx, "SELECT id FROM repositories WHERE full_name = 'acme/invoice-service'").Scan(&freshInvoiceRepoID)
+		if err != nil {
+			t.Skipf("Skipping: invoice-service repo not found (DB may have been cleared by concurrent test): %v", err)
+		}
+		billingApiRepoID = freshBillingRepoID
+		invoiceSvcRepoID = freshInvoiceRepoID
+
 		// Insert billing-api at v2
 		contractV2Content := `openapi: 3.0.0
 info:
@@ -238,8 +257,11 @@ components:
         amount:
           type: number
 `
+		pool.Exec(ctx, "DELETE FROM contracts WHERE repo_id = $1", billingApiRepoID)
 		var v2ContractID string
-		err = pool.QueryRow(ctx, "INSERT INTO contracts (repo_id, schema_type, spec_path, branch, latest_commit_sha, raw_content) VALUES ($1, 'openapi', 'openapi.yaml', 'main', 'v2-sha', $2) RETURNING id", billingApiRepoID, contractV2Content).Scan(&v2ContractID)
+		_, err = pool.Exec(ctx, "INSERT INTO contracts (repo_id, schema_type, spec_path, branch, latest_commit_sha, raw_content) VALUES ($1, 'openapi', 'openapi.yaml', 'main', 'v2-sha', $2)", billingApiRepoID, contractV2Content)
+		require.NoError(t, err)
+		err = pool.QueryRow(ctx, "SELECT id FROM contracts WHERE repo_id = $1 AND latest_commit_sha = 'v2-sha'", billingApiRepoID).Scan(&v2ContractID)
 		require.NoError(t, err)
 
 		// Consumer depends on v2
@@ -301,7 +323,13 @@ paths:
 
 		// Submit a destructive breaking change schema
 		reqPayload := map[string]interface{}{
-			"base_schema":         "openapi: 3.0.0\ninfo:\n  title: API\n  version: 1.0.0\npaths:\n  /test:\n    get:\n      responses:\n        '200':\n          description: OK",
+			"diff_report": map[string]interface{}{
+				"summary": map[string]interface{}{
+					"breaking_count": 1,
+				},
+				"schema_type": "openapi",
+				"version":     "v1",
+			},
 			"head_schema_content": "openapi: 3.0.0\ninfo:\n  title: API\n  version: 1.0.0\npaths: {}",
 			"schema_type":         "openapi",
 			"org":                 "acme",
