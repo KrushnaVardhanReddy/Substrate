@@ -1,0 +1,65 @@
+TASK: P19-T04 — Airbyte Sync Status Dashboard
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Build a Svelte 5 dashboard page at /org/{org}/settings/integrations showing real-time
+status of all Airbyte ingestion pipelines, record counts, and live Schema Insurance
+violations from inbound streams.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-19/p19-t04-sync-status-dashboard.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Svelte 5 ONLY: all state via $state, $derived, $effect runes. No legacy stores.
+- Lucide icons: ALWAYS use direct imports. Example:
+    import Plug from 'lucide-svelte/icons/plug'
+    import Trash2 from 'lucide-svelte/icons/trash-2'
+  NEVER: import { Plug } from 'lucide-svelte'  ← this causes CompileError in runes mode.
+- SSE connection MUST be opened in $effect and cleaned up in its return function to
+  prevent memory leaks. Pattern: const es = new EventSource(url); return () => es.close();
+- Config JSON textarea MUST validate JSON on blur and show an inline error if invalid.
+- The Sync Now button MUST be disabled + show a loading spinner while sync is in flight.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- IMPORTANT: Before writing code, read CLAUDE.md and docs/wiki/index.md.
+- Existing Svelte 5 page examples to mirror:
+    dashboard/src/routes/(app)/org/[org]/settings/insurance/+page.svelte
+    dashboard/src/routes/(app)/org/[org]/governance/+page.svelte
+- Settings sidebar navigation: find the existing settings sidebar component and add
+  an "Integrations" entry with a Plug icon pointing to /org/{org}/settings/integrations.
+- The +page.ts load function should fetch GET /api/v1/org/{org}/airbyte/sources and
+  pass data as props to the page component.
+- For SSE violations feed: connect to GET /api/v1/org/{org}/airbyte/violations/stream
+  (text/event-stream). Parse JSON events and prepend to a $state violations array.
+- Vitest test pattern: mirror dashboard/src/lib/components/InsurancePolicyCard.test.ts.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- AirbyteSourceCard: props are { source: AirbyteSource }, emits syncRequest and deleteRequest.
+- Severity badge colour mapping: HIGH → red, MEDIUM → amber, LOW → slate.
+- Connector avatar: use the first 2 letters of the connector name in a coloured circle.
+  Derive colour from a simple hash of the connector string (index into a palette array).
+- For the JSON editor textarea: on blur, try JSON.parse(value); catch → set errorMsg state.
+- Pagination: keep a $state visibleCount = 50; "Load more" button adds 50 more.
+- Add the route to dashboard/src/routes/(app)/org/[org]/settings/ directory structure.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: dashboard/src/routes/(app)/org/[org]/settings/integrations/+page.svelte (CREATE)
+2. FILE: dashboard/src/routes/(app)/org/[org]/settings/integrations/+page.ts (CREATE)
+3. FILE: dashboard/src/lib/components/AirbyteSourceCard.svelte (CREATE)
+4. FILE: dashboard/src/lib/components/ViolationFeed.svelte (CREATE — SSE-connected)
+5. MODIFY: Settings sidebar component — add Integrations nav link with Plug icon
+6. FILE: dashboard/src/lib/components/AirbyteSourceCard.test.ts (CREATE)
+7. FILE: dashboard/src/lib/components/ViolationFeed.test.ts (CREATE)
+8. Run `npm run check` and `npx vitest run` in the dashboard folder.
+
+Commit: "jules: P19-T04 add Airbyte sync status and violation dashboard"
+Target branch: feature/p19-t04-sync-dashboard

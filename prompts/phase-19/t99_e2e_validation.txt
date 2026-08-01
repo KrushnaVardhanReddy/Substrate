@@ -1,0 +1,57 @@
+TASK: P19-T99 — Phase 19 E2E Validation (No Mocks)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Write comprehensive Go API E2E tests for all Phase 19 Airbyte Universal Ingestion
+features: source CRUD lifecycle, record ingestion, stream violation detection, and
+MCP tool parity. All tests run against the real PGlite-backed API server — no mocks.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-19/p19-t99-e2e.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Do NOT mock the Airbyte ingest endpoint or the AirbyteStore — test the real HTTP handler.
+- All DB state assertions (violations, source rows) MUST use db.QueryRow against the
+  actual Postgres tables, not just check HTTP response codes.
+- The async validation goroutine delay: sleep 200ms after ingest before querying violations.
+- Each test scenario MUST call t.Cleanup to delete seeded airbyte_sources rows.
+- All tests must be table-driven where applicable, using testify/assert.
+- Add the new test file to scripts/e2e/run_full_e2e.sh.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- IMPORTANT: Before writing code, read CLAUDE.md and docs/wiki/index.md.
+- CRITICAL: Read scripts/e2e/phase18_e2e_test.go completely first to understand the exact
+  test harness setup, server startup, auth token injection, and teardown patterns.
+  Mirror this file's structure exactly.
+- MCP SSE session helper: scripts/e2e/mcp_client_test.go — use openMCPSession() and
+  callTool() helpers already defined there.
+- PASETO internal service token for ingest endpoint auth: use the test helper
+  getInternalToken() from scripts/e2e/helpers.go.
+- Stream contract seeding: insert directly into stream_contracts via db.Exec for test
+  setup (this is the only acceptable direct SQL use in E2E tests).
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Test function names: TestPhase19_SourceLifecycle, TestPhase19_Ingestion_Violations,
+  TestPhase19_MCP_ConfigureSource, TestPhase19_MCP_GetViolations.
+- For Scenario 2 (violation detection): ingest 3 records in a single POST, with records[1]
+  missing mrr and records[2] having mrr as a string. Assert len(violations) == 2.
+- For MCP redaction test: after configure_airbyte_source with config {"api_key":"real-key"},
+  call list_airbyte_sources and assert the returned config.api_key == "[REDACTED]".
+- Use require.NoError (not just assert.NoError) for setup steps — fail fast on infra errors.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: scripts/e2e/phase19_e2e_test.go (CREATE)
+2. MODIFY: scripts/e2e/run_full_e2e.sh — add phase19 to the test run list
+3. Run `go test ./scripts/e2e/... -run TestPhase19 -v` and confirm all pass.
+
+Commit: "jules: P19-T99 add Phase 19 Airbyte ingestion E2E validation suite"
+Target branch: feature/p19-t99-e2e

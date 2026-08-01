@@ -1,0 +1,66 @@
+TASK: P19-T01 — Airbyte Ingestion Adapter (sqlc)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement a Go backend adapter that accepts normalised Airbyte record streams via an
+HTTP webhook endpoint and persists them to Substrate's Postgres staging tables using
+sqlc-generated type-safe queries. This is the data-plane foundation for Universal
+CRM Blast Radius — allowing any Airbyte connector (HubSpot, Snowflake, Chargebee, etc.)
+to feed real MRR data into Substrate without a custom point integration.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-19/p19-t01-airbyte-adapter.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Do NOT import any Airbyte Go SDK. Implement the protocol natively (plain JSON over HTTP).
+- All bulk record inserts MUST be wrapped in a single DB transaction — no partial ingestion.
+- Connector configs MUST be encrypted at rest using the existing KMS BYOK key derivation
+  from P15-T12. Reject POST /sources if no KMS key is derivable.
+- Follow Hexagonal Architecture strictly: define an AirbyteStore port interface in
+  api/internal/ports/airbyte.go; the sqlc adapter goes in api/internal/adapters/.
+  HTTP handlers must only call port interfaces, never raw DB packages.
+- Run `sqlc generate` after creating new SQL query files.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- IMPORTANT: Before writing code, read CLAUDE.md and docs/wiki/index.md, then read
+  docs/wiki/concepts/architecture.md to internalize the Hexagonal Architecture pattern.
+- Existing port interface examples: api/internal/ports/insurance.go (reuse pattern).
+- Existing sqlc adapter examples: api/internal/adapters/insurance_store.go.
+- Existing HTTP handler examples: api/internal/handlers/airbyte_handler.go does not
+  exist yet — mirror the pattern from api/internal/handlers/insurance_handler.go.
+- PASETO internal auth middleware: api/internal/middleware/auth.go — use InternalServiceToken
+  to protect POST /airbyte/ingest.
+- KMS BYOK key derivation: api/internal/services/kms.go — DeriveOrgKey(org string).
+- Route registration: api/cmd/server/main.go — add new routes in the registerRoutes() func.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- The two new DB tables are in the spec: airbyte_sources and airbyte_staged_records.
+  Write the migration file first, then write airbyte.sql queries, then run sqlc generate.
+- For config encryption: encrypt on write (POST /sources), decrypt on read only when
+  needed for sync — never return raw config to the client.
+- For bulk insert of records: use pgx's SendBatch or a single INSERT with unnest() for
+  efficiency. The spec allows a simple loop inside a transaction for simplicity.
+- The ingest endpoint is called by Airbyte acting as a destination — auth via
+  Authorization: Bearer <INTERNAL_SERVICE_TOKEN> header.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: api/internal/db/schema/20260801000001_airbyte_ingestion.sql (CREATE)
+2. FILE: api/internal/db/queries/airbyte.sql (CREATE)
+3. FILE: api/internal/ports/airbyte.go (CREATE — port interface)
+4. FILE: api/internal/adapters/airbyte_store.go (CREATE — sqlc adapter)
+5. FILE: api/internal/handlers/airbyte_handler.go (CREATE)
+6. FILE: api/internal/handlers/airbyte_handler_test.go (CREATE — table-driven unit tests, min 80% coverage)
+7. MODIFY: api/cmd/server/main.go — register POST /api/v1/airbyte/ingest and CRUD routes
+8. Run `sqlc generate` and `go vet ./...` in the api folder.
+
+Commit: "jules: P19-T01 add Airbyte ingestion adapter with sqlc staging tables"
+Target branch: feature/p19-t01-airbyte-adapter

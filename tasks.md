@@ -1,6 +1,6 @@
 # Substrate — Task Tracker
 
-> Last updated: 2026-07-28 (Phase 12 & 13 complete ✅. All automated tasks done. Manual QA remaining.)
+> Last updated: 2026-08-01 (Phase 19 specs, prompts, and Jules tasks added. ✅)
 > Tracking all development phases, tasks, and their current status.
 
 ---
@@ -151,6 +151,22 @@
 | **P18-T03** | 🟡 P2 | **Agent Execution Audit Trails** — Build an AI Forensics Dashboard that logs every MCP tool request, the exact schema injected into the prompt context, and the final payload executed by the AI, providing a verifiable audit log for hallucinations. | Jules | ✅ PR Merged | `docs/specs/phase-18/p18-t03-agent-audit-trails.md` |
 | **P18-T04** | 🟢 P3 | **Dependency-Aware RAG Bundling** — Automatically bundle upstream and downstream service schemas into an agent's context window when modifying a target microservice, mathematically guaranteeing cross-repo contract safety. | Jules | ✅ PR Merged | `docs/specs/phase-18/p18-t04-rag-bundling.md` |
 | **P18-T99** | 🔴 P1 | **Phase 18 E2E Validation (No Mocks)** — Validate AI governance features end-to-end: Agent Profile restrictions, Schema Pruning accuracy against real NL prompts, Audit Trail completeness logging all MCP tool calls, and RAG Bundle context injection. Must use real LLM completions — no simulated responses. | Jules | ✅ PR Merged | `docs/specs/phase-18/p18-t99-e2e.md` |
+
+---
+
+## 🔌 Phase 19: Universal Data Ingestion (Airbyte Integration)
+
+**Goal:** Accelerate Substrate's data ingestion capabilities by leveraging the open-source Airbyte ecosystem to automatically pipe CRM, database, and third-party API data directly into Substrate's "Schema Insurance" and "CRM Blast Radius" pipelines without writing custom connectors.
+
+> **Strategic framing:** Substrate acts as an Airbyte *destination* (consumer), not an orchestration host. This keeps the architecture clean — Airbyte is one possible adapter that fires into Substrate's hexagonal port. Enterprise upsell: denominate blast radius in real MRR from any of Airbyte's 300+ connectors.
+
+| Task ID | Tier | Name & Description | Owner | Status | Spec Link |
+|---|---|---|---|---|---|
+| **P19-T01** | 🚀 P1 | **Airbyte Ingestion Adapter (sqlc)** — Implement a webhook destination endpoint (`POST /api/v1/airbyte/ingest`) and CRUD API for source configs. Records are bulk-inserted into `airbyte_staged_records` staging tables. Config encrypted at rest via existing KMS BYOK. Pure hexagonal architecture: `AirbyteStore` port + sqlc adapter. | Unassigned | ⏳ Ready | `docs/specs/phase-19/p19-t01-airbyte-adapter.md` |
+| **P19-T02** | 🟡 P2 | **Dynamic Schema Insurance for Ingested Streams** — Hook the existing Schema Insurance rules engine into incoming Airbyte data streams. Async validation per record against declared `substrate.yaml` stream contracts. Violations surface as `insurance_claims` rows with stream context. | Unassigned | ⏳ Ready | `docs/specs/phase-19/p19-t02-schema-insurance-streams.md` |
+| **P19-T03** | 🔴 P1 | **MCP Tooling for Airbyte Configs** — Expose four MCP Tools (`configure_airbyte_source`, `trigger_airbyte_sync`, `list_airbyte_sources`, `get_airbyte_violations`) so FDAIEs and Claude/Cursor can orchestrate enterprise integrations headlessly. Sensitive config fields auto-redacted in all responses. | Unassigned | ⏳ Ready | `docs/specs/phase-19/p19-t03-mcp-airbyte-tools.md` |
+| **P19-T04** | 🟢 P3 | **Airbyte Sync Status Dashboard** — Svelte 5 page at `/org/{org}/settings/integrations` showing real-time pipeline status cards, SSE-connected live violation feed, and an Add Source form with JSON config editor. | Unassigned | ⏳ Ready | `docs/specs/phase-19/p19-t04-sync-status-dashboard.md` |
+| **P19-T99** | 🔴 P1 | **Phase 19 E2E Validation (No Mocks)** — Validate the Airbyte ingestion pipeline end-to-end: source CRUD lifecycle, record ingestion with violation detection, MCP tool parity including config redaction assertion. Uses real PGlite test harness — no mocks. | Unassigned | ⏳ Ready | `docs/specs/phase-19/p19-t99-e2e.md` |
 
 ---
 

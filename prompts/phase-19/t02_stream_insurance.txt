@@ -1,0 +1,65 @@
+TASK: P19-T02 — Dynamic Schema Insurance for Ingested Streams
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Extend Substrate's Schema Insurance engine to validate incoming Airbyte data streams
+at ingestion-time. When a record violates a declared stream contract (missing required
+field, wrong type, null MRR), automatically generate an insurance_claims row so the
+violation surfaces in the existing Insurance dashboard.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-19/p19-t02-schema-insurance-streams.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Validation MUST be asynchronous — it must NOT block the 202 Accepted ingest response.
+  Use a goroutine dispatched after the DB insert, NOT a full River job queue.
+- Do NOT re-implement the insurance claims schema. Reuse the existing insurance_claims
+  table and ports.InsuranceStore exactly as defined in P15-T10.
+- The core validation logic in stream_validator.go must be a pure function with no DB
+  calls — DB interaction is only in the dispatch goroutine. This makes it unit-testable.
+- A null or missing `mrr` field on a stream containing an `mrr` column is always HIGH severity.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- IMPORTANT: Before writing code, read CLAUDE.md and docs/wiki/index.md.
+- Existing insurance implementation: api/internal/services/insurance.go and
+  api/internal/ports/insurance.go — read these first to understand the InsuranceStore
+  interface and the insurance_claims table schema before writing any code.
+- The airbyte ingest handler (P19-T01) lives in api/internal/handlers/airbyte_handler.go.
+  Add async validation dispatch at the end of the POST /airbyte/ingest handler.
+- Stream contract YAML parsing: the substrate.yaml airbyte_streams block should be parsed
+  by extending the existing api/internal/config/substrate_yaml.go parser.
+- SSE broadcast: existing SSEBroker is in api/internal/sse/broker.go. Call
+  broker.Broadcast("violations", payload) to push real-time violation events.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- StreamViolation struct: { Field string, Type string, Severity string, Detail string }
+- ValidateRecord is a pure func: func ValidateRecord(contract StreamContract, record map[string]any) []StreamViolation
+- The dispatch goroutine looks like:
+    go func() {
+      violations := ValidateRecord(contract, record)
+      for _, v := range violations { insuranceStore.CreateClaim(ctx, ...) }
+    }()
+- Map violation severity to insurance claim: HIGH → "critical", MEDIUM → "warning", LOW → "info".
+- For the GET violations endpoint, join insurance_claims WHERE claim_type = 'stream_violation'
+  and parse the details JSON to filter by stream name.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: api/internal/db/schema/20260801000002_stream_contracts.sql (CREATE)
+2. FILE: api/internal/db/queries/stream_contracts.sql (CREATE)
+3. FILE: api/internal/services/stream_validator.go (CREATE)
+4. FILE: api/internal/services/stream_validator_test.go (CREATE — table-driven, no DB calls)
+5. MODIFY: api/internal/handlers/airbyte_handler.go — add async validation dispatch
+6. MODIFY: api/internal/handlers/airbyte_handler.go — add GET .../violations endpoint
+7. Run `go test ./api/internal/services/... -v` in the api folder.
+
+Commit: "jules: P19-T02 add stream schema insurance validation for Airbyte ingestion"
+Target branch: feature/p19-t02-stream-insurance

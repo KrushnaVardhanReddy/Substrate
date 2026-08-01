@@ -60,7 +60,11 @@ BRANCH = get_current_branch()
 if "--branch" in sys.argv:
     idx = sys.argv.index("--branch")
     if idx + 1 < len(sys.argv):
-        BRANCH = sys.argv[idx + 1]
+        val = sys.argv[idx + 1]
+        # "current" is a magic alias that resolves to the real git branch at runtime
+        BRANCH = get_current_branch() if val.lower() == "current" else val
+
+print(f"📌 Target branch: {BRANCH}")
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Mandatory safety rules (prepended to every prompt)
@@ -1058,6 +1062,33 @@ TASKS = {
         "name": "CC-T07 — E2E Validation: API Keys Backend",
         "phase": "cross-cutting",
         "prompt": _load_prompt("prompts/cross_cutting/t07_api_keys_e2e.txt"),
+    },
+
+    # ── Phase 19: Universal Data Ingestion (Airbyte Integration) ─────────────
+    1901: {
+        "name": "P19-T01 — Airbyte Ingestion Adapter (sqlc)",
+        "phase": "phase-19",
+        "prompt": _load_prompt("prompts/phase-19/t01_airbyte_adapter.txt"),
+    },
+    1902: {
+        "name": "P19-T02 — Dynamic Schema Insurance for Ingested Streams",
+        "phase": "phase-19",
+        "prompt": _load_prompt("prompts/phase-19/t02_stream_insurance.txt"),
+    },
+    1903: {
+        "name": "P19-T03 — MCP Tooling for Airbyte Configs",
+        "phase": "phase-19",
+        "prompt": _load_prompt("prompts/phase-19/t03_mcp_airbyte_tools.txt"),
+    },
+    1904: {
+        "name": "P19-T04 — Airbyte Sync Status Dashboard",
+        "phase": "phase-19",
+        "prompt": _load_prompt("prompts/phase-19/t04_sync_dashboard.txt"),
+    },
+    1999: {
+        "name": "P19-T99 — Phase 19 E2E Validation (No Mocks)",
+        "phase": "phase-19",
+        "prompt": _load_prompt("prompts/phase-19/t99_e2e_validation.txt"),
     },
 }
 

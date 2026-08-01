@@ -1,0 +1,56 @@
+TASK: P19-T03 — MCP Tooling for Airbyte Configs
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Expose Substrate's Airbyte ingestion management as four MCP Tools so FDAIEs and AI
+agents (Claude, Cursor) can configure enterprise data integrations headlessly:
+configure_airbyte_source, trigger_airbyte_sync, list_airbyte_sources, get_airbyte_violations.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-19/p19-t03-mcp-airbyte-tools.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- All MCP tool handlers MUST call port interfaces (ports.AirbyteStore) — never raw DB.
+- Sensitive config fields (api_key, token, secret, password) MUST be redacted to
+  "[REDACTED]" in ALL tool responses. This is a security requirement, not optional.
+- Register all four tools inside the existing mcp.Server.registerTools() method.
+- Do NOT create a new MCP server file — add to the existing api/internal/mcp/server.go.
+- Tool schemas must exactly match the JSON inputSchema defined in the spec.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT & ARCHITECTURE
+═══════════════════════════════════════════════════════════════
+- IMPORTANT: Before writing code, read CLAUDE.md and docs/wiki/index.md.
+- Existing MCP tool registration pattern: api/internal/mcp/server.go — read this file
+  completely first. Mirror the exact pattern used by the get_rag_bundle and
+  get_blast_radius tool handlers.
+- AirbyteStore port interface: api/internal/ports/airbyte.go (created in P19-T01).
+  Inject it into mcp.Server via constructor dependency injection.
+- For configure_airbyte_source: internally call the AirbyteStore.CreateSource() method.
+- For trigger_airbyte_sync: call AirbyteStore.TriggerSync(). Return counts from the store.
+- For list_airbyte_sources: call AirbyteStore.ListSources(org). Redact config fields.
+- For get_airbyte_violations: call AirbyteStore.ListViolations(org, stream, limit).
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Redaction helper: write a small func redactConfig(config map[string]any) map[string]any
+  that replaces values for keys matching a blocklist {"api_key","token","secret","password"}.
+- Tool handler signature follows the existing pattern:
+    func (s *Server) handleConfigureAirbyteSource(args map[string]any) (string, error)
+- Return all tool results as a JSON string (json.Marshal the response struct).
+- For trigger_airbyte_sync: if AirbyteStore.TriggerSync is not yet implemented, add a
+  stub that returns {records_ingested: 0, violations: 0} — but do NOT mock the MCP layer.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. MODIFY: api/internal/mcp/server.go — add 4 new tools + AirbyteStore dependency
+2. FILE: api/internal/mcp/airbyte_tools_test.go (CREATE — unit tests for all 4 handlers)
+3. Run `go test ./api/internal/mcp/...` in the api folder.
+
+Commit: "jules: P19-T03 add MCP tools for Airbyte source management and violations"
+Target branch: feature/p19-t03-mcp-airbyte-tools
