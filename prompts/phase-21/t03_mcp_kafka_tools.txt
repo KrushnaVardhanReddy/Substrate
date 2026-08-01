@@ -1,0 +1,38 @@
+TASK: P21-T03 — MCP Tools for Kafka Schema Governance
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Add three MCP Tools to the existing MCP server: list_kafka_subjects, get_kafka_schema_diff,
+and get_kafka_breaking_events. Enables AI agents to govern Kafka schema evolution headlessly.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-21/p21-t03-mcp-kafka-tools.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- All handlers call KafkaSchemaStore port only — never raw DB.
+- get_kafka_schema_diff MUST reuse the existing diff engine adapters — do not duplicate.
+- Register inside the existing api/internal/mcp/server.go — no new MCP file.
+- Tool inputSchema must match the JSON defined in the spec exactly.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT
+═══════════════════════════════════════════════════════════════
+- IMPORTANT: Read CLAUDE.md and docs/wiki/index.md first.
+- Existing MCP tool handler pattern: api/internal/mcp/server.go — read completely.
+  Mirror get_airbyte_violations (P19-T03) and get_route_traffic (P20-T03) patterns.
+- KafkaSchemaStore port: api/internal/ports/kafka.go (created in P21-T01).
+- Diff engine adapters: api/internal/diff/avro.go, api/internal/diff/protobuf.go.
+- Inject KafkaSchemaStore into mcp.Server via constructor.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. MODIFY: api/internal/mcp/server.go — add 3 tools + KafkaSchemaStore dependency
+2. FILE: api/internal/mcp/kafka_tools_test.go (CREATE)
+3. Run `go test ./api/internal/mcp/...`.
+
+Commit: "jules: P21-T03 add MCP tools for Kafka schema governance"
+Target branch: feature/p21-t03-mcp-kafka-tools

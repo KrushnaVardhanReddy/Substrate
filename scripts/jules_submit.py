@@ -1090,7 +1090,52 @@ TASKS = {
         "phase": "phase-19",
         "prompt": _load_prompt("prompts/phase-19/t99_e2e_validation.txt"),
     },
+
+    # ── Phase 20: OTel/APM Ingest (Traffic-Aware Blast Radius) ───────────────
+    2001: {
+        "name": "P20-T01 — OTel OTLP Receiver",
+        "phase": "phase-20",
+        "prompt": _load_prompt("prompts/phase-20/t01_otel_receiver.txt"),
+    },
+    2002: {
+        "name": "P20-T02 — Traffic Observability Dashboard",
+        "phase": "phase-20",
+        "prompt": _load_prompt("prompts/phase-20/t02_traffic_dashboard.txt"),
+    },
+    2003: {
+        "name": "P20-T03 — MCP Tools for OTel Traffic",
+        "phase": "phase-20",
+        "prompt": _load_prompt("prompts/phase-20/t03_mcp_otel_tools.txt"),
+    },
+    2099: {
+        "name": "P20-T99 — Phase 20 E2E Validation (No Mocks)",
+        "phase": "phase-20",
+        "prompt": _load_prompt("prompts/phase-20/t99_e2e_validation.txt"),
+    },
+
+    # ── Phase 21: Kafka / Confluent Schema Registry Governance ───────────────
+    2101: {
+        "name": "P21-T01 — Kafka Schema Registry Webhook Receiver",
+        "phase": "phase-21",
+        "prompt": _load_prompt("prompts/phase-21/t01_kafka_schema_registry.txt"),
+    },
+    2102: {
+        "name": "P21-T02 — Kafka Schema Governance Dashboard",
+        "phase": "phase-21",
+        "prompt": _load_prompt("prompts/phase-21/t02_kafka_dashboard.txt"),
+    },
+    2103: {
+        "name": "P21-T03 — MCP Tools for Kafka Governance",
+        "phase": "phase-21",
+        "prompt": _load_prompt("prompts/phase-21/t03_mcp_kafka_tools.txt"),
+    },
+    2199: {
+        "name": "P21-T99 — Phase 21 E2E Validation (No Mocks)",
+        "phase": "phase-21",
+        "prompt": _load_prompt("prompts/phase-21/t99_e2e_validation.txt"),
+    },
 }
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Submission logic

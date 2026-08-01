@@ -1,0 +1,43 @@
+TASK: P21-T99 — Phase 21 E2E Validation (No Mocks)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Write comprehensive Go API E2E tests for Phase 21 Kafka Schema Registry integration:
+source lifecycle, schema version ingestion, breaking change detection, MCP tool parity,
+and auth rejection. All tests run against real PGlite — no mocks.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-21/p21-t99-e2e.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- No mocks. All DB state assertions via real db.QueryRow.
+- t.Cleanup removes all kafka_schema_sources + kafka_schema_versions seeded per test.
+- Use require.NoError for setup steps.
+- Mirror structure of scripts/e2e/phase19_e2e_test.go exactly.
+- Post minimal valid Avro schema JSON strings in test payloads.
+- Add phase21 to scripts/e2e/run_full_e2e.sh.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT
+═══════════════════════════════════════════════════════════════
+- IMPORTANT: Read CLAUDE.md and docs/wiki/index.md first.
+- CRITICAL: Read scripts/e2e/phase19_e2e_test.go and phase20_e2e_test.go to understand
+  the exact test harness, server startup, token helpers, and teardown.
+- MCP session helper: scripts/e2e/mcp_client_test.go.
+- Minimum valid Avro schema for Scenario 2:
+    {"type":"record","name":"Payment","fields":[{"name":"id","type":"string"},{"name":"amount","type":"int"}]}
+- Scenario 3 breaking schema (remove amount field):
+    {"type":"record","name":"Payment","fields":[{"name":"id","type":"string"}]}
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: scripts/e2e/phase21_e2e_test.go (CREATE)
+2. MODIFY: scripts/e2e/run_full_e2e.sh — add phase21
+3. Run `go test ./scripts/e2e/... -run TestPhase21 -v` — all pass.
+
+Commit: "jules: P21-T99 add Phase 21 Kafka schema registry E2E validation suite"
+Target branch: feature/p21-t99-e2e

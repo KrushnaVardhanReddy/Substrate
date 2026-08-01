@@ -39,6 +39,38 @@
 
 ---
 
+## 📡 Phase 20: OTel/APM Ingest (Traffic-Aware Blast Radius)
+
+**Goal:** Accept OTLP/HTTP payloads from any OTel-compatible APM (Datadog, Grafana, Prometheus) and enrich blast radius with real traffic weight — turning theoretical risk into quantitative req/min scores.
+
+> **Strategic framing:** Makes every existing Substrate metric quantitative. No new feature needed — blast radius becomes "12k req/min at P99 87ms" instead of just "consumer exists".
+> **Base branch:** `fix/dependency-graph-filtering-5385298189871839623`
+
+| Task ID | Tier | Name & Description | Owner | Jules ID | Status | Spec Link |
+|---|---|---|---|---|---|---|
+| **P20-T01** | 🚀 P1 | **OTel OTLP Receiver** — OTLP/HTTP endpoint accepting metrics + traces. Aggregates into per-route traffic windows. Enriches `GET /impact` with `req_per_min`, `p99_ms`, `risk` fields. **Wave 1 — foundational, blocks T02/T03.** | Jules | `2001` | ⏳ Ready | `docs/specs/phase-20/p20-t01-otel-receiver.md` |
+| **P20-T02** | 🟢 P3 | **Traffic Observability Dashboard** — Svelte 5 `/org/{org}/observability` page. OTel source provisioning, route traffic charts, live SSE feed. Graph node glow by traffic intensity. **Wave 2 — pure frontend.** | Jules | `2002` | 🔒 Blocked (T01) | `docs/specs/phase-20/p20-t02-traffic-dashboard.md` |
+| **P20-T03** | 🔴 P1 | **MCP Tools for OTel Traffic** — 3 MCP tools: `get_route_traffic`, `get_top_traffic_routes`, `get_traffic_enriched_blast_radius`. **Wave 2 — parallel with T02.** | Jules | `2003` | 🔒 Blocked (T01) | `docs/specs/phase-20/p20-t03-mcp-otel-tools.md` |
+| **P20-T99** | 🔴 P1 | **Phase 20 E2E Validation (No Mocks)** — OTLP JSON ingestion, traffic-enriched blast radius assertion, MCP parity, auth rejection. **Wave 3.** | Jules | `2099` | 🔒 Blocked (T01+T03) | `docs/specs/phase-20/p20-t99-e2e.md` |
+
+---
+
+## 🎵 Phase 21: Kafka / Confluent Schema Registry Governance
+
+**Goal:** Receive schema change webhooks from Confluent Schema Registry and Apicurio, auto-detect breaking changes using the existing diff engine, and govern the entire event-driven Kafka stack — a market segment no competitor covers today.
+
+> **Strategic framing:** Substrate already parses Avro + Protobuf (Phase 1d/1e). This adds live webhook triggering — zero new diff logic needed, just a receiver + event pipeline.
+> **Base branch:** `fix/dependency-graph-filtering-5385298189871839623`
+
+| Task ID | Tier | Name & Description | Owner | Jules ID | Status | Spec Link |
+|---|---|---|---|---|---|---|
+| **P21-T01** | 🚀 P1 | **Kafka Schema Registry Webhook Receiver** — Accept Confluent + Apicurio (CloudEvents) payloads. Diff against previous version using existing Avro/Protobuf adapters. Breaking changes → `events` table + SSE broadcast. **Wave 1 — foundational.** | Jules | `2101` | ⏳ Ready | `docs/specs/phase-21/p21-t01-kafka-schema-registry.md` |
+| **P21-T02** | 🟢 P3 | **Kafka Schema Governance Dashboard** — Svelte 5 `/org/{org}/kafka` page. Source management, subject table with version history drawer, live breaking-change SSE feed. **Wave 2 — pure frontend.** | Jules | `2102` | 🔒 Blocked (T01) | `docs/specs/phase-21/p21-t02-kafka-dashboard.md` |
+| **P21-T03** | 🔴 P1 | **MCP Tools for Kafka Governance** — 3 MCP tools: `list_kafka_subjects`, `get_kafka_schema_diff`, `get_kafka_breaking_events`. **Wave 2 — parallel with T02.** | Jules | `2103` | 🔒 Blocked (T01) | `docs/specs/phase-21/p21-t03-mcp-kafka-tools.md` |
+| **P21-T99** | 🔴 P1 | **Phase 21 E2E Validation (No Mocks)** — Source lifecycle, Avro schema ingestion, breaking change detection via real diff engine, MCP parity. **Wave 3.** | Jules | `2199` | 🔒 Blocked (T01+T03) | `docs/specs/phase-21/p21-t99-e2e.md` |
+
+---
+
 ## 🧪 E2E Coverage Tracker
 
 > **Purpose:** Track which phases have E2E test coverage. As a solo developer, E2E is the primary safety net against production regressions.

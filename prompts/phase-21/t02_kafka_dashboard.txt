@@ -1,0 +1,58 @@
+TASK: P21-T02 — Kafka Schema Governance Dashboard
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Build a Svelte 5 dashboard page at /org/{org}/kafka showing registered Schema Registry
+sources, tracked Kafka subjects with version history, and a live SSE breaking-change feed.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-21/p21-t02-kafka-dashboard.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Svelte 5 ONLY: $state, $derived, $effect runes. No legacy stores.
+- Lucide: direct imports only. `import Radio from 'lucide-svelte/icons/radio'`.
+- SSE in $effect with cleanup: `const es = new EventSource(url); return () => es.close()`.
+- The Subject Detail Drawer MUST reuse the existing DiffViewer component — do not build
+  a new diff renderer.
+- Add "Kafka" entry to the org sidebar nav.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT
+═══════════════════════════════════════════════════════════════
+- IMPORTANT: Read CLAUDE.md and docs/wiki/index.md first.
+- Mirror page structure from:
+    dashboard/src/routes/(app)/org/[org]/settings/integrations/+page.svelte (P19-T04)
+    dashboard/src/routes/(app)/org/[org]/observability/+page.svelte (P20-T02)
+- Existing DiffViewer: dashboard/src/lib/components/DiffViewer.svelte — import and reuse.
+- Existing dependency graph node types: check DependencyGraph.svelte for the node type
+  system and add "kafka_schema" as a new type with Radio icon.
+- +page.ts load function: fetch GET /api/v1/org/{org}/kafka/sources and
+  GET /api/v1/org/{org}/kafka/schemas, pass as page props.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- "Add Registry" modal: show webhook URL as `${PUBLIC_API_URL}/api/v1/kafka/schema-event`
+  and the generated Bearer token in a masked input with copy button.
+- Display a one-time token warning ("Save this token — it won't be shown again").
+- Subject detail drawer: use a Svelte `bind:open` boolean + a CSS slide-in panel.
+- Version selector: two <select> dropdowns (from_version, to_version) → call
+  GET /api/v1/org/{org}/kafka/schemas/{subject}/diff?from=X&to=Y on change.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: dashboard/src/routes/(app)/org/[org]/kafka/+page.svelte (CREATE)
+2. FILE: dashboard/src/routes/(app)/org/[org]/kafka/+page.ts (CREATE)
+3. FILE: dashboard/src/lib/components/KafkaSourceCard.svelte (CREATE)
+4. FILE: dashboard/src/lib/components/KafkaSubjectTable.svelte (CREATE)
+5. FILE: dashboard/src/lib/components/KafkaBreakingFeed.svelte (CREATE)
+6. MODIFY: org sidebar — add Kafka nav item
+7. FILE: dashboard/src/lib/components/KafkaSourceCard.test.ts (CREATE)
+8. Run `npm run check` and `npx vitest run`.
+
+Commit: "jules: P21-T02 add Kafka schema governance dashboard with live breaking change feed"
+Target branch: feature/p21-t02-kafka-dashboard

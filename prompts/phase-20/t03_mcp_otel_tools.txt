@@ -1,0 +1,40 @@
+TASK: P20-T03 — MCP Tools for OTel Traffic Queries
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Add three MCP Tools to the existing MCP server: get_route_traffic, get_top_traffic_routes,
+and get_traffic_enriched_blast_radius. These let AI agents query live traffic data
+during impact analysis, turning blast radius from theoretical to quantitative.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-20/p20-t03-mcp-otel-tools.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- All handlers call OtelStore port only — never raw DB.
+- get_traffic_enriched_blast_radius must call BOTH ImpactStore and OtelStore and merge
+  results in-memory. Do not create a new combined DB query.
+- Register inside the existing api/internal/mcp/server.go — do NOT create a new file.
+- Tool inputSchema must exactly match the JSON defined in the spec.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT
+═══════════════════════════════════════════════════════════════
+- IMPORTANT: Read CLAUDE.md and docs/wiki/index.md first.
+- Existing MCP server: api/internal/mcp/server.go — mirror the pattern of existing
+  tool handlers (e.g. get_blast_radius, get_airbyte_violations from P19-T03).
+- OtelStore port: api/internal/ports/otel.go (created in P20-T01).
+- ImpactStore port: api/internal/ports/impact.go — use existing GetImpact() method.
+- Inject OtelStore into mcp.Server via constructor dependency injection.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. MODIFY: api/internal/mcp/server.go — add 3 tools + OtelStore dependency
+2. FILE: api/internal/mcp/otel_tools_test.go (CREATE)
+3. Run `go test ./api/internal/mcp/...`.
+
+Commit: "jules: P20-T03 add MCP tools for OTel traffic queries"
+Target branch: feature/p20-t03-mcp-otel-tools

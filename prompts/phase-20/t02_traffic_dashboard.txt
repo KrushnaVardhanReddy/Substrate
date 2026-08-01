@@ -1,0 +1,65 @@
+TASK: P20-T02 — Traffic-Weight Observability Dashboard
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Build a Svelte 5 Observability dashboard page at /org/{org}/observability showing
+OTel-registered sources, route-level traffic charts, and a live SSE traffic feed.
+Also enhance the existing dependency graph and blast radius modal with traffic weight
+colour coding and per-consumer req/min columns.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-20/p20-t02-traffic-dashboard.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Svelte 5 ONLY: $state, $derived, $effect runes. No legacy stores.
+- Lucide: direct imports only. `import Activity from 'lucide-svelte/icons/activity'`.
+- SSE in $effect with cleanup: `const es = new EventSource(url); return () => es.close()`.
+- Do NOT add a new charting library. Use chart.js if already in package.json, else
+  render a pure SVG bar chart.
+- Traffic mode toggle in graph is OFF by default — must not break existing graph modes.
+- The blast radius modal traffic column is additive — if no OTel data, column shows "—".
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT
+═══════════════════════════════════════════════════════════════
+- IMPORTANT: Read CLAUDE.md and docs/wiki/index.md first.
+- Existing Svelte 5 page pattern: mirror
+  dashboard/src/routes/(app)/org/[org]/settings/integrations/+page.svelte (P19-T04).
+- Existing DiffViewer component: dashboard/src/lib/components/DiffViewer.svelte.
+- Existing BlastRadiusModal: dashboard/src/lib/components/BlastRadiusModal.svelte —
+  add a Traffic column to its consumer table.
+- Existing DependencyGraph: dashboard/src/lib/components/DependencyGraph.svelte —
+  add traffic intensity CSS property as a new optional layer.
+- Org sidebar nav: find the existing sidebar component and add "Observability" entry
+  with `Activity` icon.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Token display: show generated token ONCE in a masked input with copy-to-clipboard
+  button. After the user closes the modal, the plaintext is gone. Display a warning.
+- The otelcol YAML snippet (from spec) should be in a <pre> code block with a copy button.
+- Traffic intensity for graph nodes: log scale `Math.log10(req_per_min + 1) / 4`.
+  Clamp to [0, 1]. Apply as CSS variable for glow intensity.
+- For the SVG bar chart fallback: render a horizontal bar chart with route labels on
+  the left and proportional bar widths. Keep it under 80 lines of code.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: dashboard/src/routes/(app)/org/[org]/observability/+page.svelte (CREATE)
+2. FILE: dashboard/src/routes/(app)/org/[org]/observability/+page.ts (CREATE)
+3. FILE: dashboard/src/lib/components/OtelSourceCard.svelte (CREATE)
+4. FILE: dashboard/src/lib/components/RouteTrafficChart.svelte (CREATE)
+5. FILE: dashboard/src/lib/components/TrafficFeed.svelte (CREATE)
+6. MODIFY: DependencyGraph.svelte — traffic colour mode toggle
+7. MODIFY: BlastRadiusModal.svelte — traffic weight columns
+8. MODIFY: org sidebar — add Observability nav item
+9. FILE: dashboard/src/lib/components/OtelSourceCard.test.ts (CREATE)
+10. Run `npm run check` and `npx vitest run`.
+
+Commit: "jules: P20-T02 add OTel traffic observability dashboard and graph enrichment"
+Target branch: feature/p20-t02-traffic-dashboard

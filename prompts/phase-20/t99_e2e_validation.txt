@@ -1,0 +1,40 @@
+TASK: P20-T99 — Phase 20 E2E Validation (No Mocks)
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Write comprehensive Go API E2E tests for Phase 20 OTel ingestion: source provisioning,
+OTLP JSON metric ingestion, traffic-enriched blast radius assertion, MCP tool parity,
+and auth rejection. All tests run against real PGlite — no mocks.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-20/p20-t99-e2e.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Use OTLP JSON format (not protobuf) for E2E tests — avoids test binary bloat.
+- All DB state assertions via real db.QueryRow — not just HTTP response codes.
+- t.Cleanup deletes all otel_sources + otel_route_traffic rows seeded per test.
+- Use require.NoError for setup steps (fail fast on infra errors).
+- Mirror structure of scripts/e2e/phase19_e2e_test.go exactly.
+- Add phase20 to scripts/e2e/run_full_e2e.sh.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT
+═══════════════════════════════════════════════════════════════
+- IMPORTANT: Read CLAUDE.md and docs/wiki/index.md first.
+- CRITICAL: Read scripts/e2e/phase19_e2e_test.go completely to understand harness
+  setup, server startup, auth token injection, and teardown.
+- MCP session helper: scripts/e2e/mcp_client_test.go — use openMCPSession() and callTool().
+- OTLP JSON payload format: see spec Scenario 2 for the exact JSON structure to POST.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: scripts/e2e/phase20_e2e_test.go (CREATE)
+2. MODIFY: scripts/e2e/run_full_e2e.sh — add phase20
+3. Run `go test ./scripts/e2e/... -run TestPhase20 -v` — all pass.
+
+Commit: "jules: P20-T99 add Phase 20 OTel ingestion E2E validation suite"
+Target branch: feature/p20-t99-e2e

@@ -1,0 +1,66 @@
+TASK: P21-T01 — Kafka / Confluent Schema Registry Live Webhook Receiver
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement a webhook receiver that accepts schema change events from Confluent Schema
+Registry and Apicurio Registry (CloudEvents format). On receipt, persist the new schema
+version, diff it against the previous version using the existing Avro/Protobuf diff
+engine, and create a breaking change event if violations are found.
+
+This opens event-driven teams (Kafka-first) as a new market segment — no competitor
+governs Kafka schema evolution today outside the Schema Registry itself.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-21/p21-t01-kafka-schema-registry.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Do NOT connect to Kafka brokers. Webhook-only architecture.
+- Support BOTH Confluent Schema Registry payload AND Apicurio CloudEvents payload formats.
+- Breaking change detection MUST reuse the existing diff engine adapters in api/internal/diff/.
+  Do NOT duplicate diff logic.
+- Token auth: SHA-256 hash only — same pattern as otel_sources.token_hash (P20-T01).
+- Breaking change events use the existing `events` table (same as P17-T06 deployment events)
+  with type = "kafka_breaking_change". Do NOT create a new events table.
+- Hexagonal: KafkaSchemaStore port in api/internal/ports/kafka.go.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT
+═══════════════════════════════════════════════════════════════
+- IMPORTANT: Read CLAUDE.md and docs/wiki/index.md first.
+- Existing diff adapters: api/internal/diff/avro.go and api/internal/diff/protobuf.go —
+  read these to understand how to invoke them for schema comparison.
+- Existing events table and handler: api/internal/handlers/events_handler.go — reuse
+  the existing CreateEvent() port method to persist kafka_breaking_change events.
+- Existing port pattern: api/internal/ports/airbyte.go (P19-T01).
+- SSE broadcast: api/internal/sse/broker.go — Broadcast("kafka_event", payload).
+- Route registration: api/cmd/server/main.go.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Payload detection: check for `specversion` field → CloudEvents (Apicurio).
+  Otherwise treat as Confluent format.
+- Previous version lookup: SELECT schema_raw FROM kafka_schema_versions WHERE
+  org=$1 AND subject=$2 AND version=$3 ORDER BY version DESC LIMIT 1.
+- Diff invocation: schemaType = "AVRO" → call diff.DiffAvro(prev, new).
+  schemaType = "PROTOBUF" → call diff.DiffProtobuf(prev, new).
+  schemaType = "JSON" → call diff.DiffJSONSchema(prev, new) if it exists, else skip diff.
+- If no previous version exists (first ingestion), store but skip diff — not a breaking change.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: api/internal/db/schema/20260803000001_kafka_schemas.sql (CREATE)
+2. FILE: api/internal/db/queries/kafka.sql (CREATE)
+3. FILE: api/internal/ports/kafka.go (CREATE)
+4. FILE: api/internal/adapters/kafka_store.go (CREATE)
+5. FILE: api/internal/handlers/kafka_handler.go (CREATE)
+6. FILE: api/internal/handlers/kafka_handler_test.go (CREATE)
+7. MODIFY: api/cmd/server/main.go — register new routes
+8. Run `sqlc generate` and `go vet ./...`.
+
+Commit: "jules: P21-T01 add Kafka Schema Registry webhook receiver with breaking change detection"
+Target branch: feature/p21-t01-kafka-schema-registry

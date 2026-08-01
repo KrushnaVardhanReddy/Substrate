@@ -1,0 +1,65 @@
+TASK: P20-T01 — OTel/APM Ingest Receiver
+
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
+Implement an OTLP/HTTP receiver in the Substrate Go backend. Accept metric and trace
+payloads from any OTel-compatible APM (Datadog Agent, Grafana Agent, Prometheus,
+OpenTelemetry Collector) and aggregate them into per-route traffic metrics in Postgres.
+This enriches the existing blast radius calculation with real traffic weight, turning
+theoretical dependency risk into quantitative "N req/min at P99 Xms" risk scores.
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/phase-20/p20-t01-otel-receiver.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Use `go.opentelemetry.io/proto/otlp` for protobuf parsing. Do NOT shell out to otelcol.
+- Accept BOTH `application/x-protobuf` (OTLP binary) AND `application/json` (OTLP JSON).
+- NEVER store raw spans or full trace payloads — only route-level aggregated counts.
+- Token auth: SHA-256 hash only — never store plaintext tokens.
+- Upsert using `INSERT ... ON CONFLICT DO UPDATE` for 1-minute window aggregation.
+- Hexagonal: define `OtelStore` port in `api/internal/ports/otel.go`.
+- The impact handler enrichment must be additive — existing blast radius response shape
+  must not change for orgs with no OTel data.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT — EXISTING REPO LAYOUT
+═══════════════════════════════════════════════════════════════
+- IMPORTANT: Read CLAUDE.md and docs/wiki/index.md before writing any code.
+- Existing port interface pattern: `api/internal/ports/airbyte.go` (created in P19-T01).
+- Existing impact handler: `api/internal/handlers/impact_handler.go` — extend this to
+  join `otel_route_traffic` when data is available for the org.
+- Existing event broadcasting: `api/internal/sse/broker.go` — use Broadcast() for
+  the live traffic stream endpoint.
+- Route registration: `api/cmd/server/main.go` — registerRoutes().
+- Token hashing pattern: look for SHA-256 usage in existing auth middleware.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- For OTLP JSON parsing: unmarshal into a simple struct matching the OTLP JSON schema.
+  Extract `resourceSpans[*].scopeSpans[*].spans[*]` attributes for `http.route`,
+  `http.method`, `service.name`.
+- For OTLP protobuf: use `otlpmetricpb.ExportMetricsServiceRequest` type.
+- 1-minute window: `window_start = time.Now().Truncate(time.Minute)`.
+- The `risk` field on blast radius: derive server-side based on `req_per_min` thresholds
+  defined in spec. Do not send raw counts to client without a risk label.
+- Add `go.opentelemetry.io/proto/otlp` to go.mod with `go get`.
+
+═══════════════════════════════════════════════════════════════
+DELIVERABLES
+═══════════════════════════════════════════════════════════════
+1. FILE: api/internal/db/schema/20260802000001_otel_traffic.sql (CREATE)
+2. FILE: api/internal/db/queries/otel.sql (CREATE)
+3. FILE: api/internal/ports/otel.go (CREATE)
+4. FILE: api/internal/adapters/otel_store.go (CREATE)
+5. FILE: api/internal/handlers/otel_handler.go (CREATE — OTLP receiver + source CRUD)
+6. FILE: api/internal/handlers/otel_handler_test.go (CREATE)
+7. MODIFY: api/internal/handlers/impact_handler.go — join traffic weight
+8. MODIFY: api/cmd/server/main.go — register new routes
+9. Run `sqlc generate` and `go vet ./...`.
+
+Commit: "jules: P20-T01 add OTel OTLP receiver with traffic-enriched blast radius"
+Target branch: feature/p20-t01-otel-receiver
