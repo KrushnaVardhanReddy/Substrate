@@ -84,6 +84,25 @@ type AgentToolDependency struct {
 	CreatedAt       pgtype.Timestamptz
 }
 
+type AirbyteSource struct {
+	ID        pgtype.UUID
+	Org       string
+	Name      string
+	Connector string
+	ConfigEnc []byte
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type AirbyteStagedRecord struct {
+	ID         int64
+	Org        string
+	SourceID   pgtype.UUID
+	Stream     string
+	Data       []byte
+	IngestedAt time.Time
+}
+
 type ApiKey struct {
 	ID         pgtype.UUID
 	OrgID      pgtype.UUID

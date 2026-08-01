@@ -86,3 +86,8 @@ func (m *MockKMSClient) Decrypt(ciphertext []byte, keyARN string) ([]byte, error
 
 // Ensure MockKMSClient implements KMSClient
 var _ KMSClient = (*MockKMSClient)(nil)
+
+// NewKMSClient initializes a standard KMS client. Since the only implementation provided in the repo currently is MockKMSClient, we use it for both for now until a real implementation is injected or built.
+func NewKMSClient(keyARN string) (KMSClient, error) {
+	return NewMockKMSClient(keyARN)
+}
