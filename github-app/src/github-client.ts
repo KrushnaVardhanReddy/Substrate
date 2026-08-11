@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Krushna Vardhan Reddy. All rights reserved.
+// PROPRIETARY AND CONFIDENTIAL — Substrate Cloud Platform.
+// Unauthorized copying, modification, or distribution is strictly prohibited.
+
 function base64UrlEncode(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
   let binary = '';

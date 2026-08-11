@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Krushna Vardhan Reddy. All rights reserved.
+// PROPRIETARY AND CONFIDENTIAL — Substrate Cloud Platform.
+// Unauthorized copying, modification, or distribution is strictly prohibited.
+
 import { Env, DiffReport, SyncDependency, CrossRepoCheckRequest, CrossRepoCheckResponse, AIAutofixRequest, AIAutofixResponse, VCSClient } from './types.js';
 import { validateWebhookSignature, parseInstallationRepositoriesEvent, parseInstallationEvent } from './webhook.js';
 import { generateInstallationToken } from './github-client.js';

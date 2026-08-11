@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Krushna Vardhan Reddy. All rights reserved.
+// PROPRIETARY AND CONFIDENTIAL — Substrate Cloud Platform.
+// Unauthorized copying, modification, or distribution is strictly prohibited.
+
 import { describe, it, expect, afterEach, beforeEach, vi, type Mock } from 'vitest';
 import { render, cleanup, fireEvent, act } from '@testing-library/svelte';
 import PlaygroundPage from './+page.svelte';

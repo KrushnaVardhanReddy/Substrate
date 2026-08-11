@@ -1084,6 +1084,24 @@ One step at a time.
 
 # Credits & License
 
-Substrate is proprietary software. All source code, specifications, and internal tooling are confidential.
+## Core Engine — MIT License
+
+The Substrate diff engine (`engine/`) is **open-source software** released under the [MIT License](engine/LICENSE).
+This includes all schema adapters (OpenAPI, SQL, GraphQL, Protobuf, AsyncAPI, Avro, Terraform, AI/ML, Enterprise XML),
+the WebAssembly (`engine.wasm`) build target, the Go CLI (`substrate` binary), and the MCP server wrapper (`substrate-mcp`).
+
+You are free to use, modify, and distribute the engine in any project — commercial or otherwise.
+
+## Cloud Platform — Proprietary
+
+The Substrate Cloud Platform — including the Registry API (`api/`), the SvelteKit Dashboard (`dashboard/`),
+the GitHub App orchestration layer (`github-app/`), and all enterprise features (BYOK, Policy-as-Code,
+Compliance Mapping, Air-Gapped Licensing via PASETO, CRM Blast Radius) — is **proprietary software**.
+Source code, specifications, and internal tooling for the cloud platform are confidential.
+
+A hosted SaaS offering is available at [substrate.dev](https://substrate.dev). Enterprise self-hosted
+deployments are available under a commercial license — contact us at enterprise@substrate.dev.
+
+## Third-Party Attribution
 
 The Phase 1a OpenAPI core engine relies on the incredible work done by the [oasdiff](https://github.com/Tufin/oasdiff) community (Apache 2.0). Full attribution is provided in the `NOTICES` file at the repository root, as required by the Apache 2.0 license.

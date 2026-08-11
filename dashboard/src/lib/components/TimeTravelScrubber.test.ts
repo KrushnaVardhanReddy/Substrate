@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Krushna Vardhan Reddy. All rights reserved.
+// PROPRIETARY AND CONFIDENTIAL — Substrate Cloud Platform.
+// Unauthorized copying, modification, or distribution is strictly prohibited.
+
 import { render, fireEvent, screen } from '@testing-library/svelte';
 import { describe, it, expect, afterEach } from 'vitest';
 import TimeTravelScrubber from './TimeTravelScrubber.svelte';

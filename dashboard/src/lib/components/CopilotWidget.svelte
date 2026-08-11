@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Krushna Vardhan Reddy. All rights reserved.
+// PROPRIETARY AND CONFIDENTIAL — Substrate Cloud Platform.
+// Unauthorized copying, modification, or distribution is strictly prohibited.
+
 <script lang="ts">
 	import MessageSquare from '@lucide/svelte/icons/message-square';
 	import X from '@lucide/svelte/icons/x';
