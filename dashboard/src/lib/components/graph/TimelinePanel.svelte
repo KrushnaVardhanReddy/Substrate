@@ -56,11 +56,8 @@
 
 <style>
 	.timeline-panel {
-		position: absolute;
-		bottom: 24px;
-		left: 50%;
-		transform: translateX(-50%);
-		width: 80%;
+		width: 100%;
+		margin: 0 auto;
 		max-width: 800px;
 		background-color: var(--bg-card, #1E222C);
 		border: 1px solid var(--border, #2D3240);

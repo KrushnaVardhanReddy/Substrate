@@ -637,13 +637,9 @@ import ServiceNode from '$lib/components/ServiceNode.svelte';
 			<button class="btn-zoom" onclick={() => cyInstance && cyInstance.fit(undefined, 50)} title="Fit to Screen">Fit</button>
 		</div>
 
-		<!-- Time Travel Scrubber -->
-		<div class="scrubber-wrapper">
+		<!-- Bottom Controls Container -->
+		<div class="bottom-controls">
 			<TimeTravelScrubber />
-		</div>
-
-		<!-- Event Timeline Scrubber -->
-		<div class="scrubber-wrapper">
 			<TimelinePanel bind:selectedEventRepo bind:selectedEventType />
 		</div>
 	</main>
@@ -868,7 +864,7 @@ import ServiceNode from '$lib/components/ServiceNode.svelte';
 		box-sizing: border-box;
 	}
 
-	.scrubber-wrapper {
+	.bottom-controls {
 		position: absolute;
 		bottom: 24px;
 		left: 0;
@@ -876,8 +872,13 @@ import ServiceNode from '$lib/components/ServiceNode.svelte';
 		z-index: 20;
 		pointer-events: none;
 		display: flex;
+		flex-direction: column;
 		justify-content: center;
+		gap: 16px;
 		padding: 0 24px;
+	}
+	.bottom-controls > :global(*) {
+		pointer-events: auto;
 	}
 	.btn-clear-selection {
 		background-color: var(--bg-card);

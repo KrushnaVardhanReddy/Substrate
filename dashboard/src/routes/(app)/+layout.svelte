@@ -25,6 +25,7 @@
 			}
 		}
 	});
+	let showFooter = $derived(!$page.url.pathname.endsWith('/graph'));
 </script>
 
 <CommandPalette repos={data.repos} />
@@ -40,7 +41,9 @@
 	<!-- Content Area -->
 	{@render children()}
 
-	<Footer />
+	{#if showFooter}
+		<Footer />
+	{/if}
 </div>
 
 <CopilotWidget />
