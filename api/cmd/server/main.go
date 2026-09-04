@@ -153,6 +153,14 @@ func main() {
 	mux.Get("/mcp/sse", mcpMW(http.HandlerFunc(httpTransport.ServeSSE)).ServeHTTP)
 	mux.Post("/mcp/message", mcpMW(http.HandlerFunc(httpTransport.ServeMessages)).ServeHTTP)
 	mux.Post("/mcp/messages", mcpMW(http.HandlerFunc(httpTransport.ServeMessages)).ServeHTTP)
+
+	// Airbyte routes
+	airbyteHandler := handlers.NewAirbyteHandler(store)
+	mux.Post("/api/v1/airbyte/ingest", server.AuthMiddleware(registryApiToken, jwtSecret)(http.HandlerFunc(airbyteHandler.Ingest)).ServeHTTP)
+	mux.Post("/api/v1/org/{org}/airbyte/sources", server.AuthzMiddleware(registryApiToken, jwtSecret)(http.HandlerFunc(airbyteHandler.CreateSource)).ServeHTTP)
+	mux.Get("/api/v1/org/{org}/airbyte/sources", server.AuthzMiddleware(registryApiToken, jwtSecret)(http.HandlerFunc(airbyteHandler.ListSources)).ServeHTTP)
+	mux.Delete("/api/v1/org/{org}/airbyte/sources/{id}", server.AuthzMiddleware(registryApiToken, jwtSecret)(http.HandlerFunc(airbyteHandler.DeleteSource)).ServeHTTP)
+
 	mux.Mount("/", router)
 
 	srv := &http.Server{

@@ -5,11 +5,12 @@
 package db
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
-	"time"
 
+	"time"
+	"encoding/json"
+
+	"context"
 	"github.com/KrushnaVardhanReddy/substrate/api/internal/db/sqlcgen"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -17,6 +18,23 @@ import (
 )
 
 type MockStore struct {
+
+
+
+
+
+
+
+
+
+
+	UpsertAirbyteSourceFunc        func(ctx context.Context, arg sqlcgen.UpsertAirbyteSourceParams) (sqlcgen.AirbyteSource, error)
+	ListAirbyteSourcesFunc         func(ctx context.Context, org string) ([]sqlcgen.AirbyteSource, error)
+	GetAirbyteSourceFunc           func(ctx context.Context, arg sqlcgen.GetAirbyteSourceParams) (sqlcgen.AirbyteSource, error)
+	GetAirbyteSourceByIDFunc       func(ctx context.Context, arg sqlcgen.GetAirbyteSourceByIDParams) (sqlcgen.AirbyteSource, error)
+	DeleteAirbyteSourceFunc        func(ctx context.Context, arg sqlcgen.DeleteAirbyteSourceParams) error
+	BulkInsertAirbyteRecordsFunc   func(ctx context.Context, org string, sourceID uuid.UUID, stream string, records [][]byte) (int, error)
+
 	pool                           *pgxpool.Pool
 	UpsertRepoMetricFunc           func(ctx context.Context, repoID uuid.UUID, score int) error
 	GetAllRepositoriesFunc         func(ctx context.Context) ([]Repository, error)
@@ -636,4 +654,56 @@ func (m *MockStore) InsertMCPAuditLog(ctx context.Context, agentID *int, toolNam
 
 func (m *MockStore) ListMCPAuditLogs(ctx context.Context) ([]sqlcgen.McpAuditLog, error) {
 	return []sqlcgen.McpAuditLog{}, nil
+}
+
+
+
+
+
+
+
+
+
+
+
+func (m *MockStore) UpsertAirbyteSource(ctx context.Context, arg sqlcgen.UpsertAirbyteSourceParams) (sqlcgen.AirbyteSource, error) {
+	if m.UpsertAirbyteSourceFunc != nil {
+		return m.UpsertAirbyteSourceFunc(ctx, arg)
+	}
+	return sqlcgen.AirbyteSource{}, nil
+}
+
+func (m *MockStore) ListAirbyteSources(ctx context.Context, org string) ([]sqlcgen.AirbyteSource, error) {
+	if m.ListAirbyteSourcesFunc != nil {
+		return m.ListAirbyteSourcesFunc(ctx, org)
+	}
+	return nil, nil
+}
+
+func (m *MockStore) GetAirbyteSource(ctx context.Context, arg sqlcgen.GetAirbyteSourceParams) (sqlcgen.AirbyteSource, error) {
+	if m.GetAirbyteSourceFunc != nil {
+		return m.GetAirbyteSourceFunc(ctx, arg)
+	}
+	return sqlcgen.AirbyteSource{}, nil
+}
+
+func (m *MockStore) GetAirbyteSourceByID(ctx context.Context, arg sqlcgen.GetAirbyteSourceByIDParams) (sqlcgen.AirbyteSource, error) {
+	if m.GetAirbyteSourceByIDFunc != nil {
+		return m.GetAirbyteSourceByIDFunc(ctx, arg)
+	}
+	return sqlcgen.AirbyteSource{}, nil
+}
+
+func (m *MockStore) DeleteAirbyteSource(ctx context.Context, arg sqlcgen.DeleteAirbyteSourceParams) error {
+	if m.DeleteAirbyteSourceFunc != nil {
+		return m.DeleteAirbyteSourceFunc(ctx, arg)
+	}
+	return nil
+}
+
+func (m *MockStore) BulkInsertAirbyteRecords(ctx context.Context, org string, sourceID uuid.UUID, stream string, records [][]byte) (int, error) {
+	if m.BulkInsertAirbyteRecordsFunc != nil {
+		return m.BulkInsertAirbyteRecordsFunc(ctx, org, sourceID, stream, records)
+	}
+	return 0, nil
 }

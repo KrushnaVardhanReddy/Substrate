@@ -176,6 +176,7 @@ type UpsertRepoParams struct {
 	Metadata     []byte
 }
 
+// Include metadata in upsert
 func (q *Queries) UpsertRepo(ctx context.Context, arg UpsertRepoParams) (pgtype.UUID, error) {
 	row := q.db.QueryRow(ctx, upsertRepo,
 		arg.OrgID,
