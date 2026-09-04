@@ -6,9 +6,9 @@ overrides:
     path: GET /users
     reason: "Because tests require it to pass and this is a mock config with a minimum of 20 chars"
     approved_by: jules@test.com
-    expires: 2026-09-01
+    expires: 2030-01-01
   - rule_id: ENDPOINT_REMOVED
     path: GET /deleted
     reason: "Because tests require it to pass and this is a mock config with a minimum of 20 chars"
     approved_by: jules@test.com
-    expires: 2026-09-01
+    expires: 2030-01-01

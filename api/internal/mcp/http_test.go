@@ -23,21 +23,31 @@ func TestHTTPTransport_ServeSSE(t *testing.T) {
 	transport := NewHTTPTransport(server)
 
 	req := httptest.NewRequest("GET", "/mcp/sse", nil)
+	ctx, cancel := context.WithCancel(req.Context())
+	req = req.WithContext(ctx)
 	w := httptest.NewRecorder()
 
-	go transport.ServeSSE(w, req)
+	done := make(chan struct{})
+	go func() {
+		transport.ServeSSE(w, req)
+		close(done)
+	}()
 
 	// Wait briefly for the handler to start and write the initial event
 	time.Sleep(50 * time.Millisecond)
 
-	res := w.Result()
-	assert.Equal(t, http.StatusOK, res.StatusCode)
-	assert.Equal(t, "text/event-stream", res.Header.Get("Content-Type"))
-
-	// Ensure there is at least one active session recorded
+	// Ensure there is at least one active session recorded while running
 	transport.mu.RLock()
 	assert.Equal(t, 1, len(transport.sessions))
 	transport.mu.RUnlock()
+
+	// Stop handler to prevent data race on ResponseRecorder
+	cancel()
+	<-done
+
+	res := w.Result()
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+	assert.Equal(t, "text/event-stream", res.Header.Get("Content-Type"))
 }
 
 func TestHTTPTransport_ServeMessages(t *testing.T) {
