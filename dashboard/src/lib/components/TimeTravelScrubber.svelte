@@ -1,7 +1,3 @@
-// Copyright (c) 2026 Krushna Vardhan Reddy. All rights reserved.
-// PROPRIETARY AND CONFIDENTIAL — Substrate Cloud Platform.
-// Unauthorized copying, modification, or distribution is strictly prohibited.
-
 <script lang="ts">
 	const dates = [
 		"Jan 15, 2026", "Feb 28, 2026", "Mar 10, 2026", "Apr 05, 2026",
