@@ -230,6 +230,27 @@ Same compiled binary. The `serve` subcommand switches it from a one-shot CLI too
 
 One governance platform. One dependency graph. Seven schema languages.
 
+### What Substrate Catches (The Rules Engine)
+
+Substrate categorizes every schema change into one of three semantic severities.
+
+**🔴 BREAKING (Pipeline Blocked):**
+- `ENDPOINT_REMOVED` — Deleting a path like `/api/v1/users`
+- `FIELD_REMOVED` — Removing `user_id` from a response payload
+- `TYPE_CHANGED` — Changing a field from `string` to `integer`
+- `REQUIRED_FIELD_ADDED` — Adding a new required parameter to a request
+- `ENUM_VALUE_REMOVED` — Deleting `PENDING` from a status enum
+
+**⚠️ WARNING (Pipeline Passes, but flagged):**
+- `OPTIONAL_FIELD_ADDED` — Adding a new non-required property
+- `DESCRIPTION_CHANGED` — Updating the docs or description string
+- `ENUM_VALUE_ADDED` — Adding `REFUNDED` to a status enum (technically a minor break for strictly-typed clients, but often safe)
+- `DEPRECATED_FLAG_ADDED` — Marking an endpoint as deprecated
+
+**✅ SAFE (Pipeline Passes silently):**
+- Reformatting YAML/JSON structure without changing semantic meaning
+- Changing the order of properties
+
 ---
 
 ## 5 · The Demo — A Real 5-Service E-Commerce Scenario
