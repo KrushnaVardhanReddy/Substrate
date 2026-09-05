@@ -192,3 +192,11 @@ Once all automated E2E tests are complete, these four manual workflows must be v
 - `[x]` **4. Zero-Config Scaffold (`substrate init`)**
   - Run `substrate init` in a fresh, empty directory.
   - Verify the generated `substrate.yaml` and `.github/workflows/substrate.yml` are perfectly formatted and intuitive.
+
+---
+
+## 🚀 Future Enhancements (Post-Demo)
+- `[ ]` **Support for Arbitrary/Custom Metadata Tags**
+  - Update `Metadata` struct in `api/internal/config/config.go` to support custom inline maps (e.g., `yaml:",inline"`).
+  - Allow enterprise users to pass proprietary fields (like `support_group`, `team_dl`, or arbitrary `tags`) without being dropped by the YAML unmarshaler.
+  - Ensure the MCP tools and UI properly render these custom keys.
