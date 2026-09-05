@@ -1,6 +1,12 @@
 service: substrate-engine
 schema_type: openapi
 spec_path: openapi.yaml
+metadata:
+  type: core-engine
+  team: platform-engineering
+  slack_channel: "#alerts-platform-l2"
+  pagerduty: "PD-PLATFORM"
+  sla_tier: "Tier-1-Critical"
 consumers:
   - name: substrate-dashboard
     provider_repo: KrushnaVardhanReddy/Substrate
