@@ -113,6 +113,48 @@ build-mcp-wasi:
 build-mcp:
 	cd engine && go build -o substrate-mcp ./cmd/substrate-mcp/main.go
 
+build-api:
+	cd api && CGO_ENABLED=0 go build -o substrate-api ./cmd/server/main.go
+
+build-dashboard:
+	cd dashboard && npm install --legacy-peer-deps && npm run build
+	rm -rf api/internal/server/dashboard_build
+	cp -r dashboard/build api/internal/server/dashboard_build
+
+## build-all: Build every component — engine CLI, MCP binary, API backend, and UI dashboard
+build-all:
+	@echo "═══════════════════════════════════════════════"
+	@echo "  Building Substrate — all components"
+	@echo "═══════════════════════════════════════════════"
+	@echo ""
+	@echo "▶ [1/4] Engine CLI (substrate)..."
+	cd engine && go build -o substrate ./cmd/substrate/
+	@echo "  ✅ engine/substrate"
+	@echo ""
+	@echo "▶ [2/4] MCP binary (substrate-mcp)..."
+	cd engine && go build -o substrate-mcp ./cmd/substrate-mcp/main.go
+	@echo "  ✅ engine/substrate-mcp"
+	@echo ""
+	@echo "▶ [3/4] API backend (substrate-api)..."
+	cd api && CGO_ENABLED=0 go build -o substrate-api ./cmd/server/main.go
+	@echo "  ✅ api/substrate-api"
+	@echo ""
+	@echo "▶ [4/4] Dashboard UI..."
+	cd dashboard && npm install --legacy-peer-deps --silent && npm run build
+	rm -rf api/internal/server/dashboard_build
+	cp -r dashboard/build api/internal/server/dashboard_build
+	@echo "  ✅ dashboard/build  (embedded into api/internal/server/dashboard_build)"
+	@echo ""
+	@echo "═══════════════════════════════════════════════"
+	@echo "  ✅ Build complete!"
+	@echo ""
+	@echo "  Binaries:"
+	@echo "    engine/substrate       — CLI diff tool"
+	@echo "    engine/substrate-mcp   — MCP server for AI IDEs"
+	@echo "    api/substrate-api      — Registry API backend"
+	@echo "    dashboard/build/       — Static UI (served by API)"
+	@echo "═══════════════════════════════════════════════"
+
 
 start-bg: postgres
 	@echo "Starting backend services in background..."
