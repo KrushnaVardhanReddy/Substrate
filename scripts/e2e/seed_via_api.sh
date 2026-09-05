@@ -239,9 +239,10 @@ cat << 'EOF' > /tmp/seed_insurance.js
 const { Client } = require('pg');
 
 async function run() {
-  const client = new Client({
-    connectionString: "postgres://postgres:postgres@127.0.0.1:5432/substrate?sslmode=disable"
-  });
+  // Use DATABASE_URL from the harness if set (PGlite runs on 54320, not 5432)
+  const connStr = process.env.DATABASE_URL ||
+    "postgres://postgres:postgres@127.0.0.1:54320/postgres?sslmode=disable";
+  const client = new Client({ connectionString: connStr });
   await client.connect();
 
   const sql = `
