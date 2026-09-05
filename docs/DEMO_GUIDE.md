@@ -339,13 +339,17 @@ This is your **real dependency graph** — not a mock. The data is already seede
 
 ### Step 1 — Show the dependency graph
 
-**Navigate to:** http://localhost:5173 → log in → select mcp-org
+Instead of running the UI live, present these Substrate Dashboard views to demonstrate the topology and blast radius calculations:
 
-**What to point out:**
+![Substrate Live Dependency Graph](./assets/graph.png)
+
+![dependency graph ](./assets/dependency-graph.png)
+
+**What to point out in the screenshots:**
 - Every node is a real repository registered in the contract registry.
 - Edges represent live dependency contracts — not just code imports, but *schema contracts*.
-- Click any node → the right panel shows the full blast radius: who depends on it, how many consumers, and what schema they agreed on.
-- The graph is **live** — it updates in real-time via SSE (Server-Sent Events) as new pushes register.
+- The right panel shows the full blast radius: who depends on it, how many consumers, and what schema they agreed on.
+- The graph is designed to be **live** — it updates in real-time via SSE (Server-Sent Events) as new CI/CD pushes register.
 
 ```bash
 # Show the raw data behind the graph
