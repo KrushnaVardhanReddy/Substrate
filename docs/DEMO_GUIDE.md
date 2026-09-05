@@ -253,6 +253,63 @@ Substrate categorizes every schema change into one of three semantic severities.
 
 ---
 
+## 4.1 · Value Proposition by Role — Who Gets What?
+
+When presenting to a Client Architect or leadership team, it is essential to show how Substrate delivers tailored value across every stakeholder in the software engineering lifecycle:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          SUBSTRATE VALUE BY ROLE                            │
+│                                                                             │
+│  DEVELOPER                     TESTER / QA                   ENGINEERING    │
+│  ─────────                     ───────────                   MANAGER / VP   │
+│  • Instant IDE & CLI diffs     • Contract drift detection    • Zero outage  │
+│  • MCP AI auto-remediation     • Auto mock/test generation     regressions  │
+│  • Clear PR status checks      • Consumer-driven validation  • Full audit   │
+│                                                                compliance   │
+│                                                                             │
+│                     ENTERPRISE ARCHITECT / PLATFORM ENG                     │
+│                     ───────────────────────────────────                     │
+│                     • Live cross-repo dependency topology                   │
+│                     • Multi-protocol governance (REST, gRPC, GraphQL, SQL)  │
+│                     • Blast radius calculation before deployment            │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 1. For Developers (Inner Loop & CI Velocity)
+*“Ship fast without the fear of breaking someone else’s service.”*
+
+- **Instant Local Feedback (CLI & WASM):** Diff schema changes locally (`substrate diff`) in sub-milliseconds before pushing to GitHub. No waiting for downstream teams or QA test environments.
+- **AI-Native Context (MCP):** Using Cursor, Claude, or VS Code with `substrate-mcp`, developers can ask: *"If I deprecate this field or change this type, who breaks?"* and receive real-time answers directly from the dependency graph.
+- **Automated Fix Recommendations:** When a breaking change is detected in CI, Substrate doesn't just block the PR with an exit code `2` — it provides actionable migration paths, safe deprecation strategies, or schema patch suggestions.
+- **GitOps Overrides:** If a breaking change is strictly coordinated, developers can declare an override with an expiration date directly in `substrate.yaml`, reviewed transparently via standard Git PR workflows.
+
+### 2. For Testers / QA & SDETs (Contract Quality & Integration)
+*“Eliminate brittle end-to-end test flakiness caused by unannounced contract drift.”*
+
+- **Automated Contract Drift Detection:** QA teams spend days triaging broken integration environments only to find a producer quietly renamed a field. Substrate flags schema drift before code ever hits test or staging environments.
+- **Mock & Contract Synchronization:** Ensure client-side mock servers, Postman collections, and Cypress/Playwright stubs always match the active, verified producer contract.
+- **Consumer-Driven Verification:** Validates that producer updates honor the explicit contracts registered by downstream consumer teams without needing full end-to-end integration environments spun up.
+- **Changelog Generation:** Instant `--format=changelog` markdown generation from raw PR schema diffs, giving QA teams a precise map of what actually changed between releases.
+
+### 3. For Engineering Managers & Directors (Velocity & Reliability)
+*“Decouple team release cadences while eliminating cross-service outage post-mortems.”*
+
+- **Zero Unplanned Outages:** Eliminates the #1 source of microservice production regressions: unintended semantic breaking changes merged across service boundaries.
+- **Autonomous Release Cycles:** Teams can deploy independently without endless cross-team sync meetings, Slack ping-pong, or monolithic staging release freezes.
+- **Compliance & Audit Trail:** Full audit log of all contract changes, approvals, and temporary overrides visible in the Substrate Dashboard, ensuring regulatory and SOC2 compliance.
+- **Measurable Developer Velocity:** Cuts down hours spent in incident post-mortems and emergency hotfixes, directly improving DORA metrics (Change Failure Rate & MTTR).
+
+### 4. For Platform Architects & Staff Engineers (Systemic Governance)
+*“Real-time visibility into the living architecture across all polyglot microservices.”*
+
+- **Live Global Dependency Graph:** An interactive, single-pane-of-glass map (REST, gRPC/Protobuf, GraphQL, SQL DDL, AsyncAPI) powered by Cytoscape and real-time SSE events.
+- **Automated Blast Radius Calculation:** Before approving high-risk platform refactors, architects can inspect the exact blast radius: every upstream dependency and downstream consumer affected across the entire enterprise.
+- **Multi-Protocol Standardization:** One consistent policy and governance model across polyglot stacks — from front-end web apps down to Kafka event streams and Postgres database migrations.
+- **Zero Lock-in & Air-Gapped Readiness:** Stateless engine runs completely inside internal CI runners; stateful components deploy seamlessly in self-hosted Kubernetes (Helm) without sending schema IP outside corporate boundaries.
+
+---
+
 ## 5 · The Demo — A Real 5-Service E-Commerce Scenario
 
 We are going to walk through a **realistic, production-like scenario** using the live running stack. No toy examples. No `FooBar` APIs.
