@@ -332,71 +332,28 @@ overrides: []
 
 ---
 
-### Step 3 — The stateless CLI in a CI/CD pipeline
+### Step 3 — Live CI/CD Enforcement (GitHub PRs)
 
-This is the **zero-dependency gate** — no database, no account, just the binary.
+Instead of just showing local CLI commands, let's look at how this actually stops a bad deployment in a real CI/CD pipeline.
 
-```bash
-# A SAFE change — exit code 0, pipeline passes
-substrate diff base.yaml head.yaml --format=text
+**Open the real GitHub repository:** `https://github.com/KrushnaVardhanReddy/substrate-test-provider`
 
-# A BREAKING change — exit code 2, pipeline BLOCKED
-substrate diff base.yaml head_breaking.yaml --format=json
-```
+Go to the **Pull Requests** tab. We have three pre-staged PRs demonstrating the three severities:
 
-**Breaking change output:**
+1. **The SAFE PR:** Show a PR that just reformats the YAML or reorders properties.
+   - Look at the Checks tab: The Substrate GitHub Action passes instantly (`Exit code 0`).
+   - The PR is green and ready to merge.
 
-```json
-{
-  "substrate_version": "0.1.0",
-  "schema_type": "openapi",
-  "summary": {
-    "total_changes": 1,
-    "breaking_count": 1,
-    "overall_severity": "BREAKING"
-  },
-  "breaking_changes": [
-    {
-      "rule_id": "FIELD_REMOVED",
-      "severity": "BREAKING",
-      "path": "GET /api/articles → response.body.articles[].author",
-      "description": "Required response field removed",
-      "recommendation": "Add a deprecation period or version the endpoint"
-    }
-  ]
-}
-```
+2. **The WARNING PR:** Show a PR that adds a new, optional field.
+   - The Substrate Action passes, but the Substrate GitHub App leaves a comment: *"⚠️ Warning: Optional field added. Ensure downstream clients are not strictly validating exact payloads."*
+   - This coaches developers without blocking velocity.
 
-**Exit code 2 = pipeline BLOCKED.**
+3. **The BREAKING PR:** Show a PR that deletes a required field (e.g., `user_id`).
+   - **The Pipeline is BLOCKED.** The Substrate check returns `Exit code 2`.
+   - The Substrate GitHub App leaves a bold red comment in the PR detailing exactly which rule was violated (`FIELD_REMOVED`).
+   - **Crucially:** Because the developer hasn't merged yet, the downstream mobile app is safe. The disaster was prevented.
 
-### The GitHub Actions integration
-
-```yaml
-# .github/workflows/substrate.yml
-name: API Contract Gate
-on: [pull_request]
-
-jobs:
-  contract-check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Install Substrate CLI
-        run: |
-          curl -L https://github.com/KrushnaVardhanReddy/substrate/releases/latest/download/substrate-linux-amd64 \
-            -o /usr/local/bin/substrate && chmod +x /usr/local/bin/substrate
-
-      - name: Run API Contract Check
-        run: |
-          substrate diff \
-            origin/main:openapi.yaml \
-            HEAD:openapi.yaml \
-            --config=substrate.yaml \
-            --format=json
-```
+*Note for Architect:* This enforcement uses the exact same stateless Go binary we ran locally via `substrate diff`, just executed inside a GitHub Action or GitLab CI pipeline. It requires no database connection.
 
 ---
 
